@@ -144,7 +144,12 @@ internal sealed class Reporter(RunOptions options)
             }
             else if (removed.Count == 0)
             {
-                step.Append("All drifted tables were regenerated.");
+                // A --tables run never scans for orphans, so "all" would claim a
+                // directory it did not read.
+                step.Append(options.Settings.TableNames.Count == 0
+                    ? "All drifted tables were regenerated."
+                    : "The drifted tables named by --tables were regenerated; run without "
+                        + "--tables to also find files whose table is gone.");
             }
 
             if (removed.Count > 0)

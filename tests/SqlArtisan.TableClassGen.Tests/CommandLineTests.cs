@@ -424,33 +424,138 @@ public class CommandLineTests
     // Every key: JsonElement.ToString() on an object is its raw JSON, which the
     // blank check downstream accepts (release audit pass 8).
     [Theory]
-    [InlineData("namespace")]
-    [InlineData("host")]
-    [InlineData("database")]
-    [InlineData("user")]
-    [InlineData("schema")]
-    [InlineData("output")]
-    [InlineData("file")]
-    [InlineData("tables")]
-    [InlineData("port")]
-    [InlineData("fix")]
-    public void Parse_ConfigObjectValue_ThrowsCommandLineException(string key)
+    [InlineData("namespace", "a string or number")]
+    [InlineData("host", "a string or number")]
+    [InlineData("database", "a string or number")]
+    [InlineData("user", "a string or number")]
+    [InlineData("schema", "a string or number")]
+    [InlineData("output", "a string or number")]
+    [InlineData("file", "a string or number")]
+    [InlineData("tables", "a string or an array of strings")]
+    [InlineData("port", "a string or number")]
+    [InlineData("fix", "true or false")]
+    public void Parse_ConfigObjectValue_ThrowsCommandLineException(string key, string expected)
     {
-        // The key under test replaces its base entry: a repeated key is rejected
-        // before its value's kind is read.
-        string baseKeys = string.Join(
-            ", ",
-            new[] { "\"dbms\": \"sqlite\"", "\"file\": \"a.db\"", "\"namespace\": \"N\"" }
-                .Where(entry => !entry.StartsWith($"\"{key}\"", StringComparison.Ordinal)));
-        using TempFile config = TempFile.Create(
-            $"{{{baseKeys}, \"{key}\": {{\"nested\": \"x\"}}}}");
+        using TempFile config = ConfigWith(key, "{\"nested\": \"x\"}");
 
         CommandLineException ex = Assert.Throws<CommandLineException>(() =>
             CommandLine.Parse(["--config", config.Path]));
 
         Assert.Equal(
-            $"\"{key}\" in the --config file must be a string, number, boolean, or array "
-                + "(got an object)",
+            $"\"{key}\" in the --config file must be {expected} (got an object)",
             ex.Message);
+    }
+
+    // Each option takes the kinds its command-line form can spell; read as text,
+    // "output": false generated into a directory named false.
+    [Theory]
+    [InlineData("output", "false", "a string or number (got a boolean)")]
+    [InlineData("namespace", "[\"N\"]", "a string or number (got an array)")]
+    [InlineData("tables", "true", "a string or an array of strings (got a boolean)")]
+    [InlineData("tables", "5", "a string or an array of strings (got a number)")]
+    [InlineData("fix", "[true]", "true or false (got an array)")]
+    public void Parse_ConfigValueOfTheWrongKind_ThrowsCommandLineException(
+        string key,
+        string json,
+        string expected)
+    {
+        using TempFile config = ConfigWith(key, json);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(["--config", config.Path]));
+
+        Assert.Equal($"\"{key}\" in the --config file must be {expected}", ex.Message);
+    }
+
+    [Fact]
+    public void Parse_ConfigTablesNonStringElement_ThrowsCommandLineException()
+    {
+        using TempFile config = ConfigWith("tables", "[\"orders\", 5]");
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(["--config", config.Path]));
+
+        Assert.Equal("\"tables\" array elements must be strings", ex.Message);
+    }
+
+    // EnumerateObject on another root threw InvalidOperationException, whose
+    // message named neither --config nor the file.
+    [Theory]
+    [InlineData("[\"dbms\"]", "an array")]
+    [InlineData("\"sqlite\"", "a string")]
+    [InlineData("null", "null")]
+    public void Parse_ConfigRootNotAnObject_ThrowsCommandLineException(
+        string json,
+        string kind)
+    {
+        using TempFile config = TempFile.Create(json);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(["--config", config.Path]));
+
+        Assert.Equal(
+            $"--config file must hold a JSON object of options: {config.Path} (got {kind})",
+            ex.Message);
+    }
+
+    // File.ReadAllText's exception reached stderr naming neither --config nor
+    // what to fix; a missing file was already reported against the flag.
+    [Fact]
+    public void Parse_UnreadableConfig_ThrowsCommandLineException()
+    {
+        // File modes do not bind root, and Windows has none.
+        if (OperatingSystem.IsWindows() || Environment.UserName == "root")
+        {
+            return;
+        }
+
+        using TempFile config = TempFile.Create("{}");
+        File.SetUnixFileMode(config.Path, UnixFileMode.None);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(["--config", config.Path]));
+
+        Assert.StartsWith(
+            $"--config file cannot be read: {config.Path} (",
+            ex.Message,
+            StringComparison.Ordinal);
+    }
+
+    // A blank value is an absent one at every source, so a blank flag leaves the
+    // key to the --config file and a blank anything reads its default.
+    [Fact]
+    public void Parse_BlankValues_ReadAsAbsent()
+    {
+        using TempFile config = ConfigWith("tables", "[]");
+
+        RunOptions options = CommandLine.Parse(
+            ["--config", config.Path, "--output", " ", "--format", "", "--accessibility", ""]);
+
+        Assert.Equal(".", options.Settings.OutputDirectory);
+        Assert.Empty(options.Settings.TableNames);
+        Assert.False(options.Json);
+        Assert.Equal("internal", options.Settings.Accessibility);
+    }
+
+    [Fact]
+    public void Parse_BlankFlag_LeavesTheKeyToTheConfigFile()
+    {
+        using TempFile config = ConfigWith("output", "\"src/Tables\"");
+
+        RunOptions options = CommandLine.Parse(["--config", config.Path, "--output", ""]);
+
+        Assert.Equal("src/Tables", options.Settings.OutputDirectory);
+    }
+
+    // The key under test replaces its base entry: a repeated key is rejected before
+    // its value's kind is read.
+    private static TempFile ConfigWith(string key, string json)
+    {
+        string baseKeys = string.Join(
+            ", ",
+            new[] { "\"dbms\": \"sqlite\"", "\"file\": \"a.db\"", "\"namespace\": \"N\"" }
+                .Where(entry => !entry.StartsWith($"\"{key}\"", StringComparison.Ordinal)));
+
+        return TempFile.Create($"{{{baseKeys}, \"{key}\": {json}}}");
     }
 }

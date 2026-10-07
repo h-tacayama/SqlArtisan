@@ -6,11 +6,11 @@ namespace SqlArtisan.TableClassGen;
 // through the library; three readers each carried a private copy before this.
 internal static class CatalogCommand
 {
-    public static void AddParameter(IDbCommand command, string name, string value)
+    public static void AddParameter(IDbCommand command, string name, string? value)
     {
         IDbDataParameter parameter = command.CreateParameter();
         parameter.ParameterName = name;
-        parameter.Value = value;
+        parameter.Value = (object?)value ?? DBNull.Value;
         command.Parameters.Add(parameter);
     }
 }

@@ -40,6 +40,7 @@ internal sealed class DbConnectionInfo(
         {
             connection = CreateConnection();
             connection.Open();
+            ReadHeader(connection);
         }
         catch (Exception ex)
         {
@@ -52,14 +53,27 @@ internal sealed class DbConnectionInfo(
         return connection;
     }
 
+    // Microsoft.Data.Sqlite opens lazily: a file that is not a database opens
+    // fine and fails at the first query, which would reach stderr naming no --file.
+    private void ReadHeader(IDbConnection connection)
+    {
+        if (Dbms != Dbms.Sqlite)
+        {
+            return;
+        }
+
+        using IDbCommand command = connection.CreateCommand();
+        command.CommandText = "PRAGMA schema_version";
+        command.ExecuteScalar();
+    }
+
     // MySQL and Oracle default --schema to --database and --user, so naming --schema
     // alone would point a user at an option they never passed.
     public string EmptyCatalogMessage =>
         Dbms switch
         {
             Dbms.Sqlite =>
-                $"No tables found in the SQLite database file '{ServiceName}'; check --file, "
-                    + "since a path that does not exist is created empty rather than rejected",
+                $"No tables found in the SQLite database file '{ServiceName}'; check --file",
             Dbms.MySql =>
                 $"No tables found in schema '{Schema}'; check --schema, or --database, which "
                     + "it defaults to (see --help)",
@@ -121,10 +135,12 @@ internal sealed class DbConnectionInfo(
                 UserID = Username,
                 Password = Password,
             }.ConnectionString,
-            // SQLite is file-based: ServiceName carries the database path.
+            // SQLite is file-based: ServiceName carries the database path. The default
+            // ReadWriteCreate would open a mistyped --file as an empty catalog.
             Dbms.Sqlite => new SqliteConnectionStringBuilder
             {
                 DataSource = ServiceName,
+                Mode = SqliteOpenMode.ReadWrite,
             }.ConnectionString,
             // SQL Server takes host,port (comma); TrustServerCertificate eases dev/container TLS.
             Dbms.SqlServer => new SqlConnectionStringBuilder

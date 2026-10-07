@@ -58,8 +58,51 @@ public class DbConnectionInfoTests
         Assert.NotEmpty(error.Message[(at + Marker.Length)..].Trim());
     }
 
+    // ReadWriteCreate, the driver default, created the mistyped file and read it as
+    // an empty catalog, so --check reported every committed class removed.
     [Fact]
-    public void EmptyCatalogMessage_Sqlite_NamesTheFileOptionAndTheCreatedFileTrap()
+    public void OpenConnection_SqliteMissingFile_FailsNamingTheFileOptionAndCreatesNothing()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"sqlartisan_tcg_{Guid.NewGuid():N}.db");
+        DbConnectionInfo info = new(
+            Dbms.Sqlite, string.Empty, 0, path, string.Empty, string.Empty, string.Empty);
+
+        CommandLineException error = Assert.Throws<CommandLineException>(
+            () => info.OpenConnection().Dispose());
+
+        Assert.StartsWith(
+            $"Cannot open the SQLite database file '{path}' (--file).",
+            error.Message,
+            StringComparison.Ordinal);
+        Assert.False(File.Exists(path));
+    }
+
+    // The driver opens lazily, so a file that is not a database used to fail at
+    // the first catalog query, outside the wrapper that names --file.
+    [Fact]
+    public void OpenConnection_SqliteFileThatIsNotADatabase_FailsNamingTheFileOption()
+    {
+        using TempFile notADatabase = TempFile.Create("not a database, just long enough text");
+        DbConnectionInfo info = new(
+            Dbms.Sqlite,
+            string.Empty,
+            0,
+            notADatabase.Path,
+            string.Empty,
+            string.Empty,
+            string.Empty);
+
+        CommandLineException error = Assert.Throws<CommandLineException>(
+            () => info.OpenConnection().Dispose());
+
+        Assert.StartsWith(
+            $"Cannot open the SQLite database file '{notADatabase.Path}' (--file).",
+            error.Message,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EmptyCatalogMessage_Sqlite_NamesTheFileOption()
     {
         DbConnectionInfo info = new(
             Dbms.Sqlite,

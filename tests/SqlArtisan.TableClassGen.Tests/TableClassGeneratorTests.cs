@@ -230,7 +230,128 @@ public class TableClassGeneratorTests : IDisposable
         CommandLineException ex = Assert.Throws<CommandLineException>(
             () => Run(db, RunMode.Generate, tableNames: ["nope"]));
 
-        Assert.Equal("--tables names 'nope', which the schema does not contain", ex.Message);
+        Assert.Equal("--tables names 'nope', which is not a table in the schema", ex.Message);
+    }
+
+    // pragma_table_info answers for these too, but the full run never lists them,
+    // so a class generated from one read as removed on every later full --check.
+    [Theory]
+    [InlineData("item_view")]
+    [InlineData("sqlite_sequence")]
+    public void Run_TablesNamesAnObjectTheFullRunExcludes_ThrowsCommandLineException(
+        string name)
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            Schema
+                + "CREATE TABLE counter (id INTEGER PRIMARY KEY AUTOINCREMENT);"
+                + "CREATE VIEW item_view AS SELECT id FROM item;");
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => Run(db, RunMode.Generate, tableNames: [name]));
+
+        Assert.Equal($"--tables names '{name}', which is not a table in the schema", ex.Message);
+        Assert.False(Directory.Exists(_outputDirectory));
+    }
+
+    // SQLite folds identifier case, so the user's spelling used to reach the
+    // emitted literal: `--tables ITEM` wrote a file the full run reported modified.
+    [Fact]
+    public void Run_TablesInAnotherCase_WritesWhatTheFullRunWrites()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        Run(db, RunMode.Generate);
+
+        IReadOnlyList<TableResult> results = Run(db, RunMode.Check, tableNames: ["ITEM"]);
+
+        TableResult item = Assert.Single(results);
+        Assert.Equal("item", item.TableName);
+        Assert.Equal(TableStatus.Unchanged, item.Status);
+    }
+
+    // Deduplicating by the lowercased name merged two distinct tables, so the run
+    // generated one of the two it was asked for and exited 0.
+    [Fact]
+    public void Run_LowercaseTablesNamingTwoTablesWithOneLoweredName_ThrowsCommandLineException()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            "CREATE TABLE \"Ä\" (id INTEGER, a TEXT); CREATE TABLE \"ä\" (id INTEGER, b TEXT);");
+
+        Assert.Throws<CommandLineException>(
+            () => Run(db, RunMode.Generate, tableNames: ["Ä", "ä"], lowercaseNames: true));
+        Assert.False(Directory.Exists(_outputDirectory));
+    }
+
+    // Read as a directory, a file made every table read as added and the first
+    // write fail naming the file rather than the flag.
+    [Fact]
+    public void Run_OutputNamesAFile_ThrowsCommandLineException()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        using TempFile file = TempFile.Create("{}");
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => RunInto(db, RunMode.Check, file.Path));
+
+        Assert.Equal($"--output names a file, not a directory: {file.Path}", ex.Message);
+    }
+
+    // A directory squatting on the second table's file name fails its write after
+    // the first file is rewritten, which the message must name.
+    [Fact]
+    public void Run_WriteFailsAfterAnEarlierWrite_NamesTheFilesAlreadyWritten()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        string blocked = Path.Combine(_outputDirectory, "TagTable.cs");
+        Directory.CreateDirectory(blocked);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => Run(db, RunMode.Generate));
+
+        string written = Path.Combine(_outputDirectory, "ItemTable.cs");
+        Assert.StartsWith(
+            $"Cannot write {blocked} under --output after writing {written} (",
+            ex.Message,
+            StringComparison.Ordinal);
+        Assert.True(File.Exists(written));
+    }
+
+    // The scan used to run after the writes, so a subdirectory it could not enter
+    // aborted a --fix that had already rewritten every file, with nothing reported.
+    [Fact]
+    public void Run_FixWithUnreadableSubdirectory_FailsBeforeAnyWrite()
+    {
+        // File modes do not bind root, and Windows has none.
+        if (OperatingSystem.IsWindows() || Environment.UserName == "root")
+        {
+            return;
+        }
+
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        Run(db, RunMode.Generate);
+        db.Execute("ALTER TABLE item ADD COLUMN note TEXT");
+
+        string locked = Path.Combine(_outputDirectory, "Locked");
+        Directory.CreateDirectory(locked);
+        File.SetUnixFileMode(locked, UnixFileMode.None);
+        string item = Path.Combine(_outputDirectory, "ItemTable.cs");
+        string before = File.ReadAllText(item);
+
+        try
+        {
+            CommandLineException ex = Assert.Throws<CommandLineException>(
+                () => Run(db, RunMode.Fix));
+
+            Assert.StartsWith(
+                $"Cannot scan --output {_outputDirectory} for orphan files (",
+                ex.Message,
+                StringComparison.Ordinal);
+            Assert.Equal(before, File.ReadAllText(item));
+        }
+        finally
+        {
+            File.SetUnixFileMode(locked, UnixFileMode.UserRead | UnixFileMode.UserWrite
+                | UnixFileMode.UserExecute);
+        }
     }
 
     // Unguarded, the second table overwrote the first's file and disappeared,
@@ -340,8 +461,7 @@ public class TableClassGeneratorTests : IDisposable
 
         Assert.Equal(
             $"No tables found in the SQLite database file '{db.ConnectionInfo.ServiceName}'; "
-                + "check --file, since a path that does not exist is created empty "
-                + "rather than rejected",
+                + "check --file",
             error.Message);
     }
 
@@ -366,12 +486,21 @@ public class TableClassGeneratorTests : IDisposable
         RunMode mode,
         bool dryRun = false,
         IReadOnlyList<string>? tableNames = null,
+        bool lowercaseNames = false) =>
+        RunInto(db, mode, _outputDirectory, dryRun, tableNames, lowercaseNames);
+
+    private static IReadOnlyList<TableResult> RunInto(
+        TempSqliteDatabase db,
+        RunMode mode,
+        string outputDirectory,
+        bool dryRun = false,
+        IReadOnlyList<string>? tableNames = null,
         bool lowercaseNames = false)
     {
         RunOptions options = new(
             mode,
             db.ConnectionInfo,
-            TestSettings.Create(outputDirectory: _outputDirectory, tableNames: tableNames),
+            TestSettings.Create(outputDirectory: outputDirectory, tableNames: tableNames),
             dryRun);
 
         return new TableClassGenerator(

@@ -46,7 +46,9 @@ sa-tableclassgen \
 ```
 
 `--tables orders,order_items` narrows the run to those tables; omitted, it generates
-every table in the schema. Repeating the same options is easier from a file:
+every table in the schema. A blank value is the same as an omitted one, for
+`--tables` and every other option, so a script's `--fix --tables "$CHANGED"` with
+nothing changed acts on every table. Repeating the same options is easier from a file:
 
 ```json
 {
@@ -105,7 +107,9 @@ These files have no table in the database and are left untouched:
 against a real environment. `--fix` is the remediation step after it: same writes a
 plain run would make, but it reports what drifted and exits `1` while an orphan
 file remains, so a script cannot mistake "fixed" for "nothing left to do". A file
-whose table is gone from the database is reported, never deleted.
+whose table is gone from the database is reported, never deleted. Orphans are
+found only by a run over the whole schema: a `--tables` run neither reports nor
+counts them, so run `--check` without `--tables` to confirm nothing is left.
 
 The database is the authority here: SqlArtisan generates no DDL and runs no
 migrations, so drift always means the committed files are stale.
@@ -114,8 +118,8 @@ A run that reads no tables and finds no generated files to report on is an error
 not an empty success — otherwise a misspelled `--schema` would look identical to a
 clean run. A schema whose tables were genuinely dropped still reports its
 committed classes as removed, so only a run with nothing at all to say fails here.
-On SQLite the option to check is `--file`: a path that does not exist is created
-as an empty database rather than rejected, so a typo there connects successfully.
+On SQLite, `--file` must name an existing database: the tool never creates one,
+so a mistyped path fails to connect.
 A `--schema` that is spelled right but lacks privileges reads the same as one
 that does not exist: MySQL, Oracle, PostgreSQL, and SQL Server all filter their
 catalogs by privilege rather than raise an error for one, so the message above

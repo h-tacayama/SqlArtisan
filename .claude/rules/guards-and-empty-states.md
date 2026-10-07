@@ -599,9 +599,21 @@ count as failing. Each clause below is a shape A6 found (#645):
   `--dry-run` write no file at all). A mistyped path must fail at connect;
   opened as an empty catalog, it lets a generate run exit 0 having read
   nothing, and `--check` report every class removed.
-- **A narrowed run reads the object set a full run reads.** `--tables` applies
-  the same table filter as the full scan (no views, no engine-internal tables),
-  or a narrowed run writes a class the next full `--check` disowns.
+- **A narrowed run reads the object set a full run reads, and writes what a
+  full run writes.** `--tables` applies the same table filter as the full scan
+  (no views, no engine-internal tables), and emits the catalog's stored name,
+  not the caller's spelling, where the engine folds identifier case (SQLite's
+  `--tables ITEM` emitted `"ITEM"` for `item`); otherwise a narrowed run writes
+  a class the next full `--check` disowns or reports modified. SQLite resolves
+  the stored name; the information_schema reader still emits the caller's
+  spelling, which a case-insensitive collation (SQL Server's default) admits,
+  open in #645.
+- **Every check runs before the first write.** A guard, a catalog read, and
+  the orphan scan all run before any file is written, so a failure leaves the
+  directory as it was; only a write itself can fail after another, and its
+  message names the files already written. The orphan scan ran after the
+  writes, so a subdirectory it could not enter aborted a `--fix` that had
+  already rewritten every file, with an empty report.
 - **A guard that cannot read its fact fails closed.** A file at a path the
   run would write, whose table literal or header the tool cannot parse, is
   refused, never passed: skipping the check let a run overwrite another
@@ -611,9 +623,11 @@ count as failing. Each clause below is a shape A6 found (#645):
   (`Run_Check_UnreadableFileInOutputDirectory_IsSkippedNotFatal`). The cost
   is that an unreadable orphan of the tool's own reads as in sync; whether to
   report it instead is open in #645.
-- **A blank value is an absent value**, for every option and config key
-  (`Required`, `NonBlankValue`); a path helper that reads `""` differently from
-  the default it stands for (`Directory.Exists("")`) splits the two.
+- **A blank value is an absent value**, for every option and config key. It
+  is dropped where the value is stored (`ParseArguments`, `ReadConfigFile`), so
+  a blank flag leaves its key to the `--config` file and no reader downstream
+  can tell `""` from the default it stands for: `--output ""` used to skip the
+  orphan scan through `Directory.Exists("")`.
 - **A repeated option is decided, not last-wins.** A repeated flag or
   `--config` key is rejected at parse: keeping the last `--tables` silently
   narrowed `--check` (#643).
