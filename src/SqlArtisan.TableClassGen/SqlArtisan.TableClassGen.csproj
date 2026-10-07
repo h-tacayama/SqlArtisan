@@ -22,6 +22,9 @@
 
     <PackAsTool>True</PackAsTool>
     <ToolCommandName>sa-tableclassgen</ToolCommandName>
+    <!-- A tool left at the default Minor policy does not start on a machine that
+         has only a newer major runtime, such as one installed after .NET 8's end of support. -->
+    <RollForward>Major</RollForward>
   </PropertyGroup>
 
   <ItemGroup>

@@ -120,6 +120,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `--tables` silently narrowed a run, so `--check --tables b --tables a`
   reported in sync over `b`'s drift. List several tables as `--tables b,a`.
   A flag still overrides the same key in the `--config` file. (#643)
+- **Breaking:** TableClassGen's `--tables` on SQLite rejects a view or an
+  internal `sqlite_*` table (`--tables names 'v', which is not a table in the
+  schema`), as it already did on the other engines. A full run never read them,
+  so the next full `--check` reported such a class removed, which no `--fix`
+  clears. (#645)
 - **Breaking:** `SqlArtisan.Dapper` adds Dapper's `DbConnection` twin of
   `ExecuteReaderAsync`, returning `Task<DbDataReader>`, so a reader opened
   asynchronously can also read asynchronously (`ReadAsync`, `await using`). A
@@ -343,6 +348,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   threw only at `Build()`, after the stage was frozen, so retrying with
   corrected names reported "already built"; `OrderBy(0)` threw only at
   `Build()`, where `GroupBy(0)` already threw at the call. (#569)
+
+- TableClassGen starts on a machine with only a newer .NET runtime: the tool
+  now rolls forward to the next major version (`RollForward=Major`) instead of
+  refusing to run without .NET 8. (#645)
+- TableClassGen no longer creates a SQLite database at a mistyped `--file`.
+  `--check` used to read the new empty file and report every committed class
+  removed; the path now fails to connect, naming `--file`. A file that is not a
+  database fails the same way instead of printing the bare driver error. (#645)
+- TableClassGen's `--tables` on SQLite emits the table name as stored in the
+  catalog, so `--tables ITEM` writes the same file as a full run for `item`. (#645)
+- A blank TableClassGen option or `--config` value now counts as absent for
+  every option: `--output ""` reads the current directory with its orphan
+  scan, which a blank value used to skip, and `--output " "` no longer creates a
+  directory named with a space. (#645)
+- A TableClassGen `--config` value of the wrong JSON kind is rejected:
+  `"output": false` used to generate into a directory named `false`. A switch
+  takes `true` or `false`, `tables` a string or an array of strings, and every
+  other key a string or number. A file whose root is not a JSON object, or one
+  that cannot be read, is reported against `--config`. (#645)
+- TableClassGen rejects an `--output` that names a file. It scans for orphan
+  files before it writes anything, so a directory it cannot read fails the run
+  before any file is rewritten, and a write that fails midway names the files
+  already written. (#645)
+- A TableClassGen `--fix --tables` run no longer closes with "All drifted
+  tables were regenerated.": it never scans for orphan files, so it now says to
+  run without `--tables` to find them. (#645)
 
 ### Tests
 - Integration twins for #614's engine claims: Oracle rejects

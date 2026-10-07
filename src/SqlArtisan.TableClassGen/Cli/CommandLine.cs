@@ -77,7 +77,7 @@ internal static class CommandLine
     {
         Dictionary<string, string> values = ParseArguments(args);
 
-        if (values.TryGetValue("config", out string? configPath))
+        if (Value(values, "config") is { } configPath)
         {
             foreach (KeyValuePair<string, string> entry in ReadConfigFile(configPath))
             {
@@ -95,6 +95,7 @@ internal static class CommandLine
     private static Dictionary<string, string> ParseArguments(string[] args)
     {
         Dictionary<string, string> values = new(StringComparer.Ordinal);
+        HashSet<string> given = new(StringComparer.Ordinal);
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -117,7 +118,7 @@ internal static class CommandLine
 
             // Last-wins would silently narrow a run: `--tables b --tables a` checked
             // only a, and --check reported in sync over b's drift (#643).
-            if (values.ContainsKey(name))
+            if (!given.Add(name))
             {
                 throw new CommandLineException(
                     $"'{argument}' is given more than once (see --help)");
@@ -134,7 +135,14 @@ internal static class CommandLine
                 throw new CommandLineException($"'{argument}' requires a value (see --help)");
             }
 
-            values[name] = args[++i];
+            string value = args[++i];
+
+            // Blank is absent, here and in ReadConfigFile: `--tables "$CHANGED"` with
+            // nothing changed reads every table, and `--output ""` the default directory.
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                values[name] = value;
+            }
         }
 
         return values;
@@ -158,12 +166,19 @@ internal static class CommandLine
         try
         {
             using JsonDocument document = JsonDocument.Parse(
-                File.ReadAllText(path),
+                ReadConfigText(path),
                 new JsonDocumentOptions
                 {
                     CommentHandling = JsonCommentHandling.Skip,
                     AllowTrailingCommas = true,
                 });
+
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                throw new CommandLineException(
+                    $"--config file must hold a JSON object of options: {path} "
+                        + $"(got {KindName(document.RootElement.ValueKind)})");
+            }
 
             foreach (JsonProperty property in document.RootElement.EnumerateObject())
             {
@@ -193,17 +208,13 @@ internal static class CommandLine
                     continue;
                 }
 
-                values[Normalize(property.Name)] = property.Value.ValueKind switch
+                // Read for its kind first, so a blank "tables": [] is absent like "".
+                string value = ConfigValue(property);
+
+                if (!string.IsNullOrWhiteSpace(value))
                 {
-                    JsonValueKind.String => property.Value.GetString() ?? string.Empty,
-                    JsonValueKind.True => "true",
-                    JsonValueKind.False => "false",
-                    JsonValueKind.Array => JoinArray(property.Name, property.Value),
-                    JsonValueKind.Object => throw new CommandLineException(
-                        $"\"{property.Name}\" in the --config file must be a string, number, "
-                            + "boolean, or array (got an object)"),
-                    _ => property.Value.ToString(),
-                };
+                    values[Normalize(property.Name)] = value;
+                }
             }
         }
         catch (JsonException ex)
@@ -214,6 +225,73 @@ internal static class CommandLine
 
         return values;
     }
+
+    // An unreadable file is reported against the flag that named it; File.Exists
+    // above has already turned a missing one (or a directory) into "not found".
+    private static string ReadConfigText(string path)
+    {
+        try
+        {
+            return File.ReadAllText(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            throw new CommandLineException($"--config file cannot be read: {path} ({ex.Message})");
+        }
+    }
+
+    // Each option takes the kinds its command-line form can spell, so a value of
+    // another kind is an error rather than a string: "output": false generated
+    // into a directory named false.
+    private static string ConfigValue(JsonProperty property)
+    {
+        string key = Normalize(property.Name);
+        JsonValueKind kind = property.Value.ValueKind;
+
+        if (Switches.Contains(key))
+        {
+            // Flag reports a number or a string other than true/false.
+            return kind switch
+            {
+                JsonValueKind.True => "true",
+                JsonValueKind.False => "false",
+                JsonValueKind.String or JsonValueKind.Number => property.Value.ToString(),
+                _ => throw WrongKind(property, "true or false"),
+            };
+        }
+
+        if (key == "tables")
+        {
+            return kind switch
+            {
+                JsonValueKind.String => property.Value.GetString()!,
+                JsonValueKind.Array => JoinArray(property.Name, property.Value),
+                _ => throw WrongKind(property, "a string or an array of strings"),
+            };
+        }
+
+        return kind switch
+        {
+            JsonValueKind.String => property.Value.GetString()!,
+            JsonValueKind.Number => property.Value.ToString(),
+            _ => throw WrongKind(property, "a string or number"),
+        };
+    }
+
+    private static CommandLineException WrongKind(JsonProperty property, string expected) =>
+        new($"\"{property.Name}\" in the --config file must be {expected} "
+            + $"(got {KindName(property.Value.ValueKind)})");
+
+    private static string KindName(JsonValueKind kind) =>
+        kind switch
+        {
+            JsonValueKind.Object => "an object",
+            JsonValueKind.Array => "an array",
+            JsonValueKind.String => "a string",
+            JsonValueKind.Number => "a number",
+            JsonValueKind.Null => "null",
+            _ => "a boolean",
+        };
 
     private static RunOptions Build(Dictionary<string, string> values)
     {
@@ -287,8 +365,8 @@ internal static class CommandLine
         Dictionary<string, string> values, Dbms dbms, string database, string user) =>
         dbms switch
         {
-            Dbms.MySql => NonBlankValue(values, "schema") ?? database,
-            Dbms.Oracle => NonBlankValue(values, "schema") ?? user,
+            Dbms.MySql => Value(values, "schema") ?? database,
+            Dbms.Oracle => Value(values, "schema") ?? user,
             _ => Required(values, "schema"),
         };
 
@@ -321,7 +399,12 @@ internal static class CommandLine
             throw new CommandLineException($"\"{name}\" array elements must not be null");
         }
 
-        List<string> items = [.. array.EnumerateArray().Select(e => e.ToString())];
+        if (array.EnumerateArray().Any(e => e.ValueKind != JsonValueKind.String))
+        {
+            throw new CommandLineException($"\"{name}\" array elements must be strings");
+        }
+
+        List<string> items = [.. array.EnumerateArray().Select(e => e.GetString()!)];
 
         return items.Any(item => item.Contains(','))
             ? throw new CommandLineException($"\"{name}\" array elements must not contain commas")
@@ -334,18 +417,12 @@ internal static class CommandLine
             : [.. tables.Split(',', StringSplitOptions.RemoveEmptyEntries
                 | StringSplitOptions.TrimEntries)];
 
+    // Never blank: ParseArguments and ReadConfigFile store no blank value.
     private static string? Value(Dictionary<string, string> values, string key) =>
         values.TryGetValue(Normalize(key), out string? value) ? value : null;
 
-    // Blank counts as missing here too (the Required contract): a blank
-    // --schema must engage its fallback, not read zero tables silently.
-    private static string? NonBlankValue(Dictionary<string, string> values, string key) =>
-        Value(values, key) is { } value && !string.IsNullOrWhiteSpace(value) ? value : null;
-
-    // Blank counts as missing: a value like --namespace "" would otherwise flow
-    // into generated code or a connection string and fail far from the flag.
     private static string Required(Dictionary<string, string> values, string key) =>
-        Value(values, key) is { } value && !string.IsNullOrWhiteSpace(value)
+        Value(values, key) is { } value
             ? value
             : throw new CommandLineException(
                 $"--{key} is required (or set \"{key}\" in the --config file)");

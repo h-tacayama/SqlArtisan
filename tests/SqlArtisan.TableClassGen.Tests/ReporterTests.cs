@@ -122,6 +122,25 @@ public class ReporterTests
         Assert.Contains("delete these files by hand:", report, StringComparison.Ordinal);
     }
 
+    // A --tables run never scans for orphans, so "All drifted tables" claimed a
+    // directory it did not read while --check, run unscoped, still found one.
+    [Fact]
+    public void Report_FixScopedByTables_ClosingLineSendsOrphansToAFullRun()
+    {
+        TableResult modified = new("item", "ItemTable.cs", TableStatus.Modified, ["+ note"]);
+        RunOptions options = new(
+            RunMode.Fix, DummyConnection(), TestSettings.Create(tableNames: ["item"]));
+
+        string report = Capture(() => new Reporter(options).Report([modified]));
+
+        Assert.Contains(
+            "The drifted tables named by --tables were regenerated; run without --tables "
+                + "to also find files whose table is gone.",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("All drifted tables", report, StringComparison.Ordinal);
+    }
+
     private static RunOptions FixOptions() => Options(RunMode.Fix);
 
     private static RunOptions Options(RunMode mode, bool dryRun = false, bool verbose = false) =>

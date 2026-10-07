@@ -50,7 +50,8 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
 
     public IReadOnlyList<TableResult> Run()
     {
-        List<TableResult> results = [];
+        GuardOutputDirectory();
+
         IReadOnlyList<CatalogTable> tables = [.. ResolveTables()];
 
         GuardClassNames(tables);
@@ -62,24 +63,63 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
 
         GuardTableNames(emitted);
 
-        foreach ((CatalogTable table, string code) in emitted)
-        {
-            string path = _settings.CreateOutputFilePath(table.ClassName);
+        List<(TableResult Result, string Code)> compared =
+        [
+            .. emitted.Select(e => (
+                Compare(e.Table, _settings.CreateOutputFilePath(e.Table.ClassName), e.Code),
+                e.Code)),
+        ];
 
-            TableResult result = Compare(table, path, code);
-            results.Add(result);
-
-            if (ShouldWrite(result) && !options.DryRun)
-            {
-                WriteTableClass(path, code);
-            }
-        }
-
+        // Scanned before any write, for the reason Emit runs first: a scan that
+        // fails must not follow a --fix that already rewrote every file.
+        List<TableResult> results = [.. compared.Select(c => c.Result)];
         results.AddRange(FindRemoved(results));
 
         GuardNothingToReport(results);
 
+        if (!options.DryRun)
+        {
+            WriteDrifted(compared);
+        }
+
         return results;
+    }
+
+    // Read as a directory, a file there makes every table read as added and
+    // the first write fail naming the file rather than the flag.
+    private void GuardOutputDirectory()
+    {
+        if (File.Exists(_settings.OutputDirectory))
+        {
+            throw new CommandLineException(
+                $"--output names a file, not a directory: {_settings.OutputDirectory}");
+        }
+    }
+
+    // A write can still fail midway (a full disk, a file locked by an editor);
+    // the files already rewritten are named, since nothing else reports them.
+    private void WriteDrifted(IReadOnlyList<(TableResult Result, string Code)> compared)
+    {
+        List<string> written = [];
+
+        foreach ((TableResult result, string code) in compared.Where(c => ShouldWrite(c.Result)))
+        {
+            try
+            {
+                WriteTableClass(result.Path, code);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                string after = written.Count == 0
+                    ? string.Empty
+                    : $" after writing {string.Join(", ", written)}";
+
+                throw new CommandLineException(
+                    $"Cannot write {result.Path} under --output{after} ({ex.Message})");
+            }
+
+            written.Add(result.Path);
+        }
     }
 
     // An emptied schema still reports its committed files as removed, so only a run
@@ -135,8 +175,8 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
 
         List<CatalogTable> tables = [];
 
-        // Deduplicated so `--tables orders,orders` reads twice as once instead of
-        // reporting a bogus class-name collision between a table and itself.
+        // By the name given, so `orders,orders` is no collision with itself; a
+        // --lowercase TableName would instead merge two distinct tables silently.
         HashSet<string> seen = new(StringComparer.Ordinal);
         foreach (string name in _settings.TableNames)
         {
@@ -148,7 +188,7 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
             if (!catalog.TryGetTable(name, out CatalogTable? table) || table is null)
             {
                 throw new CommandLineException(
-                    $"--tables names '{name}', which the schema does not contain");
+                    $"--tables names '{name}', which is not a table in the schema");
             }
 
             tables.Add(table);
@@ -327,17 +367,24 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
             results.Select(r => Path.GetFullPath(r.Path)),
             StringComparer.Ordinal);
 
-        return Directory
-            .EnumerateFiles(_settings.OutputDirectory, "*.cs", SearchOption.AllDirectories)
-            .Where(p => !expected.Contains(Path.GetFullPath(p)) && IsGeneratedTableClass(p))
-            // Named by file, not by table: the table is gone, so its catalog name is
-            // no longer knowable.
-            .Select(p => new TableResult(
-                Path.GetFileName(p),
-                p,
-                TableStatus.Removed,
-                []))
-            .ToList();
+        try
+        {
+            return Directory
+                .EnumerateFiles(_settings.OutputDirectory, "*.cs", SearchOption.AllDirectories)
+                .Where(p => !expected.Contains(Path.GetFullPath(p)) && IsGeneratedTableClass(p))
+                // Named by file, not by table: the table is gone, so its catalog name is
+                // no longer knowable.
+                .Select(p => new TableResult(Path.GetFileName(p), p, TableStatus.Removed, []))
+                .ToList();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // A subdirectory the scan cannot enter may hold an orphan, so skipping it
+            // would report in sync over a file the run never looked at.
+            throw new CommandLineException(
+                $"Cannot scan --output {_settings.OutputDirectory} for orphan files "
+                    + $"({ex.Message})");
+        }
     }
 
     // Recognizing our own header keeps hand-written files in the same directory out

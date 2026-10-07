@@ -16,26 +16,8 @@ internal sealed class SqliteCatalogReader(
     {
         using IDbConnection conn = _connInfo.OpenConnection();
 
-        List<string> tableNames = [];
-        using (IDbCommand command = conn.CreateCommand())
-        {
-            command.CommandText =
-                """
-                SELECT name
-                FROM sqlite_master
-                WHERE type = 'table' AND name NOT LIKE 'sqlite\_%' ESCAPE '\'
-                ORDER BY name
-                """;
-
-            using IDataReader reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                tableNames.Add(NormalizeName(reader.GetString(0)));
-            }
-        }
-
         List<CatalogTable> tables = [];
-        foreach (string tableName in tableNames)
+        foreach (string tableName in ReadTableNames(conn, only: null))
         {
             if (TryGetTable(conn, tableName, out CatalogTable? table)
                 && table is not null)
@@ -47,11 +29,42 @@ internal sealed class SqliteCatalogReader(
         return tables;
     }
 
+    // pragma_table_info answers for views and sqlite_* tables too, which the full run
+    // never lists, and the full run emits the stored name, not the caller's spelling:
+    // either gap writes a class the next full --check disowns.
     public bool TryGetTable(string tableName, out CatalogTable? table)
     {
         using IDbConnection conn = _connInfo.OpenConnection();
 
-        return TryGetTable(conn, tableName, out table);
+        table = null;
+
+        return ReadTableNames(conn, only: tableName) is [string storedName]
+            && TryGetTable(conn, storedName, out table);
+    }
+
+    // One query for both paths, so a narrowed run cannot read an object set the
+    // full run does not. NOCASE matches SQLite's own ASCII-only identifier folding.
+    private static List<string> ReadTableNames(IDbConnection conn, string? only)
+    {
+        using IDbCommand command = conn.CreateCommand();
+        command.CommandText =
+            """
+            SELECT name
+            FROM sqlite_master
+            WHERE type = 'table' AND name NOT LIKE 'sqlite\_%' ESCAPE '\'
+              AND (@only IS NULL OR name = @only COLLATE NOCASE)
+            ORDER BY name
+            """;
+        CatalogCommand.AddParameter(command, "@only", only);
+
+        List<string> names = [];
+        using IDataReader reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            names.Add(reader.GetString(0));
+        }
+
+        return names;
     }
 
     private bool TryGetTable(IDbConnection conn, string tableName, out CatalogTable? table)
@@ -110,8 +123,6 @@ internal sealed class SqliteCatalogReader(
                 dbms: Dbms.Sqlite));
         }
 
-        // Normalized here, at the construction site, like the sibling readers — the
-        // public TryGetTable path receives the user's spelling, not a normalized one.
         table = new CatalogTable(NormalizeName(tableName), columns);
         return true;
     }
