@@ -143,7 +143,11 @@ indent, one level past the line it continues — a `+` line never steps in
 deeper than the `+` line above it. A wrapped string literal splits only where
 the line would otherwise pass the column limit, so each fragment fills its
 line rather than breaking mid-phrase. Neither is gated; #640 took a staircase
-out of `OracleArrayBindCommandFactory.cs`'s messages.
+out of `OracleArrayBindCommandFactory.cs`'s messages. **SQL text** that
+`src/` sends to an engine is never a concatenation: it is a raw string literal
+(`"""`), one clause per line, so it reads as the statement does and no fragment
+rule above applies to it — TableClassGen's catalog queries are the instance
+(#645).
 
 ## Blank lines
 
