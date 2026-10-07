@@ -36,11 +36,13 @@ depends on engine or Roslyn facts) or **M** (naming, types, arity, formatting
 ## 2. Run one reviewer per clause
 
 One `general-purpose` agent per clause, `model: opus`, in parallel, each with
-the prompt below. A subagent runs at **this session's** effort — the Agent
-tool takes no effort argument — so run the H batch under `/effort high` and
-the M batch under `/effort medium`, or everything at high: measured at about
-+20% tokens and 1.5× wall time, and in exchange one medium pass stated a false
-premise ("no member has an optional parameter") that hid a real finding.
+the prompt below. Run the H batch at high effort and the M batch at medium,
+or everything at high: measured at about +20% tokens and 1.5× wall time, and
+in exchange one medium pass stated a false premise ("no member has an optional
+parameter") that hid a real finding. Where the Agent tool takes an `effort`
+argument, pass `high` or `medium` per agent; where it does not, a subagent
+runs at **this session's** effort, so run each batch under `/effort high` or
+`/effort medium` (#645).
 
 ```text
 You are reviewing ONE bounded unit of the SqlArtisan repository against ONE
