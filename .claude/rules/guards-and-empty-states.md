@@ -612,8 +612,9 @@ count as failing. Each clause below is a shape A6 found (#645):
   no columns is generated: PostgreSQL's was skipped while the run exited 0, and
   `--tables` called it absent. One whose columns the user cannot see fails the
   run: PostgreSQL lists a table on any privilege but a column only on a
-  column-level one, so writing it column-less emptied a committed class. Oracle's case folding still skips a
-  quoted mixed-case table the listing returns, open in #645.
+  column-level one, so writing it column-less emptied a committed class.
+  Oracle's case folding still skips a quoted mixed-case table the listing
+  returns, open in #645.
 - **Every check runs before the first write.** A guard, a catalog read, and
   the orphan scan all run before any file is written, so a failure leaves the
   directory as it was; only a write itself can fail after another, and its

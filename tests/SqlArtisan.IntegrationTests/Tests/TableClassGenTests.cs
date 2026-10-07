@@ -692,18 +692,6 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
         {
             Execute("ALTER TABLE default_null_probe MODIFY c DEFAULT NULL");
 
-            // What the reader reads: the default's text, beside the length alone.
-            using IDbConnection connection = _fixture.OpenConnection();
-            Assert.Equal(
-                "C=[NULL]/4 D=[NULL]/4 E=[2]/1",
-                string.Join(
-                    " ",
-                    connection.Query<(string Name, string? Text, int? Length)>(
-                        "SELECT column_name, data_default_vc, default_length "
-                            + "FROM user_tab_columns WHERE table_name = 'DEFAULT_NULL_PROBE' "
-                            + "ORDER BY column_id")
-                        .Select(r => $"{r.Name}=[{r.Text}]/{r.Length}")));
-
             CatalogTable table = new OracleCatalogReader(ConnInfo(), lowercaseNames: true)
                 .GetAllTables()
                 .Single(t => t.TableName == "default_null_probe");

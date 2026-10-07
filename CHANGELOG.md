@@ -418,9 +418,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     `Binary`, so comparing one to a string raised `SQLA0205`.
   - A MySQL `YEAR` column is `Numeric`, not `Temporal`: MySQL compares it as a
     number, so `y == 2024` raised `SQLA0205` on a predicate that matches.
-  - An explicit `DEFAULT NULL` records `HasDefault = false` on Oracle (where
-    the catalog has `DATA_DEFAULT_VC`), SQLite and SQL Server. It supplies no
-    value, so `SQLA0202` stayed silent on an `INSERT` the engine rejects.
+  - An explicit `DEFAULT NULL` records `HasDefault = false` on Oracle, SQLite
+    and SQL Server. It supplies no value, so `SQLA0202` stayed silent on an
+    `INSERT` the engine rejects.
   - A PostgreSQL table with no columns gets a class with no properties. A full
     run skipped it and exited 0, and `--tables` called it absent. A table whose
     columns the user cannot see (a role holding only `DELETE` on it) fails the
