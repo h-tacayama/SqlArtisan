@@ -613,9 +613,9 @@ outlive the run that made them, so the API rules above have a CLI analogue
   `DbTypeCategory`, wins over `using SqlArtisan;` — loudly for some names,
   silently for the attribute, which turns the schema rules off.
 - **A generated identifier keeps every character C# admits in one** (letters,
-  digits, combining marks, formatting characters); only a character C# rejects
-  separates words. Dropping a combining mark renamed Thai and Devanagari words
-  into other words (#644).
+  digits, combining marks, formatting characters); only the underscore, the
+  snake-case boundary, and a character C# rejects separate words. Dropping a
+  combining mark renamed Thai and Devanagari words into other words (#644).
 - **The generated file needs a `SqlArtisan` at least as new as the tool**,
   since the emitter writes its own build's attribute arguments and
   `DbTypeCategory` members. That pairing is recorded where users install the

@@ -605,8 +605,9 @@ count as failing. Each clause below is a shape A6 found (#645):
 - **A blank value is an absent value**, for every option and config key
   (`Required`, `NonBlankValue`); a path helper that reads `""` differently from
   the default it stands for (`Directory.Exists("")`) splits the two.
-- **A repeated option is decided, not last-wins.** Keeping the last
-  `--tables` silently narrows `--check` (#643).
+- **A repeated option is decided, not last-wins.** A repeated flag or
+  `--config` key is rejected at parse: keeping the last `--tables` silently
+  narrowed `--check` (#643).
 - **A `--config` value's JSON kind matches its option:** a switch takes a
   boolean, `tables` an array or string, and a value option a string or number.
   `"output": false` must not become the directory `false`.
