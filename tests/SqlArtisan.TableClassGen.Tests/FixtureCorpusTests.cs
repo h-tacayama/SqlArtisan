@@ -97,10 +97,11 @@ public class FixtureCorpusTests : IDisposable
         CommandLineException ex = Assert.Throws<CommandLineException>(
             () => Run(db, RunMode.Generate, subfolders: false, tableNames: ["orderItem"]));
 
-        Assert.StartsWith(
-            "OrderItemTable.cs already describes table 'order_item'",
-            ex.Message,
-            StringComparison.Ordinal);
+        Assert.Equal(
+            "OrderItemTable.cs already describes table 'order_item', and this run generates "
+                + "'orderItem' into it; generate the two into separate --output directories, "
+                + "or rename one of the tables",
+            ex.Message);
         Assert.Equal(committed, File.ReadAllText(Path.Combine(_output, "OrderItemTable.cs")));
     }
 
