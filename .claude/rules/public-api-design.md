@@ -8,6 +8,7 @@ paths:
   - "tests/SqlArtisan.IntegrationTests/Infrastructure/MatrixSweepCatalog.cs"
   - "src/SqlArtisan.Dapper/**/*.cs"
   - "src/SqlArtisan.ArrayBind/**/*.cs"
+  - "src/SqlArtisan.TableClassGen/**/*.cs"
 ---
 
 # Public API design
@@ -595,6 +596,33 @@ forms no caller has asked for (#582).
 second `Output` is a reuse slip the walk rejects (ADR 0011). Whether offering
 the pair later needs a return-type change is not settled here; it is weighed
 when a user needs it (ADR 0010).
+
+## TableClassGen: a command-line and emitted-code contract
+
+TableClassGen exposes no types (`docs/versioning.md`), but two of its outputs
+outlive the run that made them, so the API rules above have a CLI analogue
+(#645):
+
+- **Script-readable output is spelled explicitly.** An option name, an exit
+  code, and a `--format json` field or value is a literal in the code, never
+  an internal identifier's `ToString()`: renaming `TableStatus.Removed` must
+  not change what a script parses.
+- **Emitted code binds every core name whatever the consuming project
+  declares.** The file lands in the user's namespace, where a user type named
+  `DbColumn` or `DbColumnMetadataAttribute`, or a sibling property named
+  `DbTypeCategory`, wins over `using SqlArtisan;` — loudly for some names,
+  silently for the attribute, which turns the schema rules off.
+- **A generated identifier keeps every character C# admits in one** (letters,
+  digits, combining marks, formatting characters); only a character C# rejects
+  separates words. Dropping a combining mark renamed Thai and Devanagari words
+  into other words (#644).
+- **The generated file needs a `SqlArtisan` at least as new as the tool**,
+  since the emitter writes its own build's attribute arguments and
+  `DbTypeCategory` members. That pairing is recorded where users install the
+  tool, not left to a CS0117.
+- **The tool package rolls forward** (`RollForward`) to newer major runtimes:
+  a .NET tool pinned to its target runtime does not start where only a newer
+  one is installed.
 
 ## Recorded trade-offs from the #149 freeze audit
 
