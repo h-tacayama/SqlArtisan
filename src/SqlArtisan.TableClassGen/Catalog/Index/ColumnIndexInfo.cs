@@ -1,31 +1,31 @@
 namespace SqlArtisan.TableClassGen;
 
-// Which columns lead a full index, which lead only a partial one, and which are
-// named by some index expression. The last two only ever produce silence: #266
-// rules out interpreting either an expression or a partial predicate.
+// Which columns lead an index a bare predicate can use, which lead only one the
+// catalog cannot decide (partial, or neither B-tree nor hash), and which an index
+// expression names. The last two only ever produce silence, as #266 rules.
 internal sealed class ColumnIndexInfo(
     IReadOnlyCollection<string> leadingColumns,
     IReadOnlyCollection<string> expressionTexts,
-    IReadOnlyCollection<string> partialLeadingColumns,
+    IReadOnlyCollection<string> undecidedLeadingColumns,
     bool allUnknown = false)
 {
     // For a catalog path that knows an index expression exists but cannot read its
     // text — Oracle's COLUMN_EXPRESSION is a LONG — so no column can be claimed.
     public static ColumnIndexInfo Unknown { get; } = new([], [], [], allUnknown: true);
 
-    // A full-index lead beats a partial lead and a mention in a separate
+    // A decided lead beats an undecided lead and a mention in a separate
     // expression index alike — it serves a bare predicate regardless of what
     // either of those covers.
     public bool? IsIndexed(string columnName) =>
         allUnknown ? null
         : leadingColumns.Contains(columnName, StringComparer.Ordinal) ? true
         : MentionedByExpression(columnName) ? null
-        : partialLeadingColumns.Contains(columnName, StringComparer.Ordinal) ? null
+        : undecidedLeadingColumns.Contains(columnName, StringComparer.Ordinal) ? null
         : false;
 
     // A whole-word scan of the expression text, never a parse: matching
     // UPPER(name) against PostgreSQL's stored upper((name)::text) is exactly the
-    // interpretation #266 rules out, and over-matching costs only a warning.
+    // interpretation #266 rules out. Over-matching can only turn false into unknown.
     private bool MentionedByExpression(string columnName) =>
         expressionTexts.Any(text => ContainsIdentifier(text, columnName));
 

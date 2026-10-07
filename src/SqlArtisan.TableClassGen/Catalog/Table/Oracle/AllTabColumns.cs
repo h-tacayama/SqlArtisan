@@ -11,6 +11,7 @@ internal sealed class AllTabColumns : DbTableBase
         ColumnId = new DbColumn(this, "column_id");
         Nullable = new DbColumn(this, "nullable");
         DefaultLength = new DbColumn(this, "default_length");
+        DataDefaultVc = new DbColumn(this, "data_default_vc");
         IdentityColumn = new DbColumn(this, "identity_column");
     }
 
@@ -29,6 +30,9 @@ internal sealed class AllTabColumns : DbTableBase
     // The length of DATA_DEFAULT rather than the value: the value is a LONG, and
     // its presence is the only thing this needs.
     public DbColumn DefaultLength { get; }
+
+    // DATA_DEFAULT's text as a VARCHAR2 (12.2 and later), null past 4000 characters.
+    public DbColumn DataDefaultVc { get; }
 
     public DbColumn IdentityColumn { get; }
 }

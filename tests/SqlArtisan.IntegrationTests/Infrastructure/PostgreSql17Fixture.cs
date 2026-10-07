@@ -17,6 +17,8 @@ public sealed class PostgreSql17Fixture : IAsyncLifetime, IDatabaseFixture
 
     public Dbms Dbms => Dbms.PostgreSql;
 
+    public string ConnectionString => _container.GetConnectionString();
+
     public IDbConnection OpenConnection()
     {
         NpgsqlConnection connection = new(_container.GetConnectionString());

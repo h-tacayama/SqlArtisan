@@ -13,7 +13,7 @@ public class ColumnCategoryTests
     [InlineData(Dbms.MySql, "varchar", DbTypeCategory.Text)]
     [InlineData(Dbms.MySql, "longtext", DbTypeCategory.Text)]
     [InlineData(Dbms.MySql, "mediumint", DbTypeCategory.Numeric)]
-    [InlineData(Dbms.MySql, "year", DbTypeCategory.Temporal)]
+    [InlineData(Dbms.MySql, "datetime", DbTypeCategory.Temporal)]
     [InlineData(Dbms.MySql, "longblob", DbTypeCategory.Binary)]
     [InlineData(Dbms.Oracle, "VARCHAR2", DbTypeCategory.Text)]
     [InlineData(Dbms.Oracle, "NUMBER", DbTypeCategory.Numeric)]
@@ -80,7 +80,6 @@ public class ColumnCategoryTests
     [InlineData("VARCHAR(50)", DbTypeCategory.Text)]
     [InlineData("CLOB", DbTypeCategory.Text)]
     [InlineData("BLOB", DbTypeCategory.Binary)]
-    [InlineData("", DbTypeCategory.Binary)]
     [InlineData("REAL", DbTypeCategory.Numeric)]
     [InlineData("DOUBLE", DbTypeCategory.Numeric)]
     public void Of_Sqlite_DeclaredType_ReturnsAffinityCategory(
@@ -97,6 +96,19 @@ public class ColumnCategoryTests
     [InlineData("DECIMAL(10,2)")]
     public void Of_Sqlite_TypeFallingToNumericAffinity_ReturnsUnknown(string dataType) =>
         Assert.Null(ColumnCategory.Of(Dbms.Sqlite, dataType));
+
+    // An FTS5 column or a CREATE TABLE AS expression column declares no type, and
+    // its values are text as often as anything: Binary raised SQLA0205 on a
+    // comparison to a string.
+    [Fact]
+    public void Of_Sqlite_UndeclaredType_ReturnsUnknown() =>
+        Assert.Null(ColumnCategory.Of(Dbms.Sqlite, ""));
+
+    // MySQL compares a YEAR as a number (WHERE y = 2024 matches), so Temporal raised
+    // SQLA0205 on correct code.
+    [Fact]
+    public void Of_MySqlYear_ReturnsNumeric() =>
+        Assert.Equal(DbTypeCategory.Numeric, ColumnCategory.Of(Dbms.MySql, "year"));
 
     [Fact]
     public void Of_UnrecognizedTypeName_ReturnsUnknown() =>

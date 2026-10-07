@@ -135,6 +135,27 @@ public class SqliteCatalogReaderTests
         Assert.Equal([false, false, true], table.Columns.Select(c => c.HasDefault));
     }
 
+    // An explicit DEFAULT NULL supplies nothing, so the INSERT still has to fill a
+    // NOT NULL column: read as a default, it silenced SQLA0202. A string 'NULL' is
+    // a real default.
+    [Fact]
+    public void GetAllTables_ExplicitDefaultNull_IsNoDefault()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE item (
+                a INTEGER NOT NULL DEFAULT NULL,
+                b INTEGER DEFAULT (null),
+                c TEXT DEFAULT 'NULL');
+            """);
+
+        CatalogTable table = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables());
+
+        Assert.Equal([false, false, true], table.Columns.Select(c => c.HasDefault));
+    }
+
     [Fact]
     public void GetAllTables_RowIdAlias_IsNotNullableAndDefaulted()
     {

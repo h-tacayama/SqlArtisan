@@ -13,26 +13,28 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
     {
         List<string> leadingColumns = [];
         List<string> expressionTexts = [];
-        List<string> partialLeadingColumns = [];
+        List<string> undecidedLeadingColumns = [];
 
-        try
+        // Older MySQL lacks STATISTICS.EXPRESSION (before 8.0.13) or IS_VISIBLE (before
+        // 8.0); only that error steps down to the next query, never a real failure.
+        foreach (string sql in LeadingKeyQueries())
         {
-            ReadLeadingKeys(
-                conn, tableName, LeadingKeyQuery(),
-                leadingColumns, expressionTexts, partialLeadingColumns);
-        }
-        catch (MySqlException ex) when (ex.ErrorCode == MySqlErrorCode.BadFieldError)
-        {
-            // A server without STATISTICS.EXPRESSION (pre-8.0.13) has no expression
-            // index to miss; only that error retries, never a real failure.
-            ReadLeadingKeys(
-                conn, tableName, MySqlLegacyQuery,
-                leadingColumns, expressionTexts, partialLeadingColumns);
+            try
+            {
+                ReadLeadingKeys(
+                    conn, tableName, sql,
+                    leadingColumns, expressionTexts, undecidedLeadingColumns);
+                break;
+            }
+            catch (MySqlException ex)
+                when (ex.ErrorCode == MySqlErrorCode.BadFieldError && sql != MySql57Query)
+            {
+            }
         }
 
         return dbms == Dbms.Oracle && HasFunctionBasedIndex(conn, tableName)
             ? ColumnIndexInfo.Unknown
-            : new ColumnIndexInfo(leadingColumns, expressionTexts, partialLeadingColumns);
+            : new ColumnIndexInfo(leadingColumns, expressionTexts, undecidedLeadingColumns);
     }
 
     private void ReadLeadingKeys(
@@ -41,7 +43,7 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
         string sql,
         List<string> leadingColumns,
         List<string> expressionTexts,
-        List<string> partialLeadingColumns)
+        List<string> undecidedLeadingColumns)
     {
         using IDbCommand command = conn.CreateCommand();
         command.CommandText = sql;
@@ -51,8 +53,8 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
         using IDataReader reader = command.ExecuteReader();
         while (reader.Read())
         {
-            // A mixed row carries both — see LeadingKeyQuery — and the column still
-            // leads the index either way.
+            // A row can carry both: PostgreSQL's mixed index (a column, then an
+            // expression), or a SQL Server computed column with its definition.
             if (!reader.IsDBNull(1))
             {
                 expressionTexts.Add(reader.GetString(1));
@@ -60,24 +62,38 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
 
             if (!reader.IsDBNull(0))
             {
-                bool partial = !reader.IsDBNull(2) && Convert.ToBoolean(reader.GetValue(2));
-                (partial ? partialLeadingColumns : leadingColumns).Add(reader.GetString(0));
+                bool undecided = !reader.IsDBNull(2) && Convert.ToBoolean(reader.GetValue(2));
+                (undecided ? undecidedLeadingColumns : leadingColumns).Add(reader.GetString(0));
             }
         }
     }
 
-    private const string MySqlLegacyQuery =
+    // An INVISIBLE index (8.0+) is maintained but never chosen, so it serves no query;
+    // the 8.0.0 to 8.0.12 step keeps that filter, and only 5.7, which has no
+    // invisible index, drops it.
+    private const string MySql80Query =
+        """
+        SELECT COLUMN_NAME, NULL, 0
+        FROM information_schema.STATISTICS
+        WHERE TABLE_SCHEMA = @schema_name AND TABLE_NAME = @table_name AND SEQ_IN_INDEX = 1
+            AND IS_VISIBLE = 'YES'
+        """;
+
+    private const string MySql57Query =
         """
         SELECT COLUMN_NAME, NULL, 0
         FROM information_schema.STATISTICS
         WHERE TABLE_SCHEMA = @schema_name AND TABLE_NAME = @table_name AND SEQ_IN_INDEX = 1
         """;
 
-    // A row may carry both a name and an expression text — see ReadLeadingKeys.
+    private IEnumerable<string> LeadingKeyQueries() =>
+        dbms == Dbms.MySql ? [LeadingKeyQuery(), MySql80Query, MySql57Query] : [LeadingKeyQuery()];
+
+    // Each row is a leading column name, an expression text, and whether the lead
+    // decides nothing for a bare predicate: a partial index, or on PostgreSQL one that
+    // is neither B-tree nor hash (a trigram GIN index serves LIKE '%x%', #645).
     private string LeadingKeyQuery() => dbms switch
     {
-        // An INVISIBLE index (8.0+) is maintained but never chosen, so it serves
-        // no query; the legacy query below predates the column and stays as is.
         Dbms.MySql =>
             """
             SELECT COLUMN_NAME, EXPRESSION, 0
@@ -90,10 +106,13 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
         // attnum 0, so the join drops exactly those rows to a null column name.
         Dbms.PostgreSql =>
             """
-            SELECT a.attname, pg_get_expr(i.indexprs, i.indrelid), i.indpred IS NOT NULL
+            SELECT a.attname, pg_get_expr(i.indexprs, i.indrelid),
+                i.indpred IS NOT NULL OR am.amname NOT IN ('btree', 'hash')
             FROM pg_index i
             JOIN pg_class c ON c.oid = i.indrelid
             JOIN pg_namespace n ON n.oid = c.relnamespace
+            JOIN pg_class ic ON ic.oid = i.indexrelid
+            JOIN pg_am am ON am.oid = ic.relam
             LEFT JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = i.indkey[0]
             WHERE c.relname = @table_name AND n.nspname = @schema_name AND i.indisvalid
             """,
@@ -112,6 +131,7 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
             JOIN sys.tables t ON t.object_id = i.object_id
             JOIN sys.schemas s ON s.schema_id = t.schema_id
             WHERE t.name = @table_name AND s.name = @schema_name AND i.is_disabled = 0
+                AND i.is_hypothetical = 0
             """,
 
         // COLUMN_EXPRESSION is a LONG, so a function-based index disqualifies the
@@ -123,6 +143,7 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
             JOIN ALL_INDEXES i ON i.OWNER = ic.INDEX_OWNER AND i.INDEX_NAME = ic.INDEX_NAME
             WHERE ic.TABLE_OWNER = :schema_name AND ic.TABLE_NAME = :table_name
                 AND ic.COLUMN_POSITION = 1 AND i.STATUS != 'UNUSABLE'
+                AND i.VISIBILITY = 'VISIBLE'
             """,
 
         _ => throw new ArgumentOutOfRangeException(nameof(dbms)),
@@ -137,6 +158,7 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
             FROM ALL_INDEXES
             WHERE TABLE_OWNER = :schema_name AND TABLE_NAME = :table_name
                 AND INDEX_TYPE LIKE 'FUNCTION-BASED%' AND STATUS != 'UNUSABLE'
+                AND VISIBILITY = 'VISIBLE'
             """;
         CatalogCommand.AddParameter(command, ParameterName(SchemaParameter), CatalogName(schema));
         CatalogCommand.AddParameter(command, ParameterName(TableParameter), CatalogName(tableName));

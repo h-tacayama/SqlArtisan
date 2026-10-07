@@ -401,6 +401,35 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - On a case-folding file system, TableClassGen's orphan scan no longer reports
   a file it regenerates under another case of the same name (a class whose case
   changes with `--lowercase`). (#645)
+- TableClassGen's catalog facts, each read live on its engine. A regeneration
+  rewrites the affected classes once, and `--check` reports them `modified`
+  until it does. (#645)
+  - A column that leads only a PostgreSQL index that is neither B-tree nor
+    hash (GIN, GiST, SP-GiST, BRIN, …) records no `Indexed` fact. A trigram GIN
+    index serves `LIKE '%x%'`, so `Indexed = true` made `SQLA0204` report the
+    query that index exists for. A column that also leads a B-tree index still
+    records `true`.
+  - A column that leads only an invisible Oracle index or a hypothetical SQL
+    Server index records `Indexed = false`, like the unusable and disabled
+    indexes before it. A MySQL server from 8.0.0 to 8.0.12 keeps the
+    `INVISIBLE` filter it used to drop.
+  - A SQLite column with no declared type (an FTS5 column, a
+    `CREATE TABLE ... AS` expression column) records no `TypeCategory`; it was
+    `Binary`, so comparing one to a string raised `SQLA0205`.
+  - A MySQL `YEAR` column is `Numeric`, not `Temporal`: MySQL compares it as a
+    number, so `y == 2024` raised `SQLA0205` on a predicate that matches.
+  - An explicit `DEFAULT NULL` records `HasDefault = false` on Oracle (where
+    the catalog has `DATA_DEFAULT_VC`), SQLite and SQL Server. It supplies no
+    value, so `SQLA0202` stayed silent on an `INSERT` the engine rejects.
+  - A PostgreSQL table with no columns gets a class with no properties. A full
+    run skipped it and exited 0, and `--tables` called it absent. A table whose
+    columns the user cannot see (a role holding only `DELETE` on it) fails the
+    run naming the table; it used to be skipped, so its committed class read as
+    removed.
+  - `--tables` on MySQL, PostgreSQL and SQL Server emits the table name as the
+    catalog stores it, as SQLite already did: under SQL Server's
+    case-insensitive collation, `--tables ORDERS` wrote `"ORDERS"` for
+    `Orders`, which the next full `--check` reported modified.
 
 ### Tests
 - Integration twins for #614's engine claims: Oracle rejects

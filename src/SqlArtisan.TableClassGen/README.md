@@ -219,14 +219,28 @@ about it — a catalog type name the generator doesn't recognize leaves
 
 `Indexed` means the column **leads** an index, so a predicate on it alone can use
 that index; a non-leading column of a composite index records `false`. A column
-named by an index *expression* records nothing — an expression index exists
-precisely so the wrapped predicate can be written — and a column leading only a
-partial (filtered) index records nothing either, since whether its predicate
-covers a query is not decidable from the catalog. A column that leads only an
-index the engine cannot use — an Oracle `UNUSABLE` index, a PostgreSQL invalid
-index, a disabled SQL Server index, a MySQL `INVISIBLE` one — records `false`
-rather than `true`: no query can reach that index. On Oracle, one function-based
-index leaves every column of that table unrecorded.
+named only by an index *expression* records nothing — an expression index exists
+precisely so the wrapped predicate can be written — and so does a column leading
+only a partial (filtered) index, since whether its predicate covers a query is not
+decidable from the catalog, or only a PostgreSQL index that is neither B-tree nor
+hash, such as a GIN, GiST, SP-GiST or BRIN one: a trigram GIN index serves
+`LIKE '%x%'`, the very query a B-tree lead would make `SQLA0204` report. A column
+that also leads a plain index records `true`, so `SQLA0204` still reports a
+wrapped or leading-wildcard predicate on it, even one a second, expression or
+trigram, index serves. A column that leads only an index the engine cannot use — a
+MySQL `INVISIBLE` index, an Oracle `UNUSABLE` or `INVISIBLE` one, a PostgreSQL
+invalid one, a disabled or hypothetical SQL Server one — records `false` rather
+than `true`: no query can reach that index. On Oracle, one function-based index
+leaves every column of that table unrecorded.
+
+`HasDefault` records `false` for an explicit `DEFAULT NULL` on Oracle (where the
+catalog exposes the default's text in `DATA_DEFAULT_VC`), SQLite and SQL Server, since it supplies
+nothing an `INSERT` can omit; PostgreSQL stores no default for it at all. MySQL
+reports an explicit `DEFAULT NULL` as no default, which stays unknown, and a
+string default `'NULL'` as bare `NULL` text, which stays a default.
+
+A table with no columns, which PostgreSQL allows, gets a class with no
+properties.
 
 ## License
 
