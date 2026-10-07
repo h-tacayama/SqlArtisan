@@ -24,7 +24,7 @@ public static partial class OracleArrayBind
     /// <param name="transaction">The transaction to execute in, or <see langword="null"/> for none.</param>
     /// <returns>The number of rows affected.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="connection"/> or <paramref name="statements"/> is <see langword="null"/>, or <paramref name="statements"/> contains a <see langword="null"/> statement.</exception>
-    /// <exception cref="ArgumentException">The statement set is empty, or it is not one array-bindable batch: every statement must build identical SQL text, every bind position must resolve to a single Oracle type (an explicit <see cref="Sql.BindNull(System.Data.DbType)"/> hint included), and no statement may carry a <c>RETURNING ... INTO</c> output parameter.</exception>
+    /// <exception cref="ArgumentException">The statement set is empty, or it is not one array-bindable batch: every statement must build identical SQL text, a batch of more than one statement must bind at least one value, every bind position must resolve to a single Oracle type (an explicit <see cref="Sql.BindNull(System.Data.DbType)"/> hint included), and no statement may carry a <c>RETURNING ... INTO</c> output parameter.</exception>
     public static int ExecuteArrayBind(
         this OracleConnection connection,
         IReadOnlyCollection<ISqlBuilder> statements,

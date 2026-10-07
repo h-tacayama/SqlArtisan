@@ -6,6 +6,8 @@ namespace SqlArtisan.ArrayBind;
 
 internal static class OracleArrayBindCommandFactory
 {
+    // A SELECT passes through unguarded: ODP.NET already fails an array-bound query loudly
+    // (ORA-03146, pinned by the Oracle integration suite).
     internal static OracleCommand Create(
         OracleConnection connection,
         IReadOnlyCollection<ISqlBuilder> statements,
@@ -43,6 +45,17 @@ internal static class OracleArrayBindCommandFactory
         }
 
         int parameterCount = built[0].Parameters.Count;
+
+        // ODP.NET runs a command with no parameter once whatever its ArrayBindCount
+        // (live on XE 21c), so the other statements would silently not run.
+        if (parameterCount == 0 && built.Length > 1)
+        {
+            throw new ArgumentException(
+                $"ExecuteArrayBind cannot run {built.Length} statements that bind no value, since "
+                    + "ODP.NET runs a parameterless command only once; execute each statement on "
+                    + "its own (e.g. SqlArtisan.Dapper's Execute) instead.");
+        }
+
         object[][] values = new object[parameterCount][];
         DbType?[] dbTypeHints = new DbType?[parameterCount];
         for (int p = 0; p < parameterCount; p++)
@@ -55,15 +68,15 @@ internal static class OracleArrayBindCommandFactory
             int p = 0;
             built[r].Parameters.ForEach((name, bindValue) =>
             {
-                // Array bind executes in one round trip with no way to read output values
-                // back per row, so an output parameter would silently bind as input.
+                // This package returns only a row count and binds every position as input,
+                // so an output parameter would silently bind as input.
                 if (bindValue.Direction is not null
                     && bindValue.Direction != ParameterDirection.Input)
                 {
                     throw new ArgumentException(
                         "ExecuteArrayBind does not support RETURNING ... INTO output parameters; "
-                            + $"parameter {name} binds with Direction={bindValue.Direction}. "
-                            + "Execute the statements one at a time (e.g. SqlArtisan.Dapper's "
+                            + $"parameter {name} binds with Direction={bindValue.Direction}, so "
+                            + "execute the statements one at a time (e.g. SqlArtisan.Dapper's "
                             + "ExecuteReturningInto) instead.");
                 }
 
@@ -76,7 +89,7 @@ internal static class OracleArrayBindCommandFactory
                         throw new ArgumentException(
                             $"ExecuteArrayBind requires every row's DbType hint at parameter :{p} "
                                 + $"to agree; found both DbType.{dbTypeHints[p]!.Value} and "
-                                    + $"DbType.{bindValue.DbType.Value}.");
+                                + $"DbType.{bindValue.DbType.Value}.");
                     }
 
                     dbTypeHints[p] = bindValue.DbType;
@@ -98,6 +111,10 @@ internal static class OracleArrayBindCommandFactory
         command.CommandText = built[0].Text;
         command.ArrayBindCount = built.Length;
 
+        // A BindValue passed to several clauses repeats its marker; bound by position,
+        // the repeat would have no parameter of its own.
+        command.BindByName = true;
+
         if (transaction is not null)
         {
             command.Transaction = transaction;
@@ -116,9 +133,8 @@ internal static class OracleArrayBindCommandFactory
         return command;
     }
 
-    // The array binds as a single typed parameter, so every non-null value at a
-    // position must map to one OracleDbType; an all-null position has no CLR type
-    // to infer, so it needs a Sql.BindNull(dbType) hint, which values must match.
+    // Each position binds as one typed array parameter, so it resolves to a single
+    // OracleDbType.
     private static OracleDbType ResolveOracleDbType(
         int position,
         DbType? dbTypeHint,
@@ -138,10 +154,9 @@ internal static class OracleArrayBindCommandFactory
             {
                 throw new ArgumentException(
                     $"ExecuteArrayBind requires every bound value at parameter :{position} "
-                        + $"to map to the "
-                        + $"same OracleDbType; a {seenType!.Name} value maps to "
-                            + $"OracleDbType.{fromValues.Value}, "
-                        + $"but a {value.GetType().Name} value maps to OracleDbType.{mapped}.");
+                        + $"to map to the same OracleDbType; {seenType!.Name} values map to "
+                        + $"OracleDbType.{fromValues.Value}, but {value.GetType().Name} values "
+                        + $"map to OracleDbType.{mapped}.");
             }
 
             fromValues ??= mapped;
@@ -154,11 +169,9 @@ internal static class OracleArrayBindCommandFactory
             if (fromValues.HasValue && fromValues.Value != hinted)
             {
                 throw new ArgumentException(
-                    $"ExecuteArrayBind cannot bind parameter :{position} as "
-                        + $"OracleDbType.{hinted} from "
-                        + $"its DbType.{dbTypeHint.Value} hint; "
-                        + $"another row binds a {seenType!.Name} value "
-                        + $"there, which maps to OracleDbType.{fromValues.Value} instead.");
+                    $"ExecuteArrayBind cannot bind parameter :{position} as OracleDbType.{hinted} "
+                        + $"from its DbType.{dbTypeHint.Value} hint; {seenType!.Name} values bound "
+                        + $"there map to OracleDbType.{fromValues.Value} instead.");
             }
 
             return hinted;
@@ -170,10 +183,9 @@ internal static class OracleArrayBindCommandFactory
         }
 
         throw new ArgumentException(
-            $"ExecuteArrayBind cannot infer an OracleDbType for parameter :{position}; every "
-                + $"bound value is "
-                + "null. Use Sql.BindNull(dbType) on at least one row to state the "
-                    + "type explicitly.");
+            $"ExecuteArrayBind cannot infer an OracleDbType for parameter :{position} because "
+                + "every bound value is null; use Sql.BindNull(dbType) on at least one row "
+                + "to state the type explicitly.");
     }
 
     private static OracleDbType MapDbType(int position, DbType dbType) => dbType switch
@@ -186,8 +198,8 @@ internal static class OracleArrayBindCommandFactory
         DbType.DateTime => OracleDbType.TimeStamp,
         _ => throw new ArgumentException(
             $"ExecuteArrayBind cannot map DbType.{dbType} (parameter :{position}) to an "
-                + $"OracleDbType; "
-                + "supported types are Int32, Int64, Int16, Decimal, String, and DateTime."),
+                + "OracleDbType; supported types are Int32, Int64, Int16, Decimal, String, "
+                + "and DateTime."),
     };
 
     // DateTime → TimeStamp, not Date: OracleDbType.Date truncates sub-seconds in the driver —

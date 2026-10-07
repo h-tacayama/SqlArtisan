@@ -109,21 +109,29 @@ Misuse fails loudly at the call, before anything reaches the database:
   are Int32, Int64, Int16, Decimal, String, and DateTime.`
 - Two rows bind different types at the same position — `ExecuteArrayBind
   requires every bound value at parameter :... to map to the same OracleDbType;
-  a ... value maps to OracleDbType...., but a ... value maps to OracleDbType....`
+  ... values map to OracleDbType...., but ... values map to OracleDbType....`
 - Every value at a position is null with no type hint — `ExecuteArrayBind
-  cannot infer an OracleDbType for parameter :...; every bound value is null.
-  Use Sql.BindNull(dbType) on at least one row to state the type explicitly.`
+  cannot infer an OracleDbType for parameter :... because every bound value is
+  null; use Sql.BindNull(dbType) on at least one row to state the type
+  explicitly.`
 - Two rows hint different `dbType`s at the same position — `ExecuteArrayBind
-  requires every row's Sql.BindNull(dbType) hint at parameter :... to agree;
-  found both DbType.... and DbType.....`
+  requires every row's DbType hint at parameter :... to agree; found both
+  DbType.... and DbType.....`
 - A `dbType` hint disagrees with a real value at the same position —
-  `ExecuteArrayBind cannot bind parameter :... as OracleDbType.... from
-  Sql.BindNull(DbType....); another row binds a ... value there, which maps
-  to OracleDbType.... instead.`
+  `ExecuteArrayBind cannot bind parameter :... as OracleDbType.... from its
+  DbType.... hint; ... values bound there map to OracleDbType.... instead.`
+- More than one statement, none binding a value — `ExecuteArrayBind cannot
+  run ... statements that bind no value, since ODP.NET runs a parameterless
+  command only once; execute each statement on its own (e.g.
+  SqlArtisan.Dapper's Execute) instead.`
 - A statement carries a `RETURNING ... INTO` output parameter —
   `ExecuteArrayBind does not support RETURNING ... INTO output parameters;
-  parameter :... binds with Direction=.... Execute the statements one at a
+  parameter :... binds with Direction=..., so execute the statements one at a
   time (e.g. SqlArtisan.Dapper's ExecuteReturningInto) instead.`
+
+A `SELECT` is not rejected at the call, since the driver already refuses it:
+an array-bound query fails with `ORA-03146: invalid buffer length for TTC
+field` (Oracle XE 21c). Read rows through `SqlArtisan.Dapper` instead.
 
 `SqlArtisan.ArrayBind` is an optional companion package — the core stays a
 pure query builder. The package is a host for provider-specific array-bind

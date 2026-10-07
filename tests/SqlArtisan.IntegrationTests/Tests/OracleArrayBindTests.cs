@@ -189,6 +189,79 @@ public sealed class OracleArrayBindTests : IClassFixture<OracleFixture>
         transaction.Rollback();
     }
 
+    // One BindValue in two clauses repeats its marker; bound by position, the repeat
+    // would have no parameter of its own (#640).
+    [Fact]
+    public void ExecuteArrayBind_SharedBindValue_UpdatesAllRows()
+    {
+        UsersTable u = new();
+        using OracleConnection connection = (OracleConnection)_fixture.OpenConnection();
+        using OracleTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(InsertInto(u, u.Id).Values(9301), transaction);
+        connection.Execute(InsertInto(u, u.Id).Values(9302), transaction);
+
+        BindValue first = Bind(9301);
+        BindValue second = Bind(9302);
+        List<ISqlBuilder> statements =
+        [
+            Update(u).Set(u.Age == first).Where(u.Id == first),
+            Update(u).Set(u.Age == second).Where(u.Id == second),
+        ];
+
+        int updated = connection.ExecuteArrayBind(statements, transaction);
+
+        Assert.Equal(2, updated);
+
+        IEnumerable<int> ages = connection.Query<int>(
+            Select(u.Age).From(u).Where(u.Id >= 9301).OrderBy(u.Id),
+            transaction);
+        Assert.Equal(new[] { 9301, 9302 }, ages);
+
+        transaction.Rollback();
+    }
+
+    // The engine fact ExecuteArrayBind's parameterless-batch guard rests on: with no
+    // parameter to carry an array, ODP.NET runs the command once, not ArrayBindCount times.
+    [Fact]
+    public void ArrayBindCount_WithoutParameters_RunsTheCommandOnce()
+    {
+        UsersTable u = new();
+        using OracleConnection connection = (OracleConnection)_fixture.OpenConnection();
+        using OracleTransaction transaction = connection.BeginTransaction();
+
+        long rows = connection.ExecuteScalar<long>(Select(Count(u.Id)).From(u), transaction);
+        using OracleCommand command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = "UPDATE users SET age = age";
+        command.ArrayBindCount = 2;
+
+        int updated = command.ExecuteNonQuery();
+
+        Assert.Equal(rows, updated);
+
+        transaction.Rollback();
+    }
+
+    // Why ExecuteArrayBind needs no SELECT guard: the driver already fails an
+    // array-bound query loudly (#640).
+    [Fact]
+    public void ExecuteArrayBind_SelectStatements_FailInTheDriver()
+    {
+        UsersTable u = new();
+        using OracleConnection connection = (OracleConnection)_fixture.OpenConnection();
+        List<ISqlBuilder> statements =
+        [
+            Select(u.Id).From(u).Where(u.Id == 1),
+            Select(u.Id).From(u).Where(u.Id == 2),
+        ];
+
+        OracleException ex = Assert.Throws<OracleException>(() =>
+            connection.ExecuteArrayBind(statements));
+
+        Assert.Equal(3146, ex.Number);
+    }
+
     private sealed class UserRow
     {
         public long Id { get; init; }

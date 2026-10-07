@@ -5,7 +5,7 @@ namespace SqlArtisan.Tests;
 /// <summary>
 /// The inverse of the #244 boundary rule <see cref="PublicSurfaceNamingTests"/>
 /// exercises: that one says every type a user must NAME lives in the root
-/// namespace; these four say nothing else becomes public surface by accident —
+/// namespace; these five say nothing else becomes public surface by accident —
 /// from 1.0 a slipped <c>public</c> is a SemVer promise nobody meant to make.
 /// </summary>
 public class PublicSurfaceBoundaryTests
@@ -152,6 +152,38 @@ public class PublicSurfaceBoundaryTests
                 + "or an in-assembly subclass needs the class open, name the type in this "
                 + "test's allowlist and say which in its XML docs:\n  "
                 + string.Join("\n  ", derivable));
+    }
+
+    /// <summary>
+    /// The companion packages have no <see cref="InternalNamespace"/> to hold their
+    /// helpers, so their exported set is closed outright: a helper slipped to
+    /// <c>public</c> fails here instead of shipping as surface (#640).
+    /// </summary>
+    [Fact]
+    public void CompanionAssemblies_ExportOnlyTheirStaticEntryPoints()
+    {
+        // By type rather than by name: renaming one fails to compile here.
+        Type[] entryPoints =
+        [
+            typeof(SqlArtisan.Dapper.SqlMapper),
+            typeof(SqlArtisan.Dapper.SqlParametersExtensions),
+            typeof(SqlArtisan.ArrayBind.OracleArrayBind),
+        ];
+
+        List<string> unexpected = [.. entryPoints
+            .Select(t => t.Assembly)
+            .Distinct()
+            .SelectMany(a => a.GetExportedTypes())
+            .Where(t => !entryPoints.Contains(t) || HasConstructorReachableFromOutside(t))
+            .Select(t => t.FullName!)
+            .OrderBy(n => n, StringComparer.Ordinal)];
+
+        Assert.True(
+            unexpected.Count == 0,
+            $"{unexpected.Count} exported companion types are not a static entry point listed "
+                + "here — declare the type internal, or, if it is meant as surface, list it "
+                + "and record it in docs/versioning.md:\n  "
+                + string.Join("\n  ", unexpected));
     }
 
     /// <summary>

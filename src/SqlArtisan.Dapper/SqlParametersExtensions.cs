@@ -17,8 +17,7 @@ public static class SqlParametersExtensions
     /// <returns>A <see cref="DynamicParameters"/> carrying the same bindings, ready for Dapper.</returns>
     /// <remarks>Used mainly by this package's <see cref="SqlMapper"/> connection
     /// extensions.</remarks>
-    public static DynamicParameters ToDynamicParameters(
-        this SqlParameters parameters)
+    public static DynamicParameters ToDynamicParameters(this SqlParameters parameters)
     {
         DynamicParameters dynamicParameters = new();
 
@@ -31,12 +30,7 @@ public static class SqlParametersExtensions
                 return;
             }
 
-            dynamicParameters.Add(
-                name,
-                bind.Value,
-                bind.DbType,
-                bind.Direction,
-                bind.Size);
+            dynamicParameters.Add(name, bind.Value, bind.DbType, bind.Direction, bind.Size);
         });
 
         return dynamicParameters;

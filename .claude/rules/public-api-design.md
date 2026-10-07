@@ -6,6 +6,8 @@ paths:
   - "src/SqlArtisan/Internal/SqlBuilder/**/I*.cs"
   - "src/SqlArtisan.Analyzers/DialectMatrix.cs"
   - "tests/SqlArtisan.IntegrationTests/Infrastructure/MatrixSweepCatalog.cs"
+  - "src/SqlArtisan.Dapper/**/*.cs"
+  - "src/SqlArtisan.ArrayBind/**/*.cs"
 ---
 
 # Public API design
@@ -179,6 +181,15 @@ connection and `SortOrder` is the type a sort helper declares; `SqlStatement`
 with MySQL Connector/NET's `MySqlX.XDevAPI.Relational.SqlStatement`; and
 `SqlExpression` with EF Core's
 `Microsoft.EntityFrameworkCore.Query.SqlExpressions.SqlExpression`.
+
+A **namespace** can capture a simple name too. Inside `namespace SqlArtisan` or
+any namespace beneath it, the name `Dapper` binds to `SqlArtisan.Dapper` before
+the global `Dapper`, so `Dapper.SqlMapper.AddTypeHandler(...)` fails with
+`CS0117` and `Dapper.DynamicParameters` with `CS0234`. It reaches only code
+declared in that namespace tree — this repo's own projects, or an extension
+written there — and the fix is `global::Dapper.…` or a file-level `using Dapper;`, as
+`ArrayQueryParameter.cs` and `PostgreSqlTests.cs` do. Not grounds for a rename:
+the namespace is the package's name (#640).
 
 ## Overload split for analyzer arity
 
@@ -396,6 +407,13 @@ expand the array into an `IN` list, so `SqlArtisan.Dapper` does exactly this
 `SqlParameters` needs the same test, so criterion 3 fails for it: no root type
 names the distinction (#556).
 
+An execution layer also **binds by name**. One `BindValue` passed to several
+clauses emits the same marker in each (`BindValue`'s own summary documents
+it), so a statement's marker count can exceed its parameter count; bound by
+position, the repeated marker has no parameter of its own. Dapper sets
+`BindByName` on Oracle commands itself; a layer that builds its own
+`OracleCommand`, as `SqlArtisan.ArrayBind` does, must set it (#640).
+
 A **public** type in `Internal/` is public only because a signature hands it
 back, so it exposes **no public constructor**, and it is declared `internal`
 when no signature names it. Both are gated (`PublicSurfaceBoundaryTests`), along
@@ -408,6 +426,11 @@ deriving from another assembly, which is how three bases could be subclassed to
 emit an arbitrary operator token (#492). So write the constructor out: `internal`
 on a public concrete node, `private protected` on a public abstract base. An
 internal node can keep its primary constructor.
+
+The companion packages (`SqlArtisan.Dapper`, `SqlArtisan.ArrayBind`) have no
+`Internal` namespace, so the rule there is plainer: a type is `internal` unless
+it is a static entry point a caller names. `PublicSurfaceBoundaryTests` holds
+each companion's exported set to its listed entry points (#640).
 
 > Worked example (#282): fixing `Sql.Bind` to return `BindValue` (above) put
 > that type through criterion 2 — its entire feature is a caller holding the

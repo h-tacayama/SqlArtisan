@@ -104,6 +104,63 @@ public class OracleArrayBindTests
             (object[])command.Parameters[5].Value!);
     }
 
+    // One BindValue in two clauses repeats its marker, so the command binds by name:
+    // by position, the second :0 would have no parameter of its own (#640).
+    [Fact]
+    public void ExecuteArrayBind_SharedBindValue_BindsByName()
+    {
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+        BindValue first = Bind(1L);
+        BindValue second = Bind(2L);
+        List<ISqlBuilder> statements =
+        [
+            Update(t).Set(t.Qty == first).Where(t.Id == first),
+            Update(t).Set(t.Qty == second).Where(t.Id == second),
+        ];
+
+        using OracleCommand command = OracleArrayBindCommandFactory.Create(
+            connection, statements, transaction: null);
+
+        Assert.Equal("UPDATE bulk_test SET qty = :0 WHERE id = :0", command.CommandText);
+        Assert.True(command.BindByName);
+        Assert.Equal("0", Assert.Single(command.Parameters.Cast<OracleParameter>()).ParameterName);
+    }
+
+    [Fact]
+    public void ExecuteArrayBind_ParameterlessStatements_ThrowsArgumentException()
+    {
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+        List<ISqlBuilder> statements =
+        [
+            Update(t).Set(t.Qty == t.Qty),
+            Update(t).Set(t.Qty == t.Qty),
+        ];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
+
+        Assert.Equal(
+            "ExecuteArrayBind cannot run 2 statements that bind no value, since ODP.NET runs a "
+                + "parameterless command only once; execute each statement on its own (e.g. "
+                + "SqlArtisan.Dapper's Execute) instead.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void ExecuteArrayBind_OneParameterlessStatement_BuildsTheCommand()
+    {
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+
+        using OracleCommand command = OracleArrayBindCommandFactory.Create(
+            connection, [Update(t).Set(t.Qty == t.Qty)], transaction: null);
+
+        Assert.Equal(1, command.ArrayBindCount);
+        Assert.Empty(command.Parameters);
+    }
+
     [Fact]
     public void ExecuteArrayBind_BindNull_BindsDbNullAtThatPosition()
     {
@@ -150,9 +207,9 @@ public class OracleArrayBindTests
             OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
 
         Assert.Equal(
-            "ExecuteArrayBind cannot infer an OracleDbType for parameter :1; every bound value is "
-                + "null. Use Sql.BindNull(dbType) on at least one row to state the "
-                    + "type explicitly.",
+            "ExecuteArrayBind cannot infer an OracleDbType for parameter :1 because every bound "
+                + "value is null; use Sql.BindNull(dbType) on at least one row to state the type "
+                + "explicitly.",
             ex.Message);
     }
 
@@ -176,6 +233,27 @@ public class OracleArrayBindTests
             ex.Message);
     }
 
+    // The hint and the value can come from one bind, so the message names no other row.
+    [Fact]
+    public void ExecuteArrayBind_DbTypeHintConflictsWithItsOwnValue_ThrowsArgumentException()
+    {
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+        List<ISqlBuilder> statements =
+        [
+            InsertInto(t, t.Id, t.Code).Values(1L, new BindValue(5, System.Data.DbType.Decimal)),
+        ];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
+
+        Assert.Equal(
+            "ExecuteArrayBind cannot bind parameter :1 as OracleDbType.Decimal from its "
+                + "DbType.Decimal hint; Int32 values bound there map to OracleDbType.Int32 "
+                + "instead.",
+            ex.Message);
+    }
+
     [Fact]
     public void ExecuteArrayBind_DbTypeHintConflictsWithRealValue_ThrowsArgumentException()
     {
@@ -191,10 +269,9 @@ public class OracleArrayBindTests
             OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
 
         Assert.Equal(
-            "ExecuteArrayBind cannot bind parameter :1 as OracleDbType.Int32 "
-                + "from its DbType.Int32 hint; "
-                + "another row binds a DateTime value there, which maps to "
-                    + "OracleDbType.TimeStamp instead.",
+            "ExecuteArrayBind cannot bind parameter :1 as OracleDbType.Int32 from its "
+                + "DbType.Int32 hint; DateTime values bound there map to OracleDbType.TimeStamp "
+                + "instead.",
             ex.Message);
     }
 
@@ -214,9 +291,8 @@ public class OracleArrayBindTests
 
         Assert.Equal(
             "ExecuteArrayBind requires every bound value at parameter :1 to map to the same "
-                + "OracleDbType; "
-                + "a Int32 value maps to OracleDbType.Int32, but a Decimal value maps to "
-                    + "OracleDbType.Decimal.",
+                + "OracleDbType; Int32 values map to OracleDbType.Int32, but Decimal values map to "
+                + "OracleDbType.Decimal.",
             ex.Message);
     }
 
@@ -374,9 +450,8 @@ public class OracleArrayBindTests
 
         Assert.Equal(
             "ExecuteArrayBind does not support RETURNING ... INTO output parameters; "
-                + "parameter :out_id binds with Direction=Output. "
-                + "Execute the statements one at a time (e.g. SqlArtisan.Dapper's "
-                + "ExecuteReturningInto) instead.",
+                + "parameter :out_id binds with Direction=Output, so execute the statements one "
+                + "at a time (e.g. SqlArtisan.Dapper's ExecuteReturningInto) instead.",
             ex.Message);
     }
 
