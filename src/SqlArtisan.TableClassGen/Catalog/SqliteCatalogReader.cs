@@ -20,9 +20,12 @@ internal sealed class SqliteCatalogReader(
         using (IDbCommand command = conn.CreateCommand())
         {
             command.CommandText =
-                "SELECT name FROM sqlite_master "
-                + "WHERE type = 'table' AND name NOT LIKE 'sqlite\\_%' ESCAPE '\\' "
-                + "ORDER BY name";
+                """
+                SELECT name
+                FROM sqlite_master
+                WHERE type = 'table' AND name NOT LIKE 'sqlite\_%' ESCAPE '\'
+                ORDER BY name
+                """;
 
             using IDataReader reader = command.ExecuteReader();
             while (reader.Read())

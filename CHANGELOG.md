@@ -114,6 +114,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `A JOIN's ON clause requires a condition.`: the `SELECT` message's
   "an unconditioned join is a CROSS JOIN" pointed at a `CrossJoin` those chains
   do not have. The `SELECT` message is unchanged. (#582)
+- **Breaking:** TableClassGen rejects an option given more than once, on the
+  command line (`'--tables' is given more than once`) or as a repeated key in
+  the `--config` file, instead of keeping the last value. Keeping the last
+  `--tables` silently narrowed a run, so `--check --tables b --tables a`
+  reported in sync over `b`'s drift. List several tables as `--tables b,a`.
+  A flag still overrides the same key in the `--config` file. (#643)
 - **Breaking:** `SqlArtisan.Dapper` adds Dapper's `DbConnection` twin of
   `ExecuteReaderAsync`, returning `Task<DbDataReader>`, so a reader opened
   asynchronously can also read asynchronously (`ReadAsync`, `await using`). A
