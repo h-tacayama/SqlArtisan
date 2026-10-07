@@ -593,24 +593,29 @@ having acted on a scope, path or file other than the one the caller named.
 Its exit code is what a script or CI job reads, so a stderr warning does not
 count as failing. Each clause below is a shape A6 found (#645):
 
-- **Read-only modes create nothing.** `--check` and `--dry-run` write no
-  file, the SQLite `--file` database included: a mistyped path must fail at
-  connect, not open as an empty catalog that reports every class removed.
+- **No mode creates the database.** The tool only reads the catalog, so the
+  SQLite `--file` opens without creating in every mode (and `--check` /
+  `--dry-run` write no file at all). A mistyped path must fail at connect;
+  opened as an empty catalog, it lets a generate run exit 0 having read
+  nothing, and `--check` report every class removed.
 - **A narrowed run reads the object set a full run reads.** `--tables` applies
   the same table filter as the full scan (no views, no engine-internal tables),
   or a narrowed run writes a class the next full `--check` disowns.
-- **A guard that cannot read its fact fails closed.** A committed file whose
-  table literal or header the tool cannot parse is refused, never passed:
-  skipping the check let a run overwrite another table's file and exit 0.
+- **A guard that cannot read its fact fails closed.** A file at a path the
+  run would write, whose table literal or header the tool cannot parse, is
+  refused, never passed: skipping the check let a run overwrite another
+  table's file and exit 0. The orphan scan's skipping of hand-written files
+  elsewhere in the directory is not this case.
 - **A blank value is an absent value**, for every option and config key
   (`Required`, `NonBlankValue`); a path helper that reads `""` differently from
   the default it stands for (`Directory.Exists("")`) splits the two.
 - **A repeated option is decided, not last-wins.** A repeated flag or
   `--config` key is rejected at parse: keeping the last `--tables` silently
   narrowed `--check` (#643).
-- **A `--config` value's JSON kind matches its option:** a switch takes a
-  boolean, `tables` an array or string, and a value option a string or number.
-  `"output": false` must not become the directory `false`.
+- **A `--config` value's JSON kind matches its option**, checked after `null`
+  and a blank string have read as absent: a switch takes a boolean, `tables`
+  an array or string, and a value option a string or number. `"output": false`
+  must not become the directory `false`.
 
 ## Message grammar
 
@@ -633,10 +638,11 @@ so the wording is part of the contract.
   since `ON DUPLICATE KEY UPDATE` has no `SET` token to name (#582).
 - **TableClassGen's construct is the flag.** A CLI message names the flag
   that fixes it by its spelling (`--schema`), or the schema object when no flag
-  can (`rename the column`); it is one sentence with no terminal period,
-  printed as `error: <message>`. A driver or file-system cause is appended to
-  that sentence, never substituted for it: an exception reaching `CliRunner`
-  unwrapped prints a message that names no flag or path (#645).
+  can (`rename the column`). It prints as one `error: <message>` line, so the
+  tool's own sentence takes the parse errors' shape, with no terminal period;
+  an appended driver or file-system cause keeps its own text. That cause is
+  appended, never substituted: an exception reaching `CliRunner` unwrapped
+  prints a message that names no flag or path (#645).
 
 The `Invalid type for <X>: <type>` family is built by one helper,
 `ExpressionResolver.UnresolvableValue`, and `<X>` names **the position the

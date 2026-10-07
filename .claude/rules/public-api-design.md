@@ -610,12 +610,16 @@ outlive the run that made them, so the API rules above have a CLI analogue
 - **Emitted code binds every core name whatever the consuming project
   declares.** The file lands in the user's namespace, where a user type named
   `DbColumn` or `DbColumnMetadataAttribute`, or a sibling property named
-  `DbTypeCategory`, wins over `using SqlArtisan;` — loudly for some names,
-  silently for the attribute, which turns the schema rules off.
-- **A generated identifier keeps every character C# admits in one** (letters,
-  digits, combining marks, formatting characters); only the underscore, the
-  snake-case boundary, and a character C# rejects separate words. Dropping a
-  combining mark renamed Thai and Devanagari words into other words (#644).
+  `DbTypeCategory`, wins over `using SqlArtisan;`. That is a compile error
+  unless the user's type happens to accept the emitted arguments, and then it
+  is silent — for the attribute, silently turning the schema rules off.
+- **A generated identifier keeps every character C# admits in one and
+  compares as one**: letters, digits, combining marks and connecting
+  punctuation other than the underscore are kept; formatting characters, which C# ignores when comparing
+  names, are dropped without separating words, so the tool's collision guard
+  sees what the compiler sees. Only the underscore (the snake-case boundary)
+  and a character C# rejects separate words. Dropping a combining mark renamed
+  Thai and Devanagari words into other words (#644).
 - **The generated file needs a `SqlArtisan` at least as new as the tool**,
   since the emitter writes its own build's attribute arguments and
   `DbTypeCategory` members. That pairing is recorded where users install the
