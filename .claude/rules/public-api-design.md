@@ -631,10 +631,11 @@ outlive the run that made them, so the API rules above have a CLI analogue
   tool (the tool README's local tool manifest, `docs/versioning.md`), not left
   to a compile error in the user's build (CS0117 on a `DbTypeCategory` member,
   CS0246 on an attribute argument).
-- **What the surface covers is recorded in `docs/versioning.md`**: names,
-  defaults and keys of the options, exit codes, the `--format json` shape, and a
-  generated file's names, constructor, base type and literals; any other change
-  to the emitted text is minor. Option names ignore case and hyphens, and a
+- **What the surface covers is recorded in `docs/versioning.md`**: the options'
+  names, values and defaults, the `--config` keys, the password environment
+  variable, exit codes, the `--format json` shape, and a generated file's names,
+  constructor, base type and literals; any other change to the emitted text is
+  minor. Option names ignore case and hyphens, and a
   relative `--config` path resolves against the working directory, both
   documented and pinned rather than narrowed, since narrowing either after 1.0
   breaks a caller (#645).

@@ -217,7 +217,8 @@ can rely on them across releases ([Versioning](https://github.com/h-tacayama/Sql
 | `--format text\|json` / `--verbose` | output format and detail |
 
 Option names ignore case and hyphens, on the command line and in the `--config`
-file alike: `--dry-run`, `--DryRun` and a `"dryRun"` key are one option.
+file alike: `--dry-run`, `--DryRun` and a `"dryRun"` key are one option, and
+`--HELP` shows the help as `--help` does.
 
 Each option is given once: a repeated flag, or a key repeated in the `--config`
 file, is an error rather than a silent override, so `--tables a --tables b`
@@ -235,12 +236,12 @@ the interactive path is where a default belongs. On MySQL it defaults to
 The tool verifies no server certificate, on any engine, and takes no connection
 option that would:
 
-- SQL Server: it sets `TrustServerCertificate=true`, so the connection is
-  encrypted but the server's identity is not checked.
-- PostgreSQL and MySQL: the drivers' defaults apply, which use TLS when the
+- MySQL and PostgreSQL: the drivers' defaults apply, which use TLS when the
   server offers it and do not validate its certificate.
 - Oracle: it connects to `host:port/service` over TCP, not TCPS.
 - SQLite: a local file, with no connection to secure.
+- SQL Server: it sets `TrustServerCertificate=true`, so the connection is
+  encrypted but the server's identity is not checked.
 
 It reads only the catalog, never a table's rows, but the password crosses that
 connection. Run it against a development or container database, or over a
@@ -262,7 +263,7 @@ output directories.
 
 Each table becomes a class named after it with a `Table` suffix, in a file of the
 same name (`order_items` → `OrderItemsTable` in `OrderItemsTable.cs`; with
-`--subfolders`, under a folder named by its first letter). Each column becomes a
+`--subfolders`, under a folder named by its first character). Each column becomes a
 property named after it, with no suffix. A name is converted the same way for
 both:
 
@@ -272,12 +273,14 @@ both:
   case is lower-cased (`ORDER_ID` → `OrderId`); a run that mixes cases keeps them
   (`OrderID` → `OrderID`, `customerName` → `CustomerName`).
 - A name that starts with a digit gets a leading `_` (`2fa_code` → `_2faCode`),
-  and one with no letter or digit at all becomes `_`.
+  and one with no letter or digit at all becomes `_`. An empty name, which
+  SQLite allows, converts to nothing: such a table's class is plain `Table`.
 - `--lowercase` lowercases the catalog name first, so `OrderID` becomes `Orderid`.
 
 The tool has no name-mapping option. Two tables that convert to the same class
 name, or to names that differ only by case, fail the run; so do two columns that
-convert to the same property, or a column that converts to its class's name.
+convert to the same property, a column that converts to its class's name, or an
+empty column name.
 Rename one in the schema; for two tables, `--tables` can also leave one out.
 
 The constructor takes `(string tableAlias = "")`. Pass an alias to use the table

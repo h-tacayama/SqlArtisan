@@ -368,6 +368,8 @@ public class CommandLineTests
     {
         Assert.True(CommandLine.WantsHelp(["--help"]));
         Assert.True(CommandLine.WantsHelp(["--check", "-h"]));
+        Assert.True(CommandLine.WantsHelp(["--HELP"]));
+        Assert.True(CommandLine.WantsHelp(["--he-lp"]));
         Assert.False(CommandLine.WantsHelp(["--check"]));
     }
 

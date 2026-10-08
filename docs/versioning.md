@@ -87,7 +87,8 @@ What the tool commits to is what a script, or a later release of the tool, reads
 back:
 
 - **Covered** — a change is breaking:
-  - option names, their values and defaults, and the `--config` keys;
+  - option names, their values and defaults, the `--config` keys, and the
+    `SQLARTISAN_DB_PASSWORD` environment variable;
   - the exit codes: `0` success or in sync, `1` drift, `2` error;
   - the `--format json` keys and values
     ([JSON output](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.TableClassGen/README.md#json-output));
@@ -100,7 +101,8 @@ back:
   text — a new or changed `DbColumnMetadata` fact, the layout, the header — so an
   analyzer rule that needs a new schema fact can ship in a minor release, as
   analyzer changes may. Until `--fix` regenerates such a file, `--check` reports
-  it `modified`, so a scheduled `--check` fails once after the upgrade.
+  it `modified`, so a scheduled `--check` fails from the upgrade until `--fix`
+  runs.
 
 A generated file needs a `SqlArtisan` at least as new as the tool that wrote it:
 the tool writes its own release's attribute arguments and `DbTypeCategory`

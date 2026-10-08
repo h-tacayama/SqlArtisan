@@ -501,12 +501,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   value-type `T` cannot test whether a parameter exists; use `ParameterNames`.
   (#614)
 - `docs/versioning.md` defines TableClassGen's command-line surface. Covered:
-  option names and defaults, `--config` keys, exit codes, the `--format json`
-  shape, and a generated file's names, constructor, base type and literals.
+  option names, values and defaults, `--config` keys, the password environment
+  variable, exit codes, the `--format json` shape, and a generated file's names,
+  constructor, base type and literals.
   Other changes to a generated file's text are minor. A generated file needs a
   `SqlArtisan` at least as new as the tool that wrote it, so the TableClassGen
-  README and the Dapper quickstart now install the tool in a local tool manifest,
-  pinned with the package. (#645)
+  README, the Dapper quickstart and the AI assistants guide now install or run
+  the tool from a local tool manifest, pinned with the package. (#645)
 - The TableClassGen README documents:
   - the rules that turn table and column names into class and property names;
   - the `--format json` keys and values;
@@ -517,7 +518,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   - the `--schema` defaults: required on PostgreSQL and SQL Server, `--database`
     on MySQL, `--user` on Oracle.
 
-  `--help` states those defaults too. (#645)
+  `--help` states those defaults too, and `--HELP` or `--Help` now shows the help
+  instead of failing as an unknown option. (#645)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added
