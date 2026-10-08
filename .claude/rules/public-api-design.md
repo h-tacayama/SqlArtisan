@@ -635,8 +635,8 @@ outlive the run that made them, so the API rules above have a CLI analogue
   names, values and defaults, the `--config` keys, the password environment
   variable, exit codes, the `--format json` shape, and a generated file's names,
   constructor, base type and literals; any other change to the emitted text is
-  minor, and so is an addition (an option, a key, a JSON `mode` or `status`
-  value), which a script must tolerate. Option names ignore case and hyphens, and a
+  minor, and so is a new option, `--config` key or JSON key, or a new JSON
+  `mode` or `status` value, which a script must tolerate. Option names ignore case and hyphens, and a
   relative `--config` path resolves against the working directory, both
   documented and pinned rather than narrowed, since narrowing either after 1.0
   breaks a caller (#645).
