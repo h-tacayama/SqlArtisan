@@ -24,12 +24,16 @@ public sealed class DbColumnMetadataAttribute : Attribute
     public bool HasDefault { get; init; }
 
     /// <summary>
-    /// Whether the column is the leading column of a full index, so a predicate on
-    /// it alone can use that index. A non-leading column of a composite index
-    /// records <see langword="false"/>: there is no index for such a predicate to
-    /// lose. A column leading only a partial index is left unset — whether its
-    /// predicate covers a query is not decidable from the catalog.
+    /// Whether the column leads a full index, so a predicate on it alone can use that
+    /// index; a non-leading column of a composite index records <see langword="false"/>.
     /// </summary>
+    /// <remarks>
+    /// <para>Left unset when the column leads only a partial index, whose predicate
+    /// covering a query is not decidable from the catalog.</para>
+    /// <para>Left unset, too, when an index expression names the column or a PostgreSQL
+    /// index that is neither B-tree nor hash has it as a key, even beside a plain
+    /// index: either may serve the wrapped or leading-wildcard predicate.</para>
+    /// </remarks>
     public bool Indexed { get; init; }
 
     /// <summary>

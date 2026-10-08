@@ -149,7 +149,8 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
     }
 
     // The optimizer matches lower(email) to an indexed generated column's definition,
-    // so email claims nothing beside its own index, as a T-SQL computed column (#645).
+    // so email claims nothing beside its own index, as a T-SQL computed column (#645);
+    // an expression in a later key position counts as one in the first.
     [Fact]
     public void GenerateTables_MySql_GeneratedColumnIndex_ClaimsNothingForTheColumn()
     {
@@ -158,15 +159,19 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
             CREATE TABLE generated_probe (
                 email VARCHAR(255),
                 lower_email VARCHAR(255) AS (lower(email)),
+                code VARCHAR(10),
+                note VARCHAR(10),
                 INDEX ix_email (email),
-                INDEX ix_lower_email (lower_email))
+                INDEX ix_lower_email (lower_email),
+                INDEX ix_note (note),
+                INDEX ix_code_note (code, (upper(note))))
             """);
         try
         {
             CatalogTable table = new InformationSchemaCatalogReader(ConnInfo(), false)
                 .GetAllTables()
                 .Single(t => t.TableName == "generated_probe");
-            Assert.Equal([null, true], table.Columns.Select(c => c.IsIndexed));
+            Assert.Equal([null, true, true, null], table.Columns.Select(c => c.IsIndexed));
         }
         finally
         {
@@ -353,6 +358,32 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
             Execute("DROP INDEX ix_upper_name ON users");
             Execute("ALTER TABLE users DROP COLUMN upper_name");
             Execute("DROP INDEX ix_age_dept ON users");
+        }
+    }
+
+    // A computed column in a later key position names its real column as one in the
+    // first does, so email claims nothing beside its own index (#645).
+    [Fact]
+    public void GenerateTables_SqlServer_LaterKeyComputedColumn_ClaimsNothingForTheColumn()
+    {
+        Execute(
+            """
+            CREATE TABLE computed_probe (
+                code INT, email NVARCHAR(100), lower_email AS LOWER(email))
+            """);
+        try
+        {
+            Execute("CREATE INDEX ix_email ON computed_probe (email)");
+            Execute("CREATE INDEX ix_code_lower ON computed_probe (code, lower_email)");
+
+            CatalogTable table = new InformationSchemaCatalogReader(ConnInfo(), false)
+                .GetAllTables()
+                .Single(t => t.TableName == "computed_probe");
+            Assert.Equal([true, null, false], table.Columns.Select(c => c.IsIndexed));
+        }
+        finally
+        {
+            Execute("DROP TABLE IF EXISTS computed_probe");
         }
     }
 
@@ -916,6 +947,31 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
         }
     }
 
+    // ALL_TABLES.DROPPED is NULL for a partitioned table, so a filter on 'NO' alone
+    // dropped it from the run while it exited 0.
+    [Fact]
+    public void GenerateTables_Oracle_PartitionedTable_IsListed()
+    {
+        Execute(
+            """
+            CREATE TABLE partitioned_probe (id NUMBER(10))
+            PARTITION BY RANGE (id) (
+                PARTITION p1 VALUES LESS THAN (10),
+                PARTITION p2 VALUES LESS THAN (MAXVALUE))
+            """);
+        try
+        {
+            OracleCatalogReader reader = new(ConnInfo(), lowercaseNames: true);
+
+            Assert.Contains(reader.GetAllTables(), t => t.TableName == "partitioned_probe");
+            Assert.True(reader.TryGetTable("partitioned_probe", out _));
+        }
+        finally
+        {
+            TryExecute("DROP TABLE partitioned_probe PURGE");
+        }
+    }
+
     // A dropped table stays in ALL_TABLES' reach only as a recycle-bin entry, whose
     // BIN$ name the case check would refuse.
     [Fact]
@@ -1121,9 +1177,19 @@ internal static class TableClassGenAssertions
                 .GetAllTables()
                 .Single(t => t.TableName == "gin_probe");
             Assert.Equal([null, null], probe.Columns.Select(c => c.IsIndexed));
+
+            // An INCLUDE column is stored, not a key, so it serves no predicate.
+            execute("CREATE TABLE include_probe (p point, inc int)");
+            execute("CREATE INDEX ix_include_inc ON include_probe (inc)");
+            execute("CREATE INDEX ix_include_gist ON include_probe USING gist (p) INCLUDE (inc)");
+            CatalogTable included = new InformationSchemaCatalogReader(connInfo, false)
+                .GetAllTables()
+                .Single(t => t.TableName == "include_probe");
+            Assert.Equal([null, true], included.Columns.Select(c => c.IsIndexed));
         }
         finally
         {
+            execute("DROP TABLE IF EXISTS include_probe");
             execute("DROP TABLE IF EXISTS gin_probe");
             execute("DROP INDEX IF EXISTS ix_name");
             execute("DROP INDEX ix_trgm");

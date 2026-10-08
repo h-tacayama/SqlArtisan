@@ -18,12 +18,12 @@ internal sealed class OracleCatalogReader(
 
         AllTables t = new();
 
-        // A table in the recycle bin is no table of the schema, and its BIN$ name
-        // would fail the case check below.
+        // A recycle-bin table's BIN$ name would fail the case check below; DROPPED is
+        // NULL on a partitioned table, which must stay listed.
         ISqlBuilder sql =
             Select(t.TableName)
             .From(t)
-            .Where(t.Owner == _connInfo.Schema.ToUpperInvariant() & t.Dropped == "NO")
+            .Where(t.Owner == _connInfo.Schema.ToUpperInvariant() & NotDropped(t))
             .OrderBy(t.TableName);
 
         List<CatalogTable> tables = [];
@@ -196,6 +196,9 @@ internal sealed class OracleCatalogReader(
         }
     }
 
+    private static SqlCondition NotDropped(AllTables t) =>
+        t.Dropped.IsNull | t.Dropped == "NO";
+
     private bool ExistsTable(IDbConnection conn, string storedName)
     {
         AllTables t = new();
@@ -206,7 +209,7 @@ internal sealed class OracleCatalogReader(
             .Where(
                 t.Owner == _connInfo.Schema.ToUpperInvariant()
                 & t.TableName == storedName
-                & t.Dropped == "NO");
+                & NotDropped(t));
 
         int tableCount = Convert.ToInt32(conn.ExecuteScalar(sql));
         return tableCount > 0;

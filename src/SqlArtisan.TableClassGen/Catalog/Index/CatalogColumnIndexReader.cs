@@ -90,22 +90,23 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
     // invisible index, drops it.
     private const string MySql80Query =
         """
-        SELECT s.COLUMN_NAME, NULL, 0, NULLIF(c.GENERATION_EXPRESSION, '')
+        SELECT CASE WHEN s.SEQ_IN_INDEX = 1 THEN s.COLUMN_NAME END, NULL, 0,
+            NULLIF(c.GENERATION_EXPRESSION, '')
         FROM information_schema.STATISTICS s
         LEFT JOIN information_schema.COLUMNS c ON c.TABLE_SCHEMA = s.TABLE_SCHEMA
             AND c.TABLE_NAME = s.TABLE_NAME AND c.COLUMN_NAME = s.COLUMN_NAME
         WHERE s.TABLE_SCHEMA = @schema_name AND s.TABLE_NAME = @table_name
-            AND s.SEQ_IN_INDEX = 1 AND s.IS_VISIBLE = 'YES'
+            AND s.IS_VISIBLE = 'YES'
         """;
 
     private const string MySql57Query =
         """
-        SELECT s.COLUMN_NAME, NULL, 0, NULLIF(c.GENERATION_EXPRESSION, '')
+        SELECT CASE WHEN s.SEQ_IN_INDEX = 1 THEN s.COLUMN_NAME END, NULL, 0,
+            NULLIF(c.GENERATION_EXPRESSION, '')
         FROM information_schema.STATISTICS s
         LEFT JOIN information_schema.COLUMNS c ON c.TABLE_SCHEMA = s.TABLE_SCHEMA
             AND c.TABLE_NAME = s.TABLE_NAME AND c.COLUMN_NAME = s.COLUMN_NAME
         WHERE s.TABLE_SCHEMA = @schema_name AND s.TABLE_NAME = @table_name
-            AND s.SEQ_IN_INDEX = 1
         """;
 
     private IEnumerable<string> LeadingKeyQueries() =>
@@ -115,25 +116,26 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
 
     private const int OtherMethodIndex = 2;
 
-    // Each row is a leading column name, an expression text, and the lead's kind:
-    // plain, partial, or on PostgreSQL neither B-tree nor hash, the kind that may
-    // serve a wrapped or wildcard predicate (a trigram GIN index, #645).
+    // Each row is a key's column name if it leads, an expression text at any key
+    // position, and the kind: plain, partial, or on PostgreSQL neither B-tree nor
+    // hash, which may serve a wrapped or wildcard predicate (a trigram GIN, #645).
     private string LeadingKeyQuery() => dbms switch
     {
         // The optimizer matches an expression to an indexed generated column's
         // definition, so the fourth column names the real columns, as T-SQL's does below.
         Dbms.MySql =>
             """
-            SELECT s.COLUMN_NAME, s.EXPRESSION, 0, NULLIF(c.GENERATION_EXPRESSION, '')
+            SELECT CASE WHEN s.SEQ_IN_INDEX = 1 THEN s.COLUMN_NAME END, s.EXPRESSION, 0,
+                NULLIF(c.GENERATION_EXPRESSION, '')
             FROM information_schema.STATISTICS s
             LEFT JOIN information_schema.COLUMNS c ON c.TABLE_SCHEMA = s.TABLE_SCHEMA
                 AND c.TABLE_NAME = s.TABLE_NAME AND c.COLUMN_NAME = s.COLUMN_NAME
             WHERE s.TABLE_SCHEMA = @schema_name AND s.TABLE_NAME = @table_name
-                AND s.SEQ_IN_INDEX = 1 AND s.IS_VISIBLE = 'YES'
+                AND s.IS_VISIBLE = 'YES'
             """,
 
         // indkey is 0 where a key is an expression, which the join drops to a null name;
-        // the second half lists every key of a GIN or GiST index, which serves any position.
+        // the second half lists every key of a non-B-tree, non-hash index, not INCLUDE's.
         Dbms.PostgreSql =>
             """
             SELECT a.attname, pg_get_expr(i.indexprs, i.indrelid),
@@ -153,19 +155,21 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
             JOIN pg_namespace n ON n.oid = c.relnamespace
             JOIN pg_class ic ON ic.oid = i.indexrelid
             JOIN pg_am am ON am.oid = ic.relam
-            JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = ANY (i.indkey)
+            JOIN pg_attribute a ON a.attrelid = c.oid
+                AND a.attnum = ANY ((i.indkey::int2[])[0:i.indnkeyatts - 1])
             WHERE c.relname = @table_name AND n.nspname = @schema_name AND i.indisvalid
                 AND am.amname NOT IN ('btree', 'hash')
             """,
 
-        // T-SQL indexes no expression directly; the equivalent is an index whose
-        // leading key is a computed column, whose definition names the real columns.
+        // T-SQL indexes no expression directly; the equivalent is an index keyed on a
+        // computed column, whose definition names the real columns.
         Dbms.SqlServer =>
             """
-            SELECT c.name, cc.definition, CAST(i.has_filter AS int)
+            SELECT CASE WHEN ic.key_ordinal = 1 THEN c.name END, cc.definition,
+                CAST(i.has_filter AS int)
             FROM sys.indexes i
             JOIN sys.index_columns ic ON ic.object_id = i.object_id
-                AND ic.index_id = i.index_id AND ic.key_ordinal = 1
+                AND ic.index_id = i.index_id AND ic.key_ordinal >= 1
             JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
             LEFT JOIN sys.computed_columns cc ON cc.object_id = c.object_id
                 AND cc.column_id = c.column_id
