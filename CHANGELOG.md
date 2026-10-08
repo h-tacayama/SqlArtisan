@@ -507,7 +507,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `docs/versioning.md` defines TableClassGen's command-line surface. Covered:
   option names, values and defaults, `--config` keys, the password environment
   variable, exit codes, the `--format json` shape, and a generated file's names,
-  constructor, base type and literals.
+  constructor, base type and literals. An addition, a new JSON key or `status`
+  value included, is minor.
   Other changes to a generated file's text are minor. A generated file needs a
   `SqlArtisan` at least as new as the tool that wrote it, so the TableClassGen
   README, the Dapper quickstart and the AI assistants guide now install or run

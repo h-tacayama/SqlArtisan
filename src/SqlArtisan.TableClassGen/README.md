@@ -198,7 +198,9 @@ reports what a run would write without writing it.
   column metadata or layout. The text after it is for reading.
 
 The keys and values above are part of the tool's command-line surface, so a script
-can rely on them across releases ([Versioning](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/versioning.md#tableclassgens-command-line-surface)).
+can rely on them across releases. A minor release may add a key or a `mode` or
+`status` value, so a script ignores a key it does not know and does not fail on a
+value it does not know ([Versioning](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/versioning.md#tableclassgens-command-line-surface)).
 
 ### Options
 
