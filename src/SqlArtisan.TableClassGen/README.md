@@ -224,7 +224,9 @@ that index; a non-leading column of a composite index records `false`. A column
 an index *expression* names records nothing — an expression index exists
 precisely so the wrapped predicate can be written — and so does one a MySQL
 generated column or SQL Server computed column names when that column is
-indexed, since the optimizer matches the expression to it. So does a column that
+indexed, since the optimizer matches the expression to it. The name is matched as
+a whole word in the expression text, never parsed, so a column named like a
+function or type the expression uses records nothing either. So does a column that
 is a key, in any position, of a PostgreSQL index that is neither B-tree nor hash,
 such as a GIN, GiST, SP-GiST or BRIN one: a trigram GIN index serves
 `LIKE '%x%'`, the very query a B-tree lead would make `SQLA0204` report. All of
