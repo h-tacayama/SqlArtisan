@@ -30,9 +30,11 @@ public sealed class DbColumnMetadataAttribute : Attribute
     /// <remarks>
     /// <para>Left unset when the column leads only a partial index, whose predicate
     /// covering a query is not decidable from the catalog.</para>
-    /// <para>Left unset, too, when an index expression names the column or a PostgreSQL
-    /// index that is neither B-tree nor hash has it as a key, even beside a plain
-    /// index: either may serve the wrapped or leading-wildcard predicate.</para>
+    /// <para>Left unset, too, even beside a plain index, when an index expression or an
+    /// indexed generated or computed column's definition names the column, or a PostgreSQL
+    /// index neither B-tree nor hash keys it: each may serve a wrapped predicate.</para>
+    /// <para>On SQLite the expression is the whole index definition, so a column it names
+    /// anywhere, a mixed index's plain lead or a partial index's predicate, is unset too.</para>
     /// <para>On Oracle, one function-based index leaves every column of its table
     /// unset: the index expression is stored in a form the generator does not read.</para>
     /// </remarks>
