@@ -97,9 +97,11 @@ back:
     `(string tableAlias = "")`, the base type, and the table and column literals.
 - **Not covered**: the text report, the wording of errors on stderr, the `--help`
   text, and the interactive prompts.
-- **Minor: an addition** — a new option or `--config` key, a new `--format json`
-  key, or a new `mode` or `status` value. A script reading the JSON ignores a key
-  it does not know and does not fail on a value it does not know.
+- **Minor: an addition** — a new option or `--config` key, a new value for an
+  existing option (a `--dbms` value for a new `Dbms` member, say), a new
+  `--format json` key, or a new `mode` or `status` value. A script reading the
+  JSON ignores a key it does not know and does not fail on a value it does not
+  know.
 - **Minor, called out in the CHANGELOG**: any other change to a generated file's
   text — a new or changed `DbColumnMetadata` fact, the layout, the header — so an
   analyzer rule that needs a new schema fact can ship in a minor release, as
