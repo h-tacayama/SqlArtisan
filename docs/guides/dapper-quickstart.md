@@ -38,9 +38,14 @@ column names.
 SQL Server and writes one class file per table:
 
 ```bash
-dotnet tool install --global SqlArtisan.TableClassGen --prerelease
-sa-tableclassgen    # interactive: connection info → namespace → output directory
+dotnet new tool-manifest                                  # once per repository
+dotnet tool install SqlArtisan.TableClassGen --prerelease
+dotnet sa-tableclassgen    # interactive: connection info → namespace → output directory
 ```
+
+The manifest pins the tool's version in the repository: a generated file needs a
+`SqlArtisan` package at least as new as the tool that wrote it, so upgrade the two
+together.
 
 **Write them by hand** when you prefer to (or for a table that does not exist
 yet) — each class is a constructor and one `DbColumn` per column:

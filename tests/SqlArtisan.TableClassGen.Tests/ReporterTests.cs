@@ -141,6 +141,85 @@ public class ReporterTests
         Assert.DoesNotContain("All drifted tables", report, StringComparison.Ordinal);
     }
 
+    // The documented --format json shape, byte for byte: a script parses it, so a
+    // renamed member or a reordered key must fail here (README § "JSON output").
+    [Theory]
+    [InlineData("generate")]
+    [InlineData("check")]
+    [InlineData("fix")]
+    public void Report_Json_EmitsTheDocumentedShape(string modeName)
+    {
+        RunMode mode = modeName switch
+        {
+            "generate" => RunMode.Generate,
+            "check" => RunMode.Check,
+            _ => RunMode.Fix,
+        };
+        TableResult[] results =
+        [
+            new("customers", "out/CustomersTable.cs", TableStatus.Unchanged, []),
+            new("audit_log", "out/AuditLogTable.cs", TableStatus.Added, []),
+            new("employees", "out/EmployeesTable.cs", TableStatus.Modified, ["+ email", "~ id"]),
+            new("DepartmentsTable.cs", "out/DepartmentsTable.cs", TableStatus.Removed, []),
+        ];
+        RunOptions options = new(
+            mode, DummyConnection(), TestSettings.Create(), dryRun: true, json: true);
+
+        string report = Capture(() => new Reporter(options).Report(results));
+
+        Assert.Equal(
+            $$"""
+            {
+              "mode": "{{modeName}}",
+              "dryRun": true,
+              "drift": true,
+              "tables": [
+                {
+                  "name": "customers",
+                  "status": "unchanged",
+                  "path": "out/CustomersTable.cs",
+                  "changes": []
+                },
+                {
+                  "name": "audit_log",
+                  "status": "added",
+                  "path": "out/AuditLogTable.cs",
+                  "changes": []
+                },
+                {
+                  "name": "employees",
+                  "status": "modified",
+                  "path": "out/EmployeesTable.cs",
+                  "changes": [
+                    "+ email",
+                    "~ id"
+                  ]
+                },
+                {
+                  "name": "DepartmentsTable.cs",
+                  "status": "removed",
+                  "path": "out/DepartmentsTable.cs",
+                  "changes": []
+                }
+              ]
+            }
+
+            """,
+            report.ReplaceLineEndings("\n"));
+    }
+
+    [Fact]
+    public void Report_Json_NoDrift_DriftIsFalse()
+    {
+        TableResult unchanged = new("item", "ItemTable.cs", TableStatus.Unchanged, []);
+        RunOptions options = new(
+            RunMode.Check, DummyConnection(), TestSettings.Create(), json: true);
+
+        string report = Capture(() => new Reporter(options).Report([unchanged]));
+
+        Assert.Contains("\"drift\": false", report, StringComparison.Ordinal);
+    }
+
     private static RunOptions FixOptions() => Options(RunMode.Fix);
 
     private static RunOptions Options(RunMode mode, bool dryRun = false, bool verbose = false) =>

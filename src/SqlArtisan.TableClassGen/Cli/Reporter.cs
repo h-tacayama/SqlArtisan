@@ -208,7 +208,7 @@ internal sealed class Reporter(RunOptions options)
         Console.WriteLine(JsonSerializer.Serialize(
             new
             {
-                mode = options.Mode.ToString().ToLowerInvariant(),
+                mode = ModeName(options.Mode),
                 dryRun = options.DryRun,
                 drift = results.Any(r => r.Status != TableStatus.Unchanged),
                 tables = results.Select(r => new
@@ -228,5 +228,24 @@ internal sealed class Reporter(RunOptions options)
             }));
     }
 
-    private static string Label(TableStatus status) => status.ToString().ToLowerInvariant();
+    // Spelled here, never derived from the enum names: a script parses these, and
+    // renaming a member must not change what it reads (README § "JSON output").
+    private static string Label(TableStatus status) =>
+        status switch
+        {
+            TableStatus.Unchanged => "unchanged",
+            TableStatus.Added => "added",
+            TableStatus.Modified => "modified",
+            TableStatus.Removed => "removed",
+            _ => throw new ArgumentOutOfRangeException(nameof(status)),
+        };
+
+    private static string ModeName(RunMode mode) =>
+        mode switch
+        {
+            RunMode.Generate => "generate",
+            RunMode.Check => "check",
+            RunMode.Fix => "fix",
+            _ => throw new ArgumentOutOfRangeException(nameof(mode)),
+        };
 }

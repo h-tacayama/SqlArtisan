@@ -45,7 +45,8 @@ The packages expose these namespaces, and they carry different promises.
 - **`SqlArtisan.Dapper`** and **`SqlArtisan.ArrayBind`** — the integration
   packages' own API, covered exactly like `SqlArtisan`.
 - **`SqlArtisan.TableClassGen`** ships as a command-line tool and exposes no
-  public API at all; what it commits to is its command-line surface.
+  public API at all; what it commits to is its
+  [command-line surface](#tableclassgens-command-line-surface).
 
 The split is gated, not merely stated. A public type in `SqlArtisan.Internal`
 that no public signature hands back fails the test suite, as does one that
@@ -79,6 +80,33 @@ Three cases are specific to this library, beyond the usual API-level changes:
 
 Analyzer diagnostic updates (the SQLA rules) may also land in a
 minor release: they change build-time diagnostics, never runtime behavior.
+
+## TableClassGen's command-line surface
+
+What the tool commits to is what a script, or a later release of the tool, reads
+back:
+
+- **Covered** — a change is breaking:
+  - option names, their values and defaults, and the `--config` keys;
+  - the exit codes: `0` success or in sync, `1` drift, `2` error;
+  - the `--format json` keys and values
+    ([JSON output](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.TableClassGen/README.md#json-output));
+  - in a generated file, for a given catalog: the class and property names
+    ([Generated names](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.TableClassGen/README.md#generated-names)), the constructor
+    `(string tableAlias = "")`, the base type, and the table and column literals.
+- **Not covered**: the text report, the wording of errors on stderr, the `--help`
+  text, and the interactive prompts.
+- **Minor, called out in the CHANGELOG**: any other change to a generated file's
+  text — a new or changed `DbColumnMetadata` fact, the layout, the header — so an
+  analyzer rule that needs a new schema fact can ship in a minor release, as
+  analyzer changes may. Until `--fix` regenerates such a file, `--check` reports
+  it `modified`, so a scheduled `--check` fails once after the upgrade.
+
+A generated file needs a `SqlArtisan` at least as new as the tool that wrote it:
+the tool writes its own release's attribute arguments and `DbTypeCategory`
+members, and an older package rejects one it lacks. Install the tool in a local
+tool manifest and upgrade it together with the package
+([Installation](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.TableClassGen/README.md#installation)).
 
 ## Deprecation
 
