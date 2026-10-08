@@ -410,10 +410,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     `Indexed` fact, even beside a plain index of its own. A trigram GIN index
     serves `LIKE '%x%'` and an expression index serves the wrapped predicate, so
     `Indexed = true` made `SQLA0204` report the queries those indexes exist for.
-    This reverses 0.10's choice to keep the plain lead `true` beside an
-    expression index; a predicate no index serves on such a column now goes
-    unreported. On SQLite, where the expression is read from the whole index
-    definition, the plain lead of a mixed expression index records nothing too.
+    For an expression index this restores the rule's original design (#266),
+    which 0.10 had reversed to keep the plain lead `true`; a predicate no index
+    serves on such a column now goes unreported. On SQLite, where the
+    expression is read from the whole index definition, the plain lead of a
+    mixed expression index records nothing too.
   - A column that leads only an invisible Oracle index or a hypothetical SQL
     Server index records `Indexed = false`, like the unusable and disabled
     indexes before it. A MySQL server from 8.0.0 to 8.0.12 keeps the
