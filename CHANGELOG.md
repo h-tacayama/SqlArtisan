@@ -401,6 +401,47 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - On a case-folding file system, TableClassGen's orphan scan no longer reports
   a file it regenerates under another case of the same name (a class whose case
   changes with `--lowercase`). (#645)
+- TableClassGen's catalog facts, each read live on its engine. A regeneration
+  rewrites the affected classes once, and `--check` reports them `modified`
+  until it does. (#645)
+  - A column that is a key, in any position, of a PostgreSQL index that is
+    neither B-tree nor hash (GIN, GiST, SP-GiST, BRIN, …), or that an expression
+    index names (a MySQL generated column's index now included), records no
+    `Indexed` fact, even beside a plain index of its own. A trigram GIN index
+    serves `LIKE '%x%'` and an expression index serves the wrapped predicate, so
+    `Indexed = true` made `SQLA0204` report the queries those indexes exist for.
+    For an expression index this restores the rule's original design (#266),
+    which 0.10 had reversed to keep the plain lead `true`; a predicate no index
+    serves on such a column now goes unreported. On SQLite, where the
+    expression is read from the whole index definition, the plain lead of a
+    mixed expression index records nothing too.
+  - A column that leads only an invisible Oracle index or a hypothetical SQL
+    Server index records `Indexed = false`, like the unusable and disabled
+    indexes before it. A MySQL server from 8.0.0 to 8.0.12 keeps the
+    `INVISIBLE` filter it used to drop.
+  - A SQLite column with no declared type (an FTS5 column, a
+    `CREATE TABLE ... AS` expression column) records no `TypeCategory`; it was
+    `Binary`, so comparing one to a string raised `SQLA0205`.
+  - A MySQL `YEAR` column is `Numeric`, not `Temporal`: MySQL compares it as a
+    number, so `y == 2024` raised `SQLA0205` on a predicate that matches.
+  - An explicit `DEFAULT NULL` records `HasDefault = false` on Oracle,
+    PostgreSQL (a typed `NULL::character varying` included), SQLite and SQL
+    Server. It supplies no value, so `SQLA0202` stayed silent on an
+    `INSERT` the engine rejects.
+  - A PostgreSQL table with no columns gets a class with no properties. A full
+    run skipped it and exited 0, and `--tables` called it absent. A table
+    with no column visible to the user fails the run naming the table, and on
+    PostgreSQL so does one with any column hidden (a role holding only
+    `DELETE`, or `SELECT` on some columns); it used to be skipped, or written
+    with only the visible columns.
+  - An Oracle table with a quoted name that is not upper case fails the run,
+    naming the table, by `--tables` too. Every read folded the name to upper
+    case, so the table was skipped while the run exited 0. A table in the
+    recycle bin is no longer listed.
+  - `--tables` on MySQL, PostgreSQL and SQL Server emits the table name as the
+    catalog stores it, as SQLite already did: under SQL Server's
+    case-insensitive collation, `--tables ORDERS` wrote `"ORDERS"` for
+    `Orders`, which the next full `--check` reported modified.
 
 ### Tests
 - Integration twins for #614's engine claims: Oracle rejects

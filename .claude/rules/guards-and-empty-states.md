@@ -604,10 +604,21 @@ count as failing. Each clause below is a shape A6 found (#645):
   (no views, no engine-internal tables), and emits the catalog's stored name,
   not the caller's spelling, where the engine folds identifier case (SQLite's
   `--tables ITEM` emitted `"ITEM"` for `item`); otherwise a narrowed run writes
-  a class the next full `--check` disowns or reports modified. SQLite resolves
-  the stored name; the information_schema reader still emits the caller's
-  spelling, which a case-insensitive collation (SQL Server's default) admits,
-  open in #645.
+  a class the next full `--check` disowns or reports modified. The SQLite and
+  information_schema readers resolve the stored name (SQL Server's default
+  collation admits `ORDERS` for `Orders`); Oracle's folds every name to upper
+  case, as an unquoted identifier is stored.
+- **A full run writes every table it lists, or fails naming it.** A table with
+  no columns is generated: PostgreSQL's was skipped while the run exited 0, and
+  `--tables` called it absent. One with a column the user cannot see fails the
+  run: PostgreSQL lists a table on any privilege but each column only on a
+  privilege over it, so writing the visible ones stripped the rest from a
+  committed class; `pg_attribute` counts them whatever the grants. MySQL and
+  SQL Server have no such count, so only an empty list is caught there; a
+  partial column grant is rare, and whether it narrows their listing is not
+  probed (decided in #645). An Oracle table whose quoted name is not upper case
+  fails the run, by `--tables` too: every Oracle read folds the name, so it was
+  skipped (decided in #645).
 - **Every check runs before the first write.** A guard, a catalog read, and
   the orphan scan all run before any file is written, so a failure leaves the
   directory as it was; only a write itself can fail after another, and its

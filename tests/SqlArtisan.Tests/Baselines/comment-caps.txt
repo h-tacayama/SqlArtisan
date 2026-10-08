@@ -31,7 +31,6 @@ src/SqlArtisan/Internal/SqlPart/Expression/Function/FullTextSearchFunction/ToTsq
 src/SqlArtisan/Internal/SqlPart/Expression/Function/OrderedSetAggregateFunction/PercentileFunction.cs 1
 src/SqlArtisan/Internal/SqlPart/Expression/Function/StringAggregateFunction/ListaggFunction.cs 1
 src/SqlArtisan/Internal/SqlPart/IIncompleteExpression.cs 1
-src/SqlArtisan/Metadata/DbColumnMetadataAttribute.cs 1
 src/SqlArtisan/Sql/Sql.A.cs 1
 src/SqlArtisan/Sql/Sql.B.cs 2
 src/SqlArtisan/Sql/Sql.C.cs 6

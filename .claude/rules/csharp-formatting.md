@@ -62,8 +62,9 @@ Packing is deliberate — and stays — in exactly four shapes:
 
   ```csharp
   ReadLeadingKeys(
-      conn, tableName, LeadingKeyQuery(),
-      leadingColumns, expressionTexts, partialLeadingColumns);
+      conn, tableName, sql,
+      leadingColumns, expressionTexts,
+      partialLeadingColumns, otherMethodKeyColumns);
   ```
 
 - **A short trailing argument after a long literal** — the literal forced

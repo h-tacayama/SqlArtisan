@@ -24,12 +24,21 @@ public sealed class DbColumnMetadataAttribute : Attribute
     public bool HasDefault { get; init; }
 
     /// <summary>
-    /// Whether the column is the leading column of a full index, so a predicate on
-    /// it alone can use that index. A non-leading column of a composite index
-    /// records <see langword="false"/>: there is no index for such a predicate to
-    /// lose. A column leading only a partial index is left unset — whether its
-    /// predicate covers a query is not decidable from the catalog.
+    /// Whether the column leads a full index, so a predicate on it alone can use that
+    /// index; a non-leading column of a composite index records <see langword="false"/>.
     /// </summary>
+    /// <remarks>
+    /// <para>Left unset when the column leads only a partial index, whose predicate
+    /// covering a query is not decidable from the catalog.</para>
+    /// <para>Left unset, too, even beside a plain index, when a PostgreSQL index neither
+    /// B-tree nor hash keys the column, or its name appears as a whole word anywhere in an
+    /// index expression's text: either index may serve a wrapped predicate.</para>
+    /// <para>That text includes an indexed MySQL generated or SQL Server computed column's
+    /// definition and, on SQLite, the whole index definition, so a mixed index's plain
+    /// lead or a name in a partial index's predicate is unset as well.</para>
+    /// <para>On Oracle, one function-based index leaves every column of its table
+    /// unset: the index expression is stored in a form the generator does not read.</para>
+    /// </remarks>
     public bool Indexed { get; init; }
 
     /// <summary>

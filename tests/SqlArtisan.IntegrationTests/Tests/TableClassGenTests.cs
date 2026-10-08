@@ -37,7 +37,72 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
 
         InformationSchemaCatalogReader reader = new(connInfo, lowercaseNames: false);
 
-        TableClassGenAssertions.AssertSeededSchema(reader.GetAllTables());
+        TableClassGenAssertions.AssertSeededSchema(
+            reader.GetAllTables(),
+            // BOOLEAN is TINYINT(1) on MySQL, and JSON has no category.
+            [
+                DbTypeCategory.Numeric, DbTypeCategory.Text, DbTypeCategory.Numeric,
+                DbTypeCategory.Numeric, DbTypeCategory.Temporal, DbTypeCategory.Numeric, null,
+            ]);
+    }
+
+    // MySQL compares a YEAR as a number, so the column is Numeric: Temporal made
+    // SQLA0205 report `y == 2024`, which matches the row.
+    [Fact]
+    public void GenerateTables_MySql_Year_IsNumericAndComparesAsANumber()
+    {
+        Execute("CREATE TABLE year_probe (y YEAR)");
+        try
+        {
+            Execute("INSERT INTO year_probe (y) VALUES (2024)");
+            using IDbConnection connection = _fixture.OpenConnection();
+            Assert.Equal(
+                1L,
+                connection.ExecuteScalar<long>("SELECT COUNT(*) FROM year_probe WHERE y = 2024"));
+
+            CatalogTable table = new InformationSchemaCatalogReader(ConnInfo(), false)
+                .GetAllTables()
+                .Single(t => t.TableName == "year_probe");
+            Assert.Equal(DbTypeCategory.Numeric, Assert.Single(table.Columns).TypeCategory);
+        }
+        finally
+        {
+            Execute("DROP TABLE year_probe");
+        }
+    }
+
+    // The reason MySQL is left out of the DEFAULT NULL reading: a string default
+    // 'NULL' reports the same bare text, and an explicit DEFAULT NULL reports none.
+    [Fact]
+    public void GenerateTables_MySql_StringDefaultNull_ReadsAsADefault()
+    {
+        Execute("CREATE TABLE default_probe (s VARCHAR(10) DEFAULT 'NULL', n INT DEFAULT NULL)");
+        try
+        {
+            using IDbConnection connection = _fixture.OpenConnection();
+            Assert.Equal(
+                ["NULL", null],
+                connection.Query<string?>(
+                    "SELECT COLUMN_DEFAULT FROM information_schema.COLUMNS "
+                        + "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'default_probe' "
+                        + "ORDER BY ORDINAL_POSITION"));
+
+            CatalogTable table = new InformationSchemaCatalogReader(ConnInfo(), false)
+                .GetAllTables()
+                .Single(t => t.TableName == "default_probe");
+            Assert.Equal([true, null], table.Columns.Select(c => c.HasDefault));
+        }
+        finally
+        {
+            Execute("DROP TABLE default_probe");
+        }
+    }
+
+    // PostgreSQL alone takes a table with no columns, which the reader generates.
+    [Fact]
+    public void ZeroColumnTable_MySql_IsRejectedByTheEngine()
+    {
+        Assert.Throws<MySqlException>(() => Execute("CREATE TABLE zero_columns ()"));
     }
 
     // An INVISIBLE index is maintained but never chosen by the optimizer, so it
@@ -66,6 +131,7 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
     {
         Execute("CREATE INDEX ix_age_dept ON users (age, department_id)");
         Execute("CREATE INDEX ix_upper_name ON users ((upper(name)))");
+        Execute("CREATE INDEX ix_name ON users (name)");
         try
         {
             InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
@@ -76,8 +142,40 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
         }
         finally
         {
+            Execute("DROP INDEX ix_name ON users");
             Execute("DROP INDEX ix_upper_name ON users");
             Execute("DROP INDEX ix_age_dept ON users");
+        }
+    }
+
+    // The optimizer matches lower(email) to an indexed generated column's definition,
+    // so email claims nothing beside its own index, as a T-SQL computed column (#645);
+    // an expression in a later key position counts as one in the first.
+    [Fact]
+    public void GenerateTables_MySql_GeneratedColumnIndex_ClaimsNothingForTheColumn()
+    {
+        Execute(
+            """
+            CREATE TABLE generated_probe (
+                email VARCHAR(255),
+                lower_email VARCHAR(255) AS (lower(email)),
+                code VARCHAR(10),
+                note VARCHAR(10),
+                INDEX ix_email (email),
+                INDEX ix_lower_email (lower_email),
+                INDEX ix_note (note),
+                INDEX ix_code_note (code, (upper(note))))
+            """);
+        try
+        {
+            CatalogTable table = new InformationSchemaCatalogReader(ConnInfo(), false)
+                .GetAllTables()
+                .Single(t => t.TableName == "generated_probe");
+            Assert.Equal([null, true, true, null], table.Columns.Select(c => c.IsIndexed));
+        }
+        finally
+        {
+            Execute("DROP TABLE IF EXISTS generated_probe");
         }
     }
 
@@ -160,7 +258,71 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
 
         InformationSchemaCatalogReader reader = new(connInfo, lowercaseNames: false);
 
-        TableClassGenAssertions.AssertSeededSchema(reader.GetAllTables());
+        TableClassGenAssertions.AssertSeededSchema(
+            reader.GetAllTables(),
+            [
+                DbTypeCategory.Numeric, DbTypeCategory.Text, DbTypeCategory.Numeric,
+                DbTypeCategory.Numeric, DbTypeCategory.Temporal, DbTypeCategory.Boolean,
+                DbTypeCategory.Text,
+            ]);
+    }
+
+    // A hypothetical index (what the tuning advisor leaves behind) has statistics
+    // but no data, so it serves no query and claims nothing.
+    [Fact]
+    public void GenerateTables_SqlServer_HypotheticalIndex_ClaimsNothing()
+    {
+        Execute("CREATE INDEX ix_hypothetical ON users (age) WITH STATISTICS_ONLY = -1");
+        try
+        {
+            CatalogTable users = new InformationSchemaCatalogReader(ConnInfo(), false)
+                .GetAllTables()
+                .Single(t => t.TableName == "users");
+            Assert.False(users.Columns.Single(c => c.Name == "age").IsIndexed);
+        }
+        finally
+        {
+            Execute("DROP INDEX ix_hypothetical ON users");
+        }
+    }
+
+    // SQL Server stores DEFAULT NULL as the constraint text `(NULL)`, which supplies
+    // nothing, so the NOT NULL column still needs a value from the INSERT.
+    [Fact]
+    public void GenerateTables_SqlServer_DefaultNull_IsNoDefault()
+    {
+        Execute(
+            "CREATE TABLE default_probe (c INT NOT NULL DEFAULT NULL, d INT NOT NULL DEFAULT 1)");
+        try
+        {
+            CatalogTable table = new InformationSchemaCatalogReader(ConnInfo(), false)
+                .GetAllTables()
+                .Single(t => t.TableName == "default_probe");
+            Assert.Equal([false, true], table.Columns.Select(c => c.HasDefault));
+        }
+        finally
+        {
+            Execute("DROP TABLE default_probe");
+        }
+    }
+
+    // The default collation is case-insensitive, so `--tables USERS` finds `users`;
+    // the class carries the stored name, as a full run writes it.
+    [Fact]
+    public void TryGetTable_SqlServer_NameInAnotherCase_ReturnsTheStoredName()
+    {
+        bool found = new InformationSchemaCatalogReader(ConnInfo(), false)
+            .TryGetTable("USERS", out CatalogTable? table);
+
+        Assert.True(found);
+        Assert.Equal("users", table!.TableName);
+    }
+
+    // PostgreSQL alone takes a table with no columns, which the reader generates.
+    [Fact]
+    public void ZeroColumnTable_SqlServer_IsRejectedByTheEngine()
+    {
+        Assert.Throws<SqlException>(() => Execute("CREATE TABLE zero_columns ()"));
     }
 
     // T-SQL indexes no expression directly; the equivalent is an index whose
@@ -171,6 +333,7 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         Execute("CREATE INDEX ix_age_dept ON users (age, department_id)");
         Execute("ALTER TABLE users ADD upper_name AS UPPER(name)");
         Execute("CREATE INDEX ix_upper_name ON users (upper_name)");
+        Execute("CREATE INDEX ix_name ON users (name)");
         Execute("CREATE INDEX ix_filtered ON users (is_active) WHERE age > 0");
         try
         {
@@ -191,9 +354,36 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         finally
         {
             Execute("DROP INDEX ix_filtered ON users");
+            Execute("DROP INDEX ix_name ON users");
             Execute("DROP INDEX ix_upper_name ON users");
             Execute("ALTER TABLE users DROP COLUMN upper_name");
             Execute("DROP INDEX ix_age_dept ON users");
+        }
+    }
+
+    // A computed column in a later key position names its real column as one in the
+    // first does, so email claims nothing beside its own index (#645).
+    [Fact]
+    public void GenerateTables_SqlServer_LaterKeyComputedColumn_ClaimsNothingForTheColumn()
+    {
+        Execute(
+            """
+            CREATE TABLE computed_probe (
+                code INT, email NVARCHAR(100), lower_email AS LOWER(email))
+            """);
+        try
+        {
+            Execute("CREATE INDEX ix_email ON computed_probe (email)");
+            Execute("CREATE INDEX ix_code_lower ON computed_probe (code, lower_email)");
+
+            CatalogTable table = new InformationSchemaCatalogReader(ConnInfo(), false)
+                .GetAllTables()
+                .Single(t => t.TableName == "computed_probe");
+            Assert.Equal([true, null, false], table.Columns.Select(c => c.IsIndexed));
+        }
+        finally
+        {
+            Execute("DROP TABLE IF EXISTS computed_probe");
         }
     }
 
@@ -292,7 +482,37 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
     {
         InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
 
-        TableClassGenAssertions.AssertSeededSchema(reader.GetAllTables());
+        TableClassGenAssertions.AssertSeededSchema(
+            reader.GetAllTables(),
+            // jsonb has no category.
+            [
+                DbTypeCategory.Numeric, DbTypeCategory.Text, DbTypeCategory.Numeric,
+                DbTypeCategory.Numeric, DbTypeCategory.Temporal, DbTypeCategory.Boolean, null,
+            ]);
+    }
+
+    [Fact]
+    public void GenerateTables_PostgreSql_TrigramIndex_ClaimsNothing() =>
+        TableClassGenAssertions.AssertTrigramIndexClaimsNothing(Execute, ConnInfo());
+
+    // A table with no columns is a table: skipped, a full run left it out and still
+    // exited 0, and `--tables` called it absent.
+    [Fact]
+    public void GenerateTables_PostgreSql_ZeroColumnTable_IsGenerated()
+    {
+        Execute("CREATE TABLE zero_columns ()");
+        try
+        {
+            InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
+
+            Assert.Empty(reader.GetAllTables().Single(t => t.TableName == "zero_columns").Columns);
+            Assert.True(reader.TryGetTable("zero_columns", out CatalogTable? table));
+            Assert.Empty(table!.Columns);
+        }
+        finally
+        {
+            Execute("DROP TABLE zero_columns");
+        }
     }
 
     // #323: PostgreSQL's information_schema comparison is case-sensitive, so a
@@ -326,6 +546,9 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
         // row, so created_at must survive as a claimed lead beside the expression.
         Execute("CREATE INDEX ix_mixed ON users (created_at, lower(name))");
         Execute("CREATE INDEX ix_partial ON users (is_active) WHERE age > 0");
+        Execute("CREATE INDEX ix_name ON users (name)");
+        // A partial B-tree lead serves no wrapped predicate, so age keeps its claim.
+        Execute("CREATE INDEX ix_age_partial ON users (age) WHERE age > 0");
         try
         {
             InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
@@ -341,6 +564,8 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
         }
         finally
         {
+            Execute("DROP INDEX IF EXISTS ix_age_partial");
+            Execute("DROP INDEX IF EXISTS ix_name");
             Execute("DROP INDEX IF EXISTS ix_partial");
             Execute("DROP INDEX IF EXISTS ix_mixed");
             Execute("DROP INDEX IF EXISTS ix_upper_name");
@@ -368,6 +593,102 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
         finally
         {
             Execute("DROP INDEX IF EXISTS ix_invalid");
+        }
+    }
+
+    // PostgreSQL lists a table on any privilege but a column only on a column-level
+    // one, so a role holding just DELETE saw it column-less; written so, the run
+    // emptied the committed class and exited 0.
+    [Fact]
+    public void GenerateTables_PostgreSql_ColumnsInvisibleToTheUser_FailsNamingTheTable()
+    {
+        Execute("CREATE TABLE priv_probe (id INTEGER, v TEXT)");
+        Execute("CREATE ROLE sqlartisan_cleaner LOGIN PASSWORD 'Cleaner-Pw1!'");
+        Execute("GRANT DELETE ON priv_probe TO sqlartisan_cleaner");
+        try
+        {
+            NpgsqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
+            DbConnectionInfo connInfo = new(
+                Dbms.PostgreSql,
+                builder.Host!,
+                builder.Port,
+                builder.Database!,
+                "public",
+                "sqlartisan_cleaner",
+                "Cleaner-Pw1!");
+
+            CommandLineException ex = Assert.Throws<CommandLineException>(
+                () => new InformationSchemaCatalogReader(connInfo, false).GetAllTables());
+
+            Assert.Equal(
+                "Not every column of table 'priv_probe' is visible to --user "
+                    + "'sqlartisan_cleaner'; grant SELECT on its columns, or name only the other "
+                    + "tables with --tables",
+                ex.Message);
+        }
+        finally
+        {
+            NpgsqlConnection.ClearAllPools();
+            Execute("DROP TABLE priv_probe");
+            Execute("DROP ROLE sqlartisan_cleaner");
+        }
+    }
+
+    // A column grant hides the other columns from information_schema, so writing
+    // the visible ones stripped the rest from the committed class and exited 0.
+    [Fact]
+    public void GenerateTables_PostgreSql_SomeColumnsInvisibleToTheUser_FailsNamingTheTable()
+    {
+        Execute("CREATE TABLE partial_probe (id INTEGER, v TEXT)");
+        Execute("CREATE ROLE sqlartisan_partial LOGIN PASSWORD 'Partial-Pw1!'");
+        Execute("GRANT SELECT (id) ON partial_probe TO sqlartisan_partial");
+        try
+        {
+            NpgsqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
+            DbConnectionInfo connInfo = new(
+                Dbms.PostgreSql,
+                builder.Host!,
+                builder.Port,
+                builder.Database!,
+                "public",
+                "sqlartisan_partial",
+                "Partial-Pw1!");
+
+            CommandLineException ex = Assert.Throws<CommandLineException>(
+                () => new InformationSchemaCatalogReader(connInfo, false).GetAllTables());
+
+            Assert.Equal(
+                "Not every column of table 'partial_probe' is visible to --user "
+                    + "'sqlartisan_partial'; grant SELECT on its columns, or name only the other "
+                    + "tables with --tables",
+                ex.Message);
+        }
+        finally
+        {
+            NpgsqlConnection.ClearAllPools();
+            Execute("DROP TABLE partial_probe");
+            Execute("DROP ROLE sqlartisan_partial");
+        }
+    }
+
+    // PostgreSQL drops a bare DEFAULT NULL but keeps one cast to a type with a length
+    // or precision, which reads as a default unless the cast is seen through.
+    [Fact]
+    public void GenerateTables_PostgreSql_TypedDefaultNull_IsNoDefault()
+    {
+        Execute(
+            "CREATE TABLE default_null_probe (a VARCHAR(10) NOT NULL DEFAULT NULL, "
+                + "b INTEGER DEFAULT NULL, c NUMERIC(10,2) DEFAULT NULL, d TEXT DEFAULT 'NULL')");
+        try
+        {
+            CatalogTable table = new InformationSchemaCatalogReader(ConnInfo(), false)
+                .GetAllTables()
+                .Single(t => t.TableName == "default_null_probe");
+            Assert.Equal([false, null, false, true], table.Columns.Select(c => c.HasDefault));
+        }
+        finally
+        {
+            Execute("DROP TABLE default_null_probe");
         }
     }
 
@@ -453,7 +774,58 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
 
         TableClassGenAssertions.AssertSeededSchema(
             reader.GetAllTables(),
+            [
+                DbTypeCategory.Numeric, DbTypeCategory.Text, DbTypeCategory.Numeric,
+                DbTypeCategory.Numeric, DbTypeCategory.Temporal, DbTypeCategory.Numeric,
+                DbTypeCategory.Text,
+            ],
             expectedHasDefault: false);
+    }
+
+    // An INVISIBLE index is maintained but never chosen by the optimizer, so it
+    // serves no query and claims nothing.
+    [Fact]
+    public void GenerateTables_Oracle_InvisibleIndex_ClaimsNothing()
+    {
+        Execute("CREATE INDEX ix_invisible ON users (age) INVISIBLE");
+        try
+        {
+            CatalogTable users = new OracleCatalogReader(ConnInfo(), lowercaseNames: true)
+                .GetAllTables()
+                .Single(t => t.TableName == "users");
+            Assert.False(users.Columns.Single(c => c.Name == "age").IsIndexed);
+        }
+        finally
+        {
+            TryExecute("DROP INDEX ix_invisible");
+        }
+    }
+
+    // MODIFY ... DEFAULT NULL leaves DEFAULT_LENGTH set, so the length alone read
+    // as a default and SQLA0202 stayed silent on an INSERT that omits the column.
+    [Fact]
+    public void GenerateTables_Oracle_DefaultNull_IsNoDefault()
+    {
+        Execute(
+            """
+            CREATE TABLE default_null_probe (
+                c NUMBER(10) DEFAULT 1 NOT NULL,
+                d NUMBER(10) DEFAULT NULL,
+                e NUMBER(10) DEFAULT 2)
+            """);
+        try
+        {
+            Execute("ALTER TABLE default_null_probe MODIFY c DEFAULT NULL");
+
+            CatalogTable table = new OracleCatalogReader(ConnInfo(), lowercaseNames: true)
+                .GetAllTables()
+                .Single(t => t.TableName == "default_null_probe");
+            Assert.Equal([false, false, true], table.Columns.Select(c => c.HasDefault));
+        }
+        finally
+        {
+            TryExecute("DROP TABLE default_null_probe");
+        }
     }
 
     // ALL_IND_EXPRESSIONS.COLUMN_EXPRESSION is a LONG, so the collector never reads
@@ -539,6 +911,105 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
         }
     }
 
+    // An empty column list therefore means a privilege gap, which the reader
+    // refuses rather than writing the class column-less.
+    [Fact]
+    public void ZeroColumnTable_Oracle_IsRejectedByTheEngine()
+    {
+        Assert.Throws<OracleException>(() => Execute("CREATE TABLE zero_columns ()"));
+    }
+
+    // Every read folds the name to upper case, so a quoted mixed-case table was read
+    // as none and skipped while the run exited 0; it fails, by --tables too (#645).
+    [Fact]
+    public void GenerateTables_Oracle_QuotedMixedCaseTable_FailsNamingTheTable()
+    {
+        Execute("CREATE TABLE \"MixedCase\" (id NUMBER(10))");
+        try
+        {
+            OracleCatalogReader reader = new(ConnInfo(), lowercaseNames: true);
+            const string Message =
+                "Table 'MixedCase' has a quoted name that is not upper case, which the tool "
+                    + "does not read; rename the table, or name only the other tables with "
+                    + "--tables";
+
+            CommandLineException full =
+                Assert.Throws<CommandLineException>(() => reader.GetAllTables());
+            Assert.Equal(Message, full.Message);
+
+            CommandLineException named = Assert.Throws<CommandLineException>(
+                () => reader.TryGetTable("MixedCase", out _));
+            Assert.Equal(Message, named.Message);
+        }
+        finally
+        {
+            TryExecute("DROP TABLE \"MixedCase\" PURGE");
+        }
+    }
+
+    // ALL_TABLES.DROPPED is NULL for a partitioned table, so a filter on 'NO' alone
+    // dropped it from the run while it exited 0.
+    [Fact]
+    public void GenerateTables_Oracle_PartitionedTable_IsListed()
+    {
+        Execute(
+            """
+            CREATE TABLE partitioned_probe (id NUMBER(10))
+            PARTITION BY RANGE (id) (
+                PARTITION p1 VALUES LESS THAN (10),
+                PARTITION p2 VALUES LESS THAN (MAXVALUE))
+            """);
+        try
+        {
+            OracleCatalogReader reader = new(ConnInfo(), lowercaseNames: true);
+
+            Assert.Contains(reader.GetAllTables(), t => t.TableName == "partitioned_probe");
+            Assert.True(reader.TryGetTable("partitioned_probe", out _));
+        }
+        finally
+        {
+            TryExecute("DROP TABLE partitioned_probe PURGE");
+        }
+    }
+
+    // A dropped table stays in ALL_TABLES' reach only as a recycle-bin entry, whose
+    // BIN$ name the case check would refuse; DROPPED is NULL for a partitioned table,
+    // so a dropped one is the case the filter's NULL arm must not let through.
+    [Fact]
+    public void GenerateTables_Oracle_TableInRecycleBin_IsNotListed()
+    {
+        Execute("CREATE TABLE recycled_probe (id NUMBER(10))");
+        Execute(
+            """
+            CREATE TABLE recycled_part_probe (id NUMBER(10))
+            PARTITION BY RANGE (id) (PARTITION p1 VALUES LESS THAN (MAXVALUE))
+            """);
+        Execute("DROP TABLE recycled_probe");
+        Execute("DROP TABLE recycled_part_probe");
+        try
+        {
+            using (IDbConnection connection = _fixture.OpenConnection())
+            using (IDbCommand command = connection.CreateCommand())
+            {
+                command.CommandText =
+                    """
+                    SELECT COUNT(DISTINCT ORIGINAL_NAME) FROM USER_RECYCLEBIN
+                    WHERE ORIGINAL_NAME IN ('RECYCLED_PROBE', 'RECYCLED_PART_PROBE')
+                    """;
+                Assert.Equal(2, Convert.ToInt32(command.ExecuteScalar()));
+            }
+
+            IReadOnlyList<CatalogTable> tables =
+                new OracleCatalogReader(ConnInfo(), lowercaseNames: true).GetAllTables();
+
+            Assert.Contains(tables, t => t.TableName == "users");
+        }
+        finally
+        {
+            TryExecute("PURGE RECYCLEBIN");
+        }
+    }
+
     // #386: ALL_TABLES is privilege-filtered — a schema without grants never
     // throws; SYSTEM's PUBLIC-granted tables (HELP, OL$...) are the only rows,
     // proving the filtering. The app user's own grant already excludes the rest.
@@ -602,12 +1073,47 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
     }
 }
 
+[Trait("Engine", "PostgreSql17")]
+public sealed class PostgreSql17TableClassGenTests : IClassFixture<PostgreSql17Fixture>
+{
+    private readonly PostgreSql17Fixture _fixture;
+
+    public PostgreSql17TableClassGenTests(PostgreSql17Fixture fixture)
+    {
+        _fixture = fixture;
+    }
+
+    [Fact]
+    public void GenerateTables_PostgreSql_TrigramIndex_ClaimsNothing() =>
+        TableClassGenAssertions.AssertTrigramIndexClaimsNothing(Execute, ConnInfo());
+
+    private DbConnectionInfo ConnInfo()
+    {
+        NpgsqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
+        return new DbConnectionInfo(
+            Dbms.PostgreSql,
+            builder.Host!,
+            builder.Port,
+            builder.Database!,
+            "public",
+            builder.Username!,
+            builder.Password!);
+    }
+
+    private void Execute(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute(sql);
+    }
+}
+
 internal static class TableClassGenAssertions
 {
     // The seeded schema (TestSchema): `users` and `orders`. SQL Server's master db
     // also carries system base tables, so assert presence, not an exact table set.
     public static void AssertSeededSchema(
         IReadOnlyList<CatalogTable> tables,
+        IReadOnlyList<DbTypeCategory?> expectedUsersCategories,
         bool? expectedHasDefault = null)
     {
         CatalogTable users = Find(tables, "users");
@@ -615,6 +1121,10 @@ internal static class TableClassGenAssertions
             ["id", "name", "age", "department_id", "created_at", "is_active", "data"],
             users.Columns.Select(c => c.Name.ToLowerInvariant()));
         Assert.Equal("UsersTable", users.ClassName);
+
+        // The type names each engine reports, read live rather than pinned from
+        // memory as ColumnCategoryTests does.
+        Assert.Equal(expectedUsersCategories, users.Columns.Select(c => c.TypeCategory));
 
         // The metadata #266 reasons over, proven per engine rather than assumed:
         // the primary key is NOT NULL on every engine, and a plain column is not.
@@ -639,7 +1149,7 @@ internal static class TableClassGenAssertions
 
     // The two collection boundaries #266 requires proving live: only the leading
     // column of a composite index is claimed, and a column an index expression
-    // names is claimed either way.
+    // names claims nothing, even beside its own plain index (#645).
     public static void AssertCompositeAndExpression(
         IReadOnlyList<CatalogTable> tables,
         bool? expectedForExpressionColumn)
@@ -650,6 +1160,56 @@ internal static class TableClassGenAssertions
         Assert.False(Column(users, "department_id").IsIndexed);
         Assert.Equal(expectedForExpressionColumn, Column(users, "name").IsIndexed);
     }
+
+    // A trigram GIN index serves `name LIKE '%x%'` (a Bitmap Index Scan on PostgreSQL
+    // 16), so claiming the column made SQLA0204 report the query that index exists
+    // for, a B-tree lead beside it included (#645).
+    public static void AssertTrigramIndexClaimsNothing(
+        Action<string> execute,
+        DbConnectionInfo connInfo)
+    {
+        execute("CREATE EXTENSION IF NOT EXISTS pg_trgm");
+        execute("CREATE INDEX ix_trgm ON users USING gin (name gin_trgm_ops)");
+        try
+        {
+            Assert.Null(Column(ReadUsers(connInfo), "name").IsIndexed);
+
+            execute("CREATE INDEX ix_name ON users (name)");
+            Assert.Null(Column(ReadUsers(connInfo), "name").IsIndexed);
+
+            // A GIN index serves a key in any position, not only its first.
+            execute("CREATE TABLE gin_probe (tag text, name text)");
+            execute("CREATE INDEX ix_probe_name ON gin_probe (name)");
+            execute(
+                "CREATE INDEX ix_probe_gin ON gin_probe "
+                    + "USING gin (tag gin_trgm_ops, name gin_trgm_ops)");
+            CatalogTable probe = new InformationSchemaCatalogReader(connInfo, false)
+                .GetAllTables()
+                .Single(t => t.TableName == "gin_probe");
+            Assert.Equal([null, null], probe.Columns.Select(c => c.IsIndexed));
+
+            // An INCLUDE column is stored, not a key, so it serves no predicate.
+            execute("CREATE TABLE include_probe (p point, inc int)");
+            execute("CREATE INDEX ix_include_inc ON include_probe (inc)");
+            execute("CREATE INDEX ix_include_gist ON include_probe USING gist (p) INCLUDE (inc)");
+            CatalogTable included = new InformationSchemaCatalogReader(connInfo, false)
+                .GetAllTables()
+                .Single(t => t.TableName == "include_probe");
+            Assert.Equal([null, true], included.Columns.Select(c => c.IsIndexed));
+        }
+        finally
+        {
+            execute("DROP TABLE IF EXISTS include_probe");
+            execute("DROP TABLE IF EXISTS gin_probe");
+            execute("DROP INDEX IF EXISTS ix_name");
+            execute("DROP INDEX ix_trgm");
+        }
+    }
+
+    private static CatalogTable ReadUsers(DbConnectionInfo connInfo) =>
+        new InformationSchemaCatalogReader(connInfo, false)
+            .GetAllTables()
+            .Single(t => t.TableName == "users");
 
     private static CatalogTable Find(IReadOnlyList<CatalogTable> tables, string name) =>
         tables.Single(t => string.Equals(t.TableName, name, StringComparison.OrdinalIgnoreCase));

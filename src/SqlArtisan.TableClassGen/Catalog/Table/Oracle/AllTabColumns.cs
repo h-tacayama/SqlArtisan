@@ -26,8 +26,8 @@ internal sealed class AllTabColumns : DbTableBase
 
     public DbColumn Nullable { get; }
 
-    // The length of DATA_DEFAULT rather than the value: the value is a LONG, and
-    // its presence is the only thing this needs.
+    // The length of DATA_DEFAULT rather than the value: the value is a LONG, read
+    // apart only to tell a DEFAULT NULL (OracleCatalogReader.ReadNullDefaults).
     public DbColumn DefaultLength { get; }
 
     public DbColumn IdentityColumn { get; }

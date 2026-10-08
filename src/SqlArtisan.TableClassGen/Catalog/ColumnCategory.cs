@@ -55,6 +55,8 @@ internal static class ColumnCategory
             ["smallint"] = DbTypeCategory.Numeric,
             ["smallmoney"] = DbTypeCategory.Numeric,
             ["tinyint"] = DbTypeCategory.Numeric,
+            // MySQL's YEAR holds and compares as a number: WHERE y = 2024 matches.
+            ["year"] = DbTypeCategory.Numeric,
 
             ["date"] = DbTypeCategory.Temporal,
             ["datetime"] = DbTypeCategory.Temporal,
@@ -72,7 +74,6 @@ internal static class ColumnCategory
             ["timestamp without time zone"] = DbTypeCategory.Temporal,
             ["timestamptz"] = DbTypeCategory.Temporal,
             ["timetz"] = DbTypeCategory.Temporal,
-            ["year"] = DbTypeCategory.Temporal,
 
             ["bfile"] = DbTypeCategory.Binary,
             ["binary"] = DbTypeCategory.Binary,
@@ -173,7 +174,9 @@ internal static class ColumnCategory
             return DbTypeCategory.Text;
         }
 
-        if (Contains(name, "BLOB") || name.Length == 0)
+        // An undeclared type (an FTS5 column, a CREATE TABLE AS expression column)
+        // has BLOB affinity yet holds whatever was stored, so it stays unknown.
+        if (Contains(name, "BLOB"))
         {
             return DbTypeCategory.Binary;
         }

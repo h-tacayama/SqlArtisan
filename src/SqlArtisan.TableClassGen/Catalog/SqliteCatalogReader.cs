@@ -87,7 +87,7 @@ internal sealed class SqliteCatalogReader(
                     reader.GetString(0),
                     reader.GetString(1),
                     reader.GetInt32(2) != 0,
-                    !reader.IsDBNull(3),
+                    !reader.IsDBNull(3) && !DefaultExpression.IsNull(reader.GetString(3)),
                     reader.GetInt32(4)));
             }
         }
@@ -119,7 +119,7 @@ internal sealed class SqliteCatalogReader(
                 row.Type,
                 isNullable: !isRowIdAlias && !row.NotNull,
                 hasDefault: isRowIdAlias || row.HasDefault,
-                isIndexed: isRowIdAlias ? true : indexes.IsIndexed(row.CatalogName),
+                isIndexed: indexes.IsIndexed(row.CatalogName, leadsImplicitIndex: isRowIdAlias),
                 dbms: Dbms.Sqlite));
         }
 

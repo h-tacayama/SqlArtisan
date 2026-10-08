@@ -50,11 +50,13 @@ internal sealed class SqliteColumnIndexReader : IColumnIndexReader
         return new ColumnIndexInfo(
             leadingColumns,
             ExpressionTexts(conn, expressionIndexNames),
-            partialLeadingColumns);
+            partialLeadingColumns,
+            otherMethodKeyColumns: []);
     }
 
     // Only the expression-bearing indexes are scanned: a plain index's DDL names
-    // its own column, which would mark every indexed column unknown.
+    // its own column, which would mark every indexed column unknown. A mixed
+    // index's DDL still names its plain lead, which reads as unknown with it.
     private static List<string> ExpressionTexts(IDbConnection conn, IEnumerable<string> indexNames)
     {
         List<string> texts = [];
