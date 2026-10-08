@@ -4856,9 +4856,8 @@ questions stay out — statistics and data volume are the optimizer's domain. Wh
 this reports is only the form: the predicate as written gives the index nothing
 to range over. The remediation is the same in every case — leave the column bare
 on the filtered side and move the work to the other side, or index the expression
-itself, which the generator then records as unknown and the rule stops reporting —
-unless the column also leads a plain index, which keeps it recorded as indexed, so
-the rule still reports there.
+itself, which the generator then records as unknown and the rule stops reporting,
+even where the column also leads a plain index.
 
 A `CASE` *branch* over the column is not reported: `Then(t.Key)` and
 `Else(t.Key)` carry it unwrapped, so both stay silent. A simple-`CASE` operand
@@ -4884,14 +4883,16 @@ on `(a, b)` is fully usable from a predicate on `a` alone, so `a` is recorded an
 scan and MySQL's skip-scan optimization both exist) rather than a fact. A
 **partial** (filtered) index claims nothing either way: whether its predicate
 covers your query is an expression the generator refuses to interpret, so a
-column that leads only a partial index stays unknown. So does a column that
-leads only a PostgreSQL index that is neither B-tree nor hash, such as GIN, GiST,
-SP-GiST or BRIN:
-a trigram GIN index serves `LIKE '%x%'`, the query this rule would otherwise
-report. An index the engine cannot use — a MySQL `INVISIBLE` one, Oracle
-`UNUSABLE` or `INVISIBLE`, a PostgreSQL invalid index, a disabled or hypothetical
-SQL Server index — records `false` for the column that leads it, since no query
-can reach it. On Oracle, one
+column that leads only a partial index stays unknown. So does a column that is a
+key, in any position, of a PostgreSQL index that is neither B-tree nor hash, such
+as GIN, GiST, SP-GiST or BRIN: a trigram GIN index serves `LIKE '%x%'`, the query
+this rule would otherwise report. That index, like an expression index (a MySQL
+generated or SQL Server computed column's index included), wins over a plain
+index on the same column, which then records nothing too; a partial B-tree index
+does not. An index the
+engine cannot use — a MySQL `INVISIBLE` one, Oracle `UNUSABLE` or `INVISIBLE`, a
+PostgreSQL invalid index, a disabled or hypothetical SQL Server index — records
+`false` for the column that leads it, since no query can reach it. On Oracle, one
 function-based index makes **every** column of that table record nothing — its
 expression text is stored in a form the tool does not read, so the whole table
 degrades to unknown rather than guess.

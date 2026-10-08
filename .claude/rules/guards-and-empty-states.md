@@ -614,10 +614,11 @@ count as failing. Each clause below is a shape A6 found (#645):
   run: PostgreSQL lists a table on any privilege but each column only on a
   privilege over it, so writing the visible ones stripped the rest from a
   committed class; `pg_attribute` counts them whatever the grants. MySQL and
-  SQL Server have no such count, so only an empty list is caught there, open
-  in #645.
-  Oracle's case folding still skips a quoted mixed-case table the listing
-  returns, open in #645.
+  SQL Server have no such count, so only an empty list is caught there; a
+  partial column grant is rare, and whether it narrows their listing is not
+  probed (decided in #645). An Oracle table whose quoted name is not upper case
+  fails the run, by `--tables` too: every Oracle read folds the name, so it was
+  skipped (decided in #645).
 - **Every check runs before the first write.** A guard, a catalog read, and
   the orphan scan all run before any file is written, so a failure leaves the
   directory as it was; only a write itself can fail after another, and its

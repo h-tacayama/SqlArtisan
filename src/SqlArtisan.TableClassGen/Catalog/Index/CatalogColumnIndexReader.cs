@@ -13,7 +13,8 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
     {
         List<string> leadingColumns = [];
         List<string> expressionTexts = [];
-        List<string> undecidedLeadingColumns = [];
+        List<string> partialLeadingColumns = [];
+        List<string> otherMethodKeyColumns = [];
 
         // Older MySQL lacks STATISTICS.EXPRESSION (before 8.0.13) or IS_VISIBLE (before
         // 8.0); only that error steps down to the next query, never a real failure.
@@ -23,7 +24,8 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
             {
                 ReadLeadingKeys(
                     conn, tableName, sql,
-                    leadingColumns, expressionTexts, undecidedLeadingColumns);
+                    leadingColumns, expressionTexts,
+                    partialLeadingColumns, otherMethodKeyColumns);
                 break;
             }
             catch (MySqlException ex)
@@ -34,7 +36,9 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
 
         return dbms == Dbms.Oracle && HasFunctionBasedIndex(conn, tableName)
             ? ColumnIndexInfo.Unknown
-            : new ColumnIndexInfo(leadingColumns, expressionTexts, undecidedLeadingColumns);
+            : new ColumnIndexInfo(
+                leadingColumns, expressionTexts,
+                partialLeadingColumns, otherMethodKeyColumns);
     }
 
     private void ReadLeadingKeys(
@@ -43,7 +47,8 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
         string sql,
         List<string> leadingColumns,
         List<string> expressionTexts,
-        List<string> undecidedLeadingColumns)
+        List<string> partialLeadingColumns,
+        List<string> otherMethodKeyColumns)
     {
         using IDbCommand command = conn.CreateCommand();
         command.CommandText = sql;
@@ -60,10 +65,22 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
                 expressionTexts.Add(reader.GetString(1));
             }
 
+            // MySQL's generated-column definition, apart from EXPRESSION so that no
+            // collation has to be reconciled between the two catalog views.
+            if (reader.FieldCount > 3 && !reader.IsDBNull(3))
+            {
+                expressionTexts.Add(reader.GetString(3));
+            }
+
             if (!reader.IsDBNull(0))
             {
-                bool undecided = !reader.IsDBNull(2) && Convert.ToBoolean(reader.GetValue(2));
-                (undecided ? undecidedLeadingColumns : leadingColumns).Add(reader.GetString(0));
+                List<string> leads = Convert.ToInt32(reader.GetValue(2)) switch
+                {
+                    PartialIndex => partialLeadingColumns,
+                    OtherMethodIndex => otherMethodKeyColumns,
+                    _ => leadingColumns,
+                };
+                leads.Add(reader.GetString(0));
             }
         }
     }
@@ -73,41 +90,55 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
     // invisible index, drops it.
     private const string MySql80Query =
         """
-        SELECT COLUMN_NAME, NULL, 0
-        FROM information_schema.STATISTICS
-        WHERE TABLE_SCHEMA = @schema_name AND TABLE_NAME = @table_name AND SEQ_IN_INDEX = 1
-            AND IS_VISIBLE = 'YES'
+        SELECT s.COLUMN_NAME, NULL, 0, NULLIF(c.GENERATION_EXPRESSION, '')
+        FROM information_schema.STATISTICS s
+        LEFT JOIN information_schema.COLUMNS c ON c.TABLE_SCHEMA = s.TABLE_SCHEMA
+            AND c.TABLE_NAME = s.TABLE_NAME AND c.COLUMN_NAME = s.COLUMN_NAME
+        WHERE s.TABLE_SCHEMA = @schema_name AND s.TABLE_NAME = @table_name
+            AND s.SEQ_IN_INDEX = 1 AND s.IS_VISIBLE = 'YES'
         """;
 
     private const string MySql57Query =
         """
-        SELECT COLUMN_NAME, NULL, 0
-        FROM information_schema.STATISTICS
-        WHERE TABLE_SCHEMA = @schema_name AND TABLE_NAME = @table_name AND SEQ_IN_INDEX = 1
+        SELECT s.COLUMN_NAME, NULL, 0, NULLIF(c.GENERATION_EXPRESSION, '')
+        FROM information_schema.STATISTICS s
+        LEFT JOIN information_schema.COLUMNS c ON c.TABLE_SCHEMA = s.TABLE_SCHEMA
+            AND c.TABLE_NAME = s.TABLE_NAME AND c.COLUMN_NAME = s.COLUMN_NAME
+        WHERE s.TABLE_SCHEMA = @schema_name AND s.TABLE_NAME = @table_name
+            AND s.SEQ_IN_INDEX = 1
         """;
 
     private IEnumerable<string> LeadingKeyQueries() =>
         dbms == Dbms.MySql ? [LeadingKeyQuery(), MySql80Query, MySql57Query] : [LeadingKeyQuery()];
 
-    // Each row is a leading column name, an expression text, and whether the lead
-    // decides nothing for a bare predicate: a partial index, or on PostgreSQL one that
-    // is neither B-tree nor hash (a trigram GIN index serves LIKE '%x%', #645).
+    private const int PartialIndex = 1;
+
+    private const int OtherMethodIndex = 2;
+
+    // Each row is a leading column name, an expression text, and the lead's kind:
+    // plain, partial, or on PostgreSQL neither B-tree nor hash, the kind that may
+    // serve a wrapped or wildcard predicate (a trigram GIN index, #645).
     private string LeadingKeyQuery() => dbms switch
     {
+        // The optimizer matches an expression to an indexed generated column's
+        // definition, so the fourth column names the real columns, as T-SQL's does below.
         Dbms.MySql =>
             """
-            SELECT COLUMN_NAME, EXPRESSION, 0
-            FROM information_schema.STATISTICS
-            WHERE TABLE_SCHEMA = @schema_name AND TABLE_NAME = @table_name AND SEQ_IN_INDEX = 1
-                AND IS_VISIBLE = 'YES'
+            SELECT s.COLUMN_NAME, s.EXPRESSION, 0, NULLIF(c.GENERATION_EXPRESSION, '')
+            FROM information_schema.STATISTICS s
+            LEFT JOIN information_schema.COLUMNS c ON c.TABLE_SCHEMA = s.TABLE_SCHEMA
+                AND c.TABLE_NAME = s.TABLE_NAME AND c.COLUMN_NAME = s.COLUMN_NAME
+            WHERE s.TABLE_SCHEMA = @schema_name AND s.TABLE_NAME = @table_name
+                AND s.SEQ_IN_INDEX = 1 AND s.IS_VISIBLE = 'YES'
             """,
 
-        // indkey is 0 at a subscript whose key is an expression, and no attribute has
-        // attnum 0, so the join drops exactly those rows to a null column name.
+        // indkey is 0 where a key is an expression, which the join drops to a null name;
+        // the second half lists every key of a GIN or GiST index, which serves any position.
         Dbms.PostgreSql =>
             """
             SELECT a.attname, pg_get_expr(i.indexprs, i.indrelid),
-                i.indpred IS NOT NULL OR am.amname NOT IN ('btree', 'hash')
+                CASE WHEN am.amname NOT IN ('btree', 'hash') THEN 2
+                    WHEN i.indpred IS NOT NULL THEN 1 ELSE 0 END
             FROM pg_index i
             JOIN pg_class c ON c.oid = i.indrelid
             JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -115,13 +146,23 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
             JOIN pg_am am ON am.oid = ic.relam
             LEFT JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = i.indkey[0]
             WHERE c.relname = @table_name AND n.nspname = @schema_name AND i.indisvalid
+            UNION ALL
+            SELECT a.attname, NULL, 2
+            FROM pg_index i
+            JOIN pg_class c ON c.oid = i.indrelid
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            JOIN pg_class ic ON ic.oid = i.indexrelid
+            JOIN pg_am am ON am.oid = ic.relam
+            JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = ANY (i.indkey)
+            WHERE c.relname = @table_name AND n.nspname = @schema_name AND i.indisvalid
+                AND am.amname NOT IN ('btree', 'hash')
             """,
 
         // T-SQL indexes no expression directly; the equivalent is an index whose
         // leading key is a computed column, whose definition names the real columns.
         Dbms.SqlServer =>
             """
-            SELECT c.name, cc.definition, i.has_filter
+            SELECT c.name, cc.definition, CAST(i.has_filter AS int)
             FROM sys.indexes i
             JOIN sys.index_columns ic ON ic.object_id = i.object_id
                 AND ic.index_id = i.index_id AND ic.key_ordinal = 1

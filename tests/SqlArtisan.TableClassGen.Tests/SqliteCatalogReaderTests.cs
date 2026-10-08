@@ -327,11 +327,10 @@ public class SqliteCatalogReaderTests
         Assert.Equal([null, false, true], table.Columns.Select(c => c.IsIndexed));
     }
 
-    // A column leading its own plain index still claims true when a separate
-    // expression index also mentions it — the plain index serves a bare
-    // predicate whatever the expression index covers.
+    // The expression index serves the wrapped predicate SQLA0204 would report on
+    // the plain lead, so the column claims nothing (#645).
     [Fact]
-    public void GetAllTables_LeadingColumnAlsoInExpressionIndex_IsIndexed()
+    public void GetAllTables_LeadingColumnAlsoInExpressionIndex_IsUnknown()
     {
         using TempSqliteDatabase db = TempSqliteDatabase.Create(
             """
@@ -344,7 +343,25 @@ public class SqliteCatalogReaderTests
             new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables());
 
-        Assert.Equal([true, false], table.Columns.Select(c => c.IsIndexed));
+        Assert.Equal([null, false], table.Columns.Select(c => c.IsIndexed));
+    }
+
+    // The scanned text is the index's whole DDL, which names the plain lead of a
+    // mixed index too, so that lead reads as unknown rather than parsed apart.
+    [Fact]
+    public void GetAllTables_MixedIndexPlainLead_IsUnknown()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE contact (created TEXT, email TEXT, other TEXT);
+            CREATE INDEX ix_mixed ON contact(created, lower(email));
+            """);
+
+        CatalogTable table = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables());
+
+        Assert.Equal([null, null, false], table.Columns.Select(c => c.IsIndexed));
     }
 
     [Fact]

@@ -127,7 +127,9 @@ not an empty success — otherwise a misspelled `--schema` would look identical 
 clean run. A schema whose tables were genuinely dropped still reports its
 committed classes as removed, so only a run with nothing at all to say fails here.
 On SQLite, `--file` must name an existing database: the tool never creates one,
-so a mistyped path fails to connect.
+so a mistyped path fails to connect. On Oracle, a table whose quoted name is not
+upper case fails the run naming it, since the tool reads every Oracle name as an
+unquoted identifier is stored.
 A `--schema` that is spelled right but lacks privileges reads the same as one
 that does not exist: MySQL, Oracle, PostgreSQL, and SQL Server all filter their
 catalogs by privilege rather than raise an error for one, so the message above
@@ -219,19 +221,25 @@ about it — a catalog type name the generator doesn't recognize leaves
 
 `Indexed` means the column **leads** an index, so a predicate on it alone can use
 that index; a non-leading column of a composite index records `false`. A column
-named only by an index *expression* records nothing — an expression index exists
-precisely so the wrapped predicate can be written — and so does a column leading
-only a partial (filtered) index, since whether its predicate covers a query is not
-decidable from the catalog, or only a PostgreSQL index that is neither B-tree nor
-hash, such as a GIN, GiST, SP-GiST or BRIN one: a trigram GIN index serves
-`LIKE '%x%'`, the very query a B-tree lead would make `SQLA0204` report. A column
-that also leads a plain index records `true`, so `SQLA0204` still reports a
-wrapped or leading-wildcard predicate on it, even one a second, expression or
-trigram, index serves. A column that leads only an index the engine cannot use — a
-MySQL `INVISIBLE` index, an Oracle `UNUSABLE` or `INVISIBLE` one, a PostgreSQL
-invalid one, a disabled or hypothetical SQL Server one — records `false` rather
-than `true`: no query can reach that index. On Oracle, one function-based index
-leaves every column of that table unrecorded.
+an index *expression* names records nothing — an expression index exists
+precisely so the wrapped predicate can be written — and so does one a MySQL
+generated column or SQL Server computed column names when that column is
+indexed, since the optimizer matches the expression to it. So does a column that
+is a key, in any position, of a PostgreSQL index that is neither B-tree nor hash,
+such as a GIN, GiST, SP-GiST or BRIN one: a trigram GIN index serves
+`LIKE '%x%'`, the very query a B-tree lead would make `SQLA0204` report. All of
+these hold even when the column also leads a plain index, so `SQLA0204` stays
+silent on the predicate the other index serves, and on one no index serves. On
+SQLite the expression is read from the index's whole definition, so a column a
+mixed or partial expression index names anywhere — its plain lead, its `WHERE` —
+records nothing too. A column leading only a partial (filtered) B-tree index
+records nothing as well, since whether its predicate covers a query is not
+decidable from the catalog; beside a plain index it takes nothing away. A column
+that leads only an index the engine cannot use — a MySQL `INVISIBLE` index, an
+Oracle `UNUSABLE` or `INVISIBLE` one, a PostgreSQL invalid one, a disabled or
+hypothetical SQL Server one — records `false` rather than `true`: no query can
+reach that index. On Oracle, one function-based index leaves every column of that
+table unrecorded.
 
 `HasDefault` records `false` for an explicit `DEFAULT NULL` on Oracle,
 PostgreSQL, SQLite and SQL Server, since it supplies nothing an `INSERT` can omit

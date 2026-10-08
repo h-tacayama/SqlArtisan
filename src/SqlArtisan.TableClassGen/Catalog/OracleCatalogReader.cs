@@ -18,10 +18,12 @@ internal sealed class OracleCatalogReader(
 
         AllTables t = new();
 
+        // A table in the recycle bin is no table of the schema, and its BIN$ name
+        // would fail the case check below.
         ISqlBuilder sql =
             Select(t.TableName)
             .From(t)
-            .Where(t.Owner == _connInfo.Schema.ToUpperInvariant())
+            .Where(t.Owner == _connInfo.Schema.ToUpperInvariant() & t.Dropped == "NO")
             .OrderBy(t.TableName);
 
         List<CatalogTable> tables = [];
@@ -31,10 +33,9 @@ internal sealed class OracleCatalogReader(
         {
             while (reader.Read())
             {
-                string tableName = _lowercaseNames
-                    ? reader.GetString(0).ToLowerInvariant()
-                    : reader.GetString(0);
-                tableNames.Add(tableName);
+                string storedName = reader.GetString(0);
+                ThrowIfNotUpperCase(storedName);
+                tableNames.Add(_lowercaseNames ? storedName.ToLowerInvariant() : storedName);
             }
         }
 
@@ -61,8 +62,14 @@ internal sealed class OracleCatalogReader(
     {
         table = null;
 
-        if (!ExistsTable(conn, tableName))
+        if (!ExistsTable(conn, tableName.ToUpperInvariant()))
         {
+            // --tables gets the same refusal a full run gives, not "no such table".
+            if (ExistsTable(conn, tableName))
+            {
+                ThrowIfNotUpperCase(tableName);
+            }
+
             return false;
         }
 
@@ -176,7 +183,20 @@ internal sealed class OracleCatalogReader(
             ? null
             : string.Equals(reader.GetString(ordinal), "Y", StringComparison.OrdinalIgnoreCase);
 
-    private bool ExistsTable(IDbConnection conn, string tableName)
+    // Every other read folds the name to upper case, as Oracle stores an unquoted
+    // identifier, so a quoted mixed-case table would be read as another table or none.
+    private static void ThrowIfNotUpperCase(string storedName)
+    {
+        if (storedName != storedName.ToUpperInvariant())
+        {
+            throw new CommandLineException(
+                $"Table '{storedName}' has a quoted name that is not upper case, which the "
+                    + "tool does not read; rename the table, or name only the other tables "
+                    + "with --tables");
+        }
+    }
+
+    private bool ExistsTable(IDbConnection conn, string storedName)
     {
         AllTables t = new();
 
@@ -185,7 +205,8 @@ internal sealed class OracleCatalogReader(
             .From(t)
             .Where(
                 t.Owner == _connInfo.Schema.ToUpperInvariant()
-                & t.TableName == tableName.ToUpperInvariant());
+                & t.TableName == storedName
+                & t.Dropped == "NO");
 
         int tableCount = Convert.ToInt32(conn.ExecuteScalar(sql));
         return tableCount > 0;

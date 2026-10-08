@@ -131,6 +131,7 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
     {
         Execute("CREATE INDEX ix_age_dept ON users (age, department_id)");
         Execute("CREATE INDEX ix_upper_name ON users ((upper(name)))");
+        Execute("CREATE INDEX ix_name ON users (name)");
         try
         {
             InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
@@ -141,8 +142,35 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
         }
         finally
         {
+            Execute("DROP INDEX ix_name ON users");
             Execute("DROP INDEX ix_upper_name ON users");
             Execute("DROP INDEX ix_age_dept ON users");
+        }
+    }
+
+    // The optimizer matches lower(email) to an indexed generated column's definition,
+    // so email claims nothing beside its own index, as a T-SQL computed column (#645).
+    [Fact]
+    public void GenerateTables_MySql_GeneratedColumnIndex_ClaimsNothingForTheColumn()
+    {
+        Execute(
+            """
+            CREATE TABLE generated_probe (
+                email VARCHAR(255),
+                lower_email VARCHAR(255) AS (lower(email)),
+                INDEX ix_email (email),
+                INDEX ix_lower_email (lower_email))
+            """);
+        try
+        {
+            CatalogTable table = new InformationSchemaCatalogReader(ConnInfo(), false)
+                .GetAllTables()
+                .Single(t => t.TableName == "generated_probe");
+            Assert.Equal([null, true], table.Columns.Select(c => c.IsIndexed));
+        }
+        finally
+        {
+            Execute("DROP TABLE IF EXISTS generated_probe");
         }
     }
 
@@ -300,6 +328,7 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         Execute("CREATE INDEX ix_age_dept ON users (age, department_id)");
         Execute("ALTER TABLE users ADD upper_name AS UPPER(name)");
         Execute("CREATE INDEX ix_upper_name ON users (upper_name)");
+        Execute("CREATE INDEX ix_name ON users (name)");
         Execute("CREATE INDEX ix_filtered ON users (is_active) WHERE age > 0");
         try
         {
@@ -320,6 +349,7 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         finally
         {
             Execute("DROP INDEX ix_filtered ON users");
+            Execute("DROP INDEX ix_name ON users");
             Execute("DROP INDEX ix_upper_name ON users");
             Execute("ALTER TABLE users DROP COLUMN upper_name");
             Execute("DROP INDEX ix_age_dept ON users");
@@ -485,6 +515,9 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
         // row, so created_at must survive as a claimed lead beside the expression.
         Execute("CREATE INDEX ix_mixed ON users (created_at, lower(name))");
         Execute("CREATE INDEX ix_partial ON users (is_active) WHERE age > 0");
+        Execute("CREATE INDEX ix_name ON users (name)");
+        // A partial B-tree lead serves no wrapped predicate, so age keeps its claim.
+        Execute("CREATE INDEX ix_age_partial ON users (age) WHERE age > 0");
         try
         {
             InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
@@ -500,6 +533,8 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
         }
         finally
         {
+            Execute("DROP INDEX IF EXISTS ix_age_partial");
+            Execute("DROP INDEX IF EXISTS ix_name");
             Execute("DROP INDEX IF EXISTS ix_partial");
             Execute("DROP INDEX IF EXISTS ix_mixed");
             Execute("DROP INDEX IF EXISTS ix_upper_name");
@@ -853,6 +888,62 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
         Assert.Throws<OracleException>(() => Execute("CREATE TABLE zero_columns ()"));
     }
 
+    // Every read folds the name to upper case, so a quoted mixed-case table was read
+    // as none and skipped while the run exited 0; it fails, by --tables too (#645).
+    [Fact]
+    public void GenerateTables_Oracle_QuotedMixedCaseTable_FailsNamingTheTable()
+    {
+        Execute("CREATE TABLE \"MixedCase\" (id NUMBER(10))");
+        try
+        {
+            OracleCatalogReader reader = new(ConnInfo(), lowercaseNames: true);
+            const string Message =
+                "Table 'MixedCase' has a quoted name that is not upper case, which the tool "
+                    + "does not read; rename the table, or name only the other tables with "
+                    + "--tables";
+
+            CommandLineException full =
+                Assert.Throws<CommandLineException>(() => reader.GetAllTables());
+            Assert.Equal(Message, full.Message);
+
+            CommandLineException named = Assert.Throws<CommandLineException>(
+                () => reader.TryGetTable("MixedCase", out _));
+            Assert.Equal(Message, named.Message);
+        }
+        finally
+        {
+            TryExecute("DROP TABLE \"MixedCase\" PURGE");
+        }
+    }
+
+    // A dropped table stays in ALL_TABLES' reach only as a recycle-bin entry, whose
+    // BIN$ name the case check would refuse.
+    [Fact]
+    public void GenerateTables_Oracle_TableInRecycleBin_IsNotListed()
+    {
+        Execute("CREATE TABLE recycled_probe (id NUMBER(10))");
+        Execute("DROP TABLE recycled_probe");
+        try
+        {
+            using (IDbConnection connection = _fixture.OpenConnection())
+            using (IDbCommand command = connection.CreateCommand())
+            {
+                command.CommandText =
+                    "SELECT COUNT(*) FROM USER_RECYCLEBIN WHERE ORIGINAL_NAME = 'RECYCLED_PROBE'";
+                Assert.True(Convert.ToInt32(command.ExecuteScalar()) > 0);
+            }
+
+            IReadOnlyList<CatalogTable> tables =
+                new OracleCatalogReader(ConnInfo(), lowercaseNames: true).GetAllTables();
+
+            Assert.Contains(tables, t => t.TableName == "users");
+        }
+        finally
+        {
+            TryExecute("PURGE RECYCLEBIN");
+        }
+    }
+
     // #386: ALL_TABLES is privilege-filtered — a schema without grants never
     // throws; SYSTEM's PUBLIC-granted tables (HELP, OL$...) are the only rows,
     // proving the filtering. The app user's own grant already excludes the rest.
@@ -992,7 +1083,7 @@ internal static class TableClassGenAssertions
 
     // The two collection boundaries #266 requires proving live: only the leading
     // column of a composite index is claimed, and a column an index expression
-    // names is claimed either way.
+    // names claims nothing, even beside its own plain index (#645).
     public static void AssertCompositeAndExpression(
         IReadOnlyList<CatalogTable> tables,
         bool? expectedForExpressionColumn)
@@ -1006,7 +1097,7 @@ internal static class TableClassGenAssertions
 
     // A trigram GIN index serves `name LIKE '%x%'` (a Bitmap Index Scan on PostgreSQL
     // 16), so claiming the column made SQLA0204 report the query that index exists
-    // for; a non-B-tree, non-hash lead is undecided.
+    // for, a B-tree lead beside it included (#645).
     public static void AssertTrigramIndexClaimsNothing(
         Action<string> execute,
         DbConnectionInfo connInfo)
@@ -1015,16 +1106,34 @@ internal static class TableClassGenAssertions
         execute("CREATE INDEX ix_trgm ON users USING gin (name gin_trgm_ops)");
         try
         {
-            CatalogTable users = new InformationSchemaCatalogReader(connInfo, false)
+            Assert.Null(Column(ReadUsers(connInfo), "name").IsIndexed);
+
+            execute("CREATE INDEX ix_name ON users (name)");
+            Assert.Null(Column(ReadUsers(connInfo), "name").IsIndexed);
+
+            // A GIN index serves a key in any position, not only its first.
+            execute("CREATE TABLE gin_probe (tag text, name text)");
+            execute("CREATE INDEX ix_probe_name ON gin_probe (name)");
+            execute(
+                "CREATE INDEX ix_probe_gin ON gin_probe "
+                    + "USING gin (tag gin_trgm_ops, name gin_trgm_ops)");
+            CatalogTable probe = new InformationSchemaCatalogReader(connInfo, false)
                 .GetAllTables()
-                .Single(t => t.TableName == "users");
-            Assert.Null(Column(users, "name").IsIndexed);
+                .Single(t => t.TableName == "gin_probe");
+            Assert.Equal([null, null], probe.Columns.Select(c => c.IsIndexed));
         }
         finally
         {
+            execute("DROP TABLE IF EXISTS gin_probe");
+            execute("DROP INDEX IF EXISTS ix_name");
             execute("DROP INDEX ix_trgm");
         }
     }
+
+    private static CatalogTable ReadUsers(DbConnectionInfo connInfo) =>
+        new InformationSchemaCatalogReader(connInfo, false)
+            .GetAllTables()
+            .Single(t => t.TableName == "users");
 
     private static CatalogTable Find(IReadOnlyList<CatalogTable> tables, string name) =>
         tables.Single(t => string.Equals(t.TableName, name, StringComparison.OrdinalIgnoreCase));

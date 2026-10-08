@@ -404,11 +404,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - TableClassGen's catalog facts, each read live on its engine. A regeneration
   rewrites the affected classes once, and `--check` reports them `modified`
   until it does. (#645)
-  - A column that leads only a PostgreSQL index that is neither B-tree nor
-    hash (GIN, GiST, SP-GiST, BRIN, …) records no `Indexed` fact. A trigram GIN
-    index serves `LIKE '%x%'`, so `Indexed = true` made `SQLA0204` report the
-    query that index exists for. A column that also leads a B-tree index still
-    records `true`.
+  - A column that is a key, in any position, of a PostgreSQL index that is
+    neither B-tree nor hash (GIN, GiST, SP-GiST, BRIN, …), or that an expression
+    index names (a MySQL generated column's index now included), records no
+    `Indexed` fact, even beside a plain index of its own. A trigram GIN index
+    serves `LIKE '%x%'` and an expression index serves the wrapped predicate, so
+    `Indexed = true` made `SQLA0204` report the queries those indexes exist for.
+    This reverses 0.10's choice to keep the plain lead `true` beside an
+    expression index; a predicate no index serves on such a column now goes
+    unreported. On SQLite, where the expression is read from the whole index
+    definition, the plain lead of a mixed expression index records nothing too.
   - A column that leads only an invisible Oracle index or a hypothetical SQL
     Server index records `Indexed = false`, like the unusable and disabled
     indexes before it. A MySQL server from 8.0.0 to 8.0.12 keeps the
@@ -428,6 +433,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     PostgreSQL so does one with any column hidden (a role holding only
     `DELETE`, or `SELECT` on some columns); it used to be skipped, or written
     with only the visible columns.
+  - An Oracle table with a quoted name that is not upper case fails the run,
+    naming the table, by `--tables` too. Every read folded the name to upper
+    case, so the table was skipped while the run exited 0. A table in the
+    recycle bin is no longer listed.
   - `--tables` on MySQL, PostgreSQL and SQL Server emits the table name as the
     catalog stores it, as SQLite already did: under SQL Server's
     case-insensitive collation, `--tables ORDERS` wrote `"ORDERS"` for
