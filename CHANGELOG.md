@@ -443,6 +443,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     case-insensitive collation, `--tables ORDERS` wrote `"ORDERS"` for
     `Orders`, which the next full `--check` reported modified.
 
+- TableClassGen's `--HELP`, `--Help` and `--he-lp` show the help, as `--help`
+  does, instead of failing as an unknown option: every other option name already
+  ignored case and hyphens. (#645)
+
 ### Tests
 - Integration twins for #614's engine claims: Oracle rejects
   `NULLS FIRST NULLS LAST` and reads an empty match
@@ -518,8 +522,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   - the `--schema` defaults: required on PostgreSQL and SQL Server, `--database`
     on MySQL, `--user` on Oracle.
 
-  `--help` states those defaults too, and `--HELP` or `--Help` now shows the help
-  instead of failing as an unknown option. (#645)
+  `--help` states those defaults too. (#645)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

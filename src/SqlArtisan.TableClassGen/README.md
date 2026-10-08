@@ -236,9 +236,10 @@ the interactive path is where a default belongs. On MySQL it defaults to
 The tool verifies no server certificate, on any engine, and takes no connection
 option that would:
 
-- MySQL and PostgreSQL: the drivers' defaults apply, which use TLS when the
-  server offers it and do not validate its certificate.
+- MySQL: the driver's default applies, which uses TLS when the server offers it
+  and does not validate its certificate.
 - Oracle: it connects to `host:port/service` over TCP, not TCPS.
+- PostgreSQL: the driver's default applies, as on MySQL.
 - SQLite: a local file, with no connection to secure.
 - SQL Server: it sets `TrustServerCertificate=true`, so the connection is
   encrypted but the server's identity is not checked.
