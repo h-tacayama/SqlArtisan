@@ -163,7 +163,11 @@ public class ReporterTests
             new("DepartmentsTable.cs", "out/DepartmentsTable.cs", TableStatus.Removed, []),
         ];
         RunOptions options = new(
-            mode, DummyConnection(), TestSettings.Create(), dryRun: true, json: true);
+            mode,
+            DummyConnection(),
+            TestSettings.Create(),
+            dryRun: true,
+            json: true);
 
         string report = Capture(() => new Reporter(options).Report(results));
 
@@ -213,7 +217,10 @@ public class ReporterTests
     {
         TableResult unchanged = new("item", "ItemTable.cs", TableStatus.Unchanged, []);
         RunOptions options = new(
-            RunMode.Check, DummyConnection(), TestSettings.Create(), json: true);
+            RunMode.Check,
+            DummyConnection(),
+            TestSettings.Create(),
+            json: true);
 
         string report = Capture(() => new Reporter(options).Report([unchanged]));
 
