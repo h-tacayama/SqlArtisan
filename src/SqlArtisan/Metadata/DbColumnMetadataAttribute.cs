@@ -33,6 +33,8 @@ public sealed class DbColumnMetadataAttribute : Attribute
     /// <para>Left unset, too, when an index expression names the column or a PostgreSQL
     /// index that is neither B-tree nor hash has it as a key, even beside a plain
     /// index: either may serve the wrapped or leading-wildcard predicate.</para>
+    /// <para>On Oracle, one function-based index leaves every column of its table
+    /// unset: the index expression is stored in a form the generator does not read.</para>
     /// </remarks>
     public bool Indexed { get; init; }
 

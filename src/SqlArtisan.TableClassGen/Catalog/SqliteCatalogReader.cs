@@ -119,7 +119,7 @@ internal sealed class SqliteCatalogReader(
                 row.Type,
                 isNullable: !isRowIdAlias && !row.NotNull,
                 hasDefault: isRowIdAlias || row.HasDefault,
-                isIndexed: isRowIdAlias ? true : indexes.IsIndexed(row.CatalogName),
+                isIndexed: indexes.IsIndexed(row.CatalogName, leadsImplicitIndex: isRowIdAlias),
                 dbms: Dbms.Sqlite));
         }
 

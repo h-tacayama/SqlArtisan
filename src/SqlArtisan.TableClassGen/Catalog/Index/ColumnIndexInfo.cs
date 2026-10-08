@@ -16,11 +16,13 @@ internal sealed class ColumnIndexInfo(
 
     // An index that may serve the wrapped or wildcard predicate beats a plain lead:
     // `true` makes SQLA0204 say no index can serve it, which that index refutes (#645).
-    public bool? IsIndexed(string columnName) =>
+    // leadsImplicitIndex is a lead no index row lists, such as SQLite's rowid alias.
+    public bool? IsIndexed(string columnName, bool leadsImplicitIndex = false) =>
         allUnknown ? null
         : MentionedByExpression(columnName) ? null
         : otherMethodKeyColumns.Contains(columnName, StringComparer.Ordinal) ? null
-        : leadingColumns.Contains(columnName, StringComparer.Ordinal) ? true
+        : leadsImplicitIndex || leadingColumns.Contains(columnName, StringComparer.Ordinal)
+            ? true
         : partialLeadingColumns.Contains(columnName, StringComparer.Ordinal) ? null
         : false;
 

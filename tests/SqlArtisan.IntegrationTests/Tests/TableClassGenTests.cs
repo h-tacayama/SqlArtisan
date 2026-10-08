@@ -973,20 +973,30 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
     }
 
     // A dropped table stays in ALL_TABLES' reach only as a recycle-bin entry, whose
-    // BIN$ name the case check would refuse.
+    // BIN$ name the case check would refuse; DROPPED is NULL for a partitioned table,
+    // so a dropped one is the case the filter's NULL arm must not let through.
     [Fact]
     public void GenerateTables_Oracle_TableInRecycleBin_IsNotListed()
     {
         Execute("CREATE TABLE recycled_probe (id NUMBER(10))");
+        Execute(
+            """
+            CREATE TABLE recycled_part_probe (id NUMBER(10))
+            PARTITION BY RANGE (id) (PARTITION p1 VALUES LESS THAN (MAXVALUE))
+            """);
         Execute("DROP TABLE recycled_probe");
+        Execute("DROP TABLE recycled_part_probe");
         try
         {
             using (IDbConnection connection = _fixture.OpenConnection())
             using (IDbCommand command = connection.CreateCommand())
             {
                 command.CommandText =
-                    "SELECT COUNT(*) FROM USER_RECYCLEBIN WHERE ORIGINAL_NAME = 'RECYCLED_PROBE'";
-                Assert.True(Convert.ToInt32(command.ExecuteScalar()) > 0);
+                    """
+                    SELECT COUNT(DISTINCT ORIGINAL_NAME) FROM USER_RECYCLEBIN
+                    WHERE ORIGINAL_NAME IN ('RECYCLED_PROBE', 'RECYCLED_PART_PROBE')
+                    """;
+                Assert.Equal(2, Convert.ToInt32(command.ExecuteScalar()));
             }
 
             IReadOnlyList<CatalogTable> tables =

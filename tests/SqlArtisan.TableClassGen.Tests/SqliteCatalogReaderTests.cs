@@ -289,6 +289,24 @@ public class SqliteCatalogReaderTests
         Assert.Equal([true, false], table.Columns.Select(c => c.IsIndexed));
     }
 
+    // The rowid alias's implicit lead yields to an expression index naming it, as a
+    // listed lead does: SQLite serves abs(id) = 5 from that index (#645).
+    [Fact]
+    public void GetAllTables_RowIdAliasInExpressionIndex_IsUnknown()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE item (id INTEGER PRIMARY KEY, body TEXT);
+            CREATE INDEX ix_abs ON item(abs(id));
+            """);
+
+        CatalogTable table = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables());
+
+        Assert.Equal([null, false], table.Columns.Select(c => c.IsIndexed));
+    }
+
     // A plain index's DDL names its own column, so scanning every index would mark
     // each indexed column unknown; only expression-bearing indexes are scanned.
     [Fact]
