@@ -100,6 +100,15 @@ internal sealed class DbConnectionInfo(
                     + "--database, --user, and SQLARTISAN_DB_PASSWORD (see --help)",
         };
 
+    // A server read that fails after connect (a dropped session, a protocol error) has
+    // no flag to fix it: --schema is a bound value, so a wrong one reads as empty.
+    public string CannotReadCatalogMessage =>
+        Dbms switch
+        {
+            Dbms.Sqlite => $"Cannot read the SQLite database file '{ServiceName}'; check --file",
+            _ => $"Cannot read the catalog on {Host}:{Port} as '{Username}' after connecting",
+        };
+
     private IDbConnection CreateConnection() =>
         Dbms switch
         {

@@ -265,9 +265,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - TableClassGen's own error messages take one shape: a single sentence with no
   closing period, naming the flag, `--config` key, file or schema object to
-  change, with a driver's or file system's own message appended in parentheses
-  rather than after "The driver reported:". Two messages were two sentences,
-  and some ended with a period while others did not. (#645)
+  change (or, where no option fixes it, what was being read), with a driver's
+  or file system's own message appended in parentheses rather than after "The
+  driver reported:". Two messages were two sentences, and some ended with a
+  period while others did not. (#645)
 
 ### Fixed
 - `ExecuteArrayBind` binds by name. A `BindValue` passed to several clauses
@@ -452,6 +453,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - TableClassGen's `--HELP`, `--Help` and `--he-lp` show the help, as `--help`
   does, instead of failing as an unknown option: every other option name already
   ignored case and hyphens. (#645)
+- A driver error raised after TableClassGen has connected now fails naming
+  what was being read, with the driver's message in parentheses: `--file` for
+  a SQLite file whose stored schema is malformed, the server and user for a
+  session that fails mid-read. It used to print the driver's message alone.
+  (#645)
 
 ### Tests
 - Integration twins for #614's engine claims: Oracle rejects
