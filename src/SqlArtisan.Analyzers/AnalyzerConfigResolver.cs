@@ -252,12 +252,27 @@ internal static class AnalyzerConfigResolver
     /// The family setting that replaces a removed key, spelled for the surface the key was
     /// set on. The DBMS and version are read across both surfaces, <c>.editorconfig</c>
     /// first, so the replacement carries the old version over instead of shedding the
-    /// dialect's SQLA0101 coverage with an <c>any</c>.
+    /// dialect's SQLA0101 coverage with an <c>any</c>. Where the family already names that
+    /// DBMS, its own line is returned and <paramref name="alreadySet"/> is true: suggesting
+    /// the old value there would undo the user's newer one (or re-enable a <c>none</c>).
     /// </summary>
-    public static string RemovedKeyReplacement(AnalyzerConfigOptions options, string removedKey)
+    public static string RemovedKeyReplacement(
+        AnalyzerConfigOptions options,
+        string removedKey,
+        out bool alreadySet)
     {
         TargetDbms? dbms = ReadRemovedDbms(options, RemovedTargetDbmsKey)
             ?? ReadRemovedDbms(options, RemovedTargetDbmsMSBuildPropertyKey);
+
+        if (dbms is { } named && IsFamilyKeySet(options, named))
+        {
+            alreadySet = true;
+            return TryGetSetValue(options, SyntaxKey(named), out string editorConfigValue)
+                ? $"{SyntaxKey(named)} = {editorConfigValue}"
+                : SyntaxPropertyLine(named.ToString(), FamilyPropertyValue(options, named));
+        }
+
+        alreadySet = false;
         EngineVersion? version = ReadRemovedVersion(options, RemovedTargetVersionKey)
             ?? ReadRemovedVersion(options, RemovedTargetVersionMSBuildPropertyKey);
         string value = version?.ToString() ?? (dbms is null ? "<version-or-any>" : AnyValue);
@@ -268,9 +283,17 @@ internal static class AnalyzerConfigResolver
             return $"{key} = {value}";
         }
 
-        string property = "SqlArtisanSyntax" + (dbms?.ToString() ?? "<Dbms>");
-        return $"<{property}>{value}</{property}>";
+        return SyntaxPropertyLine(dbms?.ToString() ?? "<Dbms>", value);
     }
+
+    private static string FamilyPropertyValue(AnalyzerConfigOptions options, TargetDbms dbms)
+    {
+        TryGetSetValue(options, SyntaxMSBuildPropertyKey(dbms), out string value);
+        return value;
+    }
+
+    private static string SyntaxPropertyLine(string dbms, string value) =>
+        $"<SqlArtisanSyntax{dbms}>{value}</SqlArtisanSyntax{dbms}>";
 
     private static TargetDbms? ReadRemovedDbms(AnalyzerConfigOptions options, string key)
     {

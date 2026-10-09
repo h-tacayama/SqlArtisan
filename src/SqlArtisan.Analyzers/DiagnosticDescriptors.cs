@@ -80,6 +80,18 @@ internal static class DiagnosticDescriptors
         helpLinkUri: HelpLinkUri,
         customTags: WellKnownDiagnosticTags.CompilationEnd);
 
+    // The mid-migration twin: the family already names the removed key's DBMS, so the
+    // only safe advice is deletion — any replacement line would override the user's own.
+    public static readonly DiagnosticDescriptor RemovedConfigurationKeyAlreadyReplaced = new(
+        id: "SQLA0001",
+        title: "SqlArtisan analyzer configuration problem",
+        messageFormat: "'{0}' was removed and is ignored; '{1}' already replaces it, so delete it",
+        category: ConfigurationCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri,
+        customTags: WellKnownDiagnosticTags.CompilationEnd);
+
     public static readonly DiagnosticDescriptor UnsupportedDialectConstruct = new(
         id: "SQLA0100",
         title: "SQL construct not supported on the target dialect",

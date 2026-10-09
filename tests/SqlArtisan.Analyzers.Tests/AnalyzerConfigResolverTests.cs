@@ -228,7 +228,10 @@ public class AnalyzerConfigResolverTests
             [AnalyzerConfigResolver.RemovedTargetVersionMSBuildPropertyKey] = "16",
         });
 
-        Assert.Equal(expected, AnalyzerConfigResolver.RemovedKeyReplacement(options, removedKey));
+        Assert.Equal(
+            expected,
+            AnalyzerConfigResolver.RemovedKeyReplacement(options, removedKey, out bool alreadySet));
+        Assert.False(alreadySet);
     }
 
     [Theory]
@@ -250,7 +253,8 @@ public class AnalyzerConfigResolverTests
             expected,
             AnalyzerConfigResolver.RemovedKeyReplacement(
                 options,
-                AnalyzerConfigResolver.RemovedTargetDbmsKey));
+                AnalyzerConfigResolver.RemovedTargetDbmsKey,
+                out _));
     }
 
     [Fact]
@@ -265,6 +269,37 @@ public class AnalyzerConfigResolverTests
             "<SqlArtisanSyntax<Dbms>>2019</SqlArtisanSyntax<Dbms>>",
             AnalyzerConfigResolver.RemovedKeyReplacement(
                 options,
-                AnalyzerConfigResolver.RemovedTargetVersionMSBuildPropertyKey));
+                AnalyzerConfigResolver.RemovedTargetVersionMSBuildPropertyKey,
+                out _));
+    }
+
+    // Mid-migration the family's own line is the answer: echoing the removed pair's value
+    // would override the user's newer version, or re-enable a dialect they set to `none`.
+    [Theory]
+    [InlineData("sqlartisan_syntax_postgresql", "14", "sqlartisan_syntax_postgresql = 14")]
+    [InlineData("sqlartisan_syntax_postgresql", "none", "sqlartisan_syntax_postgresql = none")]
+    [InlineData(
+        "build_property.SqlArtisanSyntaxPostgreSql",
+        "14",
+        "<SqlArtisanSyntaxPostgreSql>14</SqlArtisanSyntaxPostgreSql>")]
+    public void RemovedKeyReplacement_FamilyNamesTheSameDbms_ReturnsTheFamilyLine(
+        string familyKey,
+        string familyValue,
+        string expected)
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
+        {
+            [AnalyzerConfigResolver.RemovedTargetDbmsKey] = "postgresql",
+            [AnalyzerConfigResolver.RemovedTargetVersionKey] = "13",
+            [familyKey] = familyValue,
+        });
+
+        Assert.Equal(
+            expected,
+            AnalyzerConfigResolver.RemovedKeyReplacement(
+                options,
+                AnalyzerConfigResolver.RemovedTargetVersionKey,
+                out bool alreadySet));
+        Assert.True(alreadySet);
     }
 }

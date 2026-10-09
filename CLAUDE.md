@@ -104,7 +104,8 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships fifteen diagnostics:
 - **SQLA0001** — Analyzer configuration problem: an unrecognized key name or
   value, a `sqlartisan_syntax_*` family resolving to no dialect at all, or a
   removed `sqlartisan_target_dbms` / `sqlartisan_target_version` key still set.
-  SQLA0002, that pair's deprecation warning, is retired and never reused.
+  SQLA0002, that pair's deprecation warning, is retired and never reused
+  (**ADR 0024**).
 - **SQLA0100** — SQL construct not supported on the target dialect. Fires when a
   `Sql.*` call is unsupported for the configured DBMS.
 - **SQLA0101** — Version-bound construct. Supported on the target dialect, but

@@ -473,9 +473,10 @@ public class MultiDialectSyntaxAnalyzerTests
     }
 
     // Mid-migration — the family line written, the old one not yet deleted — the family
-    // checks PostgreSQL and the dead line is still named, so it does not linger unnoticed.
+    // checks PostgreSQL and the dead line is still named, but the advice is to delete it:
+    // a replacement line built from the old pair would override the family's `14`.
     [Fact]
-    public async Task RemovedKeyBesideFamilyForTheSameDbms_ReportsBoth()
+    public async Task RemovedKeyBesideFamilyForTheSameDbms_AsksToDeleteIt()
     {
         const string editorConfig = """
             root = true
@@ -494,8 +495,38 @@ public class MultiDialectSyntaxAnalyzerTests
                 "15",
                 "14",
                 "sqlartisan_construct_merge_into"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithMessage(
+            "'sqlartisan_target_dbms' was removed and is ignored; "
+                + "'sqlartisan_syntax_postgresql = 14' already replaces it, so delete it"));
+
+        await test.RunAsync();
+    }
+
+    // `none` is the user's explicit statement about the DBMS; suggesting the old pair's
+    // `any` would re-enable it, and an older leftover version must not override the family's.
+    [Fact]
+    public async Task RemovedPairBesideFamilyNone_NamesTheFamilyLineForBothKeys()
+    {
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = postgresql
+            sqlartisan_target_version = 13
+            sqlartisan_syntax_postgresql = none
+            sqlartisan_syntax_oracle = any
+            """;
+
+        const string expectedTail =
+            " was removed and is ignored; 'sqlartisan_syntax_postgresql = none' already "
+                + "replaces it, so delete it";
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("sqlartisan_target_dbms", "sqlartisan_syntax_postgresql = any"));
+            .WithMessage("'sqlartisan_target_dbms'" + expectedTail));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithMessage("'sqlartisan_target_version'" + expectedTail));
 
         await test.RunAsync();
     }

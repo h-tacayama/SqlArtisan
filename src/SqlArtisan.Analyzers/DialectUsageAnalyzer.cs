@@ -34,6 +34,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.UnrecognizedConfigurationKey,
         DiagnosticDescriptors.ConfigurationDisablesAllDialects,
         DiagnosticDescriptors.RemovedConfigurationKey,
+        DiagnosticDescriptors.RemovedConfigurationKeyAlreadyReplaced,
         DiagnosticDescriptors.UnsupportedDialectConstruct,
         DiagnosticDescriptors.VersionBoundConstruct,
         DiagnosticDescriptors.ContextRestrictedConstruct,
@@ -782,7 +783,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     {
         // Keyed like the family loops below: the message names the key, so the
         // same key under two different replacements is two reports, not one.
-        var reportedRemovedKeys = new HashSet<(string Key, string Replacement)>();
+        var reportedRemovedKeys =
+            new HashSet<(string Key, string Replacement, bool AlreadySet)>();
         var reportedOverrideValues = new HashSet<(string Key, string Value)>();
         string[] overrideKeys = [.. DialectMatrix.AllOverrideKeys.Distinct()];
 
@@ -802,11 +804,14 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
                 string replacement = AnalyzerConfigResolver.RemovedKeyReplacement(
                     options,
-                    removedKey);
-                if (reportedRemovedKeys.Add((removedKey, replacement)))
+                    removedKey,
+                    out bool alreadySet);
+                if (reportedRemovedKeys.Add((removedKey, replacement, alreadySet)))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
-                        DiagnosticDescriptors.RemovedConfigurationKey,
+                        alreadySet
+                            ? DiagnosticDescriptors.RemovedConfigurationKeyAlreadyReplaced
+                            : DiagnosticDescriptors.RemovedConfigurationKey,
                         Location.None,
                         removedKey,
                         replacement));
