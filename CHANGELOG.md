@@ -118,10 +118,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   names it generates. It dropped them as word separators, which removed the
   vowel signs of Thai and Devanagari names and could turn one word into another:
   column `नाम` generated `नम` and table `ลูกค้า` `ลกคาTable`; they now generate
-  `नाम` and `ลูกค้าTable`. Connecting punctuation other than `_` stays too, and
-  a formatting character such as the zero-width non-joiner is dropped without
-  splitting the word, since C# ignores it when comparing names. Only names
-  containing one of these characters change; after `--fix`, rename the
+  `नाम` and `ลูกค้าTable`. A letter number such as `Ⅱ` or `〇` and connecting
+  punctuation other than `_`, which were dropped too, now stay (`売上Ⅱ` was
+  `売上` and is now `売上ⅱ`, lower-cased like the rest of any single-case run),
+  and a formatting character such as the zero-width non-joiner is dropped
+  without splitting the word, since C# ignores it when comparing names. Only
+  names containing one of these characters change; after `--fix`, rename the
   references to them. (#644)
 - **Breaking:** TableClassGen rejects an option given more than once, on the
   command line (`'--tables' is given more than once`) or as a repeated key in

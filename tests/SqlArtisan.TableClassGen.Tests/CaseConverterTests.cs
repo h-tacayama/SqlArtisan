@@ -28,13 +28,15 @@ public class CaseConverterTests
     [InlineData("ग्राहक", "ग्राहक")]
     [InlineData("नाम", "नाम")]
     [InlineData("customer_ชื่อ", "Customerชื่อ")]
-    [InlineData("école", "École")]
-    [InlineData("a‿b", "A‿b")]
-    [InlineData("́x", "_́x")]
-    [InlineData("‿x", "_‿x")]
-    [InlineData("ab‌cd", "Abcd")]
-    [InlineData("‌", "_")]
-    [InlineData("𠮷野家", "野家")]
+    [InlineData("e\u0301cole", "E\u0301cole")]
+    [InlineData("第〇課", "第〇課")]
+    [InlineData("売上Ⅱ", "売上ⅱ")]
+    [InlineData("a\u203Fb", "A\u203Fb")]
+    [InlineData("\u0301x", "_\u0301x")]
+    [InlineData("\u203Fx", "_\u203Fx")]
+    [InlineData("ab\u200Ccd", "Abcd")]
+    [InlineData("\u200C", "_")]
+    [InlineData("\uD842\uDFB7野家", "野家")]
     public void SnakeToPascalCase_NonAsciiName_KeepsWhatCSharpAdmits(
         string name,
         string expected) =>
