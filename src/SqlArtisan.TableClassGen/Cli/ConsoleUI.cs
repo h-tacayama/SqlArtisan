@@ -192,7 +192,7 @@ internal sealed class ConsoleUI
             ? dbms
             : throw new CommandLineException(
                 "Enter a number from the list, or one of mysql, oracle, postgresql (or "
-                    + $"postgres), sqlite, sqlserver (or mssql) (got '{value}')");
+                    + $"postgres), sqlite, sqlserver (or mssql) (got '{value}').");
     }
 
     private static string GetPasswordFromConsole()

@@ -425,8 +425,11 @@ internal static class CommandLine
     private static IReadOnlyList<string> SplitTables(string? tables) =>
         string.IsNullOrWhiteSpace(tables)
             ? []
-            : [.. tables.Split(',', StringSplitOptions.RemoveEmptyEntries
-                | StringSplitOptions.TrimEntries)];
+            : [
+                .. tables.Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            ];
 
     // Never blank: ParseArguments and ReadConfigFile store no blank value.
     private static string? Value(Dictionary<string, string> values, string key) =>

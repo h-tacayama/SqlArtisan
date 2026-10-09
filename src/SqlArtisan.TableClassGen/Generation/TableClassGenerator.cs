@@ -144,7 +144,7 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
     // constraint: the file names are what collide on a case-folding file system.
     private static string CollisionMessage(CatalogTable first, CatalogTable second)
     {
-        string remedy = "rename one of them or narrow the run with --tables.";
+        string remedy = "rename one of them or narrow the run with --tables";
 
         return string.Equals(first.ClassName, second.ClassName, StringComparison.Ordinal)
             ? $"Tables '{first.TableName}' and '{second.TableName}' both generate the class "
