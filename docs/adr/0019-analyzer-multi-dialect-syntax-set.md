@@ -1,6 +1,9 @@
 # ADR 0019 — Analyzer multi-dialect syntax set: `sqlartisan_syntax_*`, one key per DBMS
 
-**Status:** Accepted
+**Status:** Accepted — the legacy pair's coexistence rules and `SQLA0002`
+superseded by the pair's removal (#654): a removed key now resolves nothing
+and reports `SQLA0001` with its replacement, and `SQLA0002` is retired, never
+reused. Everything else here stands.
 
 ## Context
 

@@ -71,9 +71,10 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   against a declared engine version (SQLA0101); 0018 bands the diagnostic IDs
   by category, superseding 0014's shared-category decision; 0019 lets a
   project check a *set* of dialects instead of one (`sqlartisan_syntax_*`),
-  refining 0008's precedence section and adding SQLA0002; 0021 fixes which of
-  0008's two key levels the shipped matrix itself asserts at (member-level by
-  default, arity only to narrow it); 0022 keeps every verdict on the value
+  refining 0008's precedence section and adding SQLA0002 (retired when #654
+  removed the legacy pair); 0021 fixes which of 0008's two key levels the
+  shipped matrix itself asserts at (member-level by default, arity only to
+  narrow it); 0022 keeps every verdict on the value
   dimension the matrix cannot key on under one id (SQLA0104), applying 0019's
   splitting test and 0013's provable-or-silent discipline to a literal
   argument value; 0023 adds the C# fallback rules (SQLA0301, SQLA0302) and

@@ -59,8 +59,8 @@ against several engines, a migration in progress, "standard SQL only" — set
 more than one key; see
 [Checking a set of dialects at once](#checking-a-set-of-dialects-at-once).
 
-An older `sqlartisan_target_dbms` / `sqlartisan_target_version` pair still
-works exactly as before, but is deprecated (`SQLA0002`) — see
+The older `sqlartisan_target_dbms` / `sqlartisan_target_version` pair has
+been removed — see
 [Migrating from the legacy target key](#migrating-from-the-legacy-target-key)
 below.
 
@@ -93,8 +93,7 @@ still needs naming by ID.
 
 | ID | Severity | Reports |
 |---|---|---|
-| `SQLA0001` | Warning | A SqlArtisan analyzer configuration problem: an unrecognized `sqlartisan_syntax_*` key name or value, a `sqlartisan_target_dbms` / `sqlartisan_target_version` / `sqlartisan_construct_*` value that could not be recognized, a `sqlartisan_syntax_*` family that resolves to no dialect at all, or the legacy pair coexisting with a family that doesn't name its DBMS — see [Checking a set of dialects at once](#checking-a-set-of-dialects-at-once). |
-| `SQLA0002` | Warning | `sqlartisan_target_dbms` / `sqlartisan_target_version` are deprecated in favor of `sqlartisan_syntax_*` — see [Migrating from the legacy target key](#migrating-from-the-legacy-target-key). |
+| `SQLA0001` | Warning | A SqlArtisan analyzer configuration problem: an unrecognized `sqlartisan_syntax_*` key name or value, a `sqlartisan_construct_*` value that could not be recognized, a `sqlartisan_syntax_*` family that resolves to no dialect at all, or a removed `sqlartisan_target_dbms` / `sqlartisan_target_version` key still set — see [Checking a set of dialects at once](#checking-a-set-of-dialects-at-once) and [Migrating from the legacy target key](#migrating-from-the-legacy-target-key). |
 | `SQLA0100` | Warning | A SqlArtisan construct is used against a configured dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0101` | Warning | A construct is supported on a configured dialect, but not at its declared version — see [Version-aware warnings](#version-aware-warnings-sqla0101). Checking more than one dialect reports one diagnostic per failing dialect. |
 | `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
@@ -110,8 +109,7 @@ still needs naming by ID.
 | `SQLA0301` | Warning | `==` or `!=` that C# resolves as reference equality, because the left operand is not a SqlArtisan expression, passed to a SqlArtisan member or operator — it binds a `bool` instead of comparing in SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
 | `SQLA0302` | Warning | A SqlArtisan object interpolated or concatenated into a string passed to a SqlArtisan member or operator — it binds the object's type name instead of SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
 
-`SQLA0001` and `SQLA0002` are both compilation-end diagnostics with no file
-location: they appear in **build** output (CLI and CI, and an IDE's Error
+`SQLA0001` is a compilation-end diagnostic with no file location: it appears in **build** output (CLI and CI, and an IDE's Error
 List after an explicit build — check that the list's source filter includes
 Build entries), but not in the editor's live analysis, which never runs
 compilation-end actions. `SQLA0100`, by contrast, is a per-usage diagnostic
@@ -160,11 +158,10 @@ dotnet_diagnostic.SQLA0100.severity = error   # promote to a build error
 dotnet_diagnostic.SQLA0204.severity = none    # suppress entirely
 ```
 
-The exceptions are `SQLA0001` and `SQLA0002`: neither carries a file
-location, so a file-scoped `.editorconfig` severity line never reaches
-either. Suppress from a global analyzer config (a `.globalconfig` file with
-`is_global = true`) or with `<NoWarn>SQLA0001</NoWarn>` /
-`<NoWarn>SQLA0002</NoWarn>` in the project file.
+The exception is `SQLA0001`: it carries no file location, so a file-scoped
+`.editorconfig` severity line never reaches it. Suppress from a global
+analyzer config (a `.globalconfig` file with `is_global = true`) or with
+`<NoWarn>SQLA0001</NoWarn>` in the project file.
 
 Because severity is per rule ID, it cannot be scoped to one construct —
 promoting `SQLA0100` to `error` makes *every* dialect mismatch a build
@@ -296,9 +293,9 @@ ahead of the shipped matrix's baseline.
 
 ## Migrating from the legacy target key
 
-`sqlartisan_target_dbms` / `sqlartisan_target_version` still work — they
-desugar to a single-DBMS `sqlartisan_syntax_*` set — but are deprecated in
-favor of the family:
+`sqlartisan_target_dbms` / `sqlartisan_target_version` and their
+`<SqlArtisanTargetDbms>` / `<SqlArtisanTargetVersion>` MSBuild properties
+have been removed. Replace the pair with one `sqlartisan_syntax_*` line:
 
 ```diff
 -sqlartisan_target_dbms = postgresql
@@ -306,52 +303,12 @@ favor of the family:
 +sqlartisan_syntax_postgresql = 16
 ```
 
-Using either legacy key with no `sqlartisan_syntax_*` key present reports
-`SQLA0002` once per distinct legacy configuration in the compilation (a
-solution whose directory-scoped `.editorconfig` files give projects different
-legacy pairs gets one report each), including when the pair resolves perfectly
-correctly (a legacy value that fails to resolve draws `SQLA0001` alone) — the warning is what makes the pair's eventual removal in a
-future major version expected rather than sudden. (Once a family key is
-present, the family governs and `SQLA0002` yields to the rules below.) If your project has `TreatWarningsAsErrors` and cannot migrate
-immediately, suppress `SQLA0002` specifically — not `SQLA0001`, and not the
-whole `SqlArtisan.Configuration` category — so silencing the nag never
-silences real config-error detection. Like `SQLA0001`, it carries no file
-location, so a file-scoped `.editorconfig` severity line never reaches it —
-use a global analyzer config instead (a `.globalconfig` file with
-`is_global = true`):
-
-```ini
-is_global = true
-dotnet_diagnostic.SQLA0002.severity = none
-```
-
-or `<NoWarn>SQLA0002</NoWarn>` in the project file.
-
-**The family governs outright — it is never merged with the legacy pair.**
-If any `sqlartisan_syntax_*` key is present anywhere in a file's effective
-options, the legacy pair is not consulted at all for that file, even to fill
-in a DBMS the family didn't name:
-
-```ini
-sqlartisan_target_dbms = postgresql
-sqlartisan_syntax_oracle = any
-```
-
-Here only Oracle is checked — PostgreSQL is silently dropped, which is
-exactly the coverage loss `SQLA0001` exists to flag: adding
-`sqlartisan_syntax_oracle` to a scope that already carries
-`sqlartisan_target_dbms = postgresql` reads as *adding* Oracle, when it in
-fact *replaces* PostgreSQL. The message names the dropped DBMS and the full
-`key = value` line that would keep it checked, carrying the declared version
-over — this is a distinct `SQLA0001` report, not `SQLA0002`; the two never
-fire for the same configuration.
-
-The report fires only when the family doesn't itself name the legacy pair's
-DBMS. Mid-migration — `sqlartisan_syntax_postgresql = 16` written, the old
-`sqlartisan_target_dbms = postgresql` line not yet deleted — nothing is
-dropped: the family already covers PostgreSQL, so no configuration
-diagnostic fires and the leftover legacy line is simply inert. Delete it at
-leisure.
+or, in MSBuild, `<SqlArtisanSyntaxPostgreSql>16</SqlArtisanSyntaxPostgreSql>`.
+A removed key no longer configures anything, but it is not ignored silently:
+each one still set reports `SQLA0001` with the line that replaces it,
+carrying your declared version over. `SQLA0002`, the pair's former
+deprecation warning, is retired and will not be reused, so a leftover
+`<NoWarn>SQLA0002</NoWarn>` is harmless and can be deleted.
 
 ---
 

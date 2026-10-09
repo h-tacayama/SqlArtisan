@@ -5,8 +5,7 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-SQLA0001 | SqlArtisan.Configuration | Warning | A SqlArtisan analyzer configuration problem: an unrecognized key name or value, a 'sqlartisan_syntax_*' family resolving to no dialect, or the legacy target pair coexisting with the family.
-SQLA0002 | SqlArtisan.Configuration | Warning | 'sqlartisan_target_dbms' / 'sqlartisan_target_version' are deprecated in favor of 'sqlartisan_syntax_*'.
+SQLA0001 | SqlArtisan.Configuration | Warning | A SqlArtisan analyzer configuration problem: an unrecognized key name or value, a 'sqlartisan_syntax_*' family resolving to no dialect, or a removed 'sqlartisan_target_*' key still set.
 SQLA0100 | SqlArtisan.Dialect | Warning | A SqlArtisan construct is used against a configured dialect it is not supported on.
 SQLA0101 | SqlArtisan.Dialect | Warning | A construct's minimum engine version, per the matrix's version bounds, exceeds the version declared for a configured dialect.
 SQLA0102 | SqlArtisan.Dialect | Warning | A SqlArtisan construct is used in a syntactic position the target dialect rejects it in.

@@ -32,7 +32,7 @@
   <!--
     Embed the SqlArtisan.Analyzers output as a build-time analyzer (#93), so
     consumers get it automatically with no extra package reference — opt-in via
-    .editorconfig / <SqlArtisanTargetDbms>, silent otherwise. ReferenceOutputAssembly
+    .editorconfig / <SqlArtisanSyntax*>, silent otherwise. ReferenceOutputAssembly
     is false because this is packaged content, not a compile-time dependency of
     SqlArtisan itself; OutputItemType=Analyzer both makes the built DLL available
     to the pack target below and applies the analyzer to this project's own build

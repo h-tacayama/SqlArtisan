@@ -30,8 +30,8 @@ public class MSBuildPropertyParityTests
 
     private static readonly IReadOnlyList<string> ResolverExpectedProperties =
         [
-            StripPrefix(AnalyzerConfigResolver.TargetDbmsMSBuildPropertyKey),
-            StripPrefix(AnalyzerConfigResolver.TargetVersionMSBuildPropertyKey),
+            StripPrefix(AnalyzerConfigResolver.RemovedTargetDbmsMSBuildPropertyKey),
+            StripPrefix(AnalyzerConfigResolver.RemovedTargetVersionMSBuildPropertyKey),
             .. AnalyzerConfigResolver.AllDbms.Select(
                 dbms => StripPrefix(AnalyzerConfigResolver.SyntaxMSBuildPropertyKey(dbms))),
         ];

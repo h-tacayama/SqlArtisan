@@ -42,4 +42,15 @@ public class DiagnosticOrderingTests
                     + "not the next free number overall.");
         }
     }
+
+    // A suppression or escalation written for a retired id would silently attach to
+    // whatever rule reused it, so a retired id stays retired (#654).
+    [Theory]
+    [InlineData("SQLA0002")]
+    public void RetiredId_IsNeverReused(string retiredId)
+    {
+        Assert.DoesNotContain(
+            new DialectUsageAnalyzer().SupportedDiagnostics,
+            d => d.Id == retiredId);
+    }
 }

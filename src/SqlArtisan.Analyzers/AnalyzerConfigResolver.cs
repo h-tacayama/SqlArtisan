@@ -34,8 +34,8 @@ internal static class AnalyzerConfigResolver
 
     /// <summary>
     /// The MSBuild-property fallback for <see cref="SyntaxKey"/>, populated via
-    /// the <c>CompilerVisibleProperty</c> entries declared alongside the legacy
-    /// pair's (src/SqlArtisan.Analyzers/build/SqlArtisan.props).
+    /// the <c>CompilerVisibleProperty</c> entries in
+    /// src/SqlArtisan.Analyzers/build/SqlArtisan.props.
     /// </summary>
     public static string SyntaxMSBuildPropertyKey(TargetDbms dbms) =>
         $"build_property.SqlArtisanSyntax{dbms}";
@@ -64,8 +64,7 @@ internal static class AnalyzerConfigResolver
 
     /// <summary>
     /// Whether any <c>sqlartisan_syntax_*</c> key carries a value, on either
-    /// surface. Any value — recognized or not — makes the family govern (#432),
-    /// so a mistyped family *value* never silently revives the legacy pair.
+    /// surface — recognized or not.
     /// </summary>
     public static bool IsFamilyPresent(AnalyzerConfigOptions options)
     {
@@ -120,22 +119,15 @@ internal static class AnalyzerConfigResolver
     /// every declared <c>CompilerVisibleProperty</c> as a key, blank when never set,
     /// so presence alone would make the family govern in every referencing project.
     /// </summary>
-    private static bool TryGetSetValue(AnalyzerConfigOptions options, string key, out string value)
+    public static bool TryGetSetValue(AnalyzerConfigOptions options, string key, out string value)
     {
         value = options.TryGetValue(key, out string? raw)
             && !string.IsNullOrWhiteSpace(raw) ? raw : string.Empty;
         return value.Length > 0;
     }
 
-    /// <summary>
-    /// The resolved target set: the <c>sqlartisan_syntax_*</c> family if any key
-    /// in it is present (govern outright — never merged with the legacy pair),
-    /// otherwise the legacy pair desugared to a single-DBMS set.
-    /// </summary>
-    public static DialectTargetSet ResolveTargets(AnalyzerConfigOptions options) =>
-        IsFamilyPresent(options) ? ResolveFamilyTargets(options) : ResolveLegacyTargets(options);
-
-    private static DialectTargetSet ResolveFamilyTargets(AnalyzerConfigOptions options)
+    /// <summary>The resolved <c>sqlartisan_syntax_*</c> target set.</summary>
+    public static DialectTargetSet ResolveTargets(AnalyzerConfigOptions options)
     {
         var set = new DialectTargetSet();
         foreach (TargetDbms dbms in AllDbms)
@@ -164,7 +156,7 @@ internal static class AnalyzerConfigResolver
     }
 
     // An unrecognized .editorconfig value falls through to the MSBuild
-    // property rather than resolving to unset (ResolveTargetVersion's precedent).
+    // property rather than resolving to unset.
     private static bool TryResolveSyntaxValue(
         AnalyzerConfigOptions options,
         TargetDbms dbms,
@@ -186,18 +178,6 @@ internal static class AnalyzerConfigResolver
 
         value = null;
         return false;
-    }
-
-    private static DialectTargetSet ResolveLegacyTargets(AnalyzerConfigOptions options)
-    {
-        if (ResolveTarget(options) is not { } target)
-        {
-            return DialectTargetSet.Empty;
-        }
-
-        var set = new DialectTargetSet();
-        set.Add(target, ResolveTargetVersion(options));
-        return set;
     }
 
     /// <summary>
@@ -248,86 +228,73 @@ internal static class AnalyzerConfigResolver
         }
     }
 
-    public const string TargetDbmsKey = "sqlartisan_target_dbms";
+    // The legacy single-DBMS pair, removed in favor of the family (#654). Still read, solely
+    // so a project left on it is told why the analyzer stopped checking (SQLA0001): an
+    // unconfigured analyzer is silent, so dropping the keys unread would look like success.
+    public const string RemovedTargetDbmsKey = "sqlartisan_target_dbms";
+    public const string RemovedTargetVersionKey = "sqlartisan_target_version";
+
+    public const string RemovedTargetDbmsMSBuildPropertyKey =
+        "build_property.SqlArtisanTargetDbms";
+
+    public const string RemovedTargetVersionMSBuildPropertyKey =
+        "build_property.SqlArtisanTargetVersion";
+
+    public static readonly string[] RemovedKeys =
+    [
+        RemovedTargetDbmsKey, RemovedTargetVersionKey, RemovedTargetDbmsMSBuildPropertyKey,
+        RemovedTargetVersionMSBuildPropertyKey,
+    ];
+
+    public static IEnumerable<string> DbmsNames => SyntaxDbmsNames.Values;
 
     /// <summary>
-    /// The MSBuild-property fallback for <see cref="TargetDbmsKey"/>, populated
-    /// via the <c>CompilerVisibleProperty</c> declared in the shipped
-    /// buildTransitive props (src/SqlArtisan.Analyzers/build/SqlArtisan.props). Consumers
-    /// who prefer setting <c>&lt;SqlArtisanTargetDbms&gt;</c> in a .csproj /
-    /// Directory.Build.props over an .editorconfig section use this key
-    /// instead; .editorconfig wins when both are set.
+    /// The family setting that replaces a removed key, spelled for the surface the key was
+    /// set on. The DBMS and version are read across both surfaces, <c>.editorconfig</c>
+    /// first, so the replacement carries the old version over instead of shedding the
+    /// dialect's SQLA0101 coverage with an <c>any</c>.
     /// </summary>
-    public const string TargetDbmsMSBuildPropertyKey = "build_property.SqlArtisanTargetDbms";
-
-    private static readonly Dictionary<string, TargetDbms> TargetNames = new(
-        StringComparer.OrdinalIgnoreCase)
+    public static string RemovedKeyReplacement(AnalyzerConfigOptions options, string removedKey)
     {
-        ["mysql"] = TargetDbms.MySql,
-        ["oracle"] = TargetDbms.Oracle,
-        ["postgresql"] = TargetDbms.PostgreSql,
-        ["sqlite"] = TargetDbms.Sqlite,
-        ["sqlserver"] = TargetDbms.SqlServer,
-    };
+        TargetDbms? dbms = ReadRemovedDbms(options, RemovedTargetDbmsKey)
+            ?? ReadRemovedDbms(options, RemovedTargetDbmsMSBuildPropertyKey);
+        EngineVersion? version = ReadRemovedVersion(options, RemovedTargetVersionKey)
+            ?? ReadRemovedVersion(options, RemovedTargetVersionMSBuildPropertyKey);
+        string value = version?.ToString() ?? (dbms is null ? "<version-or-any>" : AnyValue);
 
-    public static IEnumerable<string> ValidTargetNames => TargetNames.Keys;
-
-    /// <summary>
-    /// The configured target for this syntax tree, or <see langword="null"/> if
-    /// unset or unrecognized (the analyzer stays silent in either case — an
-    /// unrecognized value is separately flagged as SQLA0001).
-    /// </summary>
-    public static TargetDbms? ResolveTarget(AnalyzerConfigOptions options)
-    {
-        if (options.TryGetValue(TargetDbmsKey, out string? editorConfigValue)
-            && TargetNames.TryGetValue(editorConfigValue, out TargetDbms fromEditorConfig))
+        if (!removedKey.StartsWith("build_property.", StringComparison.Ordinal))
         {
-            return fromEditorConfig;
+            string key = dbms is { } d ? SyntaxKey(d) : SyntaxKeyPrefix + "<dbms>";
+            return $"{key} = {value}";
         }
 
-        if (options.TryGetValue(TargetDbmsMSBuildPropertyKey, out string? msBuildValue)
-            && TargetNames.TryGetValue(msBuildValue, out TargetDbms fromMsBuildProperty))
+        string property = "SqlArtisanSyntax" + (dbms?.ToString() ?? "<Dbms>");
+        return $"<{property}>{value}</{property}>";
+    }
+
+    private static TargetDbms? ReadRemovedDbms(AnalyzerConfigOptions options, string key)
+    {
+        if (!TryGetSetValue(options, key, out string value))
         {
-            return fromMsBuildProperty;
+            return null;
+        }
+
+        foreach (KeyValuePair<TargetDbms, string> entry in SyntaxDbmsNames)
+        {
+            if (string.Equals(value, entry.Value, StringComparison.OrdinalIgnoreCase))
+            {
+                return entry.Key;
+            }
         }
 
         return null;
     }
 
-    public static bool IsRecognizedTargetValue(string value) => TargetNames.ContainsKey(value);
-
-    /// <summary>The #262 reserved key: the engine version bounds are evaluated against.</summary>
-    public const string TargetVersionKey = "sqlartisan_target_version";
-
-    /// <summary>The MSBuild-property fallback for <see cref="TargetVersionKey"/>, same shape as
-    /// <see cref="TargetDbmsMSBuildPropertyKey"/>.</summary>
-    public const string TargetVersionMSBuildPropertyKey = "build_property.SqlArtisanTargetVersion";
-
-    /// <summary>
-    /// The declared target version for this syntax tree, or <see langword="null"/>
-    /// if unset or unparseable (an unparseable value is separately flagged as
-    /// SQLA0001; either way version bounds do not apply).
-    /// </summary>
-    public static EngineVersion? ResolveTargetVersion(AnalyzerConfigOptions options)
-    {
-        if (options.TryGetValue(TargetVersionKey, out string? editorConfigValue)
-            && EngineVersion.TryParse(editorConfigValue, out EngineVersion fromEditorConfig))
-        {
-            return fromEditorConfig;
-        }
-
-        if (options.TryGetValue(TargetVersionMSBuildPropertyKey, out string? msBuildValue)
-            && EngineVersion.TryParse(msBuildValue, out EngineVersion fromMsBuildProperty))
-        {
-            return fromMsBuildProperty;
-        }
-
-        return null;
-    }
-
-    public static bool IsRecognizedVersionValue(string value) => EngineVersion.TryParse(
-        value,
-        out _);
+    private static EngineVersion? ReadRemovedVersion(AnalyzerConfigOptions options, string key) =>
+        TryGetSetValue(options, key, out string value)
+            && EngineVersion.TryParse(value, out EngineVersion version)
+            ? version
+            : null;
 
     /// <summary>
     /// A construct override's raw value, parsed to true (<c>supported</c>),
