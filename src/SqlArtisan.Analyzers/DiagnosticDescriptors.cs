@@ -68,24 +68,13 @@ internal static class DiagnosticDescriptors
         customTags: WellKnownDiagnosticTags.CompilationEnd);
 
     // A fourth SQLA0001 reason (#654): an unconfigured analyzer is silent, so a removed key
-    // left set would read as a clean build. It retires SQLA0002 — never reuse that id, or
-    // its old suppressions would silence the new rule (DiagnosticOrderingTests gates it).
+    // left set would read as a clean build. Retires SQLA0002 (never reuse it). The advice is
+    // fixed: a per-file line would contradict itself across .editorconfig scopes (ADR 0024).
     public static readonly DiagnosticDescriptor RemovedConfigurationKey = new(
         id: "SQLA0001",
         title: "SqlArtisan analyzer configuration problem",
-        messageFormat: "'{0}' was removed and is ignored; use '{1}' instead",
-        category: ConfigurationCategory,
-        defaultSeverity: DiagnosticSeverity.Warning,
-        isEnabledByDefault: true,
-        helpLinkUri: HelpLinkUri,
-        customTags: WellKnownDiagnosticTags.CompilationEnd);
-
-    // The mid-migration twin: the family already names the removed key's DBMS, so the
-    // only safe advice is deletion — any replacement line would override the user's own.
-    public static readonly DiagnosticDescriptor RemovedConfigurationKeyAlreadyReplaced = new(
-        id: "SQLA0001",
-        title: "SqlArtisan analyzer configuration problem",
-        messageFormat: "'{0}' was removed and is ignored; '{1}' already replaces it, so delete it",
+        messageFormat: "'{0}' was removed and is ignored; delete it, and declare each dialect "
+            + "with '{1}' where not already declared",
         category: ConfigurationCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,

@@ -2,7 +2,9 @@
 
 **Status:** Accepted — configuration surface refined by ADR 0019 (the
 `sqlartisan_syntax_<dbms>` key family and its five `SqlArtisanSyntax<Dbms>`
-MSBuild properties join the coupling contract's seam list)
+MSBuild properties join the coupling contract's seam list), and by
+[ADR 0024](0024-analyzer-legacy-target-pair-removal.md), which removes the
+`sqlartisan_target_dbms` key and `SqlArtisanTargetDbms` property listed below
 
 ## Context
 

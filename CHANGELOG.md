@@ -288,11 +288,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   0.9.0-beta.1, are removed. A project still on them gets no dialect checks
   until it migrates — `sqlartisan_target_dbms = postgresql` +
   `sqlartisan_target_version = 16` → `sqlartisan_syntax_postgresql = 16` — but
-  is told so: each removed key still set reports `SQLA0001` with the line that
-  replaces it, or, where a `sqlartisan_syntax_*` line already names that DBMS
-  (or the leftover key names none, beside any such line), asks for the
-  leftover key to be deleted. `SQLA0002`, the pair's deprecation warning, is retired and will
-  not be reused; a leftover `<NoWarn>SQLA0002</NoWarn>` can be deleted. See
+  is told so: each removed key still set reports `SQLA0001`, asking for it to
+  be deleted and each dialect declared with `sqlartisan_syntax_<dbms>` where
+  not already declared. `SQLA0002`, the pair's deprecation warning, is retired
+  and will not be reused; a leftover `<NoWarn>SQLA0002</NoWarn>` can be deleted. See
   [Migrating from the legacy target key](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#migrating-from-the-legacy-target-key).
   (#654)
 

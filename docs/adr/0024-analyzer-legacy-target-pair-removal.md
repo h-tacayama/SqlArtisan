@@ -24,20 +24,20 @@ comes from the family alone.
 **A removed key still set reports `SQLA0001`; it is never dropped unread.** An
 unconfigured analyzer is silent, so a project left on the pair would otherwise
 lose every diagnostic and read the silence as a clean build. Each key is
-reported on the surface it was set on, with the family line that replaces it
-in that surface's spelling:
+reported once per compilation, by name.
 
-- With no family line for that DBMS, the replacement is built from the pair,
-  carrying its version over (`= any` would shed the dialect's `SQLA0101`
-  coverage).
-- With a family line already naming that DBMS — the mid-migration state — the
-  report quotes that line and asks for the leftover key to be deleted. Any
-  replacement built from the pair would override the user's newer value, or
-  re-enable a dialect they set to `none`.
-- With a key naming no DBMS (a lone `sqlartisan_target_version`) beside any
-  family line, the report points at the family and asks for deletion too. The
-  key never configured anything on its own, and a replacement would leave the
-  user to pick a DBMS whose family value it then overrides.
+**The advice is fixed: delete the key, and declare each dialect with
+`sqlartisan_syntax_<dbms>` (or `<SqlArtisanSyntax<Dbms>>`, for a key set as an
+MSBuild property) where not already declared.** It never quotes a line built
+from the file's configuration. The report carries no location, while
+`.editorconfig` scoping gives each file its own configuration, so one leftover
+key can be read by a migrated directory and an unmigrated one at once. Advice
+derived per file would say "delete it" and "write this line" for the same key
+in one build: following the first leaves the unmigrated files unchecked with no
+further warning, and the second could override a family value set in a
+narrower scope. No per-file line is right for every file reading the key, so
+none is derived; `docs/analyzer.md` shows the mapping instead, version
+included.
 
 The two `CompilerVisibleProperty` entries for the removed MSBuild properties
 stay, solely so their removal can be reported; a blank value (the SDK emits
@@ -50,13 +50,15 @@ for it would otherwise attach silently to whatever rule took the number.
 ## Consequences
 
 - A project still on the pair gets no dialect checks until it migrates, and a
-  `SQLA0001` per removed key naming the line to write. A leftover
+  `SQLA0001` per removed key. Carrying the old version over is the user's step,
+  shown in the migration section rather than in the message. A leftover
   `<NoWarn>SQLA0002</NoWarn>` is inert.
 - ADR 0019's legacy-pair decisions — the pair still resolving, `SQLA0002`, and
   the coexistence `SQLA0001` reason — are superseded. The rest of 0019 stands.
-- ADR 0015's version bounds and ADR 0014's opt-in gate stand, but read their
-  declared version and configured target from `sqlartisan_syntax_<dbms>`;
-  their wording names the removed keys.
+- ADR 0015's version bounds, ADR 0014's opt-in gate and ADR 0009's
+  configuration seam stand, but read their declared version, configured target
+  and coupling surface from `sqlartisan_syntax_<dbms>`; their wording names the
+  removed keys.
 - The reporting path reads the four removed keys for as long as 1.x ships;
   dropping it is a decision for a later major.
 

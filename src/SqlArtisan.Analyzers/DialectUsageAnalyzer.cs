@@ -34,7 +34,6 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.UnrecognizedConfigurationKey,
         DiagnosticDescriptors.ConfigurationDisablesAllDialects,
         DiagnosticDescriptors.RemovedConfigurationKey,
-        DiagnosticDescriptors.RemovedConfigurationKeyAlreadyReplaced,
         DiagnosticDescriptors.UnsupportedDialectConstruct,
         DiagnosticDescriptors.VersionBoundConstruct,
         DiagnosticDescriptors.ContextRestrictedConstruct,
@@ -781,10 +780,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     private static void ValidateConfiguration(CompilationAnalysisContext context)
     {
-        // Keyed like the family loops below: the message names the key, so the
-        // same key under two different replacements is two reports, not one.
-        var reportedRemovedKeys =
-            new HashSet<(string Key, string Replacement, bool AlreadySet)>();
+        var reportedRemovedKeys = new HashSet<string>(StringComparer.Ordinal);
         var reportedOverrideValues = new HashSet<(string Key, string Value)>();
         string[] overrideKeys = [.. DialectMatrix.AllOverrideKeys.Distinct()];
 
@@ -797,24 +793,14 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             // unset — the kept CompilerVisibleProperty emits the MSBuild keys to every build.
             foreach (string removedKey in AnalyzerConfigResolver.RemovedKeys)
             {
-                if (!AnalyzerConfigResolver.TryGetSetValue(options, removedKey, out _))
-                {
-                    continue;
-                }
-
-                string replacement = AnalyzerConfigResolver.RemovedKeyReplacement(
-                    options,
-                    removedKey,
-                    out bool alreadySet);
-                if (reportedRemovedKeys.Add((removedKey, replacement, alreadySet)))
+                if (AnalyzerConfigResolver.TryGetSetValue(options, removedKey, out _)
+                    && reportedRemovedKeys.Add(removedKey))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
-                        alreadySet
-                            ? DiagnosticDescriptors.RemovedConfigurationKeyAlreadyReplaced
-                            : DiagnosticDescriptors.RemovedConfigurationKey,
+                        DiagnosticDescriptors.RemovedConfigurationKey,
                         Location.None,
                         removedKey,
-                        replacement));
+                        AnalyzerConfigResolver.RemovedKeyReplacement(removedKey)));
                 }
             }
 

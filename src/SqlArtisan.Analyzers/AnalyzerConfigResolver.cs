@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SqlArtisan.Analyzers;
@@ -249,83 +248,11 @@ internal static class AnalyzerConfigResolver
 
     public static IEnumerable<string> DbmsNames => SyntaxDbmsNames.Values;
 
-    /// <summary>
-    /// The family line replacing a removed key, carrying its version over (<c>any</c> would shed
-    /// SQLA0101). Where the family already covers it, <paramref name="alreadySet"/> is true and
-    /// the family's own line is returned: any line built from the pair would override it.
-    /// </summary>
-    public static string RemovedKeyReplacement(
-        AnalyzerConfigOptions options,
-        string removedKey,
-        out bool alreadySet)
-    {
-        TargetDbms? dbms = ReadRemovedDbms(options, RemovedTargetDbmsKey)
-            ?? ReadRemovedDbms(options, RemovedTargetDbmsMSBuildPropertyKey);
-
-        if (dbms is { } named && IsFamilyKeySet(options, named))
-        {
-            alreadySet = true;
-            return TryGetSetValue(options, SyntaxKey(named), out string editorConfigValue)
-                ? $"{SyntaxKey(named)} = {editorConfigValue}"
-                : SyntaxPropertyLine(named.ToString(), FamilyPropertyValue(options, named));
-        }
-
-        // A key naming no DBMS (a lone version) never configured anything, so beside a family
-        // line deletion is the only advice that cannot override the user's own value.
-        if (dbms is null && IsFamilyPresent(options))
-        {
-            alreadySet = true;
-            bool inEditorConfig = SetSyntaxValues(options)
-                .Any(v => v.Key.StartsWith(SyntaxKeyPrefix, StringComparison.Ordinal));
-            return inEditorConfig ? SyntaxKeyPrefix + "*" : "<SqlArtisanSyntax*>";
-        }
-
-        alreadySet = false;
-        EngineVersion? version = ReadRemovedVersion(options, RemovedTargetVersionKey)
-            ?? ReadRemovedVersion(options, RemovedTargetVersionMSBuildPropertyKey);
-        string value = version?.ToString() ?? (dbms is null ? "<version-or-any>" : AnyValue);
-
-        if (!removedKey.StartsWith("build_property.", StringComparison.Ordinal))
-        {
-            string key = dbms is { } d ? SyntaxKey(d) : SyntaxKeyPrefix + "<dbms>";
-            return $"{key} = {value}";
-        }
-
-        return SyntaxPropertyLine(dbms?.ToString() ?? "<Dbms>", value);
-    }
-
-    private static string FamilyPropertyValue(AnalyzerConfigOptions options, TargetDbms dbms)
-    {
-        TryGetSetValue(options, SyntaxMSBuildPropertyKey(dbms), out string value);
-        return value;
-    }
-
-    private static string SyntaxPropertyLine(string dbms, string value) =>
-        $"<SqlArtisanSyntax{dbms}>{value}</SqlArtisanSyntax{dbms}>";
-
-    private static TargetDbms? ReadRemovedDbms(AnalyzerConfigOptions options, string key)
-    {
-        if (!TryGetSetValue(options, key, out string value))
-        {
-            return null;
-        }
-
-        foreach (KeyValuePair<TargetDbms, string> entry in SyntaxDbmsNames)
-        {
-            if (string.Equals(value, entry.Value, StringComparison.OrdinalIgnoreCase))
-            {
-                return entry.Key;
-            }
-        }
-
-        return null;
-    }
-
-    private static EngineVersion? ReadRemovedVersion(AnalyzerConfigOptions options, string key) =>
-        TryGetSetValue(options, key, out string value)
-            && EngineVersion.TryParse(value, out EngineVersion version)
-            ? version
-            : null;
+    /// <summary>How a removed key's replacement is spelled on the surface it was set on.</summary>
+    public static string RemovedKeyReplacement(string removedKey) =>
+        removedKey.StartsWith("build_property.", StringComparison.Ordinal)
+            ? "<SqlArtisanSyntax<Dbms>>"
+            : SyntaxKeyPrefix + "<dbms>";
 
     /// <summary>
     /// A construct override's raw value, parsed to true (<c>supported</c>),

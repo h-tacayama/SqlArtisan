@@ -270,7 +270,7 @@ public class DialectUsageAnalyzerTests
             AnalyzerVerifier.Unmarked(DatetruncUsageTemplate),
             editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("sqlartisan_target_version", "sqlartisan_syntax_<dbms> = 2019"));
+            .WithArguments("sqlartisan_target_version", "sqlartisan_syntax_<dbms>"));
         await test.RunAsync();
     }
 

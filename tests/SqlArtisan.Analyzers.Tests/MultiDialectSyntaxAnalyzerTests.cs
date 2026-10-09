@@ -300,7 +300,7 @@ public class MultiDialectSyntaxAnalyzerTests
     }
 
     // A removed key is reported whatever its value — it configures nothing either way —
-    // once per key, each replacement spelled for the surface the key was set on (#654).
+    // once per key, the replacement spelled for the surface the key was set on (#654).
     [Fact]
     public async Task RemovedKeysOnBothSurfaces_ReportEachKeyInItsOwnSurfaceSyntax()
     {
@@ -312,19 +312,20 @@ public class MultiDialectSyntaxAnalyzerTests
         const string editorConfig = """
             root = true
             [*.cs]
-            sqlartisan_target_dbms = postgresql
+            sqlartisan_target_dbms = postgres
             """;
 
-        const string property = "<SqlArtisanSyntaxPostgreSql>16</SqlArtisanSyntaxPostgreSql>";
         var test = AnalyzerVerifier.Create(
             AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
         test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("build_property.SqlArtisanTargetDbms", property));
+            .WithArguments("build_property.SqlArtisanTargetDbms", "<SqlArtisanSyntax<Dbms>>"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("build_property.SqlArtisanTargetVersion", property));
+            .WithArguments("build_property.SqlArtisanTargetVersion", "<SqlArtisanSyntax<Dbms>>"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("sqlartisan_target_dbms", "sqlartisan_syntax_postgresql = 16"));
+            .WithMessage("'sqlartisan_target_dbms' was removed and is ignored; delete it, and "
+                + "declare each dialect with 'sqlartisan_syntax_<dbms>' where not already "
+                + "declared"));
         await test.RunAsync();
     }
 
@@ -451,7 +452,7 @@ public class MultiDialectSyntaxAnalyzerTests
     }
 
     // The removed key adds nothing to the family: only Oracle is checked (Rollup runs
-    // there), and the leftover PostgreSQL line is reported with the line that would check it.
+    // there), and the leftover line is still reported.
     [Fact]
     public async Task RemovedKeyBesideFamily_IsReported_AndAddsNoDialect()
     {
@@ -467,79 +468,21 @@ public class MultiDialectSyntaxAnalyzerTests
             AnalyzerVerifier.Unmarked(RollupUsageTemplate),
             editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("sqlartisan_target_dbms", "sqlartisan_syntax_postgresql = any"));
+            .WithArguments("sqlartisan_target_dbms", "sqlartisan_syntax_<dbms>"));
 
         await test.RunAsync();
     }
 
     // Mid-migration — the family line written, the old one not yet deleted — the family
-    // checks PostgreSQL and the dead line is still named, but the advice is to delete it:
-    // a replacement line built from the old pair would override the family's `14`.
+    // checks PostgreSQL at its own 14 and the dead line is still named.
     [Fact]
-    public async Task RemovedKeyBesideFamilyForTheSameDbms_AsksToDeleteIt()
+    public async Task RemovedKeyBesideFamilyForTheSameDbms_ReportsBoth()
     {
         const string editorConfig = """
             root = true
 
             [*.cs]
             sqlartisan_target_dbms = postgresql
-            sqlartisan_syntax_postgresql = 14
-            """;
-
-        var test = AnalyzerVerifier.Create(MergeIntoUsageTemplate, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0101")
-            .WithLocation(0)
-            .WithArguments(
-                "MergeInto",
-                "PostgreSQL",
-                "15",
-                "14",
-                "sqlartisan_construct_merge_into"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithMessage(
-            "'sqlartisan_target_dbms' was removed and is ignored; "
-                + "'sqlartisan_syntax_postgresql = 14' already replaces it, so delete it"));
-
-        await test.RunAsync();
-    }
-
-    // `none` is the user's explicit statement about the DBMS; suggesting the old pair's
-    // `any` would re-enable it, and an older leftover version must not override the family's.
-    [Fact]
-    public async Task RemovedPairBesideFamilyNone_NamesTheFamilyLineForBothKeys()
-    {
-        const string editorConfig = """
-            root = true
-
-            [*.cs]
-            sqlartisan_target_dbms = postgresql
-            sqlartisan_target_version = 13
-            sqlartisan_syntax_postgresql = none
-            sqlartisan_syntax_oracle = any
-            """;
-
-        const string expectedTail =
-            " was removed and is ignored; 'sqlartisan_syntax_postgresql = none' already "
-                + "replaces it, so delete it";
-        var test = AnalyzerVerifier.Create(
-            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
-            editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithMessage("'sqlartisan_target_dbms'" + expectedTail));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithMessage("'sqlartisan_target_version'" + expectedTail));
-
-        await test.RunAsync();
-    }
-
-    // The mid-migration shape where only the dbms line was rewritten: the leftover version
-    // names no DBMS, and filling one in at its 16 would silence the family's SQLA0101 at 14.
-    [Fact]
-    public async Task RemovedVersionAloneBesideFamily_AsksToDeleteIt()
-    {
-        const string editorConfig = """
-            root = true
-
-            [*.cs]
             sqlartisan_target_version = 16
             sqlartisan_syntax_postgresql = 14
             """;
@@ -553,9 +496,10 @@ public class MultiDialectSyntaxAnalyzerTests
                 "15",
                 "14",
                 "sqlartisan_construct_merge_into"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithMessage(
-            "'sqlartisan_target_version' was removed and is ignored; "
-                + "'sqlartisan_syntax_*' already replaces it, so delete it"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments("sqlartisan_target_dbms", "sqlartisan_syntax_<dbms>"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments("sqlartisan_target_version", "sqlartisan_syntax_<dbms>"));
 
         await test.RunAsync();
     }
@@ -575,7 +519,7 @@ public class MultiDialectSyntaxAnalyzerTests
             AnalyzerVerifier.Unmarked(RollupUsageTemplate),
             editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("sqlartisan_target_dbms", "sqlartisan_syntax_mysql = any"));
+            .WithArguments("sqlartisan_target_dbms", "sqlartisan_syntax_<dbms>"));
 
         await test.RunAsync();
     }
@@ -612,22 +556,23 @@ public class MultiDialectSyntaxAnalyzerTests
         }
         """;
 
-    // Directory-scoped .editorconfig files are an advertised shape, so the
-    // dedup must key on the message content, not one compilation-wide flag —
-    // a coarser key mutes the second directory's differing replacement.
+    // The reports carry no location, so one key read by files with different family lines
+    // must get one piece of advice true for all of them — never "delete it" for the
+    // migrated directory beside a replacement line that would override it (#654).
     [Fact]
-    public async Task TwoDirectoriesWithDifferentRemovedKeys_ReportEachReplacement()
+    public async Task RemovedKeyAcrossDirectoriesWithDifferentFamilies_ReportsOnceUniformly()
     {
         const string rootConfig = """
             root = true
 
             [*.cs]
             sqlartisan_target_dbms = postgresql
+            sqlartisan_target_version = 16
             """;
         const string subConfig = """
             [*.cs]
+            sqlartisan_syntax_postgresql = 14
             sqlartisan_target_dbms = oracle
-            sqlartisan_target_version = 21
             """;
 
         var test = AnalyzerVerifier.Create(
@@ -636,11 +581,9 @@ public class MultiDialectSyntaxAnalyzerTests
         test.TestState.Sources.Add(("/sub/Second.cs", SecondaryUsageSource));
         test.TestState.AnalyzerConfigFiles.Add(("/sub/.editorconfig", subConfig));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("sqlartisan_target_dbms", "sqlartisan_syntax_postgresql = any"));
+            .WithArguments("sqlartisan_target_dbms", "sqlartisan_syntax_<dbms>"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("sqlartisan_target_dbms", "sqlartisan_syntax_oracle = 21"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("sqlartisan_target_version", "sqlartisan_syntax_oracle = 21"));
+            .WithArguments("sqlartisan_target_version", "sqlartisan_syntax_<dbms>"));
 
         await test.RunAsync();
     }

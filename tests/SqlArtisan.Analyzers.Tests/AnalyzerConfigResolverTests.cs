@@ -210,120 +210,15 @@ public class AnalyzerConfigResolverTests
         Assert.Empty(keys);
     }
 
-    // The replacement carries the old version over — `= any` would silently shed the
-    // dialect's SQLA0101 coverage — and is spelled for the surface the key was set on.
+    // Fixed per surface, never derived from the file's config: a per-file line contradicted
+    // itself across .editorconfig scopes, since a location-less report cannot say which file.
     [Theory]
-    [InlineData("sqlartisan_target_dbms", "sqlartisan_syntax_postgresql = 16")]
-    [InlineData("sqlartisan_target_version", "sqlartisan_syntax_postgresql = 16")]
-    [InlineData(
-        "build_property.SqlArtisanTargetDbms",
-        "<SqlArtisanSyntaxPostgreSql>16</SqlArtisanSyntaxPostgreSql>")]
-    public void RemovedKeyReplacement_CarriesDbmsAndVersionInTheKeysOwnSurface(
-        string removedKey,
-        string expected)
+    [InlineData("sqlartisan_target_dbms", "sqlartisan_syntax_<dbms>")]
+    [InlineData("sqlartisan_target_version", "sqlartisan_syntax_<dbms>")]
+    [InlineData("build_property.SqlArtisanTargetDbms", "<SqlArtisanSyntax<Dbms>>")]
+    [InlineData("build_property.SqlArtisanTargetVersion", "<SqlArtisanSyntax<Dbms>>")]
+    public void RemovedKeyReplacement_IsSpelledForTheKeysSurface(string removedKey, string expected)
     {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.RemovedTargetDbmsKey] = "PostgreSQL",
-            [AnalyzerConfigResolver.RemovedTargetVersionMSBuildPropertyKey] = "16",
-        });
-
-        Assert.Equal(
-            expected,
-            AnalyzerConfigResolver.RemovedKeyReplacement(options, removedKey, out bool alreadySet));
-        Assert.False(alreadySet);
-    }
-
-    [Theory]
-    [InlineData("postgres", "", "sqlartisan_syntax_<dbms> = <version-or-any>")]
-    [InlineData("", "16", "sqlartisan_syntax_<dbms> = 16")]
-    [InlineData("mysql", "latest", "sqlartisan_syntax_mysql = any")]
-    public void RemovedKeyReplacement_UnreadableHalves_FallBackToPlaceholders(
-        string dbms,
-        string version,
-        string expected)
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.RemovedTargetDbmsKey] = dbms,
-            [AnalyzerConfigResolver.RemovedTargetVersionKey] = version,
-        });
-
-        Assert.Equal(
-            expected,
-            AnalyzerConfigResolver.RemovedKeyReplacement(
-                options,
-                AnalyzerConfigResolver.RemovedTargetDbmsKey,
-                out _));
-    }
-
-    [Fact]
-    public void RemovedKeyReplacement_MSBuildSurfaceWithNoDbms_UsesThePropertyPlaceholder()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.RemovedTargetVersionMSBuildPropertyKey] = "2019",
-        });
-
-        Assert.Equal(
-            "<SqlArtisanSyntax<Dbms>>2019</SqlArtisanSyntax<Dbms>>",
-            AnalyzerConfigResolver.RemovedKeyReplacement(
-                options,
-                AnalyzerConfigResolver.RemovedTargetVersionMSBuildPropertyKey,
-                out _));
-    }
-
-    // Mid-migration the family's own line is the answer: echoing the removed pair's value
-    // would override the user's newer version, or re-enable a dialect they set to `none`.
-    [Theory]
-    [InlineData("sqlartisan_syntax_postgresql", "14", "sqlartisan_syntax_postgresql = 14")]
-    [InlineData("sqlartisan_syntax_postgresql", "none", "sqlartisan_syntax_postgresql = none")]
-    [InlineData(
-        "build_property.SqlArtisanSyntaxPostgreSql",
-        "14",
-        "<SqlArtisanSyntaxPostgreSql>14</SqlArtisanSyntaxPostgreSql>")]
-    public void RemovedKeyReplacement_FamilyNamesTheSameDbms_ReturnsTheFamilyLine(
-        string familyKey,
-        string familyValue,
-        string expected)
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.RemovedTargetDbmsKey] = "postgresql",
-            [AnalyzerConfigResolver.RemovedTargetVersionKey] = "13",
-            [familyKey] = familyValue,
-        });
-
-        Assert.Equal(
-            expected,
-            AnalyzerConfigResolver.RemovedKeyReplacement(
-                options,
-                AnalyzerConfigResolver.RemovedTargetVersionKey,
-                out bool alreadySet));
-        Assert.True(alreadySet);
-    }
-
-    // A lone version names no DBMS, so any replacement line would have the user pick one —
-    // and override the family's own value for it. Beside a family, the advice is deletion.
-    [Theory]
-    [InlineData("sqlartisan_syntax_postgresql", "sqlartisan_syntax_*")]
-    [InlineData("build_property.SqlArtisanSyntaxPostgreSql", "<SqlArtisanSyntax*>")]
-    public void RemovedKeyReplacement_NoDbmsBesideFamily_PointsAtTheFamily(
-        string familyKey,
-        string expected)
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.RemovedTargetVersionKey] = "16",
-            [familyKey] = "14",
-        });
-
-        Assert.Equal(
-            expected,
-            AnalyzerConfigResolver.RemovedKeyReplacement(
-                options,
-                AnalyzerConfigResolver.RemovedTargetVersionKey,
-                out bool alreadySet));
-        Assert.True(alreadySet);
+        Assert.Equal(expected, AnalyzerConfigResolver.RemovedKeyReplacement(removedKey));
     }
 }
