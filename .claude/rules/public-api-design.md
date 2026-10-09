@@ -628,8 +628,18 @@ outlive the run that made them, so the API rules above have a CLI analogue
 - **The generated file needs a `SqlArtisan` at least as new as the tool**,
   since the emitter writes its own build's attribute arguments and
   `DbTypeCategory` members. That pairing is recorded where users install the
-  tool, not left to a compile error in the user's build (CS0117 on a
-  `DbTypeCategory` member, CS0246 on an attribute argument).
+  tool (the tool README's local tool manifest, `docs/versioning.md`), not left
+  to a compile error in the user's build (CS0117 on a `DbTypeCategory` member,
+  CS0246 on an attribute argument).
+- **What the surface covers is recorded in `docs/versioning.md`**: the options'
+  names, values and defaults, the `--config` keys, the password environment
+  variable, exit codes, the `--format json` shape, and a generated file's names,
+  constructor, base type and literals; any other change to the emitted text is
+  minor, and so is a new option, option value, `--config` key or JSON key, or a
+  new JSON `mode` or `status` value, which a script must tolerate. Option names
+  ignore case and hyphens, and a relative `--config` path resolves against the
+  working directory, both documented and pinned rather than narrowed, since
+  narrowing either after 1.0 breaks a caller (#645).
 - **The tool package rolls forward** (`RollForward`) to newer major runtimes:
   a .NET tool pinned to its target runtime does not start where only a newer
   one is installed.

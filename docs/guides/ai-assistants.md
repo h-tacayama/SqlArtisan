@@ -92,11 +92,14 @@ reachable (a `docker compose` development database, for example):
 export SQLARTISAN_DB_PASSWORD=...
 
 # report drift; exits 1 when the committed classes are behind
-sa-tableclassgen --config tablegen.json --check
+dotnet sa-tableclassgen --config tablegen.json --check
 
 # regenerate only the tables that drifted
-sa-tableclassgen --config tablegen.json --fix
+dotnet sa-tableclassgen --config tablegen.json --fix
 ```
+
+The commands assume the tool is installed in the repository's local tool
+manifest, as its README recommends; a global install drops the `dotnet` prefix.
 
 Keeping the connection and output options in `tablegen.json` gives the
 assistant one invocation to remember, and the password stays in the

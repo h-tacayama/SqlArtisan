@@ -45,7 +45,8 @@ internal static class CommandLine
           --host <host>          database host
           --port <n>             database port (defaults per DBMS)
           --database <name>      database or Oracle service name
-          --schema <name>        schema to read (MySQL, Oracle, PostgreSQL, SQL Server)
+          --schema <name>        schema to read: required on PostgreSQL and SQL Server;
+                                 defaults to --database on MySQL, to --user on Oracle
           --user <name>          user name
           --file <path>          SQLite database file
           The password is read from the {PasswordEnvironmentVariable} environment
@@ -70,8 +71,11 @@ internal static class CommandLine
         Exit codes: 0 success or in sync, 1 drift, 2 error.
         """;
 
+    // Normalized like every other option name, so --HELP shows help rather than
+    // failing as an unknown option.
     public static bool WantsHelp(string[] args) =>
-        args.Any(a => a is "--help" or "-h" or "-?");
+        args.Any(a => a is "-h" or "-?"
+            || (a.StartsWith("--", StringComparison.Ordinal) && Normalize(a[2..]) == "help"));
 
     public static RunOptions Parse(string[] args)
     {

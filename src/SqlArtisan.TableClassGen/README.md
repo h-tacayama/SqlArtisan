@@ -6,13 +6,25 @@ Supported databases: MySQL, Oracle, PostgreSQL, SQLite, SQL Server.
 
 ## Installation
 
-Install `sa-tableclassgen` as a .NET global tool to make it accessible from any location:
+Install `sa-tableclassgen` as a local tool, pinned in the repository that holds the
+generated classes:
 
 *(Note: These packages are currently in their pre-release phase, so use the --prerelease flag when installing.)*
 
 ```bash
-dotnet tool install --global SqlArtisan.TableClassGen --prerelease
+dotnet new tool-manifest          # once per repository
+dotnet tool install SqlArtisan.TableClassGen --prerelease
+dotnet sa-tableclassgen --help    # a local tool runs through dotnet
 ```
+
+A generated file needs a `SqlArtisan` package at least as new as the tool that
+wrote it: the tool writes its own release's `DbColumnMetadata` arguments and
+`DbTypeCategory` members, which an older package does not have (CS0117 or CS0246
+in your build). The manifest keeps the tool's version in the repository, so
+upgrade it together with the `SqlArtisan` package reference. A global install
+(`dotnet tool install --global …`) works too, but nothing then ties its version
+to the project's. The examples below use the bare command name
+`sa-tableclassgen`; with a local install, prefix it with `dotnet`.
 
 ## Usage
 
@@ -138,6 +150,58 @@ is the answer either way.
 For scripting, `--format json` reports the same result as data, and `--dry-run`
 reports what a run would write without writing it.
 
+### JSON output
+
+`--format json` prints one object, here for the `--check` run above:
+
+```json
+{
+  "mode": "check",
+  "dryRun": false,
+  "drift": true,
+  "tables": [
+    {
+      "name": "audit_log",
+      "status": "added",
+      "path": "src/MyApp/Tables/AuditLogTable.cs",
+      "changes": []
+    },
+    {
+      "name": "employees",
+      "status": "modified",
+      "path": "src/MyApp/Tables/EmployeesTable.cs",
+      "changes": [
+        "+ email"
+      ]
+    },
+    {
+      "name": "DepartmentsTable.cs",
+      "status": "removed",
+      "path": "src/MyApp/Tables/DepartmentsTable.cs",
+      "changes": []
+    }
+  ]
+}
+```
+
+- `mode` is `generate`, `check` or `fix`, and `dryRun` is `true` with `--dry-run`.
+- `drift` is `true` when any entry's `status` is other than `unchanged`.
+- `tables` has an entry for every table the run read, `unchanged` ones included
+  whatever `--verbose` says, and in a run over the whole schema one for every file
+  whose table is gone.
+- `name` is the table's name, or for a `removed` entry the file's name, since that
+  file has no table. `path` is the file the run wrote, would write or found, under
+  `--output` as given.
+- `status` is `unchanged`, `added`, `modified` or `removed`.
+- `changes` lists what moved in a `modified` table. Only the leading marker of each
+  entry is fixed: `+` a column added, `-` a column dropped, `~` a change in the
+  column metadata or layout. The text after it is for reading.
+
+The keys and values above are part of the tool's command-line surface, so a script
+can rely on them across releases. A minor release may add a key or a `mode` or
+`status` value, so a script ignores a key it does not know and does not fail on a
+value it does not know ([Versioning](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/versioning.md#tableclassgens-command-line-surface)).
+
 ### Options
 
 | Option | Purpose |
@@ -154,17 +218,37 @@ reports what a run would write without writing it.
 | `--dry-run` | report what would be written, write nothing (also with `--fix`) |
 | `--format text\|json` / `--verbose` | output format and detail |
 
+Option names ignore case and hyphens, on the command line and in the `--config`
+file alike: `--dry-run`, `--DryRun` and a `"dryRun"` key are one option, and
+`--HELP` shows the help as `--help` does.
+
 Each option is given once: a repeated flag, or a key repeated in the `--config`
 file, is an error rather than a silent override, so `--tables a --tables b`
 cannot check only `b`. List several tables as `--tables a,b`.
 
-The SQL Server connection sets `TrustServerCertificate=true` — the tool targets
-the dev or container instance it is pointed at, whose certificate is typically
-self-signed.
+A relative path in the `--config` file (`output`, `file`) resolves against the
+directory the tool runs in, exactly as the same flag would, not against the
+file's own directory. Run the tool from the directory the paths were written for.
 
-`--schema` is required on SQL Server, while the interactive prompt defaults it
-to `dbo`: a scripted run states its schema explicitly, and the interactive path
-is where a default belongs.
+`--schema` is required on PostgreSQL and SQL Server, while the interactive prompt
+defaults it to `public` and `dbo`: a scripted run states its schema explicitly, and
+the interactive path is where a default belongs. On MySQL it defaults to
+`--database`, and on Oracle to `--user`.
+
+The tool verifies no server certificate, on any engine, and takes no connection
+option that would:
+
+- MySQL: the driver's default applies, which uses TLS when the server offers it
+  and does not validate its certificate.
+- Oracle: it connects to `host:port/service` over TCP, not TCPS.
+- PostgreSQL: the driver's default applies, as on MySQL.
+- SQLite: a local file, with no connection to secure.
+- SQL Server: it sets `TrustServerCertificate=true`, so the connection is
+  encrypted but the server's identity is not checked.
+
+It reads only the catalog, never a table's rows, but the password crosses that
+connection. Run it against a development or container database, or over a
+network you trust.
 
 One schema per run: two schemas holding the same table name would produce the same
 class name, so give each schema its own namespace and output directory.
@@ -177,6 +261,37 @@ hand-written class. It reads the table identity the file spells, not the literal
 reading makes two tables whose names differ only by case one table, so on an
 engine where `Orders` and `orders` are distinct, generate them into separate
 output directories.
+
+## Generated names
+
+Each table becomes a class named after it with a `Table` suffix, in a file of the
+same name (`order_items` → `OrderItemsTable` in `OrderItemsTable.cs`; with
+`--subfolders`, under a folder named by its first character). Each column becomes a
+property named after it, with no suffix. A name is converted the same way for
+both:
+
+- It is split into runs at every character that is not a letter or a digit
+  (`_`, a space, Oracle's `$` and `#`), and that character is dropped.
+- Each run's first character is upper-cased. The rest of a run written in one
+  case is lower-cased (`ORDER_ID` → `OrderId`); a run that mixes cases keeps them
+  (`OrderID` → `OrderID`, `customerName` → `CustomerName`).
+- A name that starts with a digit gets a leading `_` (`2fa_code` → `_2faCode`),
+  and one with no letter or digit at all becomes `_`. An empty name, which
+  SQLite allows, converts to nothing: such a table's class is plain `Table`.
+- `--lowercase` lowercases the catalog name first, so `OrderID` becomes `Orderid`.
+
+The tool has no name-mapping option. Two tables that convert to the same class
+name, or to names that differ only by case, fail the run; so do two columns that
+convert to the same property, a column that converts to its class's name, or an
+empty column name.
+Rename one in the schema; for two tables, `--tables` can also leave one out.
+
+The constructor takes `(string tableAlias = "")`. Pass an alias to use the table
+under it in a query, or nothing for the bare table.
+
+These rules are part of the tool's command-line surface, so a change to the names
+generated for a given catalog is a breaking change
+([Versioning](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/versioning.md#tableclassgens-command-line-surface)).
 
 ## Output: Example Table Class
 

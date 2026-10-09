@@ -73,6 +73,50 @@ public class CommandLineTests
         Assert.True(options.Settings.QualifySchema);
     }
 
+    // Pinned as documented (README § "Options"): names ignore case and hyphens, in
+    // flags and --config keys alike, and narrowing that later would break callers.
+    [Fact]
+    public void Parse_OptionNames_IgnoreCaseAndHyphens()
+    {
+        RunOptions options = CommandLine.Parse(
+        [
+            "--DBMS", "sqlite", "--File", "app.db", "--name-space", "N",
+            "--DRYRUN", "--q-u-a-l-i-f-y-schema",
+        ]);
+
+        Assert.Equal(Dbms.Sqlite, options.Connection.Dbms);
+        Assert.Equal("N", options.Settings.OutputNamespace);
+        Assert.True(options.DryRun);
+        Assert.True(options.Settings.QualifySchema);
+    }
+
+    [Fact]
+    public void Parse_ConfigKeys_IgnoreCaseAndHyphens()
+    {
+        using TempFile config = TempFile.Create(
+            """{"DBMS": "sqlite", "file": "app.db", "Namespace": "N", "dry-run": true}""");
+
+        RunOptions options = CommandLine.Parse(["--config", config.Path, "--QualifySchema"]);
+
+        Assert.Equal("N", options.Settings.OutputNamespace);
+        Assert.True(options.DryRun);
+        Assert.True(options.Settings.QualifySchema);
+    }
+
+    // Pinned as documented (README § "Options"): a relative path in the file is taken
+    // as written, so it resolves against the working directory, never the file's own.
+    [Fact]
+    public void Parse_ConfigRelativePaths_ResolveAgainstTheWorkingDirectory()
+    {
+        using TempFile config = TempFile.Create(
+            """{"dbms": "sqlite", "file": "app.db", "namespace": "N", "output": "Gen"}""");
+
+        RunOptions options = CommandLine.Parse(["--config", config.Path]);
+
+        Assert.Equal("app.db", options.Connection.ServiceName);
+        Assert.Equal("Gen", options.Settings.OutputDirectory);
+    }
+
     [Fact]
     public void Parse_UnknownOption_ThrowsCommandLineException()
     {
@@ -324,6 +368,8 @@ public class CommandLineTests
     {
         Assert.True(CommandLine.WantsHelp(["--help"]));
         Assert.True(CommandLine.WantsHelp(["--check", "-h"]));
+        Assert.True(CommandLine.WantsHelp(["--HELP"]));
+        Assert.True(CommandLine.WantsHelp(["--he-lp"]));
         Assert.False(CommandLine.WantsHelp(["--check"]));
     }
 
