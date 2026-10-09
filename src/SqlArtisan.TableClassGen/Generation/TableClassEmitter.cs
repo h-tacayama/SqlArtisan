@@ -91,22 +91,22 @@ internal sealed class TableClassEmitter(CodeGenerationSettings settings)
             {
                 throw new CommandLineException(
                     $"Column '{column.Name}' in table '{table.TableName}' generates no property "
-                        + "name; rename the column.");
+                        + "name; rename the column");
             }
 
             if (column.PascalCaseName == table.ClassName)
             {
                 throw new CommandLineException(
                     $"Column '{column.Name}' in table '{table.TableName}' generates the property "
-                        + $"{column.PascalCaseName}, which is also the class name; "
-                            + $"rename the column.");
+                        + $"{column.PascalCaseName}, which is also the class name; rename the "
+                        + "column");
             }
 
             if (byProperty.TryGetValue(column.PascalCaseName, out string? first))
             {
                 throw new CommandLineException(
                     $"Columns '{first}' and '{column.Name}' in table '{table.TableName}' both "
-                        + $"generate the property {column.PascalCaseName}; rename one of them.");
+                        + $"generate the property {column.PascalCaseName}; rename one of them");
             }
 
             byProperty[column.PascalCaseName] = column.Name;

@@ -679,7 +679,10 @@ so the wording is part of the contract.
   terminal period; an appended driver or file-system cause keeps its own text.
   That cause is appended, never substituted: an exception reaching `CliRunner`
   unwrapped prints a message that names no flag, and a driver's names no path
-  either (#645).
+  either (#645). A flag is named only when changing it can fix the cause: a
+  failure no flag fixes (a server session failing after connect) names the
+  target being read instead, since advice that cannot help sends the caller
+  after an option that was never wrong (#645).
 
 The `Invalid type for <X>: <type>` family is built by one helper,
 `ExpressionResolver.UnresolvableValue`, and `<X>` names **the position the

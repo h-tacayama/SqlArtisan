@@ -43,19 +43,20 @@ public class DbConnectionInfoTests
     }
 
     // Asserting the driver's own words would pin a message that changes with the
-    // provider, so what is pinned is that something survives the marker.
+    // provider, so what is pinned is the tool's sentence and a cause appended to it.
     [Fact]
     public void OpenConnection_Refused_KeepsTheDriverMessageAsTheCause()
     {
-        const string Marker = "The driver reported: ";
+        const string Sentence =
+            "Cannot connect to 127.0.0.1:1 as 'u'; check --host, --port, --database, --user, "
+                + "and SQLARTISAN_DB_PASSWORD (see --help) (";
 
         CommandLineException error =
             Assert.Throws<CommandLineException>(() => Refused().OpenConnection());
 
-        int at = error.Message.IndexOf(Marker, StringComparison.Ordinal);
-
-        Assert.True(at >= 0, $"no '{Marker}' in: {error.Message}");
-        Assert.NotEmpty(error.Message[(at + Marker.Length)..].Trim());
+        Assert.StartsWith(Sentence, error.Message, StringComparison.Ordinal);
+        Assert.EndsWith(")", error.Message, StringComparison.Ordinal);
+        Assert.NotEmpty(error.Message[Sentence.Length..^1].Trim());
     }
 
     // ReadWriteCreate, the driver default, created the mistyped file and read it as
@@ -71,7 +72,7 @@ public class DbConnectionInfoTests
             () => info.OpenConnection().Dispose());
 
         Assert.StartsWith(
-            $"Cannot open the SQLite database file '{path}' (--file).",
+            $"Cannot open the SQLite database file '{path}'; check --file (",
             error.Message,
             StringComparison.Ordinal);
         Assert.False(File.Exists(path));
@@ -96,7 +97,7 @@ public class DbConnectionInfoTests
             () => info.OpenConnection().Dispose());
 
         Assert.StartsWith(
-            $"Cannot open the SQLite database file '{notADatabase.Path}' (--file).",
+            $"Cannot open the SQLite database file '{notADatabase.Path}'; check --file (",
             error.Message,
             StringComparison.Ordinal);
     }

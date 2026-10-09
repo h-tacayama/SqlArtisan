@@ -102,7 +102,12 @@ internal sealed class SqliteCatalogReader(
         ColumnIndexInfo indexes = new SqliteColumnIndexReader().Read(conn, tableName);
 
         List<CatalogColumn> columns = [];
-        foreach ((string Name, string CatalogName, string Type, bool NotNull, bool HasDefault,
+        foreach ((
+            string Name,
+            string CatalogName,
+            string Type,
+            bool NotNull,
+            bool HasDefault,
             int Pk) row in rows)
         {
             // table_info reports rowid aliases and real keys alike; the pk-origin

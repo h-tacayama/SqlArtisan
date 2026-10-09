@@ -370,7 +370,7 @@ public class TableClassGeneratorTests : IDisposable
 
         Assert.Equal(
             "Tables 'dupe__class' and 'dupe_class' both generate the class DupeClassTable; "
-                + "rename one of them or narrow the run with --tables.",
+                + "rename one of them or narrow the run with --tables",
             ex.Message);
     }
 
@@ -679,7 +679,7 @@ public class TableClassGeneratorTests : IDisposable
         Assert.Equal(
             "Tables 'web_api' and 'webapi' generate the classes WebApiTable and WebapiTable, "
                 + "whose file names differ only by case and collide on a case-folding file "
-                + "system; rename one of them or narrow the run with --tables.",
+                + "system; rename one of them or narrow the run with --tables",
             ex.Message);
     }
 

@@ -212,7 +212,7 @@ public class TableClassEmitterTests
 
         Assert.Equal(
             "Columns 'user_name' and 'user__name' in table 'collide' both generate the property "
-                + "UserName; rename one of them.",
+                + "UserName; rename one of them",
             ex.Message);
     }
 
@@ -225,7 +225,7 @@ public class TableClassEmitterTests
 
         Assert.Equal(
             "Column 'user_table' in table 'user' generates the property UserTable, which is also "
-                + "the class name; rename the column.",
+                + "the class name; rename the column",
             ex.Message);
     }
 
@@ -260,7 +260,7 @@ public class TableClassEmitterTests
         CommandLineException ex = Assert.Throws<CommandLineException>(() => Emit(table));
 
         Assert.Equal(
-            "Column '' in table 'edge' generates no property name; rename the column.",
+            "Column '' in table 'edge' generates no property name; rename the column",
             ex.Message);
     }
 

@@ -50,8 +50,8 @@ internal static class CliRunner
         if (Console.IsInputRedirected)
         {
             throw new CommandLineException(
-                "No options given and stdin is not a terminal. Pass --dbms and the "
-                    + "connection options (or --config <path>); run --help for the list");
+                "No options given and stdin is not a terminal; pass --dbms and the connection "
+                    + "options (or --config <path>), or run --help for the list");
         }
 
         ConsoleUI ui = new();

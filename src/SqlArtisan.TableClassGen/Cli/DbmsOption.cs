@@ -32,7 +32,7 @@ internal static class DbmsOption
     public static bool TryParsePort(string value, out int port) =>
         int.TryParse(value, out port) && port is > 0 and <= 65535;
 
-    // SQLite is file-based and reaches here with no port to default.
+    // SQLite has no port, and both callers branch it off first; 0 keeps the switch total.
     public static int DefaultPort(Dbms dbms) =>
         dbms switch
         {

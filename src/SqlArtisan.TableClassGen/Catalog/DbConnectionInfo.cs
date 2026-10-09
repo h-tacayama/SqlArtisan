@@ -46,8 +46,7 @@ internal sealed class DbConnectionInfo(
         {
             connection?.Dispose();
 
-            throw new CommandLineException(
-                $"{CannotConnectMessage} The driver reported: {ex.Message}");
+            throw new CommandLineException($"{CannotConnectMessage} ({ex.Message})");
         }
 
         return connection;
@@ -81,8 +80,7 @@ internal sealed class DbConnectionInfo(
                 $"No tables found in schema '{Schema}'; check --schema, or --user, which it "
                     + "defaults to (see --help)",
             _ =>
-                $"No tables found in schema '{Schema}'; check --schema and --database "
-                    + "(see --help)",
+                $"No tables found in schema '{Schema}'; check --schema and --database (see --help)",
         };
 
     // A run that skipped the table would leave its committed class to read as removed,
@@ -96,10 +94,19 @@ internal sealed class DbConnectionInfo(
     private string CannotConnectMessage =>
         Dbms switch
         {
-            Dbms.Sqlite => $"Cannot open the SQLite database file '{ServiceName}' (--file).",
+            Dbms.Sqlite => $"Cannot open the SQLite database file '{ServiceName}'; check --file",
             _ =>
                 $"Cannot connect to {Host}:{Port} as '{Username}'; check --host, --port, "
-                    + "--database, --user, and SQLARTISAN_DB_PASSWORD (see --help).",
+                    + "--database, --user, and SQLARTISAN_DB_PASSWORD (see --help)",
+        };
+
+    // A server read that fails after connect (a dropped session, a protocol error) has
+    // no flag to fix it: --schema is a bound value, so a wrong one reads as empty.
+    public string CannotReadCatalogMessage =>
+        Dbms switch
+        {
+            Dbms.Sqlite => $"Cannot read the SQLite database file '{ServiceName}'; check --file",
+            _ => $"Cannot read the catalog on {Host}:{Port} as '{Username}' after connecting",
         };
 
     private IDbConnection CreateConnection() =>
