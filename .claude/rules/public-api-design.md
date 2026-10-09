@@ -624,7 +624,9 @@ outlive the run that made them, so the API rules above have a CLI analogue
   comparing names, are dropped without separating words, so the tool's collision
   guard sees what the compiler sees. Only the underscore (the snake-case
   boundary) and a character C# rejects separate words. Dropping a combining mark
-  renamed Thai and Devanagari words into other words (#644).
+  renamed Thai and Devanagari words into other words (#644);
+  `SnakeToPascalCase_EveryBmpCharacter_MatchesCSharpIdentifierRules` holds every
+  BMP character to Roslyn's own identifier test.
 - **The generated file needs a `SqlArtisan` at least as new as the tool**,
   since the emitter writes its own build's attribute arguments and
   `DbTypeCategory` members. That pairing is recorded where users install the
