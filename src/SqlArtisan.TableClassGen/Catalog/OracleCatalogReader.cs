@@ -86,9 +86,8 @@ internal sealed class OracleCatalogReader(
             throw new CommandLineException(_connInfo.NoVisibleColumnsMessage(tableName));
         }
 
-        table = new CatalogTable(_lowercaseNames
-            ? tableName.ToLowerInvariant()
-            : tableName.ToUpperInvariant(),
+        table = new CatalogTable(
+            _lowercaseNames ? tableName.ToLowerInvariant() : tableName.ToUpperInvariant(),
             columns,
             _connInfo.Schema.ToUpperInvariant());
 

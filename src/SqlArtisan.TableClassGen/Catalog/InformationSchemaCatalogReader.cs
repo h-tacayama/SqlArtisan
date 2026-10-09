@@ -23,9 +23,7 @@ internal sealed class InformationSchemaCatalogReader(
         ISqlBuilder sql =
             Select(t.TableName)
             .From(t)
-            .Where(
-                t.TableSchema == _connInfo.Schema
-                & t.TableType == "BASE TABLE")
+            .Where(t.TableSchema == _connInfo.Schema & t.TableType == "BASE TABLE")
             .OrderBy(t.TableName);
 
         List<CatalogTable> tables = [];
@@ -71,15 +69,9 @@ internal sealed class InformationSchemaCatalogReader(
         InformationSchemaColumns c = new();
 
         ISqlBuilder sql2 =
-            Select(
-                c.ColumnName,
-                c.DataType,
-                c.IsNullable,
-                c.ColumnDefault)
+            Select(c.ColumnName, c.DataType, c.IsNullable, c.ColumnDefault)
             .From(c)
-            .Where(
-                c.TableSchema == _connInfo.Schema
-                & c.TableName == tableName)
+            .Where(c.TableSchema == _connInfo.Schema & c.TableName == tableName)
             .OrderBy(c.OrdinalPosition);
 
         ColumnIndexInfo indexes =

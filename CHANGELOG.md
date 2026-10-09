@@ -263,6 +263,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   ValuesItem`, where it said `InsertValue`, a position the value never reached.
   (#569)
 
+- TableClassGen's error messages take one shape: a single sentence with no
+  closing period, naming the flag, `--config` key, file or schema object to
+  change, with a driver's or file system's own message appended in parentheses
+  rather than after "The driver reported:". Two messages were two sentences,
+  and some ended with a period while others did not. (#645)
+
 ### Fixed
 - `ExecuteArrayBind` binds by name. A `BindValue` passed to several clauses
   emits its marker in each (`UPDATE t SET qty = :0 WHERE id = :0`), and bound by

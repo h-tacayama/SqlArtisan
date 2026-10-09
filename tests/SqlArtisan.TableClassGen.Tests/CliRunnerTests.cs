@@ -28,8 +28,8 @@ public class CliRunnerTests
         string stderr = CaptureError(() => CliRunner.Run([]));
 
         Assert.Contains(
-            "error: No options given and stdin is not a terminal. Pass --dbms and the "
-                + "connection options (or --config <path>); run --help for the list",
+            "error: No options given and stdin is not a terminal; pass --dbms and the "
+                + "connection options (or --config <path>), or run --help for the list",
             stderr,
             StringComparison.Ordinal);
     }

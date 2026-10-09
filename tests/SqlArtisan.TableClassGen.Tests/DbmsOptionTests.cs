@@ -59,7 +59,7 @@ public class DbmsOptionTests
 
         Assert.Equal(
             "Enter a number from the list, or one of mysql, oracle, postgresql (or "
-                + "postgres), sqlite, sqlserver (or mssql) (got 'db2').",
+                + "postgres), sqlite, sqlserver (or mssql) (got 'db2')",
             ex.Message);
     }
 

@@ -2,8 +2,8 @@ using System.Text.Json;
 
 namespace SqlArtisan.TableClassGen;
 
-// Every message names the flag (and its config-file key) to change, because the
-// caller correcting it is often a script or an agent reading only stderr.
+// A message names what to change (the flag, the --config key or file, or the schema
+// object), because the caller correcting it is often a script or an agent reading stderr.
 internal sealed class CommandLineException(string message) : Exception(message);
 
 internal static class CommandLine
@@ -325,14 +325,18 @@ internal static class CommandLine
             verbose: Flag(values, "verbose"));
     }
 
-    private static DbConnectionInfo BuildConnection(
-        Dictionary<string, string> values, Dbms dbms)
+    private static DbConnectionInfo BuildConnection(Dictionary<string, string> values, Dbms dbms)
     {
         if (dbms == Dbms.Sqlite)
         {
             return new DbConnectionInfo(
-                dbms, string.Empty, 0, Required(values, "file"), string.Empty,
-                string.Empty, string.Empty);
+                dbms,
+                string.Empty,
+                0,
+                Required(values, "file"),
+                string.Empty,
+                string.Empty,
+                string.Empty);
         }
 
         string database = Required(values, "database");
@@ -366,7 +370,10 @@ internal static class CommandLine
     // MySQL has no schema layer above the database, and Oracle's schema is the user
     // unless one is named, so neither makes --schema mandatory.
     private static string ResolveSchema(
-        Dictionary<string, string> values, Dbms dbms, string database, string user) =>
+        Dictionary<string, string> values,
+        Dbms dbms,
+        string database,
+        string user) =>
         dbms switch
         {
             Dbms.MySql => Value(values, "schema") ?? database,

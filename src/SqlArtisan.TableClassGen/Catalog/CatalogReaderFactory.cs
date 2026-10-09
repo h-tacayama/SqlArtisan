@@ -2,9 +2,7 @@ namespace SqlArtisan.TableClassGen;
 
 internal static class CatalogReaderFactory
 {
-    public static ICatalogReader Create(
-        DbConnectionInfo connInfo,
-        bool lowercaseNames) =>
+    public static ICatalogReader Create(DbConnectionInfo connInfo, bool lowercaseNames) =>
         connInfo.Dbms switch
         {
             Dbms.Oracle => new OracleCatalogReader(connInfo, lowercaseNames),
@@ -12,6 +10,6 @@ internal static class CatalogReaderFactory
                 new InformationSchemaCatalogReader(connInfo, lowercaseNames),
             Dbms.Sqlite => new SqliteCatalogReader(connInfo, lowercaseNames),
             _ => throw new ArgumentOutOfRangeException(
-                nameof(connInfo), connInfo.Dbms, "No catalog reader for this DBMS.")
+                nameof(connInfo), connInfo.Dbms, "No catalog reader for this DBMS")
         };
 }
