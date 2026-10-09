@@ -263,7 +263,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   ValuesItem`, where it said `InsertValue`, a position the value never reached.
   (#569)
 
-- TableClassGen's error messages take one shape: a single sentence with no
+- TableClassGen's own error messages take one shape: a single sentence with no
   closing period, naming the flag, `--config` key, file or schema object to
   change, with a driver's or file system's own message appended in parentheses
   rather than after "The driver reported:". Two messages were two sentences,
