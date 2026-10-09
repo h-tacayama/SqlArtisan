@@ -253,6 +253,37 @@ public class TableClassEmitterTests
     }
 
     [Fact]
+    public void Emit_CombiningMarkNames_KeepsTheMarksAndCompiles()
+    {
+        CatalogTable table = new(
+            "ลูกค้า",
+            [new CatalogColumn("ชื่อ", "TEXT"), new CatalogColumn("नाम", "TEXT")]);
+
+        string source = Emit(table);
+
+        Assert.Contains("class ลูกค้าTable :", source);
+        Assert.Contains("DbColumn ชื่อ { get; }", source);
+        Assert.Contains("DbColumn नाम { get; }", source);
+        GeneratedCodeCompiler.AssertCompiles([source], warningsAsErrors: true);
+    }
+
+    // C# ignores the ZWNJ when comparing names, so the guard must see one property here.
+    [Fact]
+    public void Emit_ColumnsDifferingByAFormattingCharacter_ThrowsCommandLineException()
+    {
+        CatalogTable table = new(
+            "collide",
+            [new CatalogColumn("ab\u200Ccd", "TEXT"), new CatalogColumn("abcd", "TEXT")]);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(() => Emit(table));
+
+        Assert.Equal(
+            "Columns 'ab\u200Ccd' and 'abcd' in table 'collide' both generate the property "
+                + "Abcd; rename one of them",
+            ex.Message);
+    }
+
+    [Fact]
     public void Emit_ColumnWithNoName_ThrowsCommandLineException()
     {
         CatalogTable table = new("edge", [new CatalogColumn("", "TEXT")], "app");

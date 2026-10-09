@@ -122,6 +122,7 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
 
     // Left unguarded, the second table would overwrite the first's file and vanish
     // from the output, and --check would then report a drift no --fix could clear.
+    // Not Unicode-normalized: no catalog plausibly holds an NFC/NFD pair of names (#644).
     private static void GuardClassNames(IReadOnlyList<CatalogTable> tables)
     {
         // Case-insensitive: the file name is what collides, and the common

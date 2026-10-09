@@ -270,14 +270,20 @@ same name (`order_items` → `OrderItemsTable` in `OrderItemsTable.cs`; with
 property named after it, with no suffix. A name is converted the same way for
 both:
 
-- It is split into runs at every character that is not a letter or a digit
-  (`_`, a space, Oracle's `$` and `#`), and that character is dropped.
+- It is split into runs at `_` and at every character C# does not allow in an
+  identifier (a space, Oracle's `$` and `#`), and that character is dropped.
+  Letters, digits, combining marks and connecting punctuation other than `_`
+  stay, so a Thai or Devanagari name keeps its vowel signs (`नाम` stays `नाम`,
+  not `नम`).
+  A formatting character such as the zero-width non-joiner is dropped without
+  splitting the run, since C# ignores it when comparing names.
 - Each run's first character is upper-cased. The rest of a run written in one
   case is lower-cased (`ORDER_ID` → `OrderId`); a run that mixes cases keeps them
   (`OrderID` → `OrderID`, `customerName` → `CustomerName`).
-- A name that starts with a digit gets a leading `_` (`2fa_code` → `_2faCode`),
-  and one with no letter or digit at all becomes `_`. An empty name, which
-  SQLite allows, converts to nothing: such a table's class is plain `Table`.
+- A name that would start with a digit, a combining mark or connecting
+  punctuation gets a leading `_` (`2fa_code` → `_2faCode`), and one with nothing
+  left to keep becomes `_`. An empty name, which SQLite allows, converts to
+  nothing: such a table's class is plain `Table`.
 - `--lowercase` lowercases the catalog name first, so `OrderID` becomes `Orderid`.
 
 The tool has no name-mapping option. Two tables that convert to the same class
