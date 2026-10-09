@@ -302,4 +302,28 @@ public class AnalyzerConfigResolverTests
                 out bool alreadySet));
         Assert.True(alreadySet);
     }
+
+    // A lone version names no DBMS, so any replacement line would have the user pick one —
+    // and override the family's own value for it. Beside a family, the advice is deletion.
+    [Theory]
+    [InlineData("sqlartisan_syntax_postgresql", "sqlartisan_syntax_*")]
+    [InlineData("build_property.SqlArtisanSyntaxPostgreSql", "<SqlArtisanSyntax*>")]
+    public void RemovedKeyReplacement_NoDbmsBesideFamily_PointsAtTheFamily(
+        string familyKey,
+        string expected)
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
+        {
+            [AnalyzerConfigResolver.RemovedTargetVersionKey] = "16",
+            [familyKey] = "14",
+        });
+
+        Assert.Equal(
+            expected,
+            AnalyzerConfigResolver.RemovedKeyReplacement(
+                options,
+                AnalyzerConfigResolver.RemovedTargetVersionKey,
+                out bool alreadySet));
+        Assert.True(alreadySet);
+    }
 }

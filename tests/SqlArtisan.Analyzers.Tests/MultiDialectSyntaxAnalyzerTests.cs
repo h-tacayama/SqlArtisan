@@ -531,6 +531,35 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
+    // The mid-migration shape where only the dbms line was rewritten: the leftover version
+    // names no DBMS, and filling one in at its 16 would silence the family's SQLA0101 at 14.
+    [Fact]
+    public async Task RemovedVersionAloneBesideFamily_AsksToDeleteIt()
+    {
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_version = 16
+            sqlartisan_syntax_postgresql = 14
+            """;
+
+        var test = AnalyzerVerifier.Create(MergeIntoUsageTemplate, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0101")
+            .WithLocation(0)
+            .WithArguments(
+                "MergeInto",
+                "PostgreSQL",
+                "15",
+                "14",
+                "sqlartisan_construct_merge_into"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithMessage(
+            "'sqlartisan_target_version' was removed and is ignored; "
+                + "'sqlartisan_syntax_*' already replaces it, so delete it"));
+
+        await test.RunAsync();
+    }
+
     // Rollup is unsupported on MySQL, yet no SQLA0100: the removed key configures nothing.
     [Fact]
     public async Task RemovedKeyAlone_ChecksNothing_ReportsTheKey()

@@ -307,8 +307,9 @@ or, in MSBuild, `<SqlArtisanSyntaxPostgreSql>16</SqlArtisanSyntaxPostgreSql>`.
 A removed key no longer configures anything, but it is not ignored silently:
 each one still set reports `SQLA0001` with the line that replaces it,
 carrying your declared version over. If a `sqlartisan_syntax_*` line already
-names that DBMS, the report quotes it instead and asks you to delete the
-leftover key — your line stands. `SQLA0002`, the pair's former
+names that DBMS — or the leftover key names none, like a lone
+`sqlartisan_target_version` beside any `sqlartisan_syntax_*` line — the report
+asks you to delete the leftover key instead, and your line stands. `SQLA0002`, the pair's former
 deprecation warning, is retired and will not be reused, so a leftover
 `<NoWarn>SQLA0002</NoWarn>` is harmless and can be deleted.
 

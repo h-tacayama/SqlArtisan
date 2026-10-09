@@ -34,6 +34,10 @@ in that surface's spelling:
   report quotes that line and asks for the leftover key to be deleted. Any
   replacement built from the pair would override the user's newer value, or
   re-enable a dialect they set to `none`.
+- With a key naming no DBMS (a lone `sqlartisan_target_version`) beside any
+  family line, the report points at the family and asks for deletion too. The
+  key never configured anything on its own, and a replacement would leave the
+  user to pick a DBMS whose family value it then overrides.
 
 The two `CompilerVisibleProperty` entries for the removed MSBuild properties
 stay, solely so their removal can be reported; a blank value (the SDK emits
@@ -50,6 +54,9 @@ for it would otherwise attach silently to whatever rule took the number.
   `<NoWarn>SQLA0002</NoWarn>` is inert.
 - ADR 0019's legacy-pair decisions — the pair still resolving, `SQLA0002`, and
   the coexistence `SQLA0001` reason — are superseded. The rest of 0019 stands.
+- ADR 0015's version bounds and ADR 0014's opt-in gate stand, but read their
+  declared version and configured target from `sqlartisan_syntax_<dbms>`;
+  their wording names the removed keys.
 - The reporting path reads the four removed keys for as long as 1.x ships;
   dropping it is a decision for a later major.
 

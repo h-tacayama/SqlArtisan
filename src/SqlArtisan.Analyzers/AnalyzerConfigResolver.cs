@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SqlArtisan.Analyzers;
@@ -249,12 +250,9 @@ internal static class AnalyzerConfigResolver
     public static IEnumerable<string> DbmsNames => SyntaxDbmsNames.Values;
 
     /// <summary>
-    /// The family setting that replaces a removed key, spelled for the surface the key was
-    /// set on. The DBMS and version are read across both surfaces, <c>.editorconfig</c>
-    /// first, so the replacement carries the old version over instead of shedding the
-    /// dialect's SQLA0101 coverage with an <c>any</c>. Where the family already names that
-    /// DBMS, its own line is returned and <paramref name="alreadySet"/> is true: suggesting
-    /// the old value there would undo the user's newer one (or re-enable a <c>none</c>).
+    /// The family line replacing a removed key, carrying its version over (<c>any</c> would shed
+    /// SQLA0101). Where the family already covers it, <paramref name="alreadySet"/> is true and
+    /// the family's own line is returned: any line built from the pair would override it.
     /// </summary>
     public static string RemovedKeyReplacement(
         AnalyzerConfigOptions options,
@@ -270,6 +268,16 @@ internal static class AnalyzerConfigResolver
             return TryGetSetValue(options, SyntaxKey(named), out string editorConfigValue)
                 ? $"{SyntaxKey(named)} = {editorConfigValue}"
                 : SyntaxPropertyLine(named.ToString(), FamilyPropertyValue(options, named));
+        }
+
+        // A key naming no DBMS (a lone version) never configured anything, so beside a family
+        // line deletion is the only advice that cannot override the user's own value.
+        if (dbms is null && IsFamilyPresent(options))
+        {
+            alreadySet = true;
+            bool inEditorConfig = SetSyntaxValues(options)
+                .Any(v => v.Key.StartsWith(SyntaxKeyPrefix, StringComparison.Ordinal));
+            return inEditorConfig ? SyntaxKeyPrefix + "*" : "<SqlArtisanSyntax*>";
         }
 
         alreadySet = false;

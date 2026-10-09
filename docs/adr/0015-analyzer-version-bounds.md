@@ -1,6 +1,10 @@
 # ADR 0015 — Analyzer version bounds: interval annotations on the dialect matrix, evaluated against a declared engine version
 
-**Status:** Accepted
+**Status:** Accepted — the declared version now comes from
+`sqlartisan_syntax_<dbms>` (ADR 0019); the `sqlartisan_target_version` key
+named below was removed by
+[ADR 0024](0024-analyzer-legacy-target-pair-removal.md). Everything else here
+stands.
 
 ## Context
 
