@@ -50,6 +50,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 | [0023](0023-analyzer-csharp-fallback-rules.md) | C# fallbacks: a query object C# resolves without SqlArtisan | Analyzer | Accepted |
 | [0024](0024-analyzer-legacy-target-pair-removal.md) | Removing the legacy target pair: a removed key is reported, never ignored | Analyzer | Accepted |
 | [0025](0025-analyzer-configuration-validation.md) | Analyzer configuration validation: a line that configures nothing is reported | Analyzer | Accepted |
+| [0026](0026-analyzer-contract-stability.md) | The analyzer's contract: what a release may change in its IDs and configuration | Analyzer | Accepted |
 
 ### Clusters
 
@@ -65,8 +66,8 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   join predicate some dialects silently reinterpret as `CROSS JOIN`). All four
   are required to answer "will the library throw for this?"
 - **Analyzer** (0003 + 0008 + 0009 + 0013 + 0014 + 0015 + 0018 + 0019 + 0021 +
-  0022 + 0023 + 0024 + 0025) — *How does the dialect analyzer work?* 0003 chooses the
-  permissive-API + opt-in-analyzer approach; 0008 designs the override
+  0022 + 0023 + 0024 + 0025 + 0026) — *How does the dialect analyzer work?* 0003
+  chooses the permissive-API + opt-in-analyzer approach; 0008 designs the override
   configuration; 0009 decides bundled distribution; 0013 adds
   position-dependent context rules (SQLA0102); 0014 adds the advisory
   correlated-DML rule (SQLA0300) duplicating the runtime guard; 0015 adds
@@ -84,7 +85,9 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   SQLA0002 and reporting a removed key under SQLA0001; 0025 reports under
   SQLA0001 the configuration lines that configure nothing (a stale override key,
   a blank family value, another engine's version spelling) and narrows 0019's
-  all-`none` reason.
+  all-`none` reason; 0026 states what a release may change in the IDs and
+  configuration surface, correcting 0009's patch-release claim and 0022's on
+  splitting an ID.
 
 ## Consolidation trigger
 

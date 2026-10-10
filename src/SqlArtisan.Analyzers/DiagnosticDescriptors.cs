@@ -208,9 +208,9 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: false,
         helpLinkUri: HelpLinkUri);
 
-    // One ID for every shape because the remediation is one: leave the column bare
-    // on the filtered side. States the form, never the cost — whether the planner
-    // would have taken the index is Tier 3.
+    // One ID for every shape because the verdict is one — the index gets nothing to range
+    // over — and so is the call to silence it; the remedies differ (ADR 0026). States the
+    // form, never the cost: whether the planner would have taken the index is Tier 3.
     public static readonly DiagnosticDescriptor UnusableIndexPredicate = new(
         id: "SQLA0204",
         title: "Filter shapes an indexed column so no index on it can be used",
