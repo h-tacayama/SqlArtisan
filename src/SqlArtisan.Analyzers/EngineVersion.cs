@@ -45,6 +45,10 @@ internal readonly struct EngineVersion : IComparable<EngineVersion>, IEquatable<
         return true;
     }
 
+    /// <summary>The first segment: the release year on SQL Server, the major version on the
+    /// others.</summary>
+    public int Major => _segments is { Length: > 0 } ? _segments[0] : 0;
+
     public static EngineVersion Parse(string value) =>
         TryParse(value, out EngineVersion version)
             ? version

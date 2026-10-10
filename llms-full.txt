@@ -3542,8 +3542,9 @@ stack — after compile-time type safety and before exact-SQL tests. It warns
 at build time when your code uses a construct that is not supported on your
 project's target dialect — or, for a project that ships against more than
 one engine, any dialect in the set you configure. It ships inside the
-`SqlArtisan` package — no extra package reference — and is completely silent
-until you configure a target.
+`SqlArtisan` package — no extra package reference — and reports nothing about
+your code until you configure a target; only a problem in that configuration
+(`SQLA0001`) can report before then.
 
 ## Contents
 
@@ -3579,7 +3580,10 @@ sqlartisan_syntax_postgresql = 16   # engine version, or `any` for no version bo
 The key names the dialect (`sqlartisan_syntax_mysql` / `_oracle` /
 `_postgresql` / `_sqlite` / `_sqlserver`); its value is the engine version to
 check against, or `any` to check the dialect with no version floor. Or, if
-you prefer an MSBuild property (e.g. in `Directory.Build.props`):
+you prefer an MSBuild property (e.g. in `Directory.Build.props`) —
+`<SqlArtisanSyntaxMySql>`, `<SqlArtisanSyntaxOracle>`,
+`<SqlArtisanSyntaxPostgreSql>`, `<SqlArtisanSyntaxSqlite>` or
+`<SqlArtisanSyntaxSqlServer>`:
 
 ```xml
 <PropertyGroup>
@@ -3588,10 +3592,12 @@ you prefer an MSBuild property (e.g. in `Directory.Build.props`):
 ```
 
 `.editorconfig` wins when both are set, per dialect. With no target
-configured either way, the analyzer never reports anything — enabling it is
-purely additive. To check more than one dialect at once — an ISV shipping
-against several engines, a migration in progress, "standard SQL only" — set
-more than one key; see
+configured either way, no rule reports on your code — enabling it is purely
+additive. A misspelled property name is not caught: the analyzer sees only
+the properties the package declares, so one spelled any other way never
+reaches it — unlike a misspelled `sqlartisan_syntax_*` key. To check more than
+one dialect at once — an ISV shipping against several engines, a migration in
+progress, "standard SQL only" — set more than one key; see
 [Checking a set of dialects at once](#checking-a-set-of-dialects-at-once).
 
 The older `sqlartisan_target_dbms` / `sqlartisan_target_version` pair has
@@ -3628,12 +3634,12 @@ still needs naming by ID.
 
 | ID | Severity | Reports |
 |---|---|---|
-| `SQLA0001` | Warning | A SqlArtisan analyzer configuration problem: an unrecognized `sqlartisan_syntax_*` key name or value, a `sqlartisan_construct_*` value that could not be recognized, a `sqlartisan_syntax_*` family that resolves to no dialect at all, or a removed `sqlartisan_target_dbms` / `sqlartisan_target_version` key still set — see [Checking a set of dialects at once](#checking-a-set-of-dialects-at-once) and [Migrating from the legacy target key](#migrating-from-the-legacy-target-key). |
+| `SQLA0001` | Warning | A SqlArtisan analyzer configuration problem: an unrecognized `sqlartisan_syntax_*` key name or value (a blank `.editorconfig` value, or a version in another engine's spelling, included), a `sqlartisan_construct_*` key naming no SqlArtisan member or declared parameter count, a `sqlartisan_construct_*` value that could not be recognized, a `sqlartisan_syntax_*` family that resolves to no dialect in any file, or a removed `sqlartisan_target_dbms` / `sqlartisan_target_version` key still set — see [Checking a set of dialects at once](#checking-a-set-of-dialects-at-once) and [Migrating from the legacy target key](#migrating-from-the-legacy-target-key). |
 | `SQLA0100` | Warning | A SqlArtisan construct is used against a configured dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0101` | Warning | A construct is supported on a configured dialect, but not at its declared version — see [Version-aware warnings](#version-aware-warnings-sqla0101). Checking more than one dialect reports one diagnostic per failing dialect. |
 | `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
 | `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
-| `SQLA0104` | Warning | A literal argument value a configured dialect rejects, where the construct itself runs there: a `DateTimePart` the function's grammar does not accept, a `RegexpOptions` member outside that engine's match-parameter alphabet, or a negative `Top`/`FetchFirst`/`FetchNext`/`Limit` count — see [Argument value validity](#argument-value-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
+| `SQLA0104` | Warning | A literal argument value a configured dialect rejects, where the construct itself runs there: a `DateTimePart` the function's grammar does not accept, a `RegexpOptions` member outside that engine's match-parameter alphabet, a negative `Top`/`FetchFirst`/`FetchNext`/`Limit` count, or a `GroupBy` column ordinal on an engine that has no `GROUP BY` positions — see [Argument value validity](#argument-value-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join on its own spine — past one, the anti-join makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0201` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0202` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
@@ -3764,8 +3770,17 @@ sections layer, so the broader `sqlartisan_syntax_sqlite = any` still applies
 to those files. Only `none` overrides it back off.
 
 No aliases beyond these two — no `true`/`yes`/`off`. A smaller value domain
-is easier to document and validate. A key set to nothing at all
-(`sqlartisan_syntax_oracle =`) reads as unset, not as `none`.
+is easier to document and validate. A `.editorconfig` key set to nothing at all
+(`sqlartisan_syntax_oracle =`) reports `SQLA0001`: in a narrower section it
+replaces the broader value, so those files fall back to the MSBuild property, or
+to not checking the dialect at all, without a word. Write `none` when that is
+what you mean. An MSBuild property set to nothing reads as unset.
+
+Case never matters, in a key name or a value: `SQLARTISAN_SYNTAX_POSTGRESQL =
+ANY` is the same line as `sqlartisan_syntax_postgresql = any`, and
+`sqlartisan_construct_*` keys, their `supported` / `unsupported` values and the
+MSBuild property names match the same way. Casing is not an alias — it is one
+spelling, read without regard to case.
 
 ### SQLA0100 joins; SQLA0101 and SQLA0103 report one per dialect
 
@@ -3801,18 +3816,20 @@ matrix loop runs. Forcing a construct unsupported reports exactly one
 `sqlartisan_syntax_oracle = none` with no other `sqlartisan_syntax_*` key
 resolves to an empty set for that scope — every rule's "is a dialect
 configured" gate then reads as "unconfigured," and the analyzer goes quiet
-there. `SQLA0001` reports this once per compilation the first time any file's
-family is present but every key resolves to `none`, so a project doesn't lose
-analyzer coverage from one typo-adjacent `none` without a visible reason.
+there. When some file's family, as it takes effect for that file, is `none` for
+every dialect it names, no file in the project resolves a dialect, and no
+unrecognized key or value already explains why, `SQLA0001` reports it once, so a
+project doesn't lose analyzer coverage from one typo-adjacent `none` without a
+visible reason. A `none` that carves one path out while other files still resolve a
+dialect is deliberate and stays silent.
 
 ### A typo in the key name is now detectable
 
-Unlike a `sqlartisan_construct_*` key (see
-[Correcting a warning](#correcting-a-warning-the-override-keys) below),
 `sqlartisan_syntax_*` puts the DBMS name in the key itself, which the
 analyzer can enumerate and check — `sqlartisan_syntax_postgres` (missing the
 `ql`) reports `SQLA0001` naming the valid suffixes, rather than silently
-checking nothing.
+checking nothing. A `sqlartisan_construct_*` key name is checked too (see
+[Correcting a warning](#correcting-a-warning-the-override-keys) below).
 
 ### Staged adoption
 
@@ -3897,13 +3914,14 @@ sqlartisan_syntax_postgresql = 15
 sqlartisan_construct_merge_into = supported   # e.g. targeting PostgreSQL 15+, where MERGE landed
 ```
 
-A typo in a `sqlartisan_construct_*` key name is not detectable — its member
-name lives entirely in an arbitrary key suffix Roslyn has no reference list
-for, so a misspelled override silently does nothing. If a warning doesn't
-clear after adding one, check the key against the message text exactly. (A
-typo in a `sqlartisan_syntax_*` key name *is* detectable, since the DBMS
-suffix is one of only five — see
-[Checking a set of dialects at once](#checking-a-set-of-dialects-at-once).)
+A key that names no SqlArtisan member, or no declared parameter count of one,
+reports `SQLA0001` — a typo (`sqlartisan_construct_rolup`), an arity the member
+does not have (`sqlartisan_construct_rollup_arity9`), or a member a release
+renamed or removed. Names are checked against the SqlArtisan version the
+project references, not against the dialect matrix, so a key for a member with
+no matrix entry is accepted; one for a member a newer version adds reports until
+you upgrade. The keys are read from `.editorconfig` (or a global configuration
+file) only — there is no MSBuild property for them.
 
 ---
 
@@ -3940,9 +3958,13 @@ Or, if you prefer an MSBuild property:
 </PropertyGroup>
 ```
 
-- **Value format.** The engine's own version spelling, the same one this
-  documentation's dialect notes use — `8.0.16` for MySQL, `23` for Oracle,
-  `16` for PostgreSQL, `3.44` for SQLite, `2022` for SQL Server. Versions
+- **Value format.** The spelling this documentation's dialect notes use: the
+  release year for SQL Server (`2022`, not its product version `16`), the major
+  version, with an optional minor and patch, for the others — `8.0.16` for
+  MySQL, `23` for Oracle, `16` for PostgreSQL, `3.44` for SQLite. A value in
+  the other spelling — a SQL Server value below 2000, or 1000 or more on
+  another engine — reports `SQLA0001` and is ignored, as any unrecognized value
+  is (see the last bullet below). Versions
   compare by numeric segment (`8.0.20` is newer than `8.0.16`, and a bare
   `8.0` reads as `8.0.0` — declare the precise patch version if an 8.0.x
   bound matters to you); trailing letters in a segment are ignored (`23ai`
@@ -3960,8 +3982,10 @@ Or, if you prefer an MSBuild property:
   silent whether or not a version is declared.
 - **Same plumbing as every `sqlartisan_syntax_*` key.** Resolved per source
   file and per DBMS, `.editorconfig` wins over the MSBuild property, and an
-  unrecognized `.editorconfig` value is flagged as `SQLA0001` and falls
-  through to the MSBuild property for that DBMS (unset when none is given).
+  unrecognized `.editorconfig` value, a blank one included, is flagged as
+  `SQLA0001` and falls through to the MSBuild property for that DBMS; with no
+  valid value on either surface, the dialect goes unchecked, and an invalid
+  MSBuild value is reported too.
 
 Suppression is per rule ID, the standard Roslyn way
 (`#pragma warning disable SQLA0101`, a `[SuppressMessage]` attribute, or
@@ -4392,9 +4416,13 @@ take `.Into(...)`; a result still held as the `Returning` stage stays silent.
 
 Suppression is per rule ID, the standard Roslyn way
 (`#pragma warning disable SQLA0102`, a `[SuppressMessage]` attribute, or
-`dotnet_diagnostic.SQLA0102.severity`). The `sqlartisan_construct_*`
-override keys do **not** apply here — they answer "does my engine support
-this construct," which is not what a context rule reports.
+`dotnet_diagnostic.SQLA0102.severity`). A `sqlartisan_construct_*` override
+never silences a position verdict on a dialect where the construct runs: it
+answers "does my engine support this construct," which is not what a context
+rule reports. Only the repeated-`MERGE`-branch rule reads one. An `unsupported`
+override hands that usage to `SQLA0100` alone, and a `supported` override
+re-arms the rule on a dialect whose matrix entry rejects the branch itself — a
+dialect it otherwise leaves to `SQLA0100`/`SQLA0101`.
 
 ---
 
@@ -4813,10 +4841,12 @@ var sql = Select(t.Id).From(t).Where(Upper(t.Name) == "SMITH").Build();
 Whether the planner *would* have chosen the index is a cost question, and cost
 questions stay out — statistics and data volume are the optimizer's domain. What
 this reports is only the form: the predicate as written gives the index nothing
-to range over. The remediation is the same in every case — leave the column bare
-on the filtered side and move the work to the other side, or index the expression
-itself, which the generator then records as unknown and the rule stops reporting,
-even where the column also leads a plain index.
+to range over. Both shapes report under one ID because that verdict, and whether
+it matters for a given column, is the same for both; the remedies differ. For a
+wrapped column, leave it bare on the filtered side and move the work to the other
+side, or index the expression itself, which the generator then records as unknown
+and the rule stops reporting, even where the column also leads a plain index. For
+a leading `%`, anchor the pattern where the search allows it.
 
 A `CASE` *branch* over the column is not reported: `Then(t.Key)` and
 `Else(t.Key)` carry it unwrapped, so both stay silent. A simple-`CASE` operand
@@ -5065,13 +5095,6 @@ for, not a bug in the matrix.
   (`class T(string alias) : DbTableBase("t", alias)`) is not traced, so an
   over-long alias passed to it is missed. TableClassGen always emits the
   classic constructor form, so generated table classes are unaffected.
-- **`sqlartisan_construct_*` key names fail silently on a typo** (see above)
-  — there is no diagnostic for an unrecognized `sqlartisan_construct_*` *key
-  name*. The key's *value* is always validated — every key carrying the
-  prefix is swept, including one naming a member the matrix has no entry
-  for — so `suported` draws `SQLA0001` even on a made-up key; only the key
-  name itself can silently miss. `sqlartisan_syntax_*` key names do not
-  share this gap — a typo there is `SQLA0001`.
 - **Absence of an entry still means silence, not endorsement.** The matrix
   covers every referencable public method, property, field, and overloaded
   operator except a
@@ -5083,9 +5106,18 @@ for, not a bug in the matrix.
   for what's entered.
 - **The dialect-independent rules need a configured target too.**
   `SQLA0300`–`SQLA0302` and the schema-aware `SQLA0200`–`SQLA0205` report
-  facts that hold on every engine, but the analyzer as a whole stays silent until a
-  dialect is configured — without one, `SQLA0300`'s `Build()` guard is the
-  only report and the schema rules have none.
+  facts that hold on every engine, but every rule from `SQLA0100` on stays
+  silent until a dialect is configured — without one, `SQLA0300`'s `Build()`
+  guard is the only report and the schema rules have none.
+- **Generated code is not analyzed.** A file the compiler treats as generated —
+  one named like `Queries.g.cs`, or starting with an `// <auto-generated/>`
+  comment — gets no diagnostic, the Roslyn convention for code nobody edits by
+  hand. To have such a file checked, mark it hand-written in `.editorconfig`:
+
+  ```ini
+  [*.g.cs]
+  generated_code = false
+  ```
 
 <!-- ============================================================ -->
 <!-- SOURCE: docs/cookbook.md -->
@@ -6385,8 +6417,52 @@ Three cases are specific to this library, beyond the usual API-level changes:
   appending its successor at the next unused value and marking the old one
   `[Obsolete]`, never by an alias that repeats its number.
 
-Analyzer diagnostic updates (the SQLA rules) may also land in a
-minor release: they change build-time diagnostics, never runtime behavior.
+The analyzer's diagnostics follow their own rules, below: a new warning may
+land in a minor release, since it changes what a build reports, never what a
+query does.
+
+## The analyzer's IDs and configuration
+
+The analyzer exposes no types, but you write its names into your build — a
+`#pragma`, `[SuppressMessage]`, `<NoWarn>`, `<WarningsAsErrors>`, a
+`dotnet_diagnostic.SQLA0xxx.severity` or category-severity line, the
+`sqlartisan_*` keys and MSBuild properties — and an ID, a category or a
+property name that stops matching is silent there. So, after 1.0:
+
+- **Covered** — a change is breaking:
+  - each diagnostic ID and the rule it names. An ID is never renumbered or
+    reused, and is removed only by a major that retires its rule or merges its
+    reports into another ID; a retired ID stays retired;
+  - the four categories (`SqlArtisan.Configuration`, `SqlArtisan.Dialect`,
+    `SqlArtisan.Schema`, `SqlArtisan.Validity`) and their ID bands;
+  - each rule's default severity and whether it is on by default: raising
+    either is breaking, lowering either is minor;
+  - which reports share an ID: an ID is split or merged only in a major, since
+    either moves reports out from under a suppression or escalation you wrote;
+  - the key names `sqlartisan_syntax_<dbms>`, `sqlartisan_construct_<member>`
+    and `sqlartisan_construct_<member>_arity<N>`, the rule that derives a
+    construct key from a member's name and declared parameter count, and the
+    `<SqlArtisanSyntax<Dbms>>` MSBuild properties;
+  - the values and their meaning: `any`, `none`, an engine version (the release
+    year on SQL Server; the engine's own version number, major with an optional
+    minor and patch, on the others), `supported` and
+    `unsupported`, matched without regard to case;
+  - which setting wins: `.editorconfig` over the MSBuild property, an arity key
+    over a member key, your override over the shipped matrix;
+  - silence until you configure a dialect: no rule from `SQLA0100` on reports
+    before then;
+  - the removed `sqlartisan_target_dbms` / `sqlartisan_target_version` keys and
+    their properties, which report `SQLA0001` for as long as 1.x ships.
+- **Not covered**: a diagnostic's title, its message text, and its help-link
+  anchor.
+- **Minor: any other change that adds reports** — a new rule, at the next ID in
+  its category's band; a new reason under an existing ID; a matrix correction
+  or a new verdict that starts reporting something. Each can fail a build that
+  treats warnings as errors, so the CHANGELOG marks it **New warning:**. A new
+  key, value, or DBMS token (for a new `Dbms` member) is minor too, and so is
+  lowering a default severity or turning a rule off by default.
+- **Patch: any other change that only removes reports**, such as a
+  false-positive fix or a matrix correction that stops reporting.
 
 ## TableClassGen's command-line surface
 
@@ -6411,8 +6487,8 @@ back:
   know.
 - **Minor, called out in the CHANGELOG**: any other change to a generated file's
   text — a new or changed `DbColumnMetadata` fact, the layout, the header — so an
-  analyzer rule that needs a new schema fact can ship in a minor release, as
-  analyzer changes may. Until `--fix` regenerates such a file, `--check` reports
+  analyzer rule that needs a new schema fact can ship in a minor release, as a
+  new analyzer rule may. Until `--fix` regenerates such a file, `--check` reports
   it `modified`, so a scheduled `--check` fails from the upgrade until `--fix`
   runs.
 
@@ -6430,9 +6506,22 @@ next major**. Removal without that prior `[Obsolete]` step is treated as a
 bug — please open an
 [issue](https://github.com/h-tacayama/SqlArtisan/issues).
 
+The analyzer's configuration follows the same path. A key slated for removal
+keeps working beside its replacement in a **minor** release, and setting it
+reports a warning of its own, so you can silence that warning without
+silencing configuration errors. It is removed **no earlier than the next
+major**, and from then a key still set reports `SQLA0001` rather than quietly
+configuring nothing. A diagnostic ID is retired only in a major, and never
+reused.
+
 ## Support statement
 
 - **Runtime**: all packages target `net8.0` and run on .NET 8 or later.
+- **Compiler, for the analyzer**: the analyzer bundled in `SqlArtisan` is
+  built against Roslyn 4.8, so it runs in a compiler at least that new — .NET
+  SDK 8.0.100 or Visual Studio 17.8, the toolchains .NET 8 shipped with. An
+  older compiler skips the analyzer with warning `CS9057`, which
+  `TreatWarningsAsErrors` turns into a build error; the library is unaffected.
 - **Verified engines**: every release passes the
   [integration test matrix](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.IntegrationTests)
   against one representative version each of MySQL, Oracle, PostgreSQL,

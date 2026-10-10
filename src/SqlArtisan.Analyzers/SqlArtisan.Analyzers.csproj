@@ -21,6 +21,9 @@
       so consumers of the bundling SqlArtisan package never inherit compiler
       packages. Pack-time filtering has its own guard — see the
       _PackSqlArtisanAnalyzer comment in SqlArtisan.csproj.
+      Microsoft.CodeAnalysis.CSharp's version is the oldest compiler that loads
+      the analyzer, published in docs/versioning.md (AnalyzerPackagingTests);
+      raising it drops older hosts, which the test project's pin cannot catch.
     -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />

@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- `SQLA0001` reports a `sqlartisan_construct_*` key that names no SqlArtisan
+  member, or no declared parameter count of one — a typo, an arity the member
+  lacks, or a key for a renamed or removed member such as #588's
+  `update_where`. Such a key overrides nothing, so a stale `unsupported` lost
+  the warning it asked for without a word. Names are checked against the
+  SqlArtisan version the project references. (#655)
+- `SQLA0001` reports a blank `sqlartisan_syntax_*` value in `.editorconfig`. In
+  a narrower section it replaced the broader value silently, so those files fell
+  back to the MSBuild property or went unchecked; write `none` to turn a dialect
+  off. A blank MSBuild property still reads as unset. (#655)
 - `SQLA0301` reports `==` / `!=` that C# resolves as reference equality —
   the left operand an `object`, a `SqlPart` or a type parameter constrained to
   one — passed to a SqlArtisan member, where it binds a `bool` instead of
@@ -60,6 +70,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   earlier branch held in a variable stays silent. (#582)
 
 ### Changed
+- A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
+  release year on SQL Server, the engine's own version number elsewhere. A SQL
+  Server value below 2000 (`16`, SQL Server 2022's product version, compared as
+  year 16 and failed every bound) or a value of 1000 or more on another engine
+  (`sqlartisan_syntax_postgresql = 2022` cleared every bound) now reports
+  `SQLA0001` and is ignored, as an unrecognized value is: in `.editorconfig` it
+  falls through to the MSBuild property, and with no valid value on either the
+  dialect goes unchecked. The message names each engine's spelling. (#655)
+- `SQLA0001`'s all-`none` reason reports only when no file in the
+  project resolves a dialect and no unrecognized key or value already explains
+  why, so a path-scoped `none` beside a configured scope — a deliberate
+  carve-out — no longer reports. Its message now says no file has a dialect
+  left to check, where it named one file. (#655)
 - `ExecuteArrayBind`'s type-mismatch messages no longer name "another row" —
   the hint and the value can come from one bind — and say, for example,
   `Int32 values map to OracleDbType.Int32` rather than `a Int32 value maps`.
@@ -211,8 +234,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   guard messages name the clauses `UPDATE SET ... WHERE` and `INSERT ... WHERE`
   instead of `UPDATE WHERE` and `INSERT WHERE`. The override keys
   `sqlartisan_construct_update_where` and `sqlartisan_construct_insert_where`
-  no longer apply, and nothing warns that they are stale; suppress `SQLA0102`
-  by its ID instead. On MySQL and SQLite the filter itself is no longer
+  no longer apply, and `SQLA0001` reports them as stale (#655); suppress
+  `SQLA0102` by its ID instead. On MySQL and SQLite the filter itself is no longer
   reported; `SQLA0100` still reports `MergeInto` there. Every caller needs a
   source change and a rebuild. The stage the update action's `Where(...)`
   returns is renamed from `IMergeBuilderUpdateWhere` to `IMergeBuilderWhere`,
@@ -561,6 +584,40 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     on MySQL, `--user` on Oracle.
 
   `--help` states those defaults too. (#645)
+- `docs/analyzer.md` corrects four analyzer statements (#655):
+  - before a dialect is configured the analyzer is silent about your code, but
+    a configuration problem still reports `SQLA0001`; the page said it reported
+    nothing at all;
+  - the `SQLA0104` row in the rule table lists the `GroupBy` column ordinal,
+    its fourth kind of value;
+  - a `sqlartisan_construct_*` override does reach `SQLA0102`'s
+    repeated-`MERGE`-branch rule: `unsupported` reports the usage as `SQLA0100`
+    instead, and `supported` re-arms the rule where the matrix rejects the
+    branch itself. The page said overrides never apply to `SQLA0102`;
+  - it names all five `<SqlArtisanSyntax<Dbms>>` properties, and says a
+    misspelled one is not reported.
+
+  It also says keys, values and MSBuild property names ignore case.
+- `docs/versioning.md` states the compiler the analyzer needs: Roslyn 4.8 or
+  later (.NET SDK 8.0.100, Visual Studio 17.8). An older one skips it with
+  `CS9057`, an error under `TreatWarningsAsErrors`. (#655)
+- `docs/versioning.md` states what an analyzer release may change. Covered: each
+  diagnostic ID (never renumbered or reused; removed, split or merged only in a
+  major), the four categories and their bands, each rule's default severity and
+  on-by-default state (raising either is breaking), the `sqlartisan_*` key
+  names and how a construct key is derived, the values and their meaning, the
+  `<SqlArtisanSyntax<Dbms>>` properties, which setting wins, and silence until a
+  dialect is configured. Not covered: titles, message text, help-link anchors.
+  Any other change that adds reports is minor, and from the first release after
+  1.0 is marked **New warning:** here; any other that only removes reports is a
+  patch. A configuration key is deprecated in a minor, under a
+  warning of its own, before a major removes it. (#655)
+- `docs/analyzer.md` lists generated code under Known limitations: a `*.g.cs`
+  file or one starting with `// <auto-generated/>` is not analyzed, and
+  `generated_code = false` in `.editorconfig` has it checked. (#655)
+- `docs/analyzer.md` says why `SQLA0204` reports a wrapped column and a
+  leading-wildcard pattern under one ID, and gives each its own remedy; it said
+  the remedy was the same. (#655)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added
