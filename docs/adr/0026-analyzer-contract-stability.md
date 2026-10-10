@@ -118,7 +118,8 @@ a major.
 - `.claude/rules/public-api-design.md` carries the contract as a rule clause,
   matched by the files that define the IDs, keys and values and that decide
   precedence and the unconfigured silence, so a diff changing any of them meets
-  it; `.claude/rules/docs-style.md` carries the **New warning:** mark, where a
+  it — except a rule file that re-points a report at another existing ID, which
+  review holds; `.claude/rules/docs-style.md` carries the **New warning:** mark, where a
   CHANGELOG edit meets it.
 
 Related: #655 (this change), ADR 0009 (bundled distribution), ADR 0018 (the
