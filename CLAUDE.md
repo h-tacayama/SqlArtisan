@@ -255,11 +255,13 @@ never made unprompted. Once approved, do it in one commit:
 4. From 1.0.0 on: move the rows of
    `src/SqlArtisan.Analyzers/AnalyzerReleases.Unshipped.md` under a
    `## Release X.Y.Z` heading at the end of `AnalyzerReleases.Shipped.md`,
-   leaving Unshipped its two header lines. Shipped is append-only — a released
-   row is never edited, a later change goes in Unshipped as a Changed or
-   Removed Rules row — and while it stays so, RS2000–RS2008 (build errors) hold
-   every later ID, category or severity change against what shipped. The 0.x
-   releases left Shipped empty.
+   leaving Unshipped its two header lines. Shipped is append-only: a released
+   row is never edited. A later category or severity change goes in Unshipped
+   as a Changed Rules row, a removal as a Removed Rules row (a renumber, a
+   major-only change, as a Removed row plus a New Rules row), and a
+   message-only change needs no entry — the released Notes stay as shipped. While Shipped stays append-only,
+   RS2000–RS2008 (build errors) hold every later ID, category or severity
+   change against what shipped. The 0.x releases left Shipped empty.
 5. Regenerate `llms-full.txt` (`bash tools/regen-llms-full.sh`).
 6. Run the full gate set (`dotnet test` ×3, `dotnet format --verify-no-changes`,
    `bash tools/audit-packages.sh`).

@@ -4,9 +4,9 @@ using Microsoft.CodeAnalysis;
 
 namespace SqlArtisan.Analyzers.Tests;
 
-// The release-tracking ledger is the shipped rule table; a row's Notes drift from the
-// descriptor (release audit pass 8: SQLA0300 still said UPDATE/DELETE after MERGE joined) is
-// caught on id, category, severity, and statement names. RS2000-RS2008 hold its format.
+// The release-tracking ledger is the shipped rule table: each rule's id, category and
+// severity are checked, and an unreleased row's Notes against the statements its message
+// names (release audit pass 8: SQLA0300 still said UPDATE/DELETE after MERGE joined).
 public class AnalyzerReleasesNotesTests
 {
     private static readonly Regex s_id = new(@"^SQLA\d{4}$", RegexOptions.Compiled);
