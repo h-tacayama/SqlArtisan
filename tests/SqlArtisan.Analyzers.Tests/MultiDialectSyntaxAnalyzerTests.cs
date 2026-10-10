@@ -622,6 +622,29 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
+    // A misspelled key explains the empty compilation just as a bad value does.
+    [Fact]
+    public async Task NoneBesideAnUnrecognizedKey_ReportsOnlyTheKey()
+    {
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_postgres = 16
+            sqlartisan_syntax_oracle = none
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "sqlartisan_syntax_postgres",
+                "mysql/oracle/postgresql/sqlite/sqlserver"));
+
+        await test.RunAsync();
+    }
+
     // A blank in a narrower section replaces the broader value, so it would unset the
     // dialect for those files without a word; `none` is the spelling that says so (#655).
     [Fact]

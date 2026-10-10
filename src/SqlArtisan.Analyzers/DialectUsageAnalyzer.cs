@@ -875,7 +875,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         var reportedSyntaxValues = new HashSet<(string Key, string Value)>();
         bool sawEmptySet = false;
         bool sawResolvedSet = false;
-        bool sawUnrecognizedValue = false;
+        bool sawUnrecognized = false;
         string validDbmsNames = string.Join("/", AnalyzerConfigResolver.DbmsNames);
 
         foreach (SyntaxTree tree in context.Compilation.SyntaxTrees)
@@ -888,8 +888,13 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             {
                 foreach (string key in syntaxKeys)
                 {
-                    if (!AnalyzerConfigResolver.IsRecognizedSyntaxKey(key)
-                        && reportedUnrecognizedKeys.Add(key))
+                    if (AnalyzerConfigResolver.IsRecognizedSyntaxKey(key))
+                    {
+                        continue;
+                    }
+
+                    sawUnrecognized = true;
+                    if (reportedUnrecognizedKeys.Add(key))
                     {
                         context.ReportDiagnostic(Diagnostic.Create(
                             DiagnosticDescriptors.UnrecognizedConfigurationKey,
@@ -922,7 +927,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                     string.Empty);
             }
 
-            sawUnrecognizedValue |= hasUnrecognizedSyntaxValue;
+            sawUnrecognized |= hasUnrecognizedSyntaxValue;
             if (!AnalyzerConfigResolver.ResolveTargets(options).IsEmpty)
             {
                 sawResolvedSet = true;
@@ -933,9 +938,9 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             }
         }
 
-        // An unrecognized value, already reported, explains an empty compilation as well as
-        // the all-`none` reason would — reporting both doubles one root cause.
-        if (sawEmptySet && !sawResolvedSet && !sawUnrecognizedValue)
+        // An unrecognized key or value, already reported, explains an empty compilation, and
+        // beside it the all-`none` message would misdescribe the configuration.
+        if (sawEmptySet && !sawResolvedSet && !sawUnrecognized)
         {
             context.ReportDiagnostic(Diagnostic.Create(
                 DiagnosticDescriptors.ConfigurationDisablesAllDialects, Location.None));

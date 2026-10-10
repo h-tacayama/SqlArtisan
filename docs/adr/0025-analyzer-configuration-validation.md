@@ -58,14 +58,14 @@ off.
 Server, the major version (with optional minor and patch) elsewhere.** A SQL
 Server value whose first segment is below 2000, or another engine's value whose
 first segment is 1000 or more, is unrecognized: it reports `SQLA0001` and is
-ignored, as any unrecognized value is, so the dialect's MSBuild property applies
-if set and the dialect goes unchecked otherwise. Each engine's message names
+ignored, as any unrecognized value is — an `.editorconfig` value falls through to
+the MSBuild property, and with no valid value on either the dialect goes
+unchecked. Each engine's message names
 its own spelling. Mapping `16` to 2022 was rejected: it is an alias, which ADR
 0019 keeps out of the value domain, and a table to maintain per release.
 
 **The all-`none` reason reports only when no file in the compilation resolves a
-dialect, and no file's set is explained by an unrecognized value already
-reported.** Wherever a dialect resolves, a `none` elsewhere was written on
+dialect, and no unrecognized key or value already reported explains why.** Wherever a dialect resolves, a `none` elsewhere was written on
 purpose. The
 case ADR 0019 named — one `none` and nothing else — still reports; a directory
 left all-`none` by mistake beside a configured one does not, which is the cost
@@ -94,8 +94,8 @@ value, never advice derived from one file's configuration (ADR 0024).
 - A key for a member a newer SqlArtisan adds reports until the project
   upgrades; until then it overrides nothing anyway.
 - A project left on `sqlartisan_syntax_sqlserver = 16`, or a year on another
-  engine, loses that dialect's checks (unless an MSBuild property declares it)
-  until it corrects the value — it was getting wrong ones before — and is told
+  engine, loses that dialect's checks (unless a valid MSBuild property declares
+  it) until it corrects the value — it was getting wrong ones before — and is told
   so.
 
 Related: #655 (this change), ADR 0008 (the override keys), ADR 0019 (the family

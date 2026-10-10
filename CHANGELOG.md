@@ -75,12 +75,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   Server value below 2000 (`16`, SQL Server 2022's product version, compared as
   year 16 and failed every bound) or a value of 1000 or more on another engine
   (`sqlartisan_syntax_postgresql = 2022` cleared every bound) now reports
-  `SQLA0001` and is ignored, as an unrecognized value is: the dialect's MSBuild
-  property applies if set, and otherwise the dialect goes unchecked. The message
-  names each engine's spelling. (#655)
+  `SQLA0001` and is ignored, as an unrecognized value is: in `.editorconfig` it
+  falls through to the MSBuild property, and with no valid value on either the
+  dialect goes unchecked. The message names each engine's spelling. (#655)
 - `SQLA0001`'s "every key is `none`" reason reports only when no file in the
-  project resolves a dialect, so a path-scoped `none` beside a configured scope
-  — a deliberate carve-out — no longer reports. Its message is reworded to
+  project resolves a dialect and no unrecognized key or value already explains
+  why, so a path-scoped `none` beside a configured scope — a deliberate
+  carve-out — no longer reports. Its message is reworded to
   match. (#655)
 - `ExecuteArrayBind`'s type-mismatch messages no longer name "another row" —
   the hint and the value can come from one bind — and say, for example,
