@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- `SQLA0001` reports a `sqlartisan_construct_*` key that names no SqlArtisan
+  member, or no declared parameter count of one — a typo, an arity the member
+  lacks, or a key for a renamed or removed member such as #588's
+  `update_where`. Such a key overrides nothing, so a stale `unsupported` lost
+  the warning it asked for without a word. Names are checked against the
+  SqlArtisan version the project references. (#655)
+- `SQLA0001` reports a blank `sqlartisan_syntax_*` value in `.editorconfig`. In
+  a narrower section it replaced the broader value silently, so those files fell
+  back to the MSBuild property or went unchecked; write `none` to turn a dialect
+  off. A blank MSBuild property still reads as unset. (#655)
 - `SQLA0301` reports `==` / `!=` that C# resolves as reference equality —
   the left operand an `object`, a `SqlPart` or a type parameter constrained to
   one — passed to a SqlArtisan member, where it binds a `bool` instead of
@@ -60,6 +70,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   earlier branch held in a variable stays silent. (#582)
 
 ### Changed
+- A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
+  release year on SQL Server, the engine's own version number elsewhere. A SQL
+  Server value below 2000 (`16`, SQL Server 2022's product version, compared as
+  year 16 and failed every bound) or a value of 1000 or more on another engine
+  (`sqlartisan_syntax_postgresql = 2022` cleared every bound) now reports
+  `SQLA0001` and is ignored, as an unrecognized value is: in `.editorconfig` it
+  falls through to the MSBuild property, and with no valid value on either the
+  dialect goes unchecked. The message names each engine's spelling. (#655)
+- `SQLA0001`'s all-`none` reason reports only when no file in the
+  project resolves a dialect and no unrecognized key or value already explains
+  why, so a path-scoped `none` beside a configured scope — a deliberate
+  carve-out — no longer reports. Its message now says no file has a dialect
+  left to check, where it named one file. (#655)
 - `ExecuteArrayBind`'s type-mismatch messages no longer name "another row" —
   the hint and the value can come from one bind — and say, for example,
   `Int32 values map to OracleDbType.Int32` rather than `a Int32 value maps`.
@@ -211,8 +234,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   guard messages name the clauses `UPDATE SET ... WHERE` and `INSERT ... WHERE`
   instead of `UPDATE WHERE` and `INSERT WHERE`. The override keys
   `sqlartisan_construct_update_where` and `sqlartisan_construct_insert_where`
-  no longer apply, and nothing warns that they are stale; suppress `SQLA0102`
-  by its ID instead. On MySQL and SQLite the filter itself is no longer
+  no longer apply, and `SQLA0001` reports them as stale (#655); suppress
+  `SQLA0102` by its ID instead. On MySQL and SQLite the filter itself is no longer
   reported; `SQLA0100` still reports `MergeInto` there. Every caller needs a
   source change and a rebuild. The stage the update action's `Where(...)`
   returns is renamed from `IMergeBuilderUpdateWhere` to `IMergeBuilderWhere`,
