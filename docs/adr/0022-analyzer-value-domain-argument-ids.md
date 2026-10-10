@@ -1,6 +1,11 @@
 # ADR 0022 — Value-domain arguments: every literal value verdict under one diagnostic ID
 
-**Status:** Accepted
+**Status:** Accepted — two statements corrected by
+[ADR 0026](0026-analyzer-contract-stability.md): moving a domain off `SQLA0104`
+after 1.0 is a split, a major-version change, not an additive one; and
+`docs/versioning.md` had no pre-1.0 retirement rule until ADR 0026 stated one.
+ADR 0026 also records why `SQLA0103` keeps its own ID. Everything else here
+stands.
 
 ## Context
 

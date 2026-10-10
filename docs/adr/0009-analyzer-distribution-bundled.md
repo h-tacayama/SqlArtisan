@@ -4,7 +4,9 @@
 `sqlartisan_syntax_<dbms>` key family and its five `SqlArtisanSyntax<Dbms>`
 MSBuild properties join the coupling contract's seam list), and by
 [ADR 0024](0024-analyzer-legacy-target-pair-removal.md), which removes the
-`sqlartisan_target_dbms` key and `SqlArtisanTargetDbms` property listed below
+`sqlartisan_target_dbms` key and `SqlArtisanTargetDbms` property listed below.
+A matrix correction that adds a report ships in a minor release, not a patch
+([ADR 0026](0026-analyzer-contract-stability.md)).
 
 ## Context
 
