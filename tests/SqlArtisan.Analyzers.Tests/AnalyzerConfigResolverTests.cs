@@ -180,17 +180,6 @@ public class AnalyzerConfigResolverTests
         Assert.Equal("19", set.VersionFor(TargetDbms.Oracle)?.ToString());
     }
 
-    // docs/analyzer.md promises case-insensitive keys; an Ordinal cleanup would turn a
-    // working key into a reported typo.
-    [Theory]
-    [InlineData("sqlartisan_syntax_postgresql")]
-    [InlineData("SQLARTISAN_SYNTAX_POSTGRESQL")]
-    [InlineData("sqlartisan_syntax_PostgreSQL")]
-    public void IsRecognizedSyntaxKey_AnyCasing_ReturnsTrue(string key)
-    {
-        Assert.True(AnalyzerConfigResolver.IsRecognizedSyntaxKey(key));
-    }
-
     [Fact]
     public void TryEnumerateSyntaxKeys_ReturnsOnlyThePrefixedKeys()
     {

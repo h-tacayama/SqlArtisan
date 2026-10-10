@@ -576,7 +576,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
   It also says keys, values and MSBuild property names ignore case.
 - `docs/versioning.md` states the compiler the analyzer needs: Roslyn 4.8 or
-  later (.NET SDK 8.0.100, Visual Studio 17.8). (#655)
+  later (.NET SDK 8.0.100, Visual Studio 17.8). An older one skips it with
+  `CS9057`, an error under `TreatWarningsAsErrors`. (#655)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added
