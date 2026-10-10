@@ -254,10 +254,22 @@ never made unprompted. Once approved, do it in one commit:
    `docs/guides/oracle-array-bind.md`, and `src/SqlArtisan.TableClassGen/README.md`.
 3. `CHANGELOG.md`: finalize the `## [Unreleased]` section under the new version
    and date.
-4. Regenerate `llms-full.txt` (`bash tools/regen-llms-full.sh`).
-5. Run the full gate set (`dotnet test` ×3, `dotnet format --verify-no-changes`,
+4. From 1.0.0 on: move the rows of
+   `src/SqlArtisan.Analyzers/AnalyzerReleases.Unshipped.md` under a
+   `## Release X.Y.Z` heading at the end of `AnalyzerReleases.Shipped.md`,
+   leaving Unshipped its two header lines. Shipped is append-only: a released
+   row is never edited. In Unshipped, a later category or severity change is a
+   Changed Rules row, an ID retired or merged away is a Removed Rules row, an
+   ID a split adds is a New Rules row, and a message-only change needs no entry
+   — the released Notes stay as shipped. While Shipped stays append-only,
+   RS2000–RS2008 (build errors) hold every later ID, category or severity
+   change against what shipped, and `DiagnosticOrderingTests` keeps an ID a
+   Removed Rules row names from being reused. The 0.x releases left Shipped
+   empty.
+5. Regenerate `llms-full.txt` (`bash tools/regen-llms-full.sh`).
+6. Run the full gate set (`dotnet test` ×3, `dotnet format --verify-no-changes`,
    `bash tools/audit-packages.sh`).
-6. Merge to `main`, then tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`
+7. Merge to `main`, then tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`
    — `release.yml` reads the version from `Directory.Build.props`, not the tag,
    so they must already agree before pushing it. Tag push is user-performed.
 
