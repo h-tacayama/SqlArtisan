@@ -27,8 +27,8 @@ public class AnalyzerReleasesNotesTests
 
         string folder = Path.Combine(FindRepoRoot(), "src", "SqlArtisan.Analyzers");
         Dictionary<string, LedgerRow> ledger = ReadLedger(
-            File.ReadAllLines(Path.Combine(folder, "AnalyzerReleases.Shipped.md"))
-                .Concat(File.ReadAllLines(Path.Combine(folder, "AnalyzerReleases.Unshipped.md"))));
+            File.ReadAllLines(Path.Combine(folder, "AnalyzerReleases.Shipped.md")),
+            File.ReadAllLines(Path.Combine(folder, "AnalyzerReleases.Unshipped.md")));
         List<string> drift = [];
 
         foreach ((string id, LedgerRow row) in ledger)
@@ -53,6 +53,13 @@ public class AnalyzerReleasesNotesTests
                 if (severity != row.Severity)
                 {
                     drift.Add($"{id}: severity {row.Severity} vs {descriptor.DefaultSeverity}");
+                }
+
+                // A released row is history (Shipped.md is append-only) and message text is
+                // not covered, so only a row this release adds is held to today's message.
+                if (row.Released)
+                {
+                    continue;
                 }
 
                 string message = descriptor.MessageFormat.ToString();
@@ -100,21 +107,33 @@ public class AnalyzerReleasesNotesTests
             "SQLA0100 | SqlArtisan.Dialect | Warning | b",
         ];
 
-        Dictionary<string, LedgerRow> ledger = ReadLedger(shipped.Concat(unshipped));
+        Dictionary<string, LedgerRow> ledger = ReadLedger(shipped, unshipped);
 
         KeyValuePair<string, LedgerRow>[] expected =
         [
-            new("SQLA0001", new LedgerRow("SqlArtisan.Configuration", "Warning", "a")),
-            new("SQLA0203", new LedgerRow("SqlArtisan.Schema", "Info", "c2")),
+            new("SQLA0001", new LedgerRow("SqlArtisan.Configuration", "Warning", "a", true)),
+            new("SQLA0203", new LedgerRow("SqlArtisan.Schema", "Info", "c2", false)),
         ];
         Assert.Equal(expected, ledger.OrderBy(entry => entry.Key, StringComparer.Ordinal));
     }
 
-    // Each section's table has its own columns: New and Removed Rules are
-    // "ID | Category | Severity | Notes", Changed Rules leads with the new pair.
-    private static Dictionary<string, LedgerRow> ReadLedger(IEnumerable<string> lines)
+    private static Dictionary<string, LedgerRow> ReadLedger(
+        IEnumerable<string> shipped,
+        IEnumerable<string> unshipped)
     {
         Dictionary<string, LedgerRow> ledger = new(StringComparer.Ordinal);
+        Apply(ledger, shipped, released: true);
+        Apply(ledger, unshipped, released: false);
+        return ledger;
+    }
+
+    // Each section's table has its own columns: New and Removed Rules are
+    // "ID | Category | Severity | Notes", Changed Rules leads with the new pair.
+    private static void Apply(
+        Dictionary<string, LedgerRow> ledger,
+        IEnumerable<string> lines,
+        bool released)
+    {
         string section = string.Empty;
         foreach (string line in lines.Select(l => l.Trim()))
         {
@@ -133,18 +152,16 @@ public class AnalyzerReleasesNotesTests
             switch (section)
             {
                 case "New Rules":
-                    ledger[cells[0]] = new LedgerRow(cells[1], cells[2], cells[3]);
+                    ledger[cells[0]] = new LedgerRow(cells[1], cells[2], cells[3], released);
                     break;
                 case "Changed Rules":
-                    ledger[cells[0]] = new LedgerRow(cells[1], cells[2], cells[5]);
+                    ledger[cells[0]] = new LedgerRow(cells[1], cells[2], cells[5], released);
                     break;
                 case "Removed Rules":
                     ledger.Remove(cells[0]);
                     break;
             }
         }
-
-        return ledger;
     }
 
     private static string FindRepoRoot()
@@ -159,5 +176,9 @@ public class AnalyzerReleasesNotesTests
         return dir.FullName;
     }
 
-    private sealed record LedgerRow(string Category, string Severity, string Notes);
+    private sealed record LedgerRow(
+        string Category,
+        string Severity,
+        string Notes,
+        bool Released);
 }
