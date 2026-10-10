@@ -81,10 +81,50 @@ public class AnalyzerConfigResolverTests
 
         Assert.Equal(
             [
-                (AnalyzerConfigResolver.SyntaxMSBuildPropertyKey(TargetDbms.MySql), "tru"),
-                (AnalyzerConfigResolver.SyntaxKey(TargetDbms.Oracle), "19"),
+                (
+                    TargetDbms.MySql,
+                    AnalyzerConfigResolver.SyntaxMSBuildPropertyKey(TargetDbms.MySql),
+                    "tru"),
+                (TargetDbms.Oracle, AnalyzerConfigResolver.SyntaxKey(TargetDbms.Oracle), "19"),
             ],
             [.. AnalyzerConfigResolver.SetSyntaxValues(options)]);
+    }
+
+    // The SDK emits every declared property blank, so only a blank .editorconfig key was
+    // written by someone.
+    [Fact]
+    public void BlankSyntaxKeys_ReadsTheEditorConfigSurfaceOnly()
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
+        {
+            [AnalyzerConfigResolver.SyntaxKey(TargetDbms.Sqlite)] = string.Empty,
+            [AnalyzerConfigResolver.SyntaxKey(TargetDbms.Oracle)] = "19",
+            [AnalyzerConfigResolver.SyntaxMSBuildPropertyKey(TargetDbms.MySql)] = string.Empty,
+        });
+
+        Assert.Equal([TargetDbms.Sqlite], [.. AnalyzerConfigResolver.BlankSyntaxKeys(options)]);
+    }
+
+    [Theory]
+    [InlineData("SqlServer", "2022", true)]
+    [InlineData("SqlServer", "2000", true)]
+    [InlineData("SqlServer", "16", false)]
+    [InlineData("SqlServer", "1999", false)]
+    [InlineData("PostgreSql", "16", true)]
+    [InlineData("PostgreSql", "2022", false)]
+    [InlineData("MySql", "8.0.16", true)]
+    [InlineData("Oracle", "23ai", true)]
+    [InlineData("Sqlite", "999", true)]
+    [InlineData("Sqlite", "1000", false)]
+    [InlineData("SqlServer", "ANY", true)]
+    public void IsRecognizedSyntaxValue_VersionSpelling_ReadsYearsOnSqlServerOnly(
+        string dbms,
+        string value,
+        bool expected)
+    {
+        Assert.Equal(
+            expected,
+            AnalyzerConfigResolver.IsRecognizedSyntaxValue(Enum.Parse<TargetDbms>(dbms), value));
     }
 
     [Fact]

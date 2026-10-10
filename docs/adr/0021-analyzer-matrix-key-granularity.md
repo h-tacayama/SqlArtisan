@@ -2,7 +2,10 @@
 
 **Status:** Accepted — refines [ADR 0008](0008-analyzer-override-configuration.md)
 on the *matrix* side. ADR 0008 decided the override key has two levels; this
-decides which level the shipped matrix's own entries use.
+decides which level the shipped matrix's own entries use. Since
+[ADR 0025](0025-analyzer-configuration-validation.md), `SQLA0001` judges key
+names against the referenced assembly; `AllOverrideKeys` is only the fallback
+value-check list for a host that cannot enumerate keys.
 
 ## Context
 

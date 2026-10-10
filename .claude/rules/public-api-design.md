@@ -1,10 +1,23 @@
 ---
-description: Public API design decisions — naming categories, overload split for analyzer arity, collection parameters, operator overloads, factory return types, no opinion-holes
+description: Public API design decisions — naming categories, overload split for analyzer arity, collection parameters, operator overloads, factory return types, no opinion-holes, the TableClassGen and analyzer contracts
 paths:
   - "src/SqlArtisan/Sql/*.cs"
   - "src/SqlArtisan/SqlPart/**/*.cs"
   - "src/SqlArtisan/Internal/SqlBuilder/**/I*.cs"
   - "src/SqlArtisan.Analyzers/DialectMatrix.cs"
+  - "src/SqlArtisan.Analyzers/DiagnosticDescriptors.cs"
+  - "src/SqlArtisan.Analyzers/AnalyzerConfigResolver.cs"
+  - "src/SqlArtisan.Analyzers/DialectUsageAnalyzer.cs"
+  - "src/SqlArtisan.Analyzers/DialectSupportResolver.cs"
+  - "src/SqlArtisan.Analyzers/ContextRules.cs"
+  - "src/SqlArtisan.Analyzers/ValueDomainScope.cs"
+  - "src/SqlArtisan.Analyzers/EngineVersion.cs"
+  - "src/SqlArtisan.Analyzers/TargetDbms.cs"
+  - "src/SqlArtisan.Analyzers/DialectTargetSet.cs"
+  - "src/SqlArtisan.Analyzers/ConstructKeyNaming.cs"
+  - "src/SqlArtisan.Analyzers/ConstructKeySurface.cs"
+  - "src/SqlArtisan.Analyzers/build/SqlArtisan.props"
+  - "src/SqlArtisan.Analyzers/AnalyzerReleases.*.md"
   - "tests/SqlArtisan.IntegrationTests/Infrastructure/MatrixSweepCatalog.cs"
   - "src/SqlArtisan.Dapper/**/*.cs"
   - "src/SqlArtisan.ArrayBind/**/*.cs"
@@ -645,6 +658,41 @@ outlive the run that made them, so the API rules above have a CLI analogue
 - **The tool package rolls forward** (`RollForward`) to newer major runtimes:
   a .NET tool pinned to its target runtime does not start where only a newer
   one is installed.
+
+## Analyzer: a diagnostic-ID and configuration contract
+
+The analyzer exposes no types, but users write its names into suppressions,
+`.editorconfig` and MSBuild files, and a stale ID, category or property name is
+silent there — so these are covered like a signature (ADR 0026, #655):
+
+- **Covered** after 1.0: the diagnostic IDs, never renumbered or reused, and
+  removed only by a major that retires the rule or merges its reports into
+  another ID (a removed ID stays retired); the band-to-category strings (ADR 0018); default
+  severity and enabled-by-default, in the raising direction; which reports
+  share an ID; the `sqlartisan_*` key names and the rule deriving a
+  construct key from a member's name and declared arity; the values, their
+  meaning and their case-insensitive matching; the `<SqlArtisanSyntax<Dbms>>`
+  properties, spelled as the `Dbms` member (`TargetDbms`); `.editorconfig` over
+  the MSBuild property, an arity key over a member key, an override over the
+  matrix; and silence until a dialect is configured — no rule from `SQLA0100`
+  on reports before one is. Not covered: titles, message text, help-link
+  anchors.
+- **Any other change that adds reports is minor** — a new rule, a new reason, a
+  matrix correction — and from the first release after 1.0 its CHANGELOG entry
+  is marked `New warning:` (`docs-style.md`); any other that only removes
+  reports is a patch.
+- **A key is retired by deprecating it**: both spellings accepted, the old one
+  reported under its own `SqlArtisan.Configuration` ID, removal in a major, and
+  a removed key still reported rather than ignored (ADR 0024). Never renamed in
+  place.
+- **An ID's partition is settled before the rule ships**, by who would suppress
+  or escalate the reports together, not by whether their remediations match:
+  `SQLA0204`'s two shapes share one verdict and differ in remedy. After 1.0 a
+  split or a merge is breaking. This clause loads where descriptors are
+  declared, not in the `*Rule.cs` files that pick one, so re-pointing a report
+  there at another existing ID is review's to catch.
+- `docs/versioning.md` holds the user-facing statement; a diff that changes
+  anything above changes it too.
 
 ## Recorded trade-offs from the #149 freeze audit
 

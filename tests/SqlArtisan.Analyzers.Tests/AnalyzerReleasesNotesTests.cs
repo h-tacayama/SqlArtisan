@@ -18,7 +18,7 @@ public class AnalyzerReleasesNotesTests
     [Fact]
     public void EveryRow_MatchesItsDescriptor()
     {
-        // Every field, not one per id: four fields carry SQLA0001, and a row's
+        // Every field, not one per id: several fields carry SQLA0001, and a row's
         // Notes must answer the messages of all of them.
         ILookup<string, DiagnosticDescriptor> descriptors = typeof(DiagnosticDescriptors)
             .GetFields(BindingFlags.Public | BindingFlags.Static)

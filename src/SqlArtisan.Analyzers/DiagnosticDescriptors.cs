@@ -53,14 +53,14 @@ internal static class DiagnosticDescriptors
         helpLinkUri: HelpLinkUri,
         customTags: WellKnownDiagnosticTags.CompilationEnd);
 
-    // An all-`none` family reads like "unconfigured" to every rule (#432).
-    // Scoped to "at least one file": a path-scoped `none` carve-out is
-    // deliberate for that path while other files still resolve a real set.
+    // An all-`none` family reads like "unconfigured" to every rule (#432). Only when no file
+    // resolves a dialect: a path-scoped `none` beside one that does is a deliberate carve-out,
+    // and silencing a location-less SQLA0001 would silence typo detection with it (ADR 0025).
     public static readonly DiagnosticDescriptor ConfigurationDisablesAllDialects = new(
         id: "SQLA0001",
         title: "SqlArtisan analyzer configuration problem",
-        messageFormat: "In at least one file's effective configuration, every "
-            + "'sqlartisan_syntax_*' key is 'none', so that file has no dialect left to check",
+        messageFormat: "The 'sqlartisan_syntax_*' settings in effect are 'none' for every "
+            + "dialect they name, so no file has a dialect left to check",
         category: ConfigurationCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
@@ -75,6 +75,19 @@ internal static class DiagnosticDescriptors
         title: "SqlArtisan analyzer configuration problem",
         messageFormat: "'{0}' was removed and is ignored; delete it, and declare each dialect "
             + "with '{1}' where not already declared",
+        category: ConfigurationCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri,
+        customTags: WellKnownDiagnosticTags.CompilationEnd);
+
+    // A fifth SQLA0001 reason (#655): an override on a member that was renamed, removed or
+    // misspelled overrides nothing, and a stale `unsupported` silently loses its warning.
+    public static readonly DiagnosticDescriptor UnrecognizedOverrideKey = new(
+        id: "SQLA0001",
+        title: "SqlArtisan analyzer configuration problem",
+        messageFormat: "'{0}' names no SqlArtisan member or declared parameter count, so it "
+            + "overrides nothing",
         category: ConfigurationCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
@@ -196,9 +209,9 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: false,
         helpLinkUri: HelpLinkUri);
 
-    // One ID for every shape because the remediation is one: leave the column bare
-    // on the filtered side. States the form, never the cost — whether the planner
-    // would have taken the index is Tier 3.
+    // One ID for every shape because the verdict is one — the index gets nothing to range
+    // over — and so is the call to silence it; the remedies differ (ADR 0026). States the
+    // form, never the cost: whether the planner would have taken the index is Tier 3.
     public static readonly DiagnosticDescriptor UnusableIndexPredicate = new(
         id: "SQLA0204",
         title: "Filter shapes an indexed column so no index on it can be used",

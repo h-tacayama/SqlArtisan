@@ -78,8 +78,52 @@ Three cases are specific to this library, beyond the usual API-level changes:
   appending its successor at the next unused value and marking the old one
   `[Obsolete]`, never by an alias that repeats its number.
 
-Analyzer diagnostic updates (the SQLA rules) may also land in a
-minor release: they change build-time diagnostics, never runtime behavior.
+The analyzer's diagnostics follow their own rules, below: a new warning may
+land in a minor release, since it changes what a build reports, never what a
+query does.
+
+## The analyzer's IDs and configuration
+
+The analyzer exposes no types, but you write its names into your build — a
+`#pragma`, `[SuppressMessage]`, `<NoWarn>`, `<WarningsAsErrors>`, a
+`dotnet_diagnostic.SQLA0xxx.severity` or category-severity line, the
+`sqlartisan_*` keys and MSBuild properties — and an ID, a category or a
+property name that stops matching is silent there. So, after 1.0:
+
+- **Covered** — a change is breaking:
+  - each diagnostic ID and the rule it names. An ID is never renumbered or
+    reused, and is removed only by a major that retires its rule or merges its
+    reports into another ID; a retired ID stays retired;
+  - the four categories (`SqlArtisan.Configuration`, `SqlArtisan.Dialect`,
+    `SqlArtisan.Schema`, `SqlArtisan.Validity`) and their ID bands;
+  - each rule's default severity and whether it is on by default: raising
+    either is breaking, lowering either is minor;
+  - which reports share an ID: an ID is split or merged only in a major, since
+    either moves reports out from under a suppression or escalation you wrote;
+  - the key names `sqlartisan_syntax_<dbms>`, `sqlartisan_construct_<member>`
+    and `sqlartisan_construct_<member>_arity<N>`, the rule that derives a
+    construct key from a member's name and declared parameter count, and the
+    `<SqlArtisanSyntax<Dbms>>` MSBuild properties;
+  - the values and their meaning: `any`, `none`, an engine version (the release
+    year on SQL Server; the engine's own version number, major with an optional
+    minor and patch, on the others), `supported` and
+    `unsupported`, matched without regard to case;
+  - which setting wins: `.editorconfig` over the MSBuild property, an arity key
+    over a member key, your override over the shipped matrix;
+  - silence until you configure a dialect: no rule from `SQLA0100` on reports
+    before then;
+  - the removed `sqlartisan_target_dbms` / `sqlartisan_target_version` keys and
+    their properties, which report `SQLA0001` for as long as 1.x ships.
+- **Not covered**: a diagnostic's title, its message text, and its help-link
+  anchor.
+- **Minor: any other change that adds reports** — a new rule, at the next ID in
+  its category's band; a new reason under an existing ID; a matrix correction
+  or a new verdict that starts reporting something. Each can fail a build that
+  treats warnings as errors, so the CHANGELOG marks it **New warning:**. A new
+  key, value, or DBMS token (for a new `Dbms` member) is minor too, and so is
+  lowering a default severity or turning a rule off by default.
+- **Patch: any other change that only removes reports**, such as a
+  false-positive fix or a matrix correction that stops reporting.
 
 ## TableClassGen's command-line surface
 
@@ -104,8 +148,8 @@ back:
   know.
 - **Minor, called out in the CHANGELOG**: any other change to a generated file's
   text — a new or changed `DbColumnMetadata` fact, the layout, the header — so an
-  analyzer rule that needs a new schema fact can ship in a minor release, as
-  analyzer changes may. Until `--fix` regenerates such a file, `--check` reports
+  analyzer rule that needs a new schema fact can ship in a minor release, as a
+  new analyzer rule may. Until `--fix` regenerates such a file, `--check` reports
   it `modified`, so a scheduled `--check` fails from the upgrade until `--fix`
   runs.
 
@@ -122,6 +166,14 @@ the replacement — in a **minor** release, and removed **no earlier than the
 next major**. Removal without that prior `[Obsolete]` step is treated as a
 bug — please open an
 [issue](https://github.com/h-tacayama/SqlArtisan/issues).
+
+The analyzer's configuration follows the same path. A key slated for removal
+keeps working beside its replacement in a **minor** release, and setting it
+reports a warning of its own, so you can silence that warning without
+silencing configuration errors. It is removed **no earlier than the next
+major**, and from then a key still set reports `SQLA0001` rather than quietly
+configuring nothing. A diagnostic ID is retired only in a major, and never
+reused.
 
 ## Support statement
 
