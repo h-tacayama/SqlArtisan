@@ -3,14 +3,12 @@ using System.Collections.Generic;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// The resolved <c>sqlartisan_syntax_*</c> family (or its legacy-pair desugaring,
-/// #432): which DBMS a file's rules check and each one's declared version bound
+/// The resolved <c>sqlartisan_syntax_*</c> family (#432): which DBMS a file's
+/// rules check and each one's declared version bound
 /// (<see langword="null"/> means <c>any</c>: no version floor).
 /// </summary>
 internal sealed class DialectTargetSet
 {
-    public static readonly DialectTargetSet Empty = new();
-
     private readonly bool[] _present = new bool[5];
     private readonly EngineVersion?[] _versions = new EngineVersion?[5];
 

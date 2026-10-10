@@ -5,8 +5,8 @@ namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
 /// The #432 <c>sqlartisan_syntax_*</c> family: what only a multi-DBMS set can
-/// exercise (join wording, one diagnostic per failing DBMS, SQLA0001's reasons and
-/// SQLA0002); <see cref="DialectUsageAnalyzerTests"/> covers the single-DBMS case.
+/// exercise (join wording, one diagnostic per failing DBMS) and SQLA0001's reasons;
+/// <see cref="DialectUsageAnalyzerTests"/> covers the single-DBMS case.
 /// </summary>
 public class MultiDialectSyntaxAnalyzerTests
 {
@@ -299,14 +299,14 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
-    // Reported per key, not per value: the same typo migrated from the MSBuild
-    // property into .editorconfig is two mistakes, each named (release audit pass 7).
+    // A removed key is reported whatever its value — it configures nothing either way —
+    // once per key, the replacement spelled for the surface the key was set on (#654).
     [Fact]
-    public async Task LegacyDbmsSameJunkOnBothSurfaces_ReportsBothKeys()
+    public async Task RemovedKeysOnBothSurfaces_ReportEachKeyInItsOwnSurfaceSyntax()
     {
         const string globalConfig = """
             is_global = true
-            build_property.SqlArtisanTargetDbms = postgres
+            build_property.SqlArtisanTargetDbms = postgresql
             build_property.SqlArtisanTargetVersion = 16
             """;
         const string editorConfig = """
@@ -315,43 +315,17 @@ public class MultiDialectSyntaxAnalyzerTests
             sqlartisan_target_dbms = postgres
             """;
 
-        const string expected = "one of: mysql/oracle/postgresql/sqlite/sqlserver";
         var test = AnalyzerVerifier.Create(
             AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
         test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("build_property.SqlArtisanTargetDbms", "postgres", expected));
+            .WithArguments("build_property.SqlArtisanTargetDbms", "<SqlArtisanSyntax<Dbms>>"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("sqlartisan_target_dbms", "postgres", expected));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
-            .WithArguments("sqlartisan_syntax_<dbms> = <version-or-any>"));
-        await test.RunAsync();
-    }
-
-    // The legacy pair's value validation reads both surfaces too — a junk
-    // version through the MSBuild property must not silently resolve to unset
-    // (losing SQLA0101 coverage with no visible reason).
-    [Fact]
-    public async Task LegacyVersionJunkViaMSBuildProperty_ReportsSqla0001()
-    {
-        const string globalConfig = """
-            is_global = true
-            build_property.SqlArtisanTargetDbms = postgresql
-            build_property.SqlArtisanTargetVersion = 16 or so
-            """;
-
-        var test = AnalyzerVerifier.Create(
-            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
-            editorConfig: null);
-        test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
+            .WithArguments("build_property.SqlArtisanTargetVersion", "<SqlArtisanSyntax<Dbms>>"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments(
-                "build_property.SqlArtisanTargetVersion",
-                "16 or so",
-                "a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
-            .WithArguments("sqlartisan_syntax_postgresql = any"));
-
+            .WithMessage("'sqlartisan_target_dbms' was removed and is ignored; delete it, and "
+                + "declare each dialect with 'sqlartisan_syntax_<dbms>' where not already "
+                + "declared"));
         await test.RunAsync();
     }
 
@@ -452,11 +426,11 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
-    // The shipped props declares a CompilerVisibleProperty per DBMS, so the SDK
-    // emits all five keys (empty when unset) to every consumer; read as "family
-    // present" they hijacked a legacy-configured project's resolution.
+    // The shipped props declares a CompilerVisibleProperty per family DBMS and per removed
+    // key, so the SDK emits every one of them (empty when unset) to every consumer: the
+    // analyzer must stay completely silent for a package consumer that configured nothing.
     [Fact]
-    public async Task BlankFamilyPropertiesBesideLegacyPair_LeaveLegacyResolutionIntact()
+    public async Task BlankDeclaredPropertiesWithNoOtherConfig_StaySilent()
     {
         const string globalConfig = """
             is_global = true
@@ -465,31 +439,8 @@ public class MultiDialectSyntaxAnalyzerTests
             build_property.SqlArtisanSyntaxPostgreSql =
             build_property.SqlArtisanSyntaxSqlite =
             build_property.SqlArtisanSyntaxSqlServer =
-            """;
-
-        var test = AnalyzerVerifier.Create(
-            RollupUsageTemplate,
-            AnalyzerVerifier.LegacyEditorConfig("mysql"));
-        test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
-            .WithArguments("sqlartisan_syntax_mysql = any"));
-
-        await test.RunAsync();
-    }
-
-    // The zero-config half of the same hazard: the analyzer must stay
-    // completely silent for a package consumer that configured nothing.
-    [Fact]
-    public async Task BlankFamilyPropertiesWithNoOtherConfig_StaySilent()
-    {
-        const string globalConfig = """
-            is_global = true
-            build_property.SqlArtisanSyntaxMySql =
-            build_property.SqlArtisanSyntaxOracle =
-            build_property.SqlArtisanSyntaxPostgreSql =
-            build_property.SqlArtisanSyntaxSqlite =
-            build_property.SqlArtisanSyntaxSqlServer =
+            build_property.SqlArtisanTargetDbms =
+            build_property.SqlArtisanTargetVersion =
             """;
 
         var test = AnalyzerVerifier.Create(
@@ -500,11 +451,10 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
-    // Family-wins-outright (#432's precedence rule): the legacy pair's DBMS is
-    // dropped, not merged in, and the coexistence report — not SQLA0002 — names
-    // exactly which one.
+    // The removed key adds nothing to the family: only Oracle is checked (Rollup runs
+    // there), and the leftover line is still reported.
     [Fact]
-    public async Task LegacyAndFamilyCoexist_ReportsSqla0001NamingDroppedDbms_NeverSqla0002()
+    public async Task RemovedKeyBesideFamily_IsReported_AndAddsNoDialect()
     {
         const string editorConfig = """
             root = true
@@ -518,51 +468,15 @@ public class MultiDialectSyntaxAnalyzerTests
             AnalyzerVerifier.Unmarked(RollupUsageTemplate),
             editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments(
-                "sqlartisan_target_dbms",
-                "postgresql",
-                "PostgreSQL",
-                "sqlartisan_syntax_postgresql = any"));
+            .WithArguments("sqlartisan_target_dbms", "sqlartisan_syntax_<dbms>"));
 
         await test.RunAsync();
     }
 
-    // The report names the surface actually read: a project setting only the
-    // MSBuild property never wrote the .editorconfig line the message would
-    // otherwise claim is ignored.
+    // Mid-migration — the family line written, the old one not yet deleted — the family
+    // checks PostgreSQL at its own 14 and the dead line is still named.
     [Fact]
-    public async Task LegacyDbmsViaMSBuildPropertyAndFamilyCoexist_ReportNamesTheMSBuildKey()
-    {
-        const string globalConfig = """
-            is_global = true
-            build_property.SqlArtisanTargetDbms = postgresql
-            """;
-        const string editorConfig = """
-            root = true
-
-            [*.cs]
-            sqlartisan_syntax_oracle = any
-            """;
-
-        var test = AnalyzerVerifier.Create(
-            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
-            editorConfig);
-        test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments(
-                "build_property.SqlArtisanTargetDbms",
-                "postgresql",
-                "PostgreSQL",
-                "sqlartisan_syntax_postgresql = any"));
-
-        await test.RunAsync();
-    }
-
-    // The suggestion carries the legacy version over: a bare key would remediate
-    // nothing (blank reads as unset), and `= any` would silently shed the
-    // dialect's SQLA0101 coverage.
-    [Fact]
-    public async Task LegacyPairWithVersionAndFamilyCoexist_SuggestionCarriesTheVersion()
+    public async Task RemovedKeyBesideFamilyForTheSameDbms_ReportsBoth()
     {
         const string editorConfig = """
             root = true
@@ -570,33 +484,6 @@ public class MultiDialectSyntaxAnalyzerTests
             [*.cs]
             sqlartisan_target_dbms = postgresql
             sqlartisan_target_version = 16
-            sqlartisan_syntax_oracle = any
-            """;
-
-        var test = AnalyzerVerifier.Create(
-            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
-            editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments(
-                "sqlartisan_target_dbms",
-                "postgresql",
-                "PostgreSQL",
-                "sqlartisan_syntax_postgresql = 16"));
-
-        await test.RunAsync();
-    }
-
-    // Mid-migration: the family names the same DBMS the legacy pair does, so
-    // nothing is dropped — a coexistence report would claim an unchecked dialect
-    // while an SQLA0101 in the same build proves it checked.
-    [Fact]
-    public async Task LegacyAndFamilySameDbms_ReportsTheDialectDiagnosticOnly()
-    {
-        const string editorConfig = """
-            root = true
-
-            [*.cs]
-            sqlartisan_target_dbms = postgresql
             sqlartisan_syntax_postgresql = 14
             """;
 
@@ -609,124 +496,30 @@ public class MultiDialectSyntaxAnalyzerTests
                 "15",
                 "14",
                 "sqlartisan_construct_merge_into"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments("sqlartisan_target_dbms", "sqlartisan_syntax_<dbms>"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments("sqlartisan_target_version", "sqlartisan_syntax_<dbms>"));
 
         await test.RunAsync();
     }
 
-    // `none` for the legacy pair's own DBMS is the user's explicit statement
-    // about it — not a silent drop — so only the empty-set reason reports.
+    // Rollup is unsupported on MySQL, yet no SQLA0100: the removed key configures nothing.
     [Fact]
-    public async Task LegacyDbmsSetToNoneInFamily_ReportsEmptySetOnly_NoCoexistenceReport()
+    public async Task RemovedKeyAlone_ChecksNothing_ReportsTheKey()
     {
         const string editorConfig = """
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = postgresql
-            sqlartisan_syntax_postgresql = none
-            """;
-
-        var test = AnalyzerVerifier.Create(
-            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
-            editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithMessage(
-            "In at least one file's effective configuration, every 'sqlartisan_syntax_*' "
-                + "key is 'none', "
-                + "so that file has no dialect left to check"));
-
-        await test.RunAsync();
-    }
-
-    // An invalid family value for the legacy pair's own DBMS: the
-    // value-validation reason already names the key and the value, so neither
-    // the coexistence report nor SQLA0002 fires on top of it.
-    [Fact]
-    public async Task LegacyDbmsWithInvalidFamilyValueForSameDbms_ReportsValueValidationOnly()
-    {
-        const string editorConfig = """
-            root = true
-
-            [*.cs]
-            sqlartisan_target_dbms = postgresql
-            sqlartisan_syntax_postgresql = tru
+            sqlartisan_target_dbms = mysql
             """;
 
         var test = AnalyzerVerifier.Create(
             AnalyzerVerifier.Unmarked(RollupUsageTemplate),
             editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments(
-                "sqlartisan_syntax_postgresql",
-                "tru",
-                "any, none, or a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
-
-        await test.RunAsync();
-    }
-
-    // The pitfall docs/analyzer.md documents for the legacy pair ("a version
-    // alone identifies no engine") still earns the deprecation nag: the key
-    // itself resolves even though it has no dialect effect.
-    [Fact]
-    public async Task LegacyVersionAlone_NoFamilyPresent_ReportsSqla0002()
-    {
-        const string editorConfig = """
-            root = true
-
-            [*.cs]
-            sqlartisan_target_version = 16
-            """;
-
-        var test = AnalyzerVerifier.Create(
-            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
-            editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
-            .WithArguments("sqlartisan_syntax_<dbms> = <version-or-any>"));
-
-        await test.RunAsync();
-    }
-
-    [Fact]
-    public async Task LegacyPairAlone_ResolvesCorrectlyAndReportsSqla0002()
-    {
-        string editorConfig = AnalyzerVerifier.LegacyEditorConfig("mysql");
-
-        var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
-            .WithArguments("sqlartisan_syntax_mysql = any"));
-
-        await test.RunAsync();
-    }
-
-    // Like SQLA0001, SQLA0002 carries no file location, so only a global analyzer
-    // config reaches it (docs/analyzer.md's Migrating section); the file-scoped
-    // twin below shows an .editorconfig severity line leaving it standing.
-    [Fact]
-    public async Task GlobalConfigSuppressesSqla0002_ButLeavesSqla0100Active()
-    {
-        string editorConfig = AnalyzerVerifier.LegacyEditorConfig("mysql");
-        const string globalConfig = """
-            is_global = true
-            dotnet_diagnostic.SQLA0002.severity = none
-            """;
-
-        var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
-        test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
-
-        await test.RunAsync();
-    }
-
-    [Fact]
-    public async Task FileScopedSeverityDoesNotReachSqla0002()
-    {
-        string editorConfig = AnalyzerVerifier.LegacyEditorConfig("mysql")
-            + "\ndotnet_diagnostic.SQLA0002.severity = none\n";
-
-        var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
-            .WithArguments("sqlartisan_syntax_mysql = any"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+            .WithArguments("sqlartisan_target_dbms", "sqlartisan_syntax_<dbms>"));
 
         await test.RunAsync();
     }
@@ -763,52 +556,24 @@ public class MultiDialectSyntaxAnalyzerTests
         }
         """;
 
-    // Directory-scoped .editorconfig files are an advertised shape, so the
-    // dedup must key on the message content, not one compilation-wide flag —
-    // a coarser key mutes the second directory's differing suggestion.
+    // The reports carry no location, so one key read by files with different family lines
+    // must get one piece of advice true for all of them — never "delete it" for the
+    // migrated directory beside a replacement line that would override it (#654).
     [Fact]
-    public async Task TwoDirectoriesWithDifferentLegacyConfigs_ReportSqla0002ForEach()
+    public async Task RemovedKeyAcrossDirectoriesWithDifferentFamilies_ReportsOnceUniformly()
     {
         const string rootConfig = """
             root = true
 
             [*.cs]
             sqlartisan_target_dbms = postgresql
-            """;
-        const string subConfig = """
-            [*.cs]
-            sqlartisan_target_dbms = oracle
-            sqlartisan_target_version = 21
-            """;
-
-        var test = AnalyzerVerifier.Create(
-            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
-            rootConfig);
-        test.TestState.Sources.Add(("/sub/Second.cs", SecondaryUsageSource));
-        test.TestState.AnalyzerConfigFiles.Add(("/sub/.editorconfig", subConfig));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
-            .WithArguments("sqlartisan_syntax_postgresql = any"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
-            .WithArguments("sqlartisan_syntax_oracle = 21"));
-
-        await test.RunAsync();
-    }
-
-    [Fact]
-    public async Task TwoDirectoriesWithDifferentDroppedVersions_ReportSqla0001ForEach()
-    {
-        const string rootConfig = """
-            root = true
-
-            [*.cs]
-            sqlartisan_syntax_oracle = any
-            sqlartisan_target_dbms = postgresql
-            sqlartisan_target_version = 15
-            """;
-        const string subConfig = """
-            [*.cs]
             sqlartisan_target_version = 16
             """;
+        const string subConfig = """
+            [*.cs]
+            sqlartisan_syntax_postgresql = 14
+            sqlartisan_target_dbms = oracle
+            """;
 
         var test = AnalyzerVerifier.Create(
             AnalyzerVerifier.Unmarked(RollupUsageTemplate),
@@ -816,17 +581,9 @@ public class MultiDialectSyntaxAnalyzerTests
         test.TestState.Sources.Add(("/sub/Second.cs", SecondaryUsageSource));
         test.TestState.AnalyzerConfigFiles.Add(("/sub/.editorconfig", subConfig));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments(
-                "sqlartisan_target_dbms",
-                "postgresql",
-                "PostgreSQL",
-                "sqlartisan_syntax_postgresql = 15"));
+            .WithArguments("sqlartisan_target_dbms", "sqlartisan_syntax_<dbms>"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments(
-                "sqlartisan_target_dbms",
-                "postgresql",
-                "PostgreSQL",
-                "sqlartisan_syntax_postgresql = 16"));
+            .WithArguments("sqlartisan_target_version", "sqlartisan_syntax_<dbms>"));
 
         await test.RunAsync();
     }

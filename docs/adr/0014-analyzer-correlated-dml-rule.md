@@ -3,7 +3,10 @@
 **Status:** Accepted — the shared-category decision superseded in part by
 [ADR 0018](0018-analyzer-diagnostic-id-bands.md), which gives this rule the
 `SqlArtisan.Validity` category the *Identity decisions* paragraph below
-rejects. Everything else here stands.
+rejects; the opt-in gate's `sqlartisan_target_dbms` is now
+`sqlartisan_syntax_<dbms>`, the old key removed by
+[ADR 0024](0024-analyzer-legacy-target-pair-removal.md). Everything else here
+stands.
 
 ## Context
 

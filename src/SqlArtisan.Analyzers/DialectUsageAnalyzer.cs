@@ -33,8 +33,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.InvalidConfiguration,
         DiagnosticDescriptors.UnrecognizedConfigurationKey,
         DiagnosticDescriptors.ConfigurationDisablesAllDialects,
-        DiagnosticDescriptors.LegacyConfigurationIgnored,
-        DiagnosticDescriptors.LegacyConfigDeprecated,
+        DiagnosticDescriptors.RemovedConfigurationKey,
         DiagnosticDescriptors.UnsupportedDialectConstruct,
         DiagnosticDescriptors.VersionBoundConstruct,
         DiagnosticDescriptors.ContextRestrictedConstruct,
@@ -779,63 +778,29 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         IdentifierLengthRule.Check(context, member, arguments, targets);
     }
 
-    private static readonly string[] LegacyDbmsKeys =
-    [
-        AnalyzerConfigResolver.TargetDbmsKey, AnalyzerConfigResolver.TargetDbmsMSBuildPropertyKey,
-    ];
-
-    private static readonly string[] LegacyVersionKeys =
-    [
-        AnalyzerConfigResolver.TargetVersionKey, AnalyzerConfigResolver
-            .TargetVersionMSBuildPropertyKey,
-    ];
-
     private static void ValidateConfiguration(CompilationAnalysisContext context)
     {
-        // Keyed like the family loops below: the message names the key, so the
-        // same bad value on both surfaces is two reports, not one.
-        var reportedTargetValues = new HashSet<(string Key, string Value)>();
-        var reportedVersionValues = new HashSet<(string Key, string Value)>();
+        var reportedRemovedKeys = new HashSet<string>(StringComparer.Ordinal);
         var reportedOverrideValues = new HashSet<(string Key, string Value)>();
         string[] overrideKeys = [.. DialectMatrix.AllOverrideKeys.Distinct()];
-        string validTargetNames = string.Join("/", AnalyzerConfigResolver.ValidTargetNames);
 
         foreach (SyntaxTree tree in context.Compilation.SyntaxTrees)
         {
             AnalyzerConfigOptions options =
                 context.Options.AnalyzerConfigOptionsProvider.GetOptions(tree);
 
-            // Both surfaces — a typo in the MSBuild property is exactly as silent as
-            // one in the .editorconfig key; blank SDK-emitted property values are unset.
-            foreach (string targetKey in LegacyDbmsKeys)
+            // Any value, recognized or not: the key does nothing either way. Blank is
+            // unset — the kept CompilerVisibleProperty emits the MSBuild keys to every build.
+            foreach (string removedKey in AnalyzerConfigResolver.RemovedKeys)
             {
-                if (options.TryGetValue(targetKey, out string? targetValue)
-                    && !string.IsNullOrWhiteSpace(targetValue)
-                    && !AnalyzerConfigResolver.IsRecognizedTargetValue(targetValue)
-                    && reportedTargetValues.Add((targetKey, targetValue)))
+                if (AnalyzerConfigResolver.TryGetSetValue(options, removedKey, out _)
+                    && reportedRemovedKeys.Add(removedKey))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
-                        DiagnosticDescriptors.InvalidConfiguration,
+                        DiagnosticDescriptors.RemovedConfigurationKey,
                         Location.None,
-                        targetKey,
-                        targetValue,
-                        $"one of: {validTargetNames}"));
-                }
-            }
-
-            foreach (string versionKey in LegacyVersionKeys)
-            {
-                if (options.TryGetValue(versionKey, out string? versionValue)
-                    && !string.IsNullOrWhiteSpace(versionValue)
-                    && !AnalyzerConfigResolver.IsRecognizedVersionValue(versionValue)
-                    && reportedVersionValues.Add((versionKey, versionValue)))
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        DiagnosticDescriptors.InvalidConfiguration,
-                        Location.None,
-                        versionKey,
-                        versionValue,
-                        "a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
+                        removedKey,
+                        AnalyzerConfigResolver.RemovedKeyReplacement(removedKey)));
                 }
             }
 
@@ -866,18 +831,15 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         ValidateSyntaxFamily(context);
     }
 
-    // Four more SQLA0001 reasons plus the SQLA0002 nag (#432), each deduplicated at
-    // the granularity its message varies by: directory-scoped .editorconfig can give
-    // trees different configs, so a coarser dedup key would mute a differing message.
+    // Three more SQLA0001 reasons (#432), each deduplicated at the granularity its
+    // message varies by: directory-scoped .editorconfig can give trees different
+    // configs, so a coarser dedup key would mute a differing message.
     private static void ValidateSyntaxFamily(CompilationAnalysisContext context)
     {
         var reportedUnrecognizedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var reportedSyntaxValues = new HashSet<(string Key, string Value)>();
-        var reportedDroppedConfigs =
-            new HashSet<(string Key, string Value, TargetDbms Dbms, string Suggestion)>();
-        var reportedDeprecations = new HashSet<string>(StringComparer.Ordinal);
         bool reportedEmptySet = false;
-        string validDbmsNames = string.Join("/", AnalyzerConfigResolver.ValidTargetNames);
+        string validDbmsNames = string.Join("/", AnalyzerConfigResolver.DbmsNames);
 
         foreach (SyntaxTree tree in context.Compilation.SyntaxTrees)
         {
@@ -931,75 +893,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticDescriptors.ConfigurationDisablesAllDialects, Location.None));
             }
-
-            // Only when the family does not itself name the legacy DBMS: a family key
-            // set for that DBMS is the user's own statement about it (ADR 0019).
-            if (familyPresent
-                && AnalyzerConfigResolver.ResolveTarget(options) is { } droppedDbms
-                && !AnalyzerConfigResolver.IsFamilyKeySet(options, droppedDbms))
-            {
-                (string legacyKey, string legacyValue) = LegacyDbmsSource(options, droppedDbms);
-                string suggestion = FamilyKeySuggestion(options, droppedDbms);
-                if (reportedDroppedConfigs.Add((legacyKey, legacyValue, droppedDbms, suggestion)))
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        DiagnosticDescriptors.LegacyConfigurationIgnored,
-                        Location.None,
-                        legacyKey,
-                        legacyValue,
-                        TargetDbmsNames.Display(droppedDbms),
-                        suggestion));
-                }
-            }
-
-            if (!familyPresent
-                && (AnalyzerConfigResolver.ResolveTarget(options) is not null
-                    || AnalyzerConfigResolver.ResolveTargetVersion(options) is not null)
-                && reportedDeprecations.Add(LegacyReplacementSuggestion(options)))
-            {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    DiagnosticDescriptors.LegacyConfigDeprecated,
-                    Location.None,
-                    LegacyReplacementSuggestion(options)));
-            }
         }
     }
-
-    // The key half matters as much as the value: a project setting only the
-    // MSBuild property must not be told an .editorconfig line it never wrote is
-    // being ignored.
-    private static (string Key, string Value) LegacyDbmsSource(
-        AnalyzerConfigOptions options,
-        TargetDbms resolved)
-    {
-        if (options.TryGetValue(AnalyzerConfigResolver.TargetDbmsKey, out string? editorConfigValue)
-            && AnalyzerConfigResolver.IsRecognizedTargetValue(editorConfigValue))
-        {
-            return (AnalyzerConfigResolver.TargetDbmsKey, editorConfigValue);
-        }
-
-        if (options.TryGetValue(
-                AnalyzerConfigResolver.TargetDbmsMSBuildPropertyKey, out string? msBuildValue)
-            && AnalyzerConfigResolver.IsRecognizedTargetValue(msBuildValue))
-        {
-            return (AnalyzerConfigResolver.TargetDbmsMSBuildPropertyKey, msBuildValue);
-        }
-
-        return (AnalyzerConfigResolver.TargetDbmsKey, resolved.ToString());
-    }
-
-    private static string LegacyReplacementSuggestion(AnalyzerConfigOptions options) =>
-        AnalyzerConfigResolver.ResolveTarget(options) is { } dbms
-            ? FamilyKeySuggestion(options, dbms)
-            : "sqlartisan_syntax_<dbms> = <version-or-any>";
-
-    // Always a full `key = value` line: a bare key would remediate nothing (a blank
-    // value reads as unset), and dropping the legacy version would silently shed the
-    // dialect's SQLA0101 coverage along with it.
-    private static string FamilyKeySuggestion(AnalyzerConfigOptions options, TargetDbms dbms) =>
-        $"{AnalyzerConfigResolver.SyntaxKey(dbms)} = "
-            + (AnalyzerConfigResolver.ResolveTargetVersion(options)?.ToString()
-                ?? AnalyzerConfigResolver.AnyValue);
 
     internal static bool IsFromSqlArtisan(IAssemblySymbol? assembly) =>
         assembly?.Name == SqlArtisanAssemblyName;

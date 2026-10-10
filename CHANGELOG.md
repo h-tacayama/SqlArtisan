@@ -281,6 +281,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   driver reported:". Two messages were two sentences, and some ended with a
   period while others did not. (#645)
 
+### Removed
+- **Breaking:** the analyzer's `sqlartisan_target_dbms` /
+  `sqlartisan_target_version` keys and their `<SqlArtisanTargetDbms>` /
+  `<SqlArtisanTargetVersion>` MSBuild properties, deprecated since
+  0.9.0-beta.1, are removed. A project still on them gets no dialect checks
+  until it migrates — `sqlartisan_target_dbms = postgresql` +
+  `sqlartisan_target_version = 16` → `sqlartisan_syntax_postgresql = 16` — but
+  is told so: each removed key still set reports `SQLA0001`, asking for it to
+  be deleted and each dialect declared with `sqlartisan_syntax_<dbms>` where
+  not already declared. `SQLA0002`, the pair's deprecation warning, is retired
+  and will not be reused; a leftover `<NoWarn>SQLA0002</NoWarn>` can be deleted. See
+  [Migrating from the legacy target key](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#migrating-from-the-legacy-target-key).
+  (#654)
+
 ### Fixed
 - `ExecuteArrayBind` binds by name. A `BindValue` passed to several clauses
   emits its marker in each (`UPDATE t SET qty = :0 WHERE id = :0`), and bound by

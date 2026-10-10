@@ -4,63 +4,6 @@ namespace SqlArtisan.Analyzers.Tests;
 
 public class AnalyzerConfigResolverTests
 {
-    [Fact]
-    public void ResolveTarget_Unset_ReturnsNull()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
-
-        Assert.Null(AnalyzerConfigResolver.ResolveTarget(options));
-    }
-
-    [Theory]
-    [InlineData("mysql", "MySql")]
-    [InlineData("MySQL", "MySql")]
-    [InlineData("postgresql", "PostgreSql")]
-    [InlineData("sqlserver", "SqlServer")]
-    public void ResolveTarget_EditorConfigValue_IsCaseInsensitive(string value, string expectedName)
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.TargetDbmsKey] = value,
-        });
-
-        Assert.Equal(expectedName, AnalyzerConfigResolver.ResolveTarget(options)?.ToString());
-    }
-
-    [Fact]
-    public void ResolveTarget_EditorConfigSet_WinsOverMSBuildProperty()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.TargetDbmsKey] = "mysql",
-            [AnalyzerConfigResolver.TargetDbmsMSBuildPropertyKey] = "oracle",
-        });
-
-        Assert.Equal(TargetDbms.MySql, AnalyzerConfigResolver.ResolveTarget(options));
-    }
-
-    [Fact]
-    public void ResolveTarget_OnlyMSBuildPropertySet_IsUsedAsFallback()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.TargetDbmsMSBuildPropertyKey] = "sqlite",
-        });
-
-        Assert.Equal(TargetDbms.Sqlite, AnalyzerConfigResolver.ResolveTarget(options));
-    }
-
-    [Fact]
-    public void ResolveTarget_InvalidValue_ReturnsNull()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.TargetDbmsKey] = "postgres", // not "postgresql"
-        });
-
-        Assert.Null(AnalyzerConfigResolver.ResolveTarget(options));
-    }
-
     [Theory]
     [InlineData("supported", true)]
     [InlineData("SUPPORTED", true)]
@@ -85,75 +28,11 @@ public class AnalyzerConfigResolverTests
     }
 
     [Fact]
-    public void ResolveTargetVersion_Unset_ReturnsNull()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
-
-        Assert.Null(AnalyzerConfigResolver.ResolveTargetVersion(options));
-    }
-
-    [Fact]
-    public void ResolveTargetVersion_EditorConfigValue_IsParsed()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.TargetVersionKey] = "8.0.16",
-        });
-
-        Assert.Equal("8.0.16", AnalyzerConfigResolver.ResolveTargetVersion(options)?.ToString());
-    }
-
-    [Fact]
-    public void ResolveTargetVersion_EditorConfigSet_WinsOverMSBuildProperty()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.TargetVersionKey] = "23",
-            [AnalyzerConfigResolver.TargetVersionMSBuildPropertyKey] = "21.3",
-        });
-
-        Assert.Equal("23", AnalyzerConfigResolver.ResolveTargetVersion(options)?.ToString());
-    }
-
-    [Fact]
-    public void ResolveTargetVersion_OnlyMSBuildPropertySet_IsUsedAsFallback()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.TargetVersionMSBuildPropertyKey] = "2022",
-        });
-
-        Assert.Equal("2022", AnalyzerConfigResolver.ResolveTargetVersion(options)?.ToString());
-    }
-
-    [Fact]
-    public void ResolveTargetVersion_EditorConfigValueUnparseable_FallsThroughToMSBuildProperty()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.TargetVersionKey] = "latest",
-            [AnalyzerConfigResolver.TargetVersionMSBuildPropertyKey] = "2022",
-        });
-
-        Assert.Equal("2022", AnalyzerConfigResolver.ResolveTargetVersion(options)?.ToString());
-    }
-
-    [Theory]
-    [InlineData("8.0.16", true)]
-    [InlineData("23ai", true)]
-    [InlineData("latest", false)]
-    [InlineData("", false)]
-    public void IsRecognizedVersionValue_MatchesParseability(string value, bool expected)
-    {
-        Assert.Equal(expected, AnalyzerConfigResolver.IsRecognizedVersionValue(value));
-    }
-
-    [Fact]
     public void IsFamilyPresent_NoSyntaxKey_ReturnsFalse()
     {
         var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
         {
-            [AnalyzerConfigResolver.TargetDbmsKey] = "postgresql",
+            [AnalyzerConfigResolver.RemovedTargetDbmsKey] = "postgresql",
         });
 
         Assert.False(AnalyzerConfigResolver.IsFamilyPresent(options));
@@ -173,8 +52,8 @@ public class AnalyzerConfigResolverTests
     // The SDK emits a key for every declared CompilerVisibleProperty, with an
     // empty value when the consumer never set one — so the five properties the
     // shipped props declares reach every package consumer. Reading those as
-    // "family present" would make the family govern in projects that named no
-    // dialect at all, silently dropping a legacy-configured target.
+    // "family present" would configure the analyzer in projects that named no
+    // dialect at all.
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
@@ -187,19 +66,6 @@ public class AnalyzerConfigResolverTests
         });
 
         Assert.False(AnalyzerConfigResolver.IsFamilyPresent(options));
-    }
-
-    [Fact]
-    public void ResolveTargets_LegacyPairBesideBlankValuedFamilyKeys_StillDesugarsLegacy()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.TargetDbmsKey] = "mysql",
-            [AnalyzerConfigResolver.SyntaxMSBuildPropertyKey(TargetDbms.MySql)] = string.Empty,
-            [AnalyzerConfigResolver.SyntaxMSBuildPropertyKey(TargetDbms.Oracle)] = string.Empty,
-        });
-
-        Assert.True(AnalyzerConfigResolver.ResolveTargets(options).Contains(TargetDbms.MySql));
     }
 
     [Fact]
@@ -221,19 +87,16 @@ public class AnalyzerConfigResolverTests
     }
 
     [Fact]
-    public void ResolveTargets_LegacyPairAlone_DesugarsToSingleDbms()
+    public void ResolveTargets_RemovedPairAlone_ReturnsEmpty()
     {
         var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
         {
-            [AnalyzerConfigResolver.TargetDbmsKey] = "postgresql",
-            [AnalyzerConfigResolver.TargetVersionKey] = "16",
+            [AnalyzerConfigResolver.RemovedTargetDbmsKey] = "postgresql",
+            [AnalyzerConfigResolver.RemovedTargetVersionKey] = "16",
+            [AnalyzerConfigResolver.RemovedTargetDbmsMSBuildPropertyKey] = "oracle",
         });
 
-        DialectTargetSet set = AnalyzerConfigResolver.ResolveTargets(options);
-
-        Assert.True(set.Contains(TargetDbms.PostgreSql));
-        Assert.Equal("16", set.VersionFor(TargetDbms.PostgreSql)?.ToString());
-        Assert.False(set.Contains(TargetDbms.MySql));
+        Assert.True(AnalyzerConfigResolver.ResolveTargets(options).IsEmpty);
     }
 
     [Fact]
@@ -242,21 +105,6 @@ public class AnalyzerConfigResolverTests
         var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
 
         Assert.True(AnalyzerConfigResolver.ResolveTargets(options).IsEmpty);
-    }
-
-    [Fact]
-    public void ResolveTargets_FamilyPresent_IgnoresLegacyPairEvenForAnUnnamedDbms()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.TargetDbmsKey] = "postgresql",
-            [AnalyzerConfigResolver.SyntaxKey(TargetDbms.Oracle)] = "any",
-        });
-
-        DialectTargetSet set = AnalyzerConfigResolver.ResolveTargets(options);
-
-        Assert.True(set.Contains(TargetDbms.Oracle));
-        Assert.False(set.Contains(TargetDbms.PostgreSql));
     }
 
     [Theory]
@@ -316,21 +164,6 @@ public class AnalyzerConfigResolverTests
     }
 
     [Fact]
-    public void ResolveTargets_FamilyViaMSBuildProperty_GovernsOverEditorConfigLegacyPair()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            [AnalyzerConfigResolver.TargetDbmsKey] = "postgresql",
-            [AnalyzerConfigResolver.SyntaxMSBuildPropertyKey(TargetDbms.Sqlite)] = "any",
-        });
-
-        DialectTargetSet set = AnalyzerConfigResolver.ResolveTargets(options);
-
-        Assert.True(set.Contains(TargetDbms.Sqlite));
-        Assert.False(set.Contains(TargetDbms.PostgreSql));
-    }
-
-    [Fact]
     public void ResolveTargets_InvalidEditorConfigValue_FallsThroughToMSBuildProperty()
     {
         var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
@@ -352,7 +185,7 @@ public class AnalyzerConfigResolverTests
         {
             [AnalyzerConfigResolver.SyntaxKey(TargetDbms.Oracle)] = "any",
             ["sqlartisan_syntax_postgres"] = "16", // typo'd DBMS name
-            [AnalyzerConfigResolver.TargetDbmsKey] = "postgresql",
+            [AnalyzerConfigResolver.RemovedTargetDbmsKey] = "postgresql",
         });
 
         bool succeeded = AnalyzerConfigResolver.TryEnumerateSyntaxKeys(
@@ -375,5 +208,17 @@ public class AnalyzerConfigResolverTests
 
         Assert.False(succeeded);
         Assert.Empty(keys);
+    }
+
+    // Fixed per surface, never derived from the file's config: a per-file line contradicted
+    // itself across .editorconfig scopes, since a location-less report cannot say which file.
+    [Theory]
+    [InlineData("sqlartisan_target_dbms", "sqlartisan_syntax_<dbms>")]
+    [InlineData("sqlartisan_target_version", "sqlartisan_syntax_<dbms>")]
+    [InlineData("build_property.SqlArtisanTargetDbms", "<SqlArtisanSyntax<Dbms>>")]
+    [InlineData("build_property.SqlArtisanTargetVersion", "<SqlArtisanSyntax<Dbms>>")]
+    public void RemovedKeyReplacement_IsSpelledForTheKeysSurface(string removedKey, string expected)
+    {
+        Assert.Equal(expected, AnalyzerConfigResolver.RemovedKeyReplacement(removedKey));
     }
 }

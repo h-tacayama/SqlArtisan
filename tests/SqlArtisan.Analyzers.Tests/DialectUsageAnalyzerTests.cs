@@ -254,11 +254,10 @@ public class DialectUsageAnalyzerTests
         await test.RunAsync();
     }
 
-    // sqlartisan_target_version alone identifies no engine (the legacy pair's
-    // documented pitfall) — but the key itself still resolves, so it still
-    // earns the SQLA0002 deprecation nag even though it has no dialect effect.
+    // A removed key no longer configures anything, so the dialect rules stay silent — but
+    // the key itself still reports, or the silence would read as a clean build (#654).
     [Fact]
-    public async Task VersionOnlyNoTargetDbms_SilentOnDialectRules_ReportsSqla0002()
+    public async Task RemovedTargetVersionKey_SilentOnDialectRules_ReportsSqla0001()
     {
         const string editorConfig = """
             root = true
@@ -270,8 +269,8 @@ public class DialectUsageAnalyzerTests
         var test = AnalyzerVerifier.Create(
             AnalyzerVerifier.Unmarked(DatetruncUsageTemplate),
             editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
-            .WithArguments("sqlartisan_syntax_<dbms> = <version-or-any>"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments("sqlartisan_target_version", "sqlartisan_syntax_<dbms>"));
         await test.RunAsync();
     }
 
@@ -289,49 +288,6 @@ public class DialectUsageAnalyzerTests
         var test = AnalyzerVerifier.Create(
             AnalyzerVerifier.Unmarked(DatetruncUsageTemplate),
             editorConfig);
-        await test.RunAsync();
-    }
-
-    // An invalid legacy dbms value never resolves, so it never earns the
-    // SQLA0002 deprecation nag on top — SQLA0001's value-validation reason is
-    // the only report.
-    [Fact]
-    public async Task InvalidTargetValue_ReportsSqla0001()
-    {
-        string editorConfig = AnalyzerVerifier.LegacyEditorConfig("postgres");
-
-        string source = RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace(
-            "|}",
-            string.Empty);
-        var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments(
-                "sqlartisan_target_dbms",
-                "postgres",
-                "one of: mysql/oracle/postgresql/sqlite/sqlserver"));
-
-        await test.RunAsync();
-    }
-
-    // Unlike the sibling above, the dbms half resolves here (postgresql is
-    // valid) — only the version is bad — so this earns SQLA0002 alongside
-    // SQLA0001's value-validation reason.
-    [Fact]
-    public async Task InvalidTargetVersionValue_ReportsSqla0001AndSqla0002()
-    {
-        string editorConfig = AnalyzerVerifier.LegacyEditorConfig("postgresql", "latest");
-
-        string source = RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace(
-            "|}",
-            string.Empty);
-        var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments(
-                "sqlartisan_target_version", "latest", "a numeric engine version such as 8.0.16, "
-                    + "23, 3.44, or 2022"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
-            .WithArguments("sqlartisan_syntax_postgresql = any"));
-
         await test.RunAsync();
     }
 

@@ -42,7 +42,7 @@ internal static class DiagnosticDescriptors
         customTags: WellKnownDiagnosticTags.CompilationEnd);
 
     // A second SQLA0001 reason (#432): a DBMS in the key name is typo-detectable
-    // through Keys enumeration, unlike the legacy pair's DBMS-in-the-value shape.
+    // through Keys enumeration.
     public static readonly DiagnosticDescriptor UnrecognizedConfigurationKey = new(
         id: "SQLA0001",
         title: "SqlArtisan analyzer configuration problem",
@@ -67,26 +67,14 @@ internal static class DiagnosticDescriptors
         helpLinkUri: HelpLinkUri,
         customTags: WellKnownDiagnosticTags.CompilationEnd);
 
-    // A fourth SQLA0001 reason (#432): the family wins over the legacy pair
-    // outright, so a project adding it beside the pair drops that DBMS unless told.
-    public static readonly DiagnosticDescriptor LegacyConfigurationIgnored = new(
+    // A fourth SQLA0001 reason (#654): an unconfigured analyzer is silent, so a removed key
+    // left set would read as a clean build. Retires SQLA0002 (never reuse it). The advice is
+    // fixed: a per-file line would contradict itself across .editorconfig scopes (ADR 0024).
+    public static readonly DiagnosticDescriptor RemovedConfigurationKey = new(
         id: "SQLA0001",
         title: "SqlArtisan analyzer configuration problem",
-        messageFormat: "'{0} = {1}' is ignored where 'sqlartisan_syntax_*' is set, so {2} is not "
-            + "checked. Add '{3}' to keep it.",
-        category: ConfigurationCategory,
-        defaultSeverity: DiagnosticSeverity.Warning,
-        isEnabledByDefault: true,
-        helpLinkUri: HelpLinkUri,
-        customTags: WellKnownDiagnosticTags.CompilationEnd);
-
-    // A dedicated id (#432): sharing SQLA0001 with a Warning-severity nag would
-    // let every lever that silences the nag silence real config-error detection.
-    public static readonly DiagnosticDescriptor LegacyConfigDeprecated = new(
-        id: "SQLA0002",
-        title: "'sqlartisan_target_dbms' / 'sqlartisan_target_version' are deprecated",
-        messageFormat: "'sqlartisan_target_dbms'/'sqlartisan_target_version' are deprecated; use "
-            + "'{0}' instead",
+        messageFormat: "'{0}' was removed and is ignored; delete it, and declare each dialect "
+            + "with '{1}' where not already declared",
         category: ConfigurationCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,

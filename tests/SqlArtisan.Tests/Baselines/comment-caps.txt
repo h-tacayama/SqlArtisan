@@ -1,5 +1,5 @@
 # path count — over-cap comment blocks per file (CommentCapRatchetTests)
-src/SqlArtisan.Analyzers/AnalyzerConfigResolver.cs 4
+src/SqlArtisan.Analyzers/AnalyzerConfigResolver.cs 3
 src/SqlArtisan.Analyzers/ConstructKeyNaming.cs 2
 src/SqlArtisan.Analyzers/CorrelatedDmlRule.cs 1
 src/SqlArtisan.Analyzers/DiagnosticDescriptors.cs 1

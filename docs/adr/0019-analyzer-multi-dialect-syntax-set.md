@@ -1,6 +1,9 @@
 # ADR 0019 — Analyzer multi-dialect syntax set: `sqlartisan_syntax_*`, one key per DBMS
 
-**Status:** Accepted
+**Status:** Accepted — the legacy-pair decisions (the pair still resolving,
+`SQLA0002`, and the coexistence `SQLA0001` reason) superseded by
+[ADR 0024](0024-analyzer-legacy-target-pair-removal.md), which removes the
+pair. Everything else here stands.
 
 ## Context
 

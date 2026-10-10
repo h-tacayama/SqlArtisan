@@ -48,6 +48,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 | [0021](0021-analyzer-matrix-key-granularity.md) | Dialect-matrix key granularity: member-level by default, arity as a narrowing layer | Analyzer | Accepted |
 | [0022](0022-analyzer-value-domain-argument-ids.md) | Value-domain arguments: every literal value verdict under one diagnostic ID | Analyzer | Accepted |
 | [0023](0023-analyzer-csharp-fallback-rules.md) | C# fallbacks: a query object C# resolves without SqlArtisan | Analyzer | Accepted |
+| [0024](0024-analyzer-legacy-target-pair-removal.md) | Removing the legacy target pair: a removed key is reported, never ignored | Analyzer | Accepted |
 
 ### Clusters
 
@@ -63,21 +64,23 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   join predicate some dialects silently reinterpret as `CROSS JOIN`). All four
   are required to answer "will the library throw for this?"
 - **Analyzer** (0003 + 0008 + 0009 + 0013 + 0014 + 0015 + 0018 + 0019 + 0021 +
-  0022 + 0023) — *How does the dialect analyzer work?* 0003 chooses the permissive-API +
-  opt-in-analyzer approach; 0008 designs the override configuration; 0009
-  decides bundled distribution; 0013 adds position-dependent context rules
-  (SQLA0102); 0014 adds the advisory correlated-DML rule (SQLA0300)
-  duplicating the runtime guard; 0015 adds version-interval bounds evaluated
-  against a declared engine version (SQLA0101); 0018 bands the diagnostic IDs
-  by category, superseding 0014's shared-category decision; 0019 lets a
-  project check a *set* of dialects instead of one (`sqlartisan_syntax_*`),
-  refining 0008's precedence section and adding SQLA0002; 0021 fixes which of
-  0008's two key levels the shipped matrix itself asserts at (member-level by
-  default, arity only to narrow it); 0022 keeps every verdict on the value
-  dimension the matrix cannot key on under one id (SQLA0104), applying 0019's
-  splitting test and 0013's provable-or-silent discipline to a literal
-  argument value; 0023 adds the C# fallback rules (SQLA0301, SQLA0302) and
-  widens the question 0018 gave the Validity band.
+  0022 + 0023 + 0024) — *How does the dialect analyzer work?* 0003 chooses the
+  permissive-API + opt-in-analyzer approach; 0008 designs the override
+  configuration; 0009 decides bundled distribution; 0013 adds
+  position-dependent context rules (SQLA0102); 0014 adds the advisory
+  correlated-DML rule (SQLA0300) duplicating the runtime guard; 0015 adds
+  version-interval bounds evaluated against a declared engine version
+  (SQLA0101); 0018 bands the diagnostic IDs by category, superseding 0014's
+  shared-category decision; 0019 lets a project check a *set* of dialects
+  instead of one (`sqlartisan_syntax_*`), refining 0008's precedence section
+  and adding SQLA0002; 0021 fixes which of 0008's two key levels the shipped
+  matrix itself asserts at (member-level by default, arity only to narrow it);
+  0022 keeps every verdict on the value dimension the matrix cannot key on
+  under one id (SQLA0104), applying 0019's splitting test and 0013's
+  provable-or-silent discipline to a literal argument value; 0023 adds the C#
+  fallback rules (SQLA0301, SQLA0302) and widens the question 0018 gave the
+  Validity band; 0024 removes the legacy target pair 0019 deprecated, retiring
+  SQLA0002 and reporting a removed key under SQLA0001.
 
 ## Consolidation trigger
 
