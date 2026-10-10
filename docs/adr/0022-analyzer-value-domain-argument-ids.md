@@ -5,9 +5,9 @@
 after 1.0 is a split, a major-version change, not an additive one; and
 `docs/versioning.md` had no rule on retiring an ID until ADR 0026 stated one —
 an ID is never renumbered or reused, and is removed only by a major that
-retires its rule or merges its reports into another ID. So the merge below,
-which retires one published ID, needs a major after 1.0, rather than being
-something versioning.md "permits only before 1.0".
+retires its rule or merges its reports into another ID. So the merge below —
+which it calls "a third renumber" — retires one published ID, needs a major
+after 1.0, and is not a renumber; versioning.md never said "only before 1.0".
 ADR 0026 also records why `SQLA0103` keeps its own ID. Everything else here
 stands.
 
