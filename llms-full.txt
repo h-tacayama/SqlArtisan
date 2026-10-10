@@ -4405,12 +4405,12 @@ take `.Into(...)`; a result still held as the `Returning` stage stays silent.
 Suppression is per rule ID, the standard Roslyn way
 (`#pragma warning disable SQLA0102`, a `[SuppressMessage]` attribute, or
 `dotnet_diagnostic.SQLA0102.severity`). A `sqlartisan_construct_*` override
-never leaves a position verdict unreported: it answers "does my engine support
-this construct," which is not what a context rule reports. Only the
-repeated-`MERGE`-branch rule reads one. An `unsupported` override hands that
-usage to `SQLA0100` alone, and a `supported` override re-arms the rule on a
-dialect whose matrix entry rejects the branch itself — a dialect it otherwise
-leaves to `SQLA0100`/`SQLA0101`.
+never silences a position verdict on a dialect where the construct runs: it
+answers "does my engine support this construct," which is not what a context
+rule reports. Only the repeated-`MERGE`-branch rule reads one. An `unsupported`
+override hands that usage to `SQLA0100` alone, and a `supported` override
+re-arms the rule on a dialect whose matrix entry rejects the branch itself — a
+dialect it otherwise leaves to `SQLA0100`/`SQLA0101`.
 
 ---
 

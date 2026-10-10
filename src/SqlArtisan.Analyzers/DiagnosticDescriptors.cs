@@ -104,8 +104,8 @@ internal static class DiagnosticDescriptors
         helpLinkUri: HelpLinkUri);
 
     // No override-key hint: an override speaks to the construct, not its position, so it never
-    // clears this verdict. The repeated-MERGE-branch rule reads one to tell if SQLA0100/0101 own
-    // the usage.
+    // clears this verdict where the construct runs. The repeated-MERGE-branch rule reads one to
+    // tell if SQLA0100/0101 own the usage.
     public static readonly DiagnosticDescriptor ContextRestrictedConstruct = new(
         id: "SQLA0102",
         title: "SQL construct not supported in this position on the target dialect",
