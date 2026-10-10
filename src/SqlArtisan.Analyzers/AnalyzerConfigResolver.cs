@@ -117,7 +117,7 @@ internal static class AnalyzerConfigResolver
     /// <summary>
     /// Reads <paramref name="key"/>, treating a blank value as unset: the SDK emits
     /// every declared <c>CompilerVisibleProperty</c> as a key, blank when never set,
-    /// so presence alone would make the family govern in every referencing project.
+    /// so reading presence as set would report SQLA0001 to every referencing project.
     /// </summary>
     public static bool TryGetSetValue(AnalyzerConfigOptions options, string key, out string value)
     {
