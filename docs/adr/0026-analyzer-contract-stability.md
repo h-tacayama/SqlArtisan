@@ -116,8 +116,10 @@ a major.
   after 1.0 is a split, a major-version change; and the retirement rule it
   cited is the one stated here.
 - `.claude/rules/public-api-design.md` carries the contract as a rule clause,
-  matched by the analyzer's contract files, so a diff that renames a key or an
-  ID meets it.
+  matched by the files that define the IDs, keys and values and that decide
+  precedence and the unconfigured silence, so a diff changing any of them meets
+  it; `.claude/rules/docs-style.md` carries the **New warning:** mark, where a
+  CHANGELOG edit meets it.
 
 Related: #655 (this change), ADR 0009 (bundled distribution), ADR 0018 (the
 bands), ADR 0019 (the splitting test), ADR 0022 (the value domains), ADR 0024

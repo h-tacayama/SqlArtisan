@@ -96,8 +96,9 @@ with availability left to the database"). ADR cross-references belong in
   reports — a new rule, a new reason under an ID, a matrix correction or table
   cell that starts reporting — opens with **New warning:**, as a breaking one
   opens with **Breaking:**, so a build that escalates warnings can find what an
-  upgrade adds (`docs/versioning.md`). Raising a default severity is breaking
-  instead.
+  upgrade adds (`docs/versioning.md`). Raising a default severity, turning a
+  rule on by default, or reporting before a dialect is configured is breaking
+  instead, and opens with **Breaking:**.
 - README→docs and docs↔docs links are absolute GitHub `blob/main` URLs;
   in-page anchors stay relative. In `llms.txt`, a page's URL form decides
   whether it joins the `llms-full.txt` deep bundle: pages meant for ingestion

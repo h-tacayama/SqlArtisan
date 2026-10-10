@@ -147,8 +147,8 @@ back:
   know.
 - **Minor, called out in the CHANGELOG**: any other change to a generated file's
   text — a new or changed `DbColumnMetadata` fact, the layout, the header — so an
-  analyzer rule that needs a new schema fact can ship in a minor release, as
-  analyzer changes may. Until `--fix` regenerates such a file, `--check` reports
+  analyzer rule that needs a new schema fact can ship in a minor release, as a
+  new analyzer rule may. Until `--fix` regenerates such a file, `--check` reports
   it `modified`, so a scheduled `--check` fails from the upgrade until `--fix`
   runs.
 
