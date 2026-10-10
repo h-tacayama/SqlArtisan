@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -43,14 +45,43 @@ public class DiagnosticOrderingTests
         }
     }
 
-    // A suppression or escalation written for a retired id would silently attach to
-    // whatever rule reused it, so a retired id stays retired (#654).
-    [Theory]
-    [InlineData("SQLA0002")]
-    public void RetiredId_IsNeverReused(string retiredId)
+    // A suppression written for a retired id would attach to whatever rule reused it (#654).
+    // SQLA0002 predates the ledger; RS2000-RS2008 let a New Rules row reuse any id a shipped
+    // Removed Rules row names, so those are read here.
+    [Fact]
+    public void RetiredId_IsNeverReused()
     {
-        Assert.DoesNotContain(
-            new DialectUsageAnalyzer().SupportedDiagnostics,
-            d => d.Id == retiredId);
+        string shipped = Path.Combine(
+            FindRepoRoot(), "src", "SqlArtisan.Analyzers", "AnalyzerReleases.Shipped.md");
+        string section = string.Empty;
+        List<string> retired = ["SQLA0002"];
+        foreach (string line in File.ReadAllLines(shipped).Select(l => l.Trim()))
+        {
+            if (line.StartsWith("### ", StringComparison.Ordinal))
+            {
+                section = line;
+            }
+            else if (section == "### Removed Rules"
+                && line.StartsWith("SQLA", StringComparison.Ordinal))
+            {
+                retired.Add(line.Split('|')[0].Trim());
+            }
+        }
+
+        Assert.Empty(new DialectUsageAnalyzer().SupportedDiagnostics
+            .Select(d => d.Id)
+            .Intersect(retired, StringComparer.Ordinal));
+    }
+
+    private static string FindRepoRoot()
+    {
+        DirectoryInfo? dir = new(AppContext.BaseDirectory);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "SqlArtisan.sln")))
+        {
+            dir = dir.Parent;
+        }
+
+        Assert.NotNull(dir);
+        return dir.FullName;
     }
 }

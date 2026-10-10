@@ -261,7 +261,9 @@ never made unprompted. Once approved, do it in one commit:
    ID a split adds is a New Rules row, and a message-only change needs no entry
    — the released Notes stay as shipped. While Shipped stays append-only,
    RS2000–RS2008 (build errors) hold every later ID, category or severity
-   change against what shipped. The 0.x releases left Shipped empty.
+   change against what shipped, and `DiagnosticOrderingTests` keeps an ID a
+   Removed Rules row names from being reused. The 0.x releases left Shipped
+   empty.
 5. Regenerate `llms-full.txt` (`bash tools/regen-llms-full.sh`).
 6. Run the full gate set (`dotnet test` ×3, `dotnet format --verify-no-changes`,
    `bash tools/audit-packages.sh`).
