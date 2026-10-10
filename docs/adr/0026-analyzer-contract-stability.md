@@ -36,8 +36,9 @@ widened `SQLA0104` as plain additions. Nothing said which was right.
 
 **After 1.0, these are covered: changing them is a major-version change.**
 
-- Each diagnostic ID and the rule it names. An ID is never renumbered, reused
-  or removed; a rule retired in a major keeps its ID retired
+- Each diagnostic ID and the rule it names. An ID is never reused, and is
+  renumbered or removed only in a major; a rule retired in a major keeps its ID
+  retired
   (`DiagnosticOrderingTests.RetiredId_IsNeverReused`).
 - The four category strings and their bands (ADR 0018).
 - Each rule's default severity and whether it is enabled by default, in the
@@ -54,8 +55,9 @@ widened `SQLA0104` as plain additions. Nothing said which was right.
   member's name and declared parameter count. The `SqlArtisanSyntax<Dbms>`
   MSBuild properties, spelled as the `Dbms` member.
 - The values and what they mean: `any`, `none`, an engine version (the release
-  year on SQL Server, the major version elsewhere), `supported`, `unsupported`
-  — all matched without regard to case.
+  year on SQL Server; elsewhere the engine's own version number, major with an
+  optional minor and patch), `supported`, `unsupported` — all matched without
+  regard to case.
 - The precedence between them: `.editorconfig` over the MSBuild property, an
   arity key over a member key, an override over the matrix.
 - Silence until a dialect is configured: no rule from `SQLA0100` on reports
@@ -65,8 +67,8 @@ widened `SQLA0104` as plain additions. Nothing said which was right.
 
 **Not covered: a diagnostic's title, message text and help-link anchor.**
 
-**Any other change that adds reports is a minor release; one that only removes
-reports is a patch.** A new rule takes the next ID in its band; a new reason joins an
+**Any other change that adds reports is a minor release; any other that only
+removes reports is a patch.** A new rule takes the next ID in its band; a new reason joins an
 existing ID; a matrix correction or a new table cell starts reporting
 something. Each can fail a build that escalates warnings, and each is the point
 of upgrading an analyzer the user opted into: the analyzer ships inside the
@@ -74,9 +76,11 @@ package, so it changes only when the user upgrades it — unlike an analyzer tha
 ships in the SDK, which `AnalysisLevel` exists to hold still. Gating each rule
 behind a level key was rejected: an opt-in layered on an opt-in, plus a
 per-rule version table to maintain. Treating every new report as major was
-rejected: it would freeze the guard rails ADR 0010 exists to grow. The
-CHANGELOG marks each such entry **New warning:** so a build that escalates
-warnings can find what an upgrade adds. A new key, value or DBMS token is
+rejected: it would freeze the guard rails ADR 0010 exists to grow. From the
+first release after 1.0, the CHANGELOG marks each such entry **New warning:**
+(`.claude/rules/docs-style.md`) so a build that escalates warnings can find
+what an upgrade adds; before then any release may break, and entries carry no
+mark. A new key, value or DBMS token is
 minor too.
 
 **A key is retired by deprecating it first.** A minor release accepts both

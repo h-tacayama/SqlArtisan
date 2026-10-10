@@ -655,20 +655,21 @@ outlive the run that made them, so the API rules above have a CLI analogue
 ## Analyzer: a diagnostic-ID and configuration contract
 
 The analyzer exposes no types, but users write its names into suppressions,
-`.editorconfig` and MSBuild files, and a stale one is silent there — so these
-are covered like a signature (ADR 0026, #655):
+`.editorconfig` and MSBuild files, and a stale ID, category or property name is
+silent there — so these are covered like a signature (ADR 0026, #655):
 
-- **Covered**: the diagnostic IDs, never renumbered, reused or removed (a
-  retired ID stays retired); the band-to-category strings (ADR 0018); default
+- **Covered** after 1.0: the diagnostic IDs, never reused and renumbered or
+  removed only in a major (a retired ID stays retired); the band-to-category strings (ADR 0018); default
   severity and enabled-by-default, in the raising direction; which reports
   share an ID; the `sqlartisan_*` key names and the rule deriving a
   construct key from a member's name and declared arity; the values, their
   meaning and their case-insensitive matching; the `<SqlArtisanSyntax<Dbms>>`
   properties, spelled as the `Dbms` member; the precedence between them. Not
   covered: titles, message text, help-link anchors.
-- **Any other change that adds reports is minor and marked `New warning:`** in
-  the CHANGELOG — a new rule, a new reason, a matrix correction; one that only
-  removes reports is a patch.
+- **Any other change that adds reports is minor** — a new rule, a new reason, a
+  matrix correction — and from the first release after 1.0 its CHANGELOG entry
+  is marked `New warning:` (`docs-style.md`); any other that only removes
+  reports is a patch.
 - **A key is retired by deprecating it**: both spellings accepted, the old one
   reported under its own `SqlArtisan.Configuration` ID, removal in a major, and
   a removed key still reported rather than ignored (ADR 0024). Never renamed in

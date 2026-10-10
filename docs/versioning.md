@@ -87,23 +87,25 @@ query does.
 The analyzer exposes no types, but you write its names into your build — a
 `#pragma`, `[SuppressMessage]`, `<NoWarn>`, `<WarningsAsErrors>`, a
 `dotnet_diagnostic.SQLA0xxx.severity` or category-severity line, the
-`sqlartisan_*` keys — and a name that stops matching is silent there. So:
+`sqlartisan_*` keys and MSBuild properties — and an ID, a category or a
+property name that stops matching is silent there. So, after 1.0:
 
 - **Covered** — a change is breaking:
-  - each diagnostic ID and the rule it names. An ID is never renumbered, reused
-    or removed; a retired rule's ID stays retired;
+  - each diagnostic ID and the rule it names. An ID is never reused, and is
+    renumbered or removed only in a major; a retired rule's ID stays retired;
   - the four categories (`SqlArtisan.Configuration`, `SqlArtisan.Dialect`,
     `SqlArtisan.Schema`, `SqlArtisan.Validity`) and their ID bands;
   - each rule's default severity and whether it is on by default: raising
     either is breaking, lowering either is minor;
-  - which reports share an ID: an ID is never split or merged, since either
-    moves reports out from under a suppression or escalation you wrote;
+  - which reports share an ID: an ID is split or merged only in a major, since
+    either moves reports out from under a suppression or escalation you wrote;
   - the key names `sqlartisan_syntax_<dbms>`, `sqlartisan_construct_<member>`
     and `sqlartisan_construct_<member>_arity<N>`, the rule that derives a
     construct key from a member's name and declared parameter count, and the
     `<SqlArtisanSyntax<Dbms>>` MSBuild properties;
   - the values and their meaning: `any`, `none`, an engine version (the release
-    year on SQL Server, the major version on the others), `supported` and
+    year on SQL Server; the engine's own version number, major with an optional
+    minor and patch, on the others), `supported` and
     `unsupported`, matched without regard to case;
   - which setting wins: `.editorconfig` over the MSBuild property, an arity key
     over a member key, your override over the shipped matrix;
@@ -113,13 +115,14 @@ The analyzer exposes no types, but you write its names into your build — a
     their properties, which report `SQLA0001` for as long as 1.x ships.
 - **Not covered**: a diagnostic's title, its message text, and its help-link
   anchor.
-- **Minor: any other change that adds reports** — a new rule, at the next ID in its
-  category's band; a new reason under an existing ID; a matrix correction or a
-  new verdict that starts reporting something. Each can fail a build that
+- **Minor: any other change that adds reports** — a new rule, at the next ID in
+  its category's band; a new reason under an existing ID; a matrix correction
+  or a new verdict that starts reporting something. Each can fail a build that
   treats warnings as errors, so the CHANGELOG marks it **New warning:**. A new
-  key, value, or DBMS token (for a new `Dbms` member) is minor too.
-- **Patch: a change that only removes reports**, such as a false-positive fix
-  or a matrix correction that stops reporting.
+  key, value, or DBMS token (for a new `Dbms` member) is minor too, and so is
+  lowering a default severity or turning a rule off by default.
+- **Patch: any other change that only removes reports**, such as a
+  false-positive fix or a matrix correction that stops reporting.
 
 ## TableClassGen's command-line surface
 
