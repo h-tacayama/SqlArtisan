@@ -256,9 +256,9 @@ never made unprompted. Once approved, do it in one commit:
    `src/SqlArtisan.Analyzers/AnalyzerReleases.Unshipped.md` under a
    `## Release X.Y.Z` heading at the end of `AnalyzerReleases.Shipped.md`,
    leaving Unshipped its two header lines. Shipped is append-only: a released
-   row is never edited. A later category or severity change goes in Unshipped
-   as a Changed Rules row, a removal as a Removed Rules row (a renumber as a
-   Removed row plus a New Rules row), and a message-only change needs no entry
+   row is never edited. In Unshipped, a later category or severity change is a
+   Changed Rules row, an ID retired or merged away is a Removed Rules row, an
+   ID a split adds is a New Rules row, and a message-only change needs no entry
    — the released Notes stay as shipped. While Shipped stays append-only,
    RS2000–RS2008 (build errors) hold every later ID, category or severity
    change against what shipped. The 0.x releases left Shipped empty.
