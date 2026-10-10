@@ -3971,8 +3971,9 @@ Or, if you prefer an MSBuild property:
 - **Same plumbing as every `sqlartisan_syntax_*` key.** Resolved per source
   file and per DBMS, `.editorconfig` wins over the MSBuild property, and an
   unrecognized `.editorconfig` value, a blank one included, is flagged as
-  `SQLA0001` and falls through to the MSBuild property for that DBMS (unset
-  when none is given).
+  `SQLA0001` and falls through to the MSBuild property for that DBMS; with no
+  valid value on either surface, the dialect goes unchecked, and an invalid
+  MSBuild value is reported too.
 
 Suppression is per rule ID, the standard Roslyn way
 (`#pragma warning disable SQLA0101`, a `[SuppressMessage]` attribute, or
