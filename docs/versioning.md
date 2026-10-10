@@ -178,6 +178,11 @@ reused.
 ## Support statement
 
 - **Runtime**: all packages target `net8.0` and run on .NET 8 or later.
+- **Compiler, for the analyzer**: the analyzer bundled in `SqlArtisan` is
+  built against Roslyn 4.8, so it runs in a compiler at least that new — .NET
+  SDK 8.0.100 or Visual Studio 17.8, the toolchains .NET 8 shipped with. An
+  older compiler skips the analyzer with warning `CS9057`, which
+  `TreatWarningsAsErrors` turns into a build error; the library is unaffected.
 - **Verified engines**: every release passes the
   [integration test matrix](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.IntegrationTests)
   against one representative version each of MySQL, Oracle, PostgreSQL,

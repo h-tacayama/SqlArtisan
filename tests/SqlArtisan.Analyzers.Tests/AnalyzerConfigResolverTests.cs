@@ -8,6 +8,7 @@ public class AnalyzerConfigResolverTests
     [InlineData("supported", true)]
     [InlineData("SUPPORTED", true)]
     [InlineData("unsupported", false)]
+    [InlineData("Unsupported", false)]
     [InlineData("nonsense", null)]
     public void ResolveOverride_Values_ParseToExpectedTriState(string value, bool? expected)
     {
@@ -152,6 +153,7 @@ public class AnalyzerConfigResolverTests
     [InlineData("ANY", true, null)]
     [InlineData("19", true, "19")]
     [InlineData("none", false, null)]
+    [InlineData("None", false, null)]
     public void ResolveTargets_SyntaxValueForms_ResolveAsExpected(
         string value,
         bool expectedPresent,
