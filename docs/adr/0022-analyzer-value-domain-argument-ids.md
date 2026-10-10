@@ -3,9 +3,11 @@
 **Status:** Accepted — two statements corrected by
 [ADR 0026](0026-analyzer-contract-stability.md): moving a domain off `SQLA0104`
 after 1.0 is a split, a major-version change, not an additive one; and
-`docs/versioning.md` had no retirement rule until ADR 0026 stated one — an ID
-is retired only in a major and never reused, so "only before 1.0" below reads as
-"only in a major".
+`docs/versioning.md` had no rule on retiring an ID until ADR 0026 stated one —
+an ID is never renumbered or reused, and is removed only by a major that
+retires its rule or merges its reports into another ID. So the merge below,
+which retires one published ID, needs a major after 1.0, rather than being
+something versioning.md "permits only before 1.0".
 ADR 0026 also records why `SQLA0103` keeps its own ID. Everything else here
 stands.
 

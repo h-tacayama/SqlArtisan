@@ -38,7 +38,8 @@ widened `SQLA0104` as plain additions. Nothing said which was right.
 
 - Each diagnostic ID and the rule it names. An ID is never renumbered or
   reused — the bands exist so no rule has to move again (ADR 0018) — and is
-  removed only when a major retires its rule, whose ID then stays retired
+  removed only by a major that retires its rule or merges its reports into
+  another ID; the removed ID stays retired
   (`DiagnosticOrderingTests.RetiredId_IsNeverReused`).
 - The four category strings and their bands (ADR 0018).
 - Each rule's default severity and whether it is enabled by default, in the

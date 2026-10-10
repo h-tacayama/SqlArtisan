@@ -92,8 +92,8 @@ property name that stops matching is silent there. So, after 1.0:
 
 - **Covered** — a change is breaking:
   - each diagnostic ID and the rule it names. An ID is never renumbered or
-    reused, and is removed only when a major retires its rule; a retired rule's
-    ID stays retired;
+    reused, and is removed only by a major that retires its rule or merges its
+    reports into another ID; a retired ID stays retired;
   - the four categories (`SqlArtisan.Configuration`, `SqlArtisan.Dialect`,
     `SqlArtisan.Schema`, `SqlArtisan.Validity`) and their ID bands;
   - each rule's default severity and whether it is on by default: raising

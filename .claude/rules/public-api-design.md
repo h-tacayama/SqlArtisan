@@ -665,8 +665,9 @@ The analyzer exposes no types, but users write its names into suppressions,
 `.editorconfig` and MSBuild files, and a stale ID, category or property name is
 silent there — so these are covered like a signature (ADR 0026, #655):
 
-- **Covered** after 1.0: the diagnostic IDs, never renumbered or reused and
-  removed only when a major retires the rule (a retired ID stays retired); the band-to-category strings (ADR 0018); default
+- **Covered** after 1.0: the diagnostic IDs, never renumbered or reused, and
+  removed only by a major that retires the rule or merges its reports into
+  another ID (a removed ID stays retired); the band-to-category strings (ADR 0018); default
   severity and enabled-by-default, in the raising direction; which reports
   share an ID; the `sqlartisan_*` key names and the rule deriving a
   construct key from a member's name and declared arity; the values, their
