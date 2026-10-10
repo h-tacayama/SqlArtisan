@@ -3766,9 +3766,9 @@ to those files. Only `none` overrides it back off.
 No aliases beyond these two — no `true`/`yes`/`off`. A smaller value domain
 is easier to document and validate. A `.editorconfig` key set to nothing at all
 (`sqlartisan_syntax_oracle =`) reports `SQLA0001`: in a narrower section it
-would replace the broader value and switch the dialect off for those files
-without a word, so write `none` when that is what you mean. An MSBuild property
-set to nothing reads as unset.
+replaces the broader value, so those files fall back to the MSBuild property, or
+to not checking the dialect at all, without a word. Write `none` when that is
+what you mean. An MSBuild property set to nothing reads as unset.
 
 ### SQLA0100 joins; SQLA0101 and SQLA0103 report one per dialect
 
@@ -3804,8 +3804,8 @@ matrix loop runs. Forcing a construct unsupported reports exactly one
 `sqlartisan_syntax_oracle = none` with no other `sqlartisan_syntax_*` key
 resolves to an empty set for that scope — every rule's "is a dialect
 configured" gate then reads as "unconfigured," and the analyzer goes quiet
-there. When no file in the project resolves a dialect, but some file's family
-is present with every key at `none`, `SQLA0001` reports it once, so a project
+there. When no file in the project resolves a dialect, and no unrecognized
+value already explains why, `SQLA0001` reports it once, so a project
 doesn't lose analyzer coverage from one typo-adjacent `none` without a visible
 reason. A `none` that carves one path out while other files still resolve a
 dialect is deliberate and stays silent.
@@ -3950,8 +3950,8 @@ Or, if you prefer an MSBuild property:
   version, with an optional minor and patch, for the others — `8.0.16` for
   MySQL, `23` for Oracle, `16` for PostgreSQL, `3.44` for SQLite. A value in
   the other spelling — a SQL Server value below 2000, or 1000 or more on
-  another engine — reports `SQLA0001` and leaves that dialect unchecked, as any
-  unrecognized value does. Versions
+  another engine — reports `SQLA0001` and is ignored, as any unrecognized value
+  is (see the last bullet below). Versions
   compare by numeric segment (`8.0.20` is newer than `8.0.16`, and a bare
   `8.0` reads as `8.0.0` — declare the precise patch version if an 8.0.x
   bound matters to you); trailing letters in a segment are ignored (`23ai`

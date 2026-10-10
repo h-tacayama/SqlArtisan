@@ -13,9 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   the warning it asked for without a word. Names are checked against the
   SqlArtisan version the project references. (#655)
 - `SQLA0001` reports a blank `sqlartisan_syntax_*` value in `.editorconfig`. In
-  a narrower section it replaced the broader value and switched the dialect off
-  for those files silently; write `none` for that. A blank MSBuild property
-  still reads as unset. (#655)
+  a narrower section it replaced the broader value silently, so those files fell
+  back to the MSBuild property or went unchecked; write `none` to turn a dialect
+  off. A blank MSBuild property still reads as unset. (#655)
 - `SQLA0301` reports `==` / `!=` that C# resolves as reference equality —
   the left operand an `object`, a `SqlPart` or a type parameter constrained to
   one — passed to a SqlArtisan member, where it binds a `bool` instead of
@@ -75,8 +75,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   Server value below 2000 (`16`, SQL Server 2022's product version, compared as
   year 16 and failed every bound) or a value of 1000 or more on another engine
   (`sqlartisan_syntax_postgresql = 2022` cleared every bound) now reports
-  `SQLA0001` and leaves that dialect unchecked, as an unrecognized value does.
-  The message names each engine's spelling. (#655)
+  `SQLA0001` and is ignored, as an unrecognized value is: the dialect's MSBuild
+  property applies if set, and otherwise the dialect goes unchecked. The message
+  names each engine's spelling. (#655)
 - `SQLA0001`'s "every key is `none`" reason reports only when no file in the
   project resolves a dialect, so a path-scoped `none` beside a configured scope
   — a deliberate carve-out — no longer reports. Its message is reworded to
@@ -232,8 +233,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   guard messages name the clauses `UPDATE SET ... WHERE` and `INSERT ... WHERE`
   instead of `UPDATE WHERE` and `INSERT WHERE`. The override keys
   `sqlartisan_construct_update_where` and `sqlartisan_construct_insert_where`
-  no longer apply, and nothing warns that they are stale; suppress `SQLA0102`
-  by its ID instead. On MySQL and SQLite the filter itself is no longer
+  no longer apply, and `SQLA0001` reports them as stale (#655); suppress
+  `SQLA0102` by its ID instead. On MySQL and SQLite the filter itself is no longer
   reported; `SQLA0100` still reports `MergeInto` there. Every caller needs a
   source change and a rebuild. The stage the update action's `Where(...)`
   returns is renamed from `IMergeBuilderUpdateWhere` to `IMergeBuilderWhere`,

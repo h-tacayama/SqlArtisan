@@ -875,6 +875,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         var reportedSyntaxValues = new HashSet<(string Key, string Value)>();
         bool sawEmptySet = false;
         bool sawResolvedSet = false;
+        bool sawUnrecognizedValue = false;
         string validDbmsNames = string.Join("/", AnalyzerConfigResolver.DbmsNames);
 
         foreach (SyntaxTree tree in context.Compilation.SyntaxTrees)
@@ -921,8 +922,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                     string.Empty);
             }
 
-            // An unrecognized value already explains this tree's empty set — reporting
-            // it again would duplicate one root cause under two descriptors.
+            sawUnrecognizedValue |= hasUnrecognizedSyntaxValue;
             if (!AnalyzerConfigResolver.ResolveTargets(options).IsEmpty)
             {
                 sawResolvedSet = true;
@@ -933,7 +933,9 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             }
         }
 
-        if (sawEmptySet && !sawResolvedSet)
+        // An unrecognized value, already reported, explains an empty compilation as well as
+        // the all-`none` reason would — reporting both doubles one root cause.
+        if (sawEmptySet && !sawResolvedSet && !sawUnrecognizedValue)
         {
             context.ReportDiagnostic(Diagnostic.Create(
                 DiagnosticDescriptors.ConfigurationDisablesAllDialects, Location.None));

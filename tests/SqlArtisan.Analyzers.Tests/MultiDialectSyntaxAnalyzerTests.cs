@@ -592,6 +592,36 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
+    // The root's bad value already explains why nothing is checked; the sub's `none`
+    // is not also reported as if every key were `none`.
+    [Fact]
+    public async Task NoneBesideAnUnrecognizedValue_ReportsOnlyTheValue()
+    {
+        const string rootConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_postgresql = postgres
+            """;
+        const string subConfig = """
+            [*.cs]
+            sqlartisan_syntax_postgresql = none
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            rootConfig);
+        test.TestState.Sources.Add(("/sub/Second.cs", NvlUsageSource));
+        test.TestState.AnalyzerConfigFiles.Add(("/sub/.editorconfig", subConfig));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "sqlartisan_syntax_postgresql",
+                "postgres",
+                "any, none, or a PostgreSQL version such as 16"));
+
+        await test.RunAsync();
+    }
+
     // A blank in a narrower section replaces the broader value, so it would unset the
     // dialect for those files without a word; `none` is the spelling that says so (#655).
     [Fact]

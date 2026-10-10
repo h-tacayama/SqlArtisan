@@ -18,9 +18,9 @@ record promising a surface that never existed:
   A stale `unsupported` key silently loses the warning it asked for.
 - **A blank `.editorconfig` `sqlartisan_syntax_*` value.** `.editorconfig`
   layering makes a blank in a narrower section *replace* the broader value, so
-  `sqlartisan_syntax_sqlite =` under `[sub/**.cs]` unsets SQLite for those
-  files with no report, while `docs/analyzer.md` said only `none` turns a
-  dialect back off.
+  `sqlartisan_syntax_sqlite =` under `[sub/**.cs]` drops SQLite for those
+  files, unless an MSBuild property names it, with no report, while
+  `docs/analyzer.md` said only `none` turns a dialect back off.
 - **A version in another engine's spelling.** `sqlartisan_syntax_sqlserver =
   16` (SQL Server 2022's product version) parsed, compared as "year 16", and
   failed every SQL Server bound; `sqlartisan_syntax_postgresql = 2022` cleared
@@ -57,13 +57,16 @@ off.
 **A version is spelled the way the matrix's bounds are: the release year on SQL
 Server, the major version (with optional minor and patch) elsewhere.** A SQL
 Server value whose first segment is below 2000, or another engine's value whose
-first segment is 1000 or more, is unrecognized: it reports `SQLA0001` and leaves
-the dialect unset, as any unrecognized value does. Each engine's message names
+first segment is 1000 or more, is unrecognized: it reports `SQLA0001` and is
+ignored, as any unrecognized value is, so the dialect's MSBuild property applies
+if set and the dialect goes unchecked otherwise. Each engine's message names
 its own spelling. Mapping `16` to 2022 was rejected: it is an alias, which ADR
 0019 keeps out of the value domain, and a table to maintain per release.
 
 **The all-`none` reason reports only when no file in the compilation resolves a
-dialect.** Wherever one does, a `none` elsewhere was written on purpose. The
+dialect, and no file's set is explained by an unrecognized value already
+reported.** Wherever a dialect resolves, a `none` elsewhere was written on
+purpose. The
 case ADR 0019 named — one `none` and nothing else — still reports; a directory
 left all-`none` by mistake beside a configured one does not, which is the cost
 of not reporting a carve-out with no way to silence it alone. A dedicated ID was
@@ -91,8 +94,9 @@ value, never advice derived from one file's configuration (ADR 0024).
 - A key for a member a newer SqlArtisan adds reports until the project
   upgrades; until then it overrides nothing anyway.
 - A project left on `sqlartisan_syntax_sqlserver = 16`, or a year on another
-  engine, loses that dialect's checks until it corrects the value — it was
-  getting wrong ones before — and is told so.
+  engine, loses that dialect's checks (unless an MSBuild property declares it)
+  until it corrects the value — it was getting wrong ones before — and is told
+  so.
 
 Related: #655 (this change), ADR 0008 (the override keys), ADR 0019 (the family
 and `SQLA0001`'s reasons), ADR 0021 (the matrix's key set), ADR 0024 (fixed

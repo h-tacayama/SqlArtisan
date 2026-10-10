@@ -33,13 +33,20 @@ public class ConstructKeySurfaceTests
                     .Concat(baseline.Except(derived).Select(k => "- " + k))));
     }
 
+    // With the runtime referenced, as in a real build: without it System.Enum does not
+    // resolve, enum types stop reading as enums, and their members slip into the set.
     private static IAssemblySymbol SqlArtisanAssembly()
     {
         MetadataReference reference =
             MetadataReference.CreateFromFile(typeof(Sql).Assembly.Location);
+        IEnumerable<MetadataReference> runtime =
+            ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
+                .Split(Path.PathSeparator)
+                .Where(path => Path.GetFileName(path) != "SqlArtisan.dll")
+                .Select(path => MetadataReference.CreateFromFile(path));
         CSharpCompilation compilation = CSharpCompilation.Create(
             "KeySurfaceProbe",
-            references: [reference]);
+            references: [reference, .. runtime]);
         return (IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(reference)!;
     }
 

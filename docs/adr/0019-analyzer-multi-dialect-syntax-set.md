@@ -3,9 +3,12 @@
 **Status:** Accepted — the legacy-pair decisions (the pair still resolving,
 `SQLA0002`, and the coexistence `SQLA0001` reason) superseded by
 [ADR 0024](0024-analyzer-legacy-target-pair-removal.md), which removes the
-pair. The all-`none` `SQLA0001` reason narrowed by
-[ADR 0025](0025-analyzer-configuration-validation.md) to a compilation where no
-file resolves a dialect. Everything else here stands.
+pair. Two points revised by
+[ADR 0025](0025-analyzer-configuration-validation.md): the all-`none` `SQLA0001`
+reason is narrowed to a compilation where no file resolves a dialect, and the
+typo-safety argument against per-DBMS override keys (Rejected alternatives) no
+longer holds, since override key names are now checked. Everything else here
+stands.
 
 ## Context
 

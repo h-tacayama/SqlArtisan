@@ -127,7 +127,7 @@ internal static class AnalyzerConfigResolver
     /// <summary>
     /// The <c>.editorconfig</c> family keys set to nothing. Unlike a blank MSBuild key, which
     /// the SDK emits for every declared property, one was written — and in a narrower section
-    /// it replaces the broader value, unsetting the dialect for those files.
+    /// it replaces the broader value for those files.
     /// </summary>
     public static IEnumerable<TargetDbms> BlankSyntaxKeys(AnalyzerConfigOptions options)
     {
