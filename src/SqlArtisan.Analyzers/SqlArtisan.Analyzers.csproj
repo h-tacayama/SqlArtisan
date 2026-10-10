@@ -8,6 +8,11 @@
     <Nullable>enable</Nullable>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IsPackable>false</IsPackable>
+    <!--
+      The release-tracking rules diff the descriptors against AnalyzerReleases.*.md; as
+      warnings they let a renumbered or recategorized rule ship unnoticed (#655).
+    -->
+    <WarningsAsErrors>$(WarningsAsErrors);RS2000;RS2001;RS2002;RS2003;RS2004;RS2005;RS2006;RS2007;RS2008</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
