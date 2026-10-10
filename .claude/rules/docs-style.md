@@ -99,8 +99,8 @@ with availability left to the database"). ADR cross-references belong in
   upgrade adds (`docs/versioning.md`). A change the analyzer contract covers
   (`public-api-design.md` § "Analyzer: a diagnostic-ID and configuration
   contract") is breaking instead and opens with **Breaking:** — among them
-  raising a default severity or turning a rule on, splitting, merging or
-  renumbering an ID, and reporting before a dialect is configured.
+  raising a default severity or turning a rule on, splitting or merging an ID,
+  and reporting before a dialect is configured.
 - README→docs and docs↔docs links are absolute GitHub `blob/main` URLs;
   in-page anchors stay relative. In `llms.txt`, a page's URL form decides
   whether it joins the `llms-full.txt` deep bundle: pages meant for ingestion

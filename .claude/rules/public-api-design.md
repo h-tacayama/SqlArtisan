@@ -13,6 +13,7 @@ paths:
   - "src/SqlArtisan.Analyzers/ValueDomainScope.cs"
   - "src/SqlArtisan.Analyzers/EngineVersion.cs"
   - "src/SqlArtisan.Analyzers/TargetDbms.cs"
+  - "src/SqlArtisan.Analyzers/DialectTargetSet.cs"
   - "src/SqlArtisan.Analyzers/ConstructKeyNaming.cs"
   - "src/SqlArtisan.Analyzers/ConstructKeySurface.cs"
   - "src/SqlArtisan.Analyzers/build/SqlArtisan.props"
@@ -664,8 +665,8 @@ The analyzer exposes no types, but users write its names into suppressions,
 `.editorconfig` and MSBuild files, and a stale ID, category or property name is
 silent there — so these are covered like a signature (ADR 0026, #655):
 
-- **Covered** after 1.0: the diagnostic IDs, never reused and renumbered or
-  removed only in a major (a retired ID stays retired); the band-to-category strings (ADR 0018); default
+- **Covered** after 1.0: the diagnostic IDs, never renumbered or reused and
+  removed only when a major retires the rule (a retired ID stays retired); the band-to-category strings (ADR 0018); default
   severity and enabled-by-default, in the raising direction; which reports
   share an ID; the `sqlartisan_*` key names and the rule deriving a
   construct key from a member's name and declared arity; the values, their
@@ -687,8 +688,8 @@ silent there — so these are covered like a signature (ADR 0026, #655):
   or escalate the reports together, not by whether their remediations match:
   `SQLA0204`'s two shapes share one verdict and differ in remedy. After 1.0 a
   split or a merge is breaking. This clause loads where descriptors are
-  declared, not in the rule files that pick one, so re-pointing a report at
-  another existing ID is review's to catch.
+  declared, not in the `*Rule.cs` files that pick one, so re-pointing a report
+  there at another existing ID is review's to catch.
 - `docs/versioning.md` holds the user-facing statement; a diff that changes
   anything above changes it too.
 

@@ -562,7 +562,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
   `--help` states those defaults too. (#645)
 - `docs/versioning.md` states what an analyzer release may change. Covered: each
-  diagnostic ID (never reused; renumbered, removed, split or merged only in a
+  diagnostic ID (never renumbered or reused; removed, split or merged only in a
   major), the four categories and their bands, each rule's default severity and
   on-by-default state (raising either is breaking), the `sqlartisan_*` key
   names and how a construct key is derived, the values and their meaning, the

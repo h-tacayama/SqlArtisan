@@ -6409,8 +6409,9 @@ The analyzer exposes no types, but you write its names into your build — a
 property name that stops matching is silent there. So, after 1.0:
 
 - **Covered** — a change is breaking:
-  - each diagnostic ID and the rule it names. An ID is never reused, and is
-    renumbered or removed only in a major; a retired rule's ID stays retired;
+  - each diagnostic ID and the rule it names. An ID is never renumbered or
+    reused, and is removed only when a major retires its rule; a retired rule's
+    ID stays retired;
   - the four categories (`SqlArtisan.Configuration`, `SqlArtisan.Dialect`,
     `SqlArtisan.Schema`, `SqlArtisan.Validity`) and their ID bands;
   - each rule's default severity and whether it is on by default: raising

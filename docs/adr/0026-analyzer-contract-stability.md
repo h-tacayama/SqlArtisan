@@ -36,9 +36,9 @@ widened `SQLA0104` as plain additions. Nothing said which was right.
 
 **After 1.0, these are covered: changing them is a major-version change.**
 
-- Each diagnostic ID and the rule it names. An ID is never reused, and is
-  renumbered or removed only in a major; a rule retired in a major keeps its ID
-  retired
+- Each diagnostic ID and the rule it names. An ID is never renumbered or
+  reused — the bands exist so no rule has to move again (ADR 0018) — and is
+  removed only when a major retires its rule, whose ID then stays retired
   (`DiagnosticOrderingTests.RetiredId_IsNeverReused`).
 - The four category strings and their bands (ADR 0018).
 - Each rule's default severity and whether it is enabled by default, in the
@@ -118,8 +118,8 @@ a major.
 - `.claude/rules/public-api-design.md` carries the contract as a rule clause,
   matched by the files that define the IDs, keys and values and that decide
   precedence and the unconfigured silence, so a diff changing any of them meets
-  it — except a rule file that re-points a report at another existing ID, which
-  review holds; `.claude/rules/docs-style.md` carries the **New warning:** mark, where a
+  it — except a `*Rule.cs` file that re-points a report at another existing ID,
+  which review holds; `.claude/rules/docs-style.md` carries the **New warning:** mark, where a
   CHANGELOG edit meets it.
 
 Related: #655 (this change), ADR 0009 (bundled distribution), ADR 0018 (the
