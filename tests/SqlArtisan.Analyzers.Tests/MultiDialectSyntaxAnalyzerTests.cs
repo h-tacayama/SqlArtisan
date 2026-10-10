@@ -366,8 +366,8 @@ public class MultiDialectSyntaxAnalyzerTests
             AnalyzerVerifier.Unmarked(RollupUsageTemplate),
             editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithMessage(
-            "Every 'sqlartisan_syntax_*' key is 'none' wherever one is set, so no file has a "
-                + "dialect left to check"));
+            "The 'sqlartisan_syntax_*' settings in effect are 'none' for every dialect they "
+                + "name, so no file has a dialect left to check"));
 
         await test.RunAsync();
     }
@@ -618,6 +618,33 @@ public class MultiDialectSyntaxAnalyzerTests
                 "sqlartisan_syntax_postgresql",
                 "postgres",
                 "any, none, or a PostgreSQL version such as 16"));
+
+        await test.RunAsync();
+    }
+
+    // An .editorconfig `none` over a real MSBuild version still leaves nothing checked; the
+    // message speaks of the settings in effect, so the csproj's version does not contradict it.
+    [Fact]
+    public async Task NoneOverAnMSBuildVersion_ReportsTheAllNoneReason()
+    {
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_mysql = none
+            """;
+        const string globalConfig = """
+            is_global = true
+            build_property.SqlArtisanSyntaxMySql = 8.0
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
+        test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithMessage(
+            "The 'sqlartisan_syntax_*' settings in effect are 'none' for every dialect they "
+                + "name, so no file has a dialect left to check"));
 
         await test.RunAsync();
     }

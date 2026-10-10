@@ -59,8 +59,8 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor ConfigurationDisablesAllDialects = new(
         id: "SQLA0001",
         title: "SqlArtisan analyzer configuration problem",
-        messageFormat: "Every 'sqlartisan_syntax_*' key is 'none' wherever one is set, so no "
-            + "file has a dialect left to check",
+        messageFormat: "The 'sqlartisan_syntax_*' settings in effect are 'none' for every "
+            + "dialect they name, so no file has a dialect left to check",
         category: ConfigurationCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,

@@ -269,11 +269,11 @@ matrix loop runs. Forcing a construct unsupported reports exactly one
 `sqlartisan_syntax_oracle = none` with no other `sqlartisan_syntax_*` key
 resolves to an empty set for that scope — every rule's "is a dialect
 configured" gate then reads as "unconfigured," and the analyzer goes quiet
-there. When some file's family has every key at `none`, no file in the project
-resolves a dialect, and no unrecognized key or value already explains why,
-`SQLA0001` reports it once, so a project
-doesn't lose analyzer coverage from one typo-adjacent `none` without a visible
-reason. A `none` that carves one path out while other files still resolve a
+there. When some file's family, as it takes effect for that file, is `none` for
+every dialect it names, no file in the project resolves a dialect, and no
+unrecognized key or value already explains why, `SQLA0001` reports it once, so a
+project doesn't lose analyzer coverage from one typo-adjacent `none` without a
+visible reason. A `none` that carves one path out while other files still resolve a
 dialect is deliberate and stays silent.
 
 ### A typo in the key name is now detectable

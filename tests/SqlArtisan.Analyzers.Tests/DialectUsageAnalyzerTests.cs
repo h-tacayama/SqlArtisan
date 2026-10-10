@@ -1170,8 +1170,8 @@ public class DialectUsageAnalyzerTests
             $"class C\n{{\n    void M()\n    {{\n{body}    }}\n}}\n",
             editorConfig.ToString());
 
-        // Those keys name no construct member, so SQLA0001 rightly calls them stale; this
-        // test is about SQLA0100 alone.
+        // Most of those keys name no construct member, so SQLA0001 rightly calls them stale;
+        // this test is about SQLA0100 alone.
         test.DisabledDiagnostics.Add("SQLA0001");
         await test.RunAsync();
     }

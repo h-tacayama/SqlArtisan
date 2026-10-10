@@ -78,11 +78,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `SQLA0001` and is ignored, as an unrecognized value is: in `.editorconfig` it
   falls through to the MSBuild property, and with no valid value on either the
   dialect goes unchecked. The message names each engine's spelling. (#655)
-- `SQLA0001`'s "every key is `none`" reason reports only when no file in the
+- `SQLA0001`'s all-`none` reason reports only when no file in the
   project resolves a dialect and no unrecognized key or value already explains
   why, so a path-scoped `none` beside a configured scope — a deliberate
-  carve-out — no longer reports. Its message is reworded to
-  match. (#655)
+  carve-out — no longer reports. Its message now says no file has a dialect
+  left to check, where it named one file. (#655)
 - `ExecuteArrayBind`'s type-mismatch messages no longer name "another row" —
   the hint and the value can come from one bind — and say, for example,
   `Int32 values map to OracleDbType.Int32` rather than `a Int32 value maps`.

@@ -49,7 +49,7 @@ internal static class AnalyzerConfigResolver
     public static string SyntaxMSBuildPropertyKey(TargetDbms dbms) =>
         $"build_property.SqlArtisanSyntax{dbms}";
 
-    // SQL Server's bounds are release years and the others' are major versions, so
+    // SQL Server's bounds lead with a release year and the others' with a major version, so
     // SQL Server's product number (16 for 2022) or a year elsewhere would compare as a
     // different release and fail, or clear, every bound.
     public static bool IsRecognizedSyntaxValue(TargetDbms dbms, string value) =>
