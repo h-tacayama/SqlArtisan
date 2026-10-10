@@ -8,6 +8,7 @@ public class AnalyzerConfigResolverTests
     [InlineData("supported", true)]
     [InlineData("SUPPORTED", true)]
     [InlineData("unsupported", false)]
+    [InlineData("Unsupported", false)]
     [InlineData("nonsense", null)]
     public void ResolveOverride_Values_ParseToExpectedTriState(string value, bool? expected)
     {
@@ -112,6 +113,7 @@ public class AnalyzerConfigResolverTests
     [InlineData("ANY", true, null)]
     [InlineData("19", true, "19")]
     [InlineData("none", false, null)]
+    [InlineData("None", false, null)]
     public void ResolveTargets_SyntaxValueForms_ResolveAsExpected(
         string value,
         bool expectedPresent,
@@ -176,6 +178,17 @@ public class AnalyzerConfigResolverTests
 
         Assert.True(set.Contains(TargetDbms.Oracle));
         Assert.Equal("19", set.VersionFor(TargetDbms.Oracle)?.ToString());
+    }
+
+    // docs/analyzer.md promises case-insensitive keys; an Ordinal cleanup would turn a
+    // working key into a reported typo.
+    [Theory]
+    [InlineData("sqlartisan_syntax_postgresql")]
+    [InlineData("SQLARTISAN_SYNTAX_POSTGRESQL")]
+    [InlineData("sqlartisan_syntax_PostgreSQL")]
+    public void IsRecognizedSyntaxKey_AnyCasing_ReturnsTrue(string key)
+    {
+        Assert.True(AnalyzerConfigResolver.IsRecognizedSyntaxKey(key));
     }
 
     [Fact]

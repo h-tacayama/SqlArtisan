@@ -561,6 +561,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     on MySQL, `--user` on Oracle.
 
   `--help` states those defaults too. (#645)
+- `docs/analyzer.md` corrects four analyzer statements (#655):
+  - before a dialect is configured the analyzer is silent about your code, but
+    a configuration problem still reports `SQLA0001`; the page said it reported
+    nothing at all;
+  - the `SQLA0104` row in the rule table lists the `GroupBy` column ordinal,
+    its fourth kind of value;
+  - a `sqlartisan_construct_*` override does reach `SQLA0102`'s
+    repeated-`MERGE`-branch rule: `unsupported` reports the usage as `SQLA0100`
+    instead, and `supported` re-arms the rule where the matrix rejects the
+    branch itself. The page said overrides never apply to `SQLA0102`;
+  - it names all five `<SqlArtisanSyntax<Dbms>>` properties, and says a
+    misspelled one is not reported.
+
+  It also says keys, values and MSBuild property names ignore case.
+- `docs/versioning.md` states the compiler the analyzer needs: Roslyn 4.8 or
+  later (.NET SDK 8.0.100, Visual Studio 17.8). (#655)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added
