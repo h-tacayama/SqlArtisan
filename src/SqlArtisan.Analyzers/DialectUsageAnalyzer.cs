@@ -34,6 +34,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.UnrecognizedConfigurationKey,
         DiagnosticDescriptors.ConfigurationDisablesAllDialects,
         DiagnosticDescriptors.RemovedConfigurationKey,
+        DiagnosticDescriptors.UnrecognizedOverrideKey,
         DiagnosticDescriptors.UnsupportedDialectConstruct,
         DiagnosticDescriptors.VersionBoundConstruct,
         DiagnosticDescriptors.ContextRestrictedConstruct,
@@ -782,6 +783,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     {
         var reportedRemovedKeys = new HashSet<string>(StringComparer.Ordinal);
         var reportedOverrideValues = new HashSet<(string Key, string Value)>();
+        var setConstructKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         string[] overrideKeys = [.. DialectMatrix.AllOverrideKeys.Distinct()];
 
         foreach (SyntaxTree tree in context.Compilation.SyntaxTrees)
@@ -806,12 +808,15 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
             // ResolveOverride honors any construct-prefixed key, so validation sweeps
             // what the options carry; the matrix list is only the no-enumeration fallback.
-            IEnumerable<string> candidateOverrideKeys =
-                AnalyzerConfigResolver.TryEnumerateConstructKeys(
-                    options,
-                    out List<string> constructKeys)
-                    ? constructKeys
-                    : overrideKeys;
+            IEnumerable<string> candidateOverrideKeys = overrideKeys;
+            if (AnalyzerConfigResolver.TryEnumerateConstructKeys(
+                options,
+                out List<string> constructKeys))
+            {
+                candidateOverrideKeys = constructKeys;
+                setConstructKeys.UnionWith(constructKeys);
+            }
+
             foreach (string overrideKey in candidateOverrideKeys)
             {
                 if (options.TryGetValue(overrideKey, out string? overrideValue)
@@ -828,8 +833,38 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             }
         }
 
+        ValidateConstructKeyNames(context, setConstructKeys);
         ValidateSyntaxFamily(context);
     }
+
+    // Judged against the referenced SqlArtisan rather than the matrix, which leaves members
+    // out; with no SqlArtisan to read, a key cannot be told stale, so none is reported.
+    private static void ValidateConstructKeyNames(
+        CompilationAnalysisContext context,
+        HashSet<string> setConstructKeys)
+    {
+        if (setConstructKeys.Count == 0
+            || FindSqlArtisan(context.Compilation) is not { } sqlArtisan)
+        {
+            return;
+        }
+
+        HashSet<string> knownKeys = ConstructKeySurface.Collect(sqlArtisan);
+        foreach (string key in setConstructKeys.OrderBy(k => k, StringComparer.Ordinal))
+        {
+            if (!knownKeys.Contains(key))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticDescriptors.UnrecognizedOverrideKey, Location.None, key));
+            }
+        }
+    }
+
+    private static IAssemblySymbol? FindSqlArtisan(Compilation compilation) =>
+        compilation.Assembly.Name == SqlArtisanAssemblyName
+            ? compilation.Assembly
+            : compilation.SourceModule.ReferencedAssemblySymbols
+                .FirstOrDefault(a => a.Name == SqlArtisanAssemblyName);
 
     // Three more SQLA0001 reasons (#432), each deduplicated at the granularity its
     // message varies by: directory-scoped .editorconfig can give trees different
@@ -838,7 +873,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     {
         var reportedUnrecognizedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var reportedSyntaxValues = new HashSet<(string Key, string Value)>();
-        bool reportedEmptySet = false;
+        bool sawEmptySet = false;
+        bool sawResolvedSet = false;
         string validDbmsNames = string.Join("/", AnalyzerConfigResolver.DbmsNames);
 
         foreach (SyntaxTree tree in context.Compilation.SyntaxTrees)
@@ -864,35 +900,61 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             }
 
             bool hasUnrecognizedSyntaxValue = false;
-            foreach ((string key, string value) in AnalyzerConfigResolver.SetSyntaxValues(options))
+            foreach ((TargetDbms dbms, string key, string value)
+                in AnalyzerConfigResolver.SetSyntaxValues(options))
             {
-                if (AnalyzerConfigResolver.IsRecognizedSyntaxValue(value))
+                if (!AnalyzerConfigResolver.IsRecognizedSyntaxValue(dbms, value))
                 {
-                    continue;
+                    hasUnrecognizedSyntaxValue = true;
+                    ReportSyntaxValue(context, reportedSyntaxValues, dbms, key, value);
                 }
+            }
 
+            foreach (TargetDbms dbms in AnalyzerConfigResolver.BlankSyntaxKeys(options))
+            {
                 hasUnrecognizedSyntaxValue = true;
-                if (reportedSyntaxValues.Add((key, value)))
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        DiagnosticDescriptors.InvalidConfiguration,
-                        Location.None,
-                        key,
-                        value,
-                        "any, none, or a numeric engine version such as 8.0.16, 23, "
-                            + "3.44, or 2022"));
-                }
+                ReportSyntaxValue(
+                    context,
+                    reportedSyntaxValues,
+                    dbms,
+                    AnalyzerConfigResolver.SyntaxKey(dbms),
+                    string.Empty);
             }
 
             // An unrecognized value already explains this tree's empty set — reporting
             // it again would duplicate one root cause under two descriptors.
-            if (familyPresent && !hasUnrecognizedSyntaxValue && !reportedEmptySet
-                && AnalyzerConfigResolver.ResolveTargets(options).IsEmpty)
+            if (!AnalyzerConfigResolver.ResolveTargets(options).IsEmpty)
             {
-                reportedEmptySet = true;
-                context.ReportDiagnostic(Diagnostic.Create(
-                    DiagnosticDescriptors.ConfigurationDisablesAllDialects, Location.None));
+                sawResolvedSet = true;
             }
+            else if (familyPresent && !hasUnrecognizedSyntaxValue)
+            {
+                sawEmptySet = true;
+            }
+        }
+
+        if (sawEmptySet && !sawResolvedSet)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                DiagnosticDescriptors.ConfigurationDisablesAllDialects, Location.None));
+        }
+    }
+
+    private static void ReportSyntaxValue(
+        CompilationAnalysisContext context,
+        HashSet<(string Key, string Value)> reported,
+        TargetDbms dbms,
+        string key,
+        string value)
+    {
+        if (reported.Add((key, value)))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                DiagnosticDescriptors.InvalidConfiguration,
+                Location.None,
+                key,
+                value,
+                AnalyzerConfigResolver.ExpectedSyntaxValue(dbms)));
         }
     }
 
@@ -902,7 +964,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     // An enum member or a SqlParameters/SqlStatement member can only match a same-named row
     // by coincidence (DateTimePart.Day, SqlParameters.Count); DateTimePart and RegexpOptions
     // values are SQLA0104's.
-    private static bool IsConstructMember(ISymbol member) =>
+    internal static bool IsConstructMember(ISymbol member) =>
         IsFromSqlArtisan(member.ContainingAssembly)
         && member.ContainingType.TypeKind != TypeKind.Enum
         && !(member.ContainingType.ContainingNamespace.ToDisplayString() == "SqlArtisan"

@@ -26,6 +26,15 @@ internal static class AnalyzerConfigResolver
         [TargetDbms.SqlServer] = "sqlserver",
     };
 
+    private static readonly Dictionary<TargetDbms, string> SyntaxValueExpectations = new()
+    {
+        [TargetDbms.MySql] = "any, none, or a MySQL version such as 8.0.16",
+        [TargetDbms.Oracle] = "any, none, or an Oracle version such as 23",
+        [TargetDbms.PostgreSql] = "any, none, or a PostgreSQL version such as 16",
+        [TargetDbms.Sqlite] = "any, none, or a SQLite version such as 3.44",
+        [TargetDbms.SqlServer] = "any, none, or a SQL Server release year such as 2022",
+    };
+
     public const string SyntaxKeyPrefix = "sqlartisan_syntax_";
     public const string AnyValue = "any";
     public const string NoneValue = "none";
@@ -40,10 +49,16 @@ internal static class AnalyzerConfigResolver
     public static string SyntaxMSBuildPropertyKey(TargetDbms dbms) =>
         $"build_property.SqlArtisanSyntax{dbms}";
 
-    public static bool IsRecognizedSyntaxValue(string value) =>
+    // SQL Server's bounds are release years and the others' are major versions, so
+    // SQL Server's product number (16 for 2022) or a year elsewhere would compare as a
+    // different release and fail, or clear, every bound.
+    public static bool IsRecognizedSyntaxValue(TargetDbms dbms, string value) =>
         string.Equals(value, AnyValue, StringComparison.OrdinalIgnoreCase)
         || string.Equals(value, NoneValue, StringComparison.OrdinalIgnoreCase)
-        || EngineVersion.TryParse(value, out _);
+        || (EngineVersion.TryParse(value, out EngineVersion version)
+            && (dbms == TargetDbms.SqlServer ? version.Major >= 2000 : version.Major < 1000));
+
+    public static string ExpectedSyntaxValue(TargetDbms dbms) => SyntaxValueExpectations[dbms];
 
     /// <summary>
     /// Whether <paramref name="key"/> is one of the five <c>sqlartisan_syntax_&lt;dbms&gt;</c>
@@ -92,19 +107,36 @@ internal static class AnalyzerConfigResolver
     /// MSBuild property is exactly as silent as one in the
     /// <c>.editorconfig</c> key.
     /// </summary>
-    public static IEnumerable<(string Key, string Value)> SetSyntaxValues(
+    public static IEnumerable<(TargetDbms Dbms, string Key, string Value)> SetSyntaxValues(
         AnalyzerConfigOptions options)
     {
         foreach (TargetDbms dbms in AllDbms)
         {
             if (TryGetSetValue(options, SyntaxKey(dbms), out string editorConfigValue))
             {
-                yield return (SyntaxKey(dbms), editorConfigValue);
+                yield return (dbms, SyntaxKey(dbms), editorConfigValue);
             }
 
             if (TryGetSetValue(options, SyntaxMSBuildPropertyKey(dbms), out string msBuildValue))
             {
-                yield return (SyntaxMSBuildPropertyKey(dbms), msBuildValue);
+                yield return (dbms, SyntaxMSBuildPropertyKey(dbms), msBuildValue);
+            }
+        }
+    }
+
+    /// <summary>
+    /// The <c>.editorconfig</c> family keys set to nothing. Unlike a blank MSBuild key, which
+    /// the SDK emits for every declared property, one was written — and in a narrower section
+    /// it replaces the broader value, unsetting the dialect for those files.
+    /// </summary>
+    public static IEnumerable<TargetDbms> BlankSyntaxKeys(AnalyzerConfigOptions options)
+    {
+        foreach (TargetDbms dbms in AllDbms)
+        {
+            if (options.TryGetValue(SyntaxKey(dbms), out string? value)
+                && string.IsNullOrWhiteSpace(value))
+            {
+                yield return dbms;
             }
         }
     }
@@ -163,14 +195,14 @@ internal static class AnalyzerConfigResolver
         out string? value)
     {
         if (options.TryGetValue(SyntaxKey(dbms), out string? editorConfigValue)
-            && IsRecognizedSyntaxValue(editorConfigValue))
+            && IsRecognizedSyntaxValue(dbms, editorConfigValue))
         {
             value = editorConfigValue;
             return true;
         }
 
         if (options.TryGetValue(SyntaxMSBuildPropertyKey(dbms), out string? msBuildValue)
-            && IsRecognizedSyntaxValue(msBuildValue))
+            && IsRecognizedSyntaxValue(dbms, msBuildValue))
         {
             value = msBuildValue;
             return true;

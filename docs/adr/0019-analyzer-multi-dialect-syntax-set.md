@@ -3,7 +3,9 @@
 **Status:** Accepted — the legacy-pair decisions (the pair still resolving,
 `SQLA0002`, and the coexistence `SQLA0001` reason) superseded by
 [ADR 0024](0024-analyzer-legacy-target-pair-removal.md), which removes the
-pair. Everything else here stands.
+pair. The all-`none` `SQLA0001` reason narrowed by
+[ADR 0025](0025-analyzer-configuration-validation.md) to a compilation where no
+file resolves a dialect. Everything else here stands.
 
 ## Context
 

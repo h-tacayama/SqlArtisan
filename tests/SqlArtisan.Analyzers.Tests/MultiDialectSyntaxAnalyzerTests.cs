@@ -293,8 +293,7 @@ public class MultiDialectSyntaxAnalyzerTests
             editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
             .WithArguments(
-                "sqlartisan_syntax_oracle", "tru", "any, none, or a numeric engine version such as "
-                    + "8.0.16, 23, 3.44, or 2022"));
+                "sqlartisan_syntax_oracle", "tru", "any, none, or an Oracle version such as 23"));
 
         await test.RunAsync();
     }
@@ -348,7 +347,7 @@ public class MultiDialectSyntaxAnalyzerTests
             .WithArguments(
                 "sqlartisan_syntax_postgresql",
                 "14!!",
-                "any, none, or a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
+                "any, none, or a PostgreSQL version such as 16"));
 
         await test.RunAsync();
     }
@@ -367,9 +366,8 @@ public class MultiDialectSyntaxAnalyzerTests
             AnalyzerVerifier.Unmarked(RollupUsageTemplate),
             editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithMessage(
-            "In at least one file's effective configuration, every 'sqlartisan_syntax_*' "
-                + "key is 'none', "
-                + "so that file has no dialect left to check"));
+            "Every 'sqlartisan_syntax_*' key is 'none' wherever one is set, so no file has a "
+                + "dialect left to check"));
 
         await test.RunAsync();
     }
@@ -397,7 +395,7 @@ public class MultiDialectSyntaxAnalyzerTests
             .WithArguments(
                 "sqlartisan_syntax_oracle",
                 "tru",
-                "any, none, or a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
+                "any, none, or an Oracle version such as 23"));
 
         await test.RunAsync();
     }
@@ -421,7 +419,7 @@ public class MultiDialectSyntaxAnalyzerTests
             .WithArguments(
                 "build_property.SqlArtisanSyntaxOracle",
                 "tru",
-                "any, none, or a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
+                "any, none, or an Oracle version such as 23"));
 
         await test.RunAsync();
     }
@@ -555,6 +553,92 @@ public class MultiDialectSyntaxAnalyzerTests
             }
         }
         """;
+
+    private const string NvlUsageSource = """
+        using SqlArtisan;
+        using static SqlArtisan.Sql;
+
+        class D
+        {
+            void M()
+            {
+                var x = Nvl("a", "b");
+            }
+        }
+        """;
+
+    // A path-scoped `none` beside a scope that resolves a dialect is a deliberate carve-out;
+    // the sub file's Nvl, unsupported on PostgreSQL, proves the carve-out applied (#655).
+    [Fact]
+    public async Task NoneCarveOutBesideAResolvedScope_StaysSilent()
+    {
+        const string rootConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_postgresql = 16
+            """;
+        const string subConfig = """
+            [*.cs]
+            sqlartisan_syntax_postgresql = none
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            rootConfig);
+        test.TestState.Sources.Add(("/sub/Second.cs", NvlUsageSource));
+        test.TestState.AnalyzerConfigFiles.Add(("/sub/.editorconfig", subConfig));
+
+        await test.RunAsync();
+    }
+
+    // A blank in a narrower section replaces the broader value, so it would unset the
+    // dialect for those files without a word; `none` is the spelling that says so (#655).
+    [Fact]
+    public async Task BlankSyntaxKeyInANarrowerSection_ReportsSqla0001()
+    {
+        const string rootConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_sqlite = any
+            """;
+        const string subConfig = """
+            [*.cs]
+            sqlartisan_syntax_sqlite =
+            """;
+
+        var test = AnalyzerVerifier.Create(RollupUsageTemplate, rootConfig);
+        test.TestState.Sources.Add(("/sub/Second.cs", NvlUsageSource));
+        test.TestState.AnalyzerConfigFiles.Add(("/sub/.editorconfig", subConfig));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "sqlartisan_syntax_sqlite",
+                "",
+                "any, none, or a SQLite version such as 3.44"));
+
+        await test.RunAsync();
+    }
+
+    // SQL Server's bounds are years, so its product number (16 for 2022) would fail every
+    // bound, and a year on another engine would clear every one (#655).
+    [Theory]
+    [InlineData("sqlserver", "16", "any, none, or a SQL Server release year such as 2022")]
+    [InlineData("postgresql", "2022", "any, none, or a PostgreSQL version such as 16")]
+    public async Task VersionInTheOtherSpelling_ReportsSqla0001(
+        string dbms,
+        string version,
+        string expected)
+    {
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            AnalyzerVerifier.EditorConfig(dbms, version));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments($"sqlartisan_syntax_{dbms}", version, expected));
+
+        await test.RunAsync();
+    }
 
     // The reports carry no location, so one key read by files with different family lines
     // must get one piece of advice true for all of them — never "delete it" for the

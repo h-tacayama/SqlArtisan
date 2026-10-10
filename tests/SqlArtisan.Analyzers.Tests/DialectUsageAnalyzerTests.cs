@@ -332,6 +332,64 @@ public class DialectUsageAnalyzerTests
         await test.RunAsync();
     }
 
+    // A key matching no member or declared arity overrides nothing, so a typo, a renamed
+    // member (#588's update_where) or a property's arity key would otherwise be silent (#655).
+    [Fact]
+    public async Task ConstructKeyNamingNoMemberOrArity_ReportsSqla0001()
+    {
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_construct_rolup = supported
+            sqlartisan_construct_rollup_arity9 = supported
+            sqlartisan_construct_update_where = unsupported
+            sqlartisan_construct_sysdate_arity0 = supported
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
+        foreach (string key in new[]
+        {
+            "sqlartisan_construct_rolup",
+            "sqlartisan_construct_rollup_arity9",
+            "sqlartisan_construct_sysdate_arity0",
+            "sqlartisan_construct_update_where",
+        })
+        {
+            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+                .WithMessage($"'{key}' names no SqlArtisan member or declared parameter count, "
+                    + "so it overrides nothing"));
+        }
+
+        await test.RunAsync();
+    }
+
+    // Judged against the referenced assembly, not the matrix: Build has no entry, and Concat's
+    // member key and an operator's arity key derive from none either.
+    [Fact]
+    public async Task ConstructKeyNamingARealMemberOrArity_StaysSilent()
+    {
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_construct_rollup = supported
+            sqlartisan_construct_rollup_arity2 = supported
+            sqlartisan_construct_sysdate = supported
+            sqlartisan_construct_build = supported
+            sqlartisan_construct_concat = supported
+            sqlartisan_construct_op_addition_arity2 = supported
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
+
+        await test.RunAsync();
+    }
+
     [Fact]
     public async Task StringAggThreeArgForm_OnSqlServer_ReportsSqla0100ButTwoArgFormDoesNot()
     {
@@ -1112,6 +1170,9 @@ public class DialectUsageAnalyzerTests
             $"class C\n{{\n    void M()\n    {{\n{body}    }}\n}}\n",
             editorConfig.ToString());
 
+        // Those keys name no construct member, so SQLA0001 rightly calls them stale; this
+        // test is about SQLA0100 alone.
+        test.DisabledDiagnostics.Add("SQLA0001");
         await test.RunAsync();
     }
 

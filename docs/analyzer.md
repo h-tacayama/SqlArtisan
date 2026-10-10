@@ -93,7 +93,7 @@ still needs naming by ID.
 
 | ID | Severity | Reports |
 |---|---|---|
-| `SQLA0001` | Warning | A SqlArtisan analyzer configuration problem: an unrecognized `sqlartisan_syntax_*` key name or value, a `sqlartisan_construct_*` value that could not be recognized, a `sqlartisan_syntax_*` family that resolves to no dialect at all, or a removed `sqlartisan_target_dbms` / `sqlartisan_target_version` key still set — see [Checking a set of dialects at once](#checking-a-set-of-dialects-at-once) and [Migrating from the legacy target key](#migrating-from-the-legacy-target-key). |
+| `SQLA0001` | Warning | A SqlArtisan analyzer configuration problem: an unrecognized `sqlartisan_syntax_*` key name or value (a blank `.editorconfig` value, or a version in another engine's spelling, included), a `sqlartisan_construct_*` key naming no SqlArtisan member or declared parameter count, a `sqlartisan_construct_*` value that could not be recognized, a `sqlartisan_syntax_*` family that resolves to no dialect in any file, or a removed `sqlartisan_target_dbms` / `sqlartisan_target_version` key still set — see [Checking a set of dialects at once](#checking-a-set-of-dialects-at-once) and [Migrating from the legacy target key](#migrating-from-the-legacy-target-key). |
 | `SQLA0100` | Warning | A SqlArtisan construct is used against a configured dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0101` | Warning | A construct is supported on a configured dialect, but not at its declared version — see [Version-aware warnings](#version-aware-warnings-sqla0101). Checking more than one dialect reports one diagnostic per failing dialect. |
 | `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
@@ -229,8 +229,11 @@ sections layer, so the broader `sqlartisan_syntax_sqlite = any` still applies
 to those files. Only `none` overrides it back off.
 
 No aliases beyond these two — no `true`/`yes`/`off`. A smaller value domain
-is easier to document and validate. A key set to nothing at all
-(`sqlartisan_syntax_oracle =`) reads as unset, not as `none`.
+is easier to document and validate. A `.editorconfig` key set to nothing at all
+(`sqlartisan_syntax_oracle =`) reports `SQLA0001`: in a narrower section it
+would replace the broader value and switch the dialect off for those files
+without a word, so write `none` when that is what you mean. An MSBuild property
+set to nothing reads as unset.
 
 ### SQLA0100 joins; SQLA0101 and SQLA0103 report one per dialect
 
@@ -266,18 +269,19 @@ matrix loop runs. Forcing a construct unsupported reports exactly one
 `sqlartisan_syntax_oracle = none` with no other `sqlartisan_syntax_*` key
 resolves to an empty set for that scope — every rule's "is a dialect
 configured" gate then reads as "unconfigured," and the analyzer goes quiet
-there. `SQLA0001` reports this once per compilation the first time any file's
-family is present but every key resolves to `none`, so a project doesn't lose
-analyzer coverage from one typo-adjacent `none` without a visible reason.
+there. When no file in the project resolves a dialect, but some file's family
+is present with every key at `none`, `SQLA0001` reports it once, so a project
+doesn't lose analyzer coverage from one typo-adjacent `none` without a visible
+reason. A `none` that carves one path out while other files still resolve a
+dialect is deliberate and stays silent.
 
 ### A typo in the key name is now detectable
 
-Unlike a `sqlartisan_construct_*` key (see
-[Correcting a warning](#correcting-a-warning-the-override-keys) below),
 `sqlartisan_syntax_*` puts the DBMS name in the key itself, which the
 analyzer can enumerate and check — `sqlartisan_syntax_postgres` (missing the
 `ql`) reports `SQLA0001` naming the valid suffixes, rather than silently
-checking nothing.
+checking nothing. A `sqlartisan_construct_*` key name is checked too (see
+[Correcting a warning](#correcting-a-warning-the-override-keys) below).
 
 ### Staged adoption
 
@@ -362,13 +366,14 @@ sqlartisan_syntax_postgresql = 15
 sqlartisan_construct_merge_into = supported   # e.g. targeting PostgreSQL 15+, where MERGE landed
 ```
 
-A typo in a `sqlartisan_construct_*` key name is not detectable — its member
-name lives entirely in an arbitrary key suffix Roslyn has no reference list
-for, so a misspelled override silently does nothing. If a warning doesn't
-clear after adding one, check the key against the message text exactly. (A
-typo in a `sqlartisan_syntax_*` key name *is* detectable, since the DBMS
-suffix is one of only five — see
-[Checking a set of dialects at once](#checking-a-set-of-dialects-at-once).)
+A key that names no SqlArtisan member, or no declared parameter count of one,
+reports `SQLA0001` — a typo (`sqlartisan_construct_rolup`), an arity the member
+does not have (`sqlartisan_construct_rollup_arity9`), or a member a release
+renamed or removed. Names are checked against the SqlArtisan version the
+project references, not against the dialect matrix, so a key for a member with
+no matrix entry is accepted; one for a member a newer version adds reports until
+you upgrade. The keys are read from `.editorconfig` (or a global configuration
+file) only — there is no MSBuild property for them.
 
 ---
 
@@ -405,9 +410,13 @@ Or, if you prefer an MSBuild property:
 </PropertyGroup>
 ```
 
-- **Value format.** The engine's own version spelling, the same one this
-  documentation's dialect notes use — `8.0.16` for MySQL, `23` for Oracle,
-  `16` for PostgreSQL, `3.44` for SQLite, `2022` for SQL Server. Versions
+- **Value format.** The spelling this documentation's dialect notes use: the
+  release year for SQL Server (`2022`, not its product version `16`), the major
+  version, with an optional minor and patch, for the others — `8.0.16` for
+  MySQL, `23` for Oracle, `16` for PostgreSQL, `3.44` for SQLite. A value in
+  the other spelling — a SQL Server value below 2000, or 1000 or more on
+  another engine — reports `SQLA0001` and leaves that dialect unchecked, as any
+  unrecognized value does. Versions
   compare by numeric segment (`8.0.20` is newer than `8.0.16`, and a bare
   `8.0` reads as `8.0.0` — declare the precise patch version if an 8.0.x
   bound matters to you); trailing letters in a segment are ignored (`23ai`
@@ -425,8 +434,9 @@ Or, if you prefer an MSBuild property:
   silent whether or not a version is declared.
 - **Same plumbing as every `sqlartisan_syntax_*` key.** Resolved per source
   file and per DBMS, `.editorconfig` wins over the MSBuild property, and an
-  unrecognized `.editorconfig` value is flagged as `SQLA0001` and falls
-  through to the MSBuild property for that DBMS (unset when none is given).
+  unrecognized `.editorconfig` value, a blank one included, is flagged as
+  `SQLA0001` and falls through to the MSBuild property for that DBMS (unset
+  when none is given).
 
 Suppression is per rule ID, the standard Roslyn way
 (`#pragma warning disable SQLA0101`, a `[SuppressMessage]` attribute, or
@@ -1530,13 +1540,6 @@ for, not a bug in the matrix.
   (`class T(string alias) : DbTableBase("t", alias)`) is not traced, so an
   over-long alias passed to it is missed. TableClassGen always emits the
   classic constructor form, so generated table classes are unaffected.
-- **`sqlartisan_construct_*` key names fail silently on a typo** (see above)
-  — there is no diagnostic for an unrecognized `sqlartisan_construct_*` *key
-  name*. The key's *value* is always validated — every key carrying the
-  prefix is swept, including one naming a member the matrix has no entry
-  for — so `suported` draws `SQLA0001` even on a made-up key; only the key
-  name itself can silently miss. `sqlartisan_syntax_*` key names do not
-  share this gap — a typo there is `SQLA0001`.
 - **Absence of an entry still means silence, not endorsement.** The matrix
   covers every referencable public method, property, field, and overloaded
   operator except a

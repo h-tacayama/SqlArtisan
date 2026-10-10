@@ -5,8 +5,10 @@
 `sqlartisan_syntax_*` family and resolves a `sqlartisan_construct_*` override
 once per usage rather than once per target, and by
 [ADR 0021](0021-analyzer-matrix-key-granularity.md), which fixes which of the
-two key levels below the shipped matrix's own entries assert at. Everything
-else here stands.
+two key levels below the shipped matrix's own entries assert at. Two claims
+superseded by [ADR 0025](0025-analyzer-configuration-validation.md): key-name
+typos are detected (`SQLA0001`), not permanently undetectable, and the override
+keys have no MSBuild-property path. Everything else here stands.
 
 ## Context
 
