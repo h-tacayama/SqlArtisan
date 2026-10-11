@@ -58,3 +58,13 @@ Rules for `Format` implementations and `Keywords.cs` (#207 / #208):
    `AND` / `OR`, and the operand of `NOT`, is enclosed. The emitted SQL then
    keeps the C# tree whatever each engine's precedence is; a node that drops
    them changes rows.
+
+7. **No modifier the caller did not choose.** Inside a function's argument
+   list, a node emits an optional modifier keyword (`BOTH` / `LEADING` /
+   `TRAILING`, `DISTINCT`) only when the caller names it — through the
+   factory, an argument or a fluent member — as `Count(Distinct, x)` names
+   `DISTINCT`. One the engine applies by default is left out when the caller
+   did not name it: spelling it out unasked changes no rows and can only
+   narrow where the text runs. `Trim(s, c)`'s `TRIM(BOTH c FROM s)` is the
+   instance (#661): SQL Server accepts `BOTH` only at compatibility level 160
+   or higher, while `TRIM(c FROM s)` runs from 2017.

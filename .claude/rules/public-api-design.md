@@ -265,6 +265,18 @@ binding. Watch implicit conversions, which overlap types the signatures do not:
 a `char` converts to `int`, so `JsonArrow` carries a `char` overload that
 inlines it as a key rather than letting it become an array index.
 
+An enum beside an `object` slot overlaps the same way. A function-argument
+enum passed at an arity whose overload has no slot of its type boxes into an
+`object` slot and binds as a value (Dapper sends its integer):
+`RegexpCount(s, p, RegexpOptions.CaseInsensitive)` binds the options as the
+position, and `Against(SearchModifier.InBooleanMode)` binds the modifier as
+the search text. Where a family takes the enum at one arity and boxes it at
+another — the `REGEXP_*` factories (#661) and `Against` / `AgainstScore`'s
+search-text slot (#664) — it rejects the enum in those `object` slots at the
+call. An overload taking the enum cannot withhold it instead: a literal `0`
+converts to any enum and prefers the enum overload, so it would capture
+`RegexpReplace(s, p, r, 1, 0)`.
+
 ## Minimum-arity enforcement: compile-time when the shape allows it
 
 A factory requiring at least one argument enforces it two ways, both
@@ -532,6 +544,26 @@ table-source modifier after the alias — PostgreSQL's `TABLESAMPLE`, MySQL's
 `ExpressionAlias` as an operand, which SQLite reads inside an `ORDER BY` or
 `WHERE` expression but no operator here takes (#613 made a string beside one
 a compile error).
+
+**Not yet offered (#664):** the B2 review found these window and aggregate
+forms with no spelling, and none needs a breaking change to add, so the same
+reading applies: `Over` on `StringAgg` and on a completed `Listagg` (Oracle's
+`OVER (PARTITION BY ...)`); `Filter` on `StringAgg` and the percentiles;
+`LISTAGG(DISTINCT ...)` and `STRING_AGG(DISTINCT ...)`; SQLite's
+`group_concat(x, sep ORDER BY ...)`; a `RANGE` offset given as an
+`INTERVAL`, the `GROUPS` frame unit and `EXCLUDE`; `IGNORE NULLS` /
+`RESPECT NULLS` and `NTH_VALUE ... FROM LAST`; the hypothetical-set
+`RANK(x) WITHIN GROUP (...)`; and `NEXT VALUE FOR ... OVER (ORDER BY ...)`.
+`Over` and `Filter` on `GroupConcat` are the exception: `GroupConcatFunction`
+is one type across its DISTINCT, inline-`ORDER BY` and `SEPARATOR` forms, no
+engine runs a window over those forms (SQLite 3.45.1, live) nor `FILTER` over
+`SEPARATOR`, so offering either by type changes those factories' return
+types, the trade-off #662 decides for the DISTINCT aggregates. Two more look
+missing but have a same-rows spelling, so they are ergonomic, not holes: a
+window frame with no `ORDER BY` is `OrderBy(Null).Rows(...)` (or
+`PartitionBy(g).OrderBy(Null)` first; same rows on PostgreSQL 16 and
+SQLite 3.45, MySQL not verified), and `LISTAGG` with no delimiter is
+`Listagg(x, Null)`, NULL being its default delimiter (not verified on Oracle).
 
 **Several `ON CONFLICT` clauses in one `INSERT` are not offered (decided —
 do not re-file):** SQLite runs `ON CONFLICT (id) DO UPDATE ... ON CONFLICT
