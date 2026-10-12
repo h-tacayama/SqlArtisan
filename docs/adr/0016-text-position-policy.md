@@ -108,6 +108,16 @@ alongside the bind-parameter types.
   `Select_ColumnAliasWithDoubleQuote_…`, and
   `NextValueFor_SequenceNameWithQuote_…` pin it beside the existing
   `Nextval_SequenceNameWithQuote_EscapesLiteral`.
+- **A forced literal is escaped, not transcoded.** The forced-literal row
+  keeps a caller string from reaching the text raw; it does not promise that
+  every character arrives. On SQL Server a literal without `N` is converted to
+  the database's code page, which may not hold every character, and the loss
+  is not reported. In the `JSON_VALUE` / `JSON_QUERY` path that can silently
+  name another key — lax mode, the default, returns NULL for a missing key
+  rather than failing — and whether to emit `N'...'` there is #663. The
+  `STRING_AGG` separator keeps the plain literal deliberately: SQL Server
+  rejects an `nvarchar` separator over a `varchar` input, so `N'...'` there
+  would break a query that runs today (#664).
 - **Not a Boundary-cluster ADR.** This records emission behavior; it adds no
   rejection category to ADR 0007 / 0011 / 0012 and does not count toward their
   consolidation trigger.
