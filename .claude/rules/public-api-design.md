@@ -271,11 +271,11 @@ enum passed at an arity whose overload has no slot of its type boxes into an
 `RegexpCount(s, p, RegexpOptions.CaseInsensitive)` binds the options as the
 position, and `Against(SearchModifier.InBooleanMode)` binds the modifier as
 the search text. Where a family takes the enum at one arity and boxes it at
-another — the `REGEXP_*` factories (#661) and `Against` / `AgainstScore`'s
-search-text slot (#664) — it rejects the enum in those `object` slots at the
-call. An overload taking the enum cannot withhold it instead: a literal `0`
-converts to any enum and prefers the enum overload, so it would capture
-`RegexpReplace(s, p, r, 1, 0)`.
+another — the `REGEXP_*` factories and `Against` / `AgainstScore`'s
+search-text slot — it must reject the enum in those `object` slots at the
+call (#661 and #664 add the guards). An overload taking the enum cannot
+withhold it instead: a literal `0` converts to any enum and prefers the enum
+overload, so it would capture `RegexpReplace(s, p, r, 1, 0)`.
 
 ## Minimum-arity enforcement: compile-time when the shape allows it
 
@@ -558,7 +558,7 @@ reading applies: `Over` on `StringAgg` and on a completed `Listagg` (Oracle's
 is one type across its DISTINCT, inline-`ORDER BY` and `SEPARATOR` forms, no
 engine runs a window over those forms (SQLite 3.45.1, live) nor `FILTER` over
 `SEPARATOR`, so offering either by type changes those factories' return
-types, the trade-off #662 decides for the DISTINCT aggregates. Two more look
+types, the trade-off #662 weighs for the DISTINCT aggregates. Two more look
 missing but have a same-rows spelling, so they are ergonomic, not holes: a
 window frame with no `ORDER BY` is `OrderBy(Null).Rows(...)` (or
 `PartitionBy(g).OrderBy(Null)` first; same rows on PostgreSQL 16 and
