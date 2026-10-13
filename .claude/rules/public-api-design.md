@@ -417,10 +417,12 @@ declared instance field of a `SqlPart` type read-only, a property's backing
 field included; a captured primary-constructor parameter cannot be declared
 so and stays unassigned by this rule, as does a node outside `SqlPart`
 (`CommonTableExpression`). A read-only field can still hold a collection: one
-a factory or builder fills while constructing the node (`InsertValuesClause`'s
-rows) is construction, not a member a caller reaches. The statement builders
-are the stateful exception: a stage appends to the held builder by design, and
-the freeze-after-`Build()` and duplicate-clause guards
+a factory fills before returning the node (`Sql.Values`' rows) is
+construction, and one only its owning builder grows (`InsertValuesClause`'s
+rows under a repeat `.Values(...)`) is builder state, never a member reached
+on the node. The statement builders are the stateful exception: a stage
+appends to the held builder by design, and the freeze-after-`Build()` and
+duplicate-clause guards
 (`guards-and-empty-states.md` § "The empty-state policy") keep that safe.
 
 ## Root namespace vs `Internal` (ADR 0005)

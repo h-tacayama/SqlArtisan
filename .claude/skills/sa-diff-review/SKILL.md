@@ -112,10 +112,12 @@ check the diff against each:
   field on a node and returns `this`: a caller can hold the node and derive
   from it more than once (combining `SqlCondition`s with `&` / `|`, deriving
   `SortOrder` variants, reusing a `Top(n)`), and a mutating member would
-  rewrite every statement composed from it. `SqlPartImmutabilityTests` catches
-  a reassignable field on a `SqlPart`; check by hand what it cannot see — a
-  node outside `SqlPart`, a captured primary-constructor parameter, a
-  read-only collection a caller-reachable member appends to.
+  rewrite every statement composed from it and not yet built.
+  `SqlPartImmutabilityTests` catches a reassignable field on a `SqlPart`;
+  check by hand what it cannot see — a node outside `SqlPart`, a captured
+  primary-constructor parameter, a read-only collection that a member reached
+  on the node appends to (a builder stage growing its own clause is the
+  rule's builder exception).
 - **Comment audit.** Comments are part of the diff — hold them to the same bar.
   Run the `.claude/rules/code-comments.md` smell checklist (1–8) and length
   defaults over every added or changed `//` and `///`; delete restatements and
