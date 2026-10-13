@@ -8,6 +8,8 @@ internal sealed class MySqlDialect : IDbmsDialect
     // a literal backslash (e.g. a LIKE ESCAPE char) must be doubled.
     public bool BackslashEscapesStringLiterals => true;
 
+    public bool BackslashLiteralsUseEscapeString => false;
+
     public string DmlTableAliasSeparator => " AS ";
 
     // The 8.0.19+ row alias RowAliasClause emits, read as `new.column`.

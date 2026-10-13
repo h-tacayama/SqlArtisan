@@ -21,7 +21,9 @@ worth attacking:
   there (SQL injection through the API) is a vulnerability.
 - **Inline-literal escaping** — the positions that take that literal path
   (e.g. `LIKE ... ESCAPE`, string-aggregation separators) double `'` on every
-  dialect and `\` on MySQL; a bypass is a vulnerability.
+  dialect and `\` on MySQL, and write a literal holding `\` on PostgreSQL as
+  `E'...'` so no session setting changes how it reads; a bypass is a
+  vulnerability.
 
 Several slots do inline a value unescaped — an `ORDER BY` ordinal, a `LAG` /
 `LEAD` offset, a window-frame bound, `NTILE`'s bucket count and `FOR UPDATE

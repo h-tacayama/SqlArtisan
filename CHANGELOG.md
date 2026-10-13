@@ -507,6 +507,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   session that fails mid-read. It used to print the driver's message alone.
   (#645)
 
+### Security
+- PostgreSQL: a forced literal holding a backslash — a `JsonArrow` /
+  `JsonArrowText` string key, `IntervalLiteral` text, a JSON path, the
+  `NEXTVAL` / `CURRVAL` sequence name, a text-search configuration, the
+  `STRING_AGG` separator, the `LIKE ... ESCAPE` character — is now written as an
+  escape-string constant, `E'...'` with the backslash doubled. A plain literal
+  reads the backslash per the session's `standard_conforming_strings`, which any
+  role, database or connection can turn off; with it off, `\'` closed the
+  literal and the rest of the caller's string ran as SQL. A literal without a
+  backslash is unchanged, and an expression index written with the plain
+  spelling still matches.
+
 ### Tests
 - Integration twins for #614's engine claims: Oracle rejects
   `NULLS FIRST NULLS LAST` and reads an empty match

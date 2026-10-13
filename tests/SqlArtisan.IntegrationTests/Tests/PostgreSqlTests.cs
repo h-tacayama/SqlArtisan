@@ -238,6 +238,31 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Contains("10001", address);
     }
 
+    [Fact] // With standard_conforming_strings off, \' in a plain literal is an escaped
+           // quote: a key holding it would close the literal and run the rest as SQL.
+    public void JsonArrowText_BackslashKey_StandardConformingStringsOff_StaysOneLiteral()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute("SET standard_conforming_strings = off");
+
+        try
+        {
+            string? value = connection
+                .Query<string?>(
+                    Select(JsonArrowText(u.Data, "\\') FROM users --"))
+                    .From(u)
+                    .Where(u.Id == 1))
+                .Single();
+
+            Assert.Null(value);
+        }
+        finally
+        {
+            connection.Execute("RESET standard_conforming_strings");
+        }
+    }
+
     [Fact]
     public void JsonHashArrowText_ReadsByPath()
     {

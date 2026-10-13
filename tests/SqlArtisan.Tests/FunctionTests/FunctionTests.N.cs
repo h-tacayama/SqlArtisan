@@ -48,6 +48,20 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Nextval_SequenceNameWithBackslash_EmitsEscapeString()
+    {
+        SqlStatement sql =
+            Select(Nextval("se'q\\x"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("NEXTVAL(E'se''q\\\\x')");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Nextval_NullSequenceName_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() => Nextval(null!));

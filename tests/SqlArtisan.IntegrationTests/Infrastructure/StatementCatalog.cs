@@ -89,7 +89,7 @@ internal static class StatementCatalog
         Add("LikeEscape",
             () => Select(u.Id).From(u).Where(u.Name.Like("A!%").Escape('!')), All);
         // A backslash escape char exercises MySQL's literal backslash-doubling
-        // branch (BackslashEscapesStringLiterals); a bare backslash on the others.
+        // branch and PostgreSQL's E'...' constant; a bare backslash on the others.
         Add("LikeEscapeBackslash",
             () => Select(u.Id).From(u).Where(u.Name.Like("A\\%").Escape('\\')), All);
 
