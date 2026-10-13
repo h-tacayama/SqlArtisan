@@ -1,4 +1,5 @@
 using System.Text;
+using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -579,6 +580,42 @@ public class SelectTests
         expected.Append("test_table \"t\"");
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal(10, sql.Parameters.Get<int>("@0"));
+    }
+
+    // A held Top(n) is shared by every statement built from it, so Percent() and
+    // WithTies() must leave it as it was.
+    [Fact]
+    public void Top_SqlServer_PercentWithTiesOnHeldTop_LeavesEarlierStatementUnchanged()
+    {
+        TopClause top = Top(10);
+        ISqlBuilder rows = Select(top, _t.Code).From(_t).OrderBy(_t.Code);
+        ISqlBuilder share =
+            Select(top.Percent().WithTies(), _t.Name)
+            .From(_t)
+            .OrderBy(_t.Name);
+
+        SqlStatement sql = rows.Build(Dbms.SqlServer);
+        SqlStatement shareSql = share.Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("TOP (@0) ");
+        expected.Append("\"t\".code ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("ORDER BY \"t\".code");
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(10, sql.Parameters.Get<int>("@0"));
+
+        StringBuilder shareExpected = new();
+        shareExpected.Append("SELECT ");
+        shareExpected.Append("TOP (@0) PERCENT WITH TIES ");
+        shareExpected.Append("\"t\".name ");
+        shareExpected.Append("FROM ");
+        shareExpected.Append("test_table \"t\" ");
+        shareExpected.Append("ORDER BY \"t\".name");
+        Assert.Equal(shareExpected.ToString(), shareSql.Text);
+        Assert.Equal(10, shareSql.Parameters.Get<int>("@0"));
     }
 
     [Fact]

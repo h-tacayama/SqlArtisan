@@ -70,6 +70,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   earlier branch held in a variable stays silent. (#582)
 
 ### Changed
+- **Breaking:** `TopClause.Percent()` and `WithTies()` return a new
+  `TopClause` and leave the one they are called on unchanged. They used to set
+  the flag on the receiver, so a `Top(n)` held in a variable and reused read
+  `PERCENT` / `WITH TIES` in statements built from it earlier, with no error.
+  A chained call (`Top(10).Percent()`) is unaffected; a statement-form call
+  whose result is discarded (`top.Percent();`) no longer adds the keyword —
+  use the returned clause. (#668)
 - A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
   release year on SQL Server, the engine's own version number elsewhere. A SQL
   Server value below 2000 (`16`, SQL Server 2022's product version, compared as

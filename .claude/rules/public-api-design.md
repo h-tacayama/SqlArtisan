@@ -402,6 +402,23 @@ wants the generic supertype can still declare one locally.
 > inconsistency with this rule caught in review and corrected to return the
 > pre-existing `BindValue` node directly.
 
+## A node's fluent member returns a new node
+
+A member that refines a `SqlPart` node — `TopClause.Percent()` /
+`WithTies()`, `SortOrder.NullsFirst` / `NullsLast`, a window's
+`OrderBy(...)` / `Rows(...)`, `CommonTableExpression.WithColumnList()` —
+returns a new node and leaves its receiver unchanged. A node is a value: a
+caller holds one in a variable and composes it into more than one statement,
+so a member that changed the receiver would rewrite every statement already
+built from it, with no error. #668 was the instance: after a later
+`.Percent().WithTies()`, a held `Top(10)` read `TOP (10) PERCENT WITH TIES`
+in a query built earlier. `SqlPartImmutabilityTests` holds every declared
+instance field of a `SqlPart` read-only; a captured primary-constructor
+parameter cannot be declared so, and stays unassigned by this rule. The
+statement builders are the stateful exception: a stage appends to the held
+builder by design, and the freeze-after-`Build()` and duplicate-clause guards
+(`guards-and-empty-states.md` § "The empty-state policy") keep that safe.
+
 ## Root namespace vs `Internal` (ADR 0005)
 
 A type belongs in the root `SqlArtisan` namespace only when **all three** hold:
