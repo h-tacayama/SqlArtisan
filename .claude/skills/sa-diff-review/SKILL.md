@@ -107,21 +107,17 @@ check the diff against each:
   clause (Oracle `LISTAGG` needs `WITHIN GROUP`); keep it optional when the
   clause is genuinely optional (SQL Server `STRING_AGG`, MySQL `GROUP_CONCAT`
   ordering).
-- **Mutable builder fields returning `this`** are acceptable **only on a
-  single-owner fluent-chain step** — precedent: `TopClause.Percent`/`WithTies`.
-  No guard reaches these node-level mutators
-  (the #245 freeze-after-Build guard intercepts statement-builder stages
-  only), so the acceptability rests on the idiom: the node is configured
-  inline and handed straight to its statement, not held. Docs must never
-  *promise* mutation (the contract wording is "a partial chain is one-way"),
-  keeping copy-on-write open as a later bug-fix. Flag the same shape on a
-  **value-like node a caller might hold and derive from more than once** (an
-  accumulator pattern — combining `SqlCondition`s with `&`/`|`, deriving
-  `SortOrder` variants, anything similar): mutating the receiver there aliases
-  or cross-contaminates the derivations, since both point at the same object.
-  `AndCondition`/`OrCondition` and `SortOrder.NullsFirst`/`.NullsLast` are
-  copy-on-write for exactly this reason — require the same of any new node
-  shaped like them.
+- **A node's fluent member returns a new node**
+  (`.claude/rules/public-api-design.md`, #668). Flag any member that sets a
+  field on a node and returns `this`: a caller can hold the node and derive
+  from it more than once (combining `SqlCondition`s with `&` / `|`, deriving
+  `SortOrder` variants, reusing a `Top(n)`), and a mutating member would
+  rewrite every statement composed from it and not yet built.
+  `SqlPartImmutabilityTests` catches a reassignable field on a `SqlPart`;
+  check by hand what it cannot see — a node outside `SqlPart`, a captured
+  primary-constructor parameter, a read-only collection that a member reached
+  on the node appends to (a builder stage growing its own clause is the
+  rule's builder exception).
 - **Comment audit.** Comments are part of the diff — hold them to the same bar.
   Run the `.claude/rules/code-comments.md` smell checklist (1–8) and length
   defaults over every added or changed `//` and `///`; delete restatements and

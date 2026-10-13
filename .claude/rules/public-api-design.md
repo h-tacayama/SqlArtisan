@@ -402,6 +402,29 @@ wants the generic supertype can still declare one locally.
 > inconsistency with this rule caught in review and corrected to return the
 > pre-existing `BindValue` node directly.
 
+## A node's fluent member returns a new node
+
+A public member that refines a node — `TopClause.Percent()` / `WithTies()`,
+`SortOrder.NullsFirst` / `NullsLast`, a window's `OrderBy(...)` /
+`Rows(...)`, `CommonTableExpression.WithColumnList()` — returns a new node
+and leaves its receiver unchanged. A node is a value: a caller holds one in a
+variable and composes it into more than one statement, so a member that
+changed the receiver would rewrite every statement composed from it and not
+yet built, with no error. #668 was the instance: after a later
+`.Percent().WithTies()`, a query composed earlier from a held `Top(10)` built
+as `TOP (@0) PERCENT WITH TIES`. `SqlPartImmutabilityTests` holds every
+declared instance field of a `SqlPart` type read-only, a property's backing
+field included; a captured primary-constructor parameter cannot be declared
+so and stays unassigned by this rule, as does a node outside `SqlPart`
+(`CommonTableExpression`). A read-only field can still hold a collection: one
+a factory fills before returning the node (`Sql.Values`' rows) is
+construction, and one only its owning builder grows (`InsertValuesClause`'s
+rows under a repeat `.Values(...)`) is builder state, never a member reached
+on the node. The statement builders are the stateful exception: a stage
+appends to the held builder by design, and the freeze-after-`Build()` and
+duplicate-clause guards
+(`guards-and-empty-states.md` § "The empty-state policy") keep that safe.
+
 ## Root namespace vs `Internal` (ADR 0005)
 
 A type belongs in the root `SqlArtisan` namespace only when **all three** hold:
