@@ -28,7 +28,7 @@ the string names:
 | Position | Behavior | Mechanism |
 |----------|----------|-----------|
 | **Value** — anything the grammar accepts as a parameter | bound | `BindValue`; ADR 0004 |
-| **Forced literal** — a position that needs a literal: the dialect grammar rejects a bind marker there, or a bind marker would change how the engine resolves or plans the statement | emitted inline, single-quoted, `'` doubled (and `\` doubled on MySQL) | `SqlBuildingBuffer.AppendStringLiteral` |
+| **Forced literal** — a position that needs a literal: the dialect grammar rejects a bind marker there, or a bind marker would change how the engine resolves or plans the statement | emitted inline, single-quoted, `'` doubled (`\` doubled on MySQL; on PostgreSQL a literal holding `\` is an `E'...'` constant with `\` doubled) | `SqlBuildingBuffer.AppendStringLiteral` |
 | **Identifier** — a name or type token in the statement's structure | emitted verbatim, between the dialect's alias quotes where the position is quoted at all | `SqlBuildingBuffer.EncloseInAliasQuotes`, or a bare append |
 
 `Nextval` / `Currval` are the case that looked like an exception and is not.
@@ -108,6 +108,13 @@ alongside the bind-parameter types.
   `Select_ColumnAliasWithDoubleQuote_…`, and
   `NextValueFor_SequenceNameWithQuote_…` pin it beside the existing
   `Nextval_SequenceNameWithQuote_EscapesLiteral`.
+- **No session setting reopens a forced literal.** PostgreSQL reads a plain
+  literal's `\` per `standard_conforming_strings`, which any role, database or
+  connection can turn off; with it off, `\'` is an escaped quote and would close
+  the literal. A literal holding `\` is therefore an `E'...'` constant there,
+  which reads the same under either setting. MySQL's `NO_BACKSLASH_ESCAPES` can
+  still change a doubled `\` into two characters, a wrong value but never a
+  closed literal, since `'` stays doubled.
 - **A forced literal is escaped, not transcoded.** The forced-literal row
   keeps a caller string from reaching the text raw; it does not promise that
   every character arrives. On SQL Server a literal without `N` is converted to

@@ -273,34 +273,46 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // takes a constant (ADR 0004): the LIKE ... ESCAPE char, GROUP_CONCAT ... SEPARATOR.
     internal SqlBuildingBuffer AppendStringLiteral(char value)
     {
-        Append('\'');
-        AppendEscaped(value);
+        bool escapeString = value == '\\' && _dialect.BackslashLiteralsUseEscapeString;
+        OpenStringLiteral(escapeString);
+        AppendEscaped(value, escapeString);
         Append('\'');
         return this;
     }
 
     internal SqlBuildingBuffer AppendStringLiteral(string value)
     {
-        Append('\'');
+        bool escapeString = _dialect.BackslashLiteralsUseEscapeString && value.Contains('\\');
+        OpenStringLiteral(escapeString);
 
         foreach (char c in value)
         {
-            AppendEscaped(c);
+            AppendEscaped(c, escapeString);
         }
 
         Append('\'');
         return this;
     }
 
-    // Doubles the single quote on every dialect; doubles the backslash only where
-    // the dialect treats it as a string-literal escape (MySQL).
-    private void AppendEscaped(char value)
+    private void OpenStringLiteral(bool escapeString)
+    {
+        if (escapeString)
+        {
+            Append('E');
+        }
+
+        Append('\'');
+    }
+
+    // Doubles the single quote on every dialect; doubles the backslash where the
+    // literal reads it as an escape (MySQL, or a PostgreSQL E'...' constant).
+    private void AppendEscaped(char value, bool escapeString)
     {
         if (value == '\'')
         {
             Append("''");
         }
-        else if (value == '\\' && _dialect.BackslashEscapesStringLiterals)
+        else if (value == '\\' && (escapeString || _dialect.BackslashEscapesStringLiterals))
         {
             Append("\\\\");
         }

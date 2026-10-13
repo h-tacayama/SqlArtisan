@@ -192,8 +192,8 @@ public static partial class Sql
     /// The <c>INTERVAL '<paramref name="text"/>'</c> literal, with its unit(s)
     /// embedded in the text itself (e.g. <c>"30 days"</c>).
     /// </summary>
-    /// <param name="text">The interval literal text, emitted inline between
-    /// single quotes (its own quotes doubled).</param>
+    /// <param name="text">The interval literal text, emitted inline as an
+    /// escaped string literal.</param>
     /// <returns>An <see cref="IntervalLiteralExpression"/> emitting <c>INTERVAL 'text'</c>.</returns>
     /// <remarks>PostgreSQL syntax.</remarks>
     public static IntervalLiteralExpression IntervalLiteral(string text) => new(text);
@@ -204,8 +204,8 @@ public static partial class Sql
     /// <see cref="Day()"/>, <see cref="Hour()"/>, <see cref="Minute()"/>,
     /// or <see cref="Second()"/>.
     /// </summary>
-    /// <param name="value">The interval literal value, emitted inline between
-    /// single quotes (its own quotes doubled).</param>
+    /// <param name="value">The interval literal value, emitted inline as an
+    /// escaped string literal.</param>
     /// <param name="field">The field the literal is expressed in.</param>
     /// <returns>An <see cref="IntervalLiteralExpression"/> emitting
     /// <c>INTERVAL 'value' field</c>.</returns>
@@ -224,8 +224,8 @@ public static partial class Sql
     /// The <c>INTERVAL '<paramref name="value"/>' leadingField TO trailingField</c>
     /// literal — a range of fields (e.g. <c>YEAR TO MONTH</c>, <c>DAY TO SECOND</c>).
     /// </summary>
-    /// <param name="value">The interval literal value, emitted inline between
-    /// single quotes (its own quotes doubled).</param>
+    /// <param name="value">The interval literal value, emitted inline as an
+    /// escaped string literal.</param>
     /// <param name="leadingField">The most significant field — <see cref="Year()"/>,
     /// <see cref="Day()"/>, <see cref="Hour()"/>, or <see cref="Minute()"/>.</param>
     /// <param name="trailingField">The least significant field — <see cref="ToMonth"/>,

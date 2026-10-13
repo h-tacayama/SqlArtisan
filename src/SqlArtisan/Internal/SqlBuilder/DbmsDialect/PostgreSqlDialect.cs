@@ -4,9 +4,12 @@ internal sealed class PostgreSqlDialect : IDbmsDialect
 {
     public char AliasQuote => '"';
 
-    // standard_conforming_strings is on by default (9.1+), so a backslash is a
-    // literal backslash and is never doubled.
     public bool BackslashEscapesStringLiterals => false;
+
+    // A plain literal's backslash depends on standard_conforming_strings, which any
+    // role or connection can turn off and so let \' close the literal; E'...'
+    // reads it the same way under either setting.
+    public bool BackslashLiteralsUseEscapeString => true;
 
     public string DmlTableAliasSeparator => " AS ";
 

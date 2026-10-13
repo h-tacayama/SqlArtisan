@@ -59,6 +59,27 @@ public class JsonOperatorTests
         Assert.Equal("SELECT (`t`.name -> '$.a\\\\b')", sql.Text);
     }
 
+    // \' cannot close an E'...' constant, whatever standard_conforming_strings is.
+    [Fact]
+    public void JsonArrow_PostgreSql_KeyWithBackslash_EmitsEscapeString()
+    {
+        SqlStatement sql =
+            Select(JsonArrow(_t.Name, "\\') AS k --"))
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal("SELECT (\"t\".name -> E'\\\\'') AS k --')", sql.Text);
+    }
+
+    [Fact]
+    public void JsonArrow_Sqlite_KeyWithBackslash_KeepsPlainLiteral()
+    {
+        SqlStatement sql =
+            Select(JsonArrow(_t.Name, "$.a\\b"))
+            .Build(Dbms.Sqlite);
+
+        Assert.Equal("SELECT (\"t\".name -> '$.a\\b')", sql.Text);
+    }
+
     [Fact]
     public void JsonArrow_NullKey_Throws()
     {

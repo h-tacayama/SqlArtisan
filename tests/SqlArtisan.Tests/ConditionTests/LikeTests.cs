@@ -49,13 +49,13 @@ public class LikeTests
             1,
             "100'%");
 
-    // PostgreSQL (standard-conforming strings): a backslash escape char stands for
-    // itself and is not doubled.
+    // PostgreSQL: a backslash escape char is written as an E'...' constant, which
+    // reads it the same whatever standard_conforming_strings is.
     [Fact]
     public void Like_WithBackslashEscape_CorrectSql() =>
         _assert.Equal(
             _t.Name.Like("100\\%").Escape('\\'),
-            "\"t\".name LIKE :0 ESCAPE '\\'",
+            "\"t\".name LIKE :0 ESCAPE E'\\\\'",
             1,
             "100\\%");
 

@@ -12,6 +12,13 @@ internal interface IDbmsDialect
     bool BackslashEscapesStringLiterals { get; }
 
     /// <summary>
+    /// Whether a literal holding a backslash is written as an escape-string constant
+    /// (<c>E'...'</c>, the backslash doubled) — true only on PostgreSQL, whose plain
+    /// literal reads the backslash per the session's <c>standard_conforming_strings</c>.
+    /// </summary>
+    bool BackslashLiteralsUseEscapeString { get; }
+
+    /// <summary>
     /// The separator between an INSERT/UPDATE/DELETE target and its alias:
     /// <c> AS </c>, or a space on Oracle (ORA-00933). A MERGE target and every
     /// FROM alias render AS-less on all dialects.
