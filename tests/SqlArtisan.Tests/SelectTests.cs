@@ -582,7 +582,7 @@ public class SelectTests
         Assert.Equal(10, sql.Parameters.Get<int>("@0"));
     }
 
-    // A held Top(n) is shared by every statement built from it, so Percent() and
+    // A held Top(n) is shared by every statement composed from it, so Percent() and
     // WithTies() must leave it as it was.
     [Fact]
     public void Top_SqlServer_PercentWithTiesOnHeldTop_LeavesEarlierStatementUnchanged()

@@ -404,19 +404,23 @@ wants the generic supertype can still declare one locally.
 
 ## A node's fluent member returns a new node
 
-A member that refines a `SqlPart` node — `TopClause.Percent()` /
-`WithTies()`, `SortOrder.NullsFirst` / `NullsLast`, a window's
-`OrderBy(...)` / `Rows(...)`, `CommonTableExpression.WithColumnList()` —
-returns a new node and leaves its receiver unchanged. A node is a value: a
-caller holds one in a variable and composes it into more than one statement,
-so a member that changed the receiver would rewrite every statement already
-built from it, with no error. #668 was the instance: after a later
-`.Percent().WithTies()`, a held `Top(10)` read `TOP (10) PERCENT WITH TIES`
-in a query built earlier. `SqlPartImmutabilityTests` holds every declared
-instance field of a `SqlPart` read-only; a captured primary-constructor
-parameter cannot be declared so, and stays unassigned by this rule. The
-statement builders are the stateful exception: a stage appends to the held
-builder by design, and the freeze-after-`Build()` and duplicate-clause guards
+A public member that refines a node — `TopClause.Percent()` / `WithTies()`,
+`SortOrder.NullsFirst` / `NullsLast`, a window's `OrderBy(...)` /
+`Rows(...)`, `CommonTableExpression.WithColumnList()` — returns a new node
+and leaves its receiver unchanged. A node is a value: a caller holds one in a
+variable and composes it into more than one statement, so a member that
+changed the receiver would rewrite every statement composed from it and not
+yet built, with no error. #668 was the instance: after a later
+`.Percent().WithTies()`, a query composed earlier from a held `Top(10)` built
+as `TOP (@0) PERCENT WITH TIES`. `SqlPartImmutabilityTests` holds every
+declared instance field of a `SqlPart` type read-only, a property's backing
+field included; a captured primary-constructor parameter cannot be declared
+so and stays unassigned by this rule, as does a node outside `SqlPart`
+(`CommonTableExpression`). A read-only field can still hold a collection: one
+a factory or builder fills while constructing the node (`InsertValuesClause`'s
+rows) is construction, not a member a caller reaches. The statement builders
+are the stateful exception: a stage appends to the held builder by design, and
+the freeze-after-`Build()` and duplicate-clause guards
 (`guards-and-empty-states.md` § "The empty-state policy") keep that safe.
 
 ## Root namespace vs `Internal` (ADR 0005)

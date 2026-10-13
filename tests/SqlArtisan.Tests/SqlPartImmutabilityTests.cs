@@ -4,7 +4,7 @@ using SqlArtisan.Internal;
 namespace SqlArtisan.Tests;
 
 // A node is a value a caller can hold and compose into several statements, so no
-// SqlPart may carry state a member could change after construction
+// SqlPart field may be reassigned after construction
 // (.claude/rules/public-api-design.md, #668).
 public class SqlPartImmutabilityTests
 {
@@ -16,17 +16,20 @@ public class SqlPartImmutabilityTests
 
         Assert.NotEmpty(parts);
 
-        // A captured primary-constructor parameter (<name>P) cannot be declared
-        // readonly in C#; the rule, not this gate, keeps it unassigned.
+        // C# cannot declare a captured primary-constructor parameter (<name>P)
+        // readonly, so the rule keeps it unassigned; backing fields stay checked.
         string[] mutable = [.. parts
             .SelectMany(t => t.GetFields(
                 BindingFlags.Instance
                 | BindingFlags.Public
                 | BindingFlags.NonPublic
                 | BindingFlags.DeclaredOnly))
-            .Where(f => !f.IsInitOnly && !f.Name.StartsWith('<'))
+            .Where(f => !f.IsInitOnly && !IsPrimaryConstructorCapture(f))
             .Select(f => $"{f.DeclaringType!.Name}.{f.Name}")];
 
         Assert.True(mutable.Length == 0, string.Join(", ", mutable));
     }
+
+    private static bool IsPrimaryConstructorCapture(FieldInfo field) =>
+        field.Name.StartsWith('<') && field.Name.EndsWith(">P", StringComparison.Ordinal);
 }
