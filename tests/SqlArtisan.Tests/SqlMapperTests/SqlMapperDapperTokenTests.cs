@@ -1,4 +1,5 @@
 using System.Data;
+using System.Reflection;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using SqlArtisan.Dapper;
@@ -23,8 +24,9 @@ public class SqlMapperDapperTokenTests
 
         Assert.Equal(
             "Dapper rewrites the token '{=0}' even inside a string literal, so this statement "
-                + "cannot run through SqlArtisan.Dapper; bind that string with Sql.Bind(...) "
-                + "or run the statement through ADO.NET. (Parameter 'sqlBuilder')",
+                + "cannot run through SqlArtisan.Dapper; run it through ADO.NET, or bind the "
+                + "string with Sql.Bind(...) where its position takes a bound value. "
+                + "(Parameter 'sqlBuilder')",
             ex.Message);
     }
 
@@ -38,8 +40,9 @@ public class SqlMapperDapperTokenTests
 
         Assert.Equal(
             "Dapper rewrites the token '{=missing}' even inside a string literal, so this "
-                + "statement cannot run through SqlArtisan.Dapper; bind that string with "
-                + "Sql.Bind(...) or run the statement through ADO.NET. (Parameter 'sqlBuilder')",
+                + "statement cannot run through SqlArtisan.Dapper; run it through ADO.NET, or "
+                + "bind the string with Sql.Bind(...) where its position takes a bound value. "
+                + "(Parameter 'sqlBuilder')",
             ex.Message);
     }
 
@@ -59,8 +62,9 @@ public class SqlMapperDapperTokenTests
 
         Assert.Equal(
             "Dapper rewrites the token '?x?' even inside a string literal, so this statement "
-                + "cannot run through SqlArtisan.Dapper; bind that string with Sql.Bind(...) "
-                + "or run the statement through ADO.NET. (Parameter 'sqlBuilder')",
+                + "cannot run through SqlArtisan.Dapper; run it through ADO.NET, or bind the "
+                + "string with Sql.Bind(...) where its position takes a bound value. "
+                + "(Parameter 'sqlBuilder')",
             ex.Message);
     }
 
@@ -86,23 +90,72 @@ public class SqlMapperDapperTokenTests
         Assert.Equal("caller key", cnn.ExecuteScalar(query));
     }
 
-    // A verb calling ToDynamicParameters directly would skip the check unseen.
+    // Calls every public verb, so one added later cannot skip the check unseen.
     [Fact]
-    public void SqlMapperSources_RouteEveryVerbThroughTheCheck()
+    public async Task SqlMapper_EveryVerbGivenLiteralToken_ThrowsArgumentException()
     {
-        string dir = Path.Combine(FindRepoRoot(), "src", "SqlArtisan.Dapper");
-        string[] offenders = [.. Directory.GetFiles(dir, "SqlMapper*.cs")
-            .Where(f => File.ReadAllText(f).Contains(
-                ".ToDynamicParameters()", StringComparison.Ordinal))
-            .Select(Path.GetFileName)!];
+        using SqliteConnection cnn = OpenSeededConnection();
+        MethodInfo[] verbs = typeof(SqlArtisan.Dapper.SqlMapper).GetMethods(
+            BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly);
+        List<string> unguarded = [];
 
-        Assert.True(offenders.Length == 0, string.Join(", ", offenders));
+        foreach (MethodInfo declared in verbs)
+        {
+            MethodInfo verb = declared.IsGenericMethodDefinition
+                ? declared.MakeGenericMethod(typeof(object))
+                : declared;
+            object?[] args = [.. verb.GetParameters().Select(p => VerbArgument(p, cnn))];
+            string? message = await ThrownMessage(() => verb.Invoke(null, args));
+
+            if (message != "Dapper rewrites the token '{=0}' even inside a string literal, so "
+                + "this statement cannot run through SqlArtisan.Dapper; run it through ADO.NET, "
+                + "or bind the string with Sql.Bind(...) where its position takes a bound "
+                + "value. (Parameter 'sqlBuilder')")
+            {
+                unguarded.Add($"{verb}: {message ?? "no throw"}");
+            }
+        }
+
+        Assert.NotEmpty(verbs);
+        Assert.True(unguarded.Count == 0, string.Join(Environment.NewLine, unguarded));
     }
 
     private static ISqlBuilder KeyQuery(string key)
     {
         DbTable t = new("t");
         return Select(JsonArrowText(t.Column("doc"), key)).From(t).Where(t.Column("id") == 5);
+    }
+
+    private static object? VerbArgument(ParameterInfo parameter, SqliteConnection cnn) =>
+        parameter.ParameterType switch
+        {
+            Type type when type.IsInstanceOfType(cnn) => cnn,
+            Type type when type == typeof(ISqlBuilder) => KeyQuery("{=0}"),
+            Type type when type == typeof(Type) => typeof(object),
+            _ when parameter.HasDefaultValue => parameter.DefaultValue,
+            Type type when type.IsValueType => Activator.CreateInstance(type),
+            _ => null,
+        };
+
+    private static async Task<string?> ThrownMessage(Func<object?> call)
+    {
+        try
+        {
+            if (call() is Task task)
+            {
+                await task;
+            }
+
+            return null;
+        }
+        catch (TargetInvocationException ex) when (ex.InnerException is ArgumentException inner)
+        {
+            return inner.Message;
+        }
+        catch (ArgumentException ex)
+        {
+            return ex.Message;
+        }
     }
 
     private static SqliteConnection OpenSeededConnection()
@@ -115,18 +168,5 @@ public class SqlMapperDapperTokenTests
             INSERT INTO t (id, doc) VALUES (5, '{"{=0}":"caller key","5":"another key","x{=0}":"word-led","?y?":"no such parameter"}')
             """);
         return cnn;
-    }
-
-    private static string FindRepoRoot()
-    {
-        DirectoryInfo? dir = new(AppContext.BaseDirectory);
-
-        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "SqlArtisan.sln")))
-        {
-            dir = dir.Parent;
-        }
-
-        Assert.NotNull(dir);
-        return dir!.FullName;
     }
 }

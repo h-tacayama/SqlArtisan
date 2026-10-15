@@ -60,7 +60,7 @@ internal static partial class DapperTextGuard
     private static void ThrowRewritable(string token) =>
         throw new ArgumentException(
             $"Dapper rewrites the token '{token}' even inside a string literal, so this "
-                + "statement cannot run through SqlArtisan.Dapper; bind that string with "
-                + "Sql.Bind(...) or run the statement through ADO.NET.",
+                + "statement cannot run through SqlArtisan.Dapper; run it through ADO.NET, or "
+                + "bind the string with Sql.Bind(...) where its position takes a bound value.",
             "sqlBuilder");
 }

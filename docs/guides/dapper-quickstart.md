@@ -122,8 +122,9 @@ The multi-map `Query` overloads and the `CommandDefinition` overloads aren't
 mirrored, so build the statement and hand `sql.Text` /
 `sql.Parameters.ToDynamicParameters()` to Dapper yourself for those —
 cancellation is not among the reasons to, being a plain argument above. Dapper
-rewrites a `{=name}` token anywhere in that text, string literals included, which
-the mirrored verbs refuse before running; check for one yourself on that path. For
+rewrites a `{=name}` token, and a `?name?` token naming one of the parameters,
+anywhere in that text, string literals included; the mirrored verbs refuse such
+text before running, so check for both yourself on that path. For
 Oracle `RETURNING ... INTO`, `ExecuteReturningInto` returns the parameter bag so
 the output values can be read back with `Get<T>`.
 

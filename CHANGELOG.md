@@ -526,13 +526,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   literal and the rest of the caller's string ran as SQL. A literal without a
   backslash is unchanged, and an expression index written with the plain
   spelling still matches.
-- SqlArtisan.Dapper: a statement whose text holds a `{=name}` token, or a
-  `?name?` token naming one of its parameters, now throws `ArgumentException`
-  before Dapper runs it. Dapper rewrites both shapes anywhere in the text, string
-  literals included, so a caller string inlined as an escaped literal — a JSON
-  key or path, a separator — reached the engine as another parameter's value.
-  `Sql.Bind(...)` keeps such a string bound, and the text runs unchanged through
-  ADO.NET.
+- **Breaking:** SqlArtisan.Dapper: a statement whose text holds a `{=name}`
+  token, or a `?name?` token naming one of its parameters, now throws
+  `ArgumentException` before Dapper runs it. Dapper rewrites both shapes
+  anywhere in the text, string literals included, so a caller string inlined as
+  an escaped literal — a JSON key or path, a separator — was rewritten after
+  SqlArtisan escaped it: into another parameter's value or `null`, or with the
+  statement's other parameters dropped. Run such a statement through ADO.NET, or
+  bind the string with `Sql.Bind(...)` where its position takes a bound value.
 
 ### Tests
 - Integration twins for #614's engine claims: Oracle rejects
