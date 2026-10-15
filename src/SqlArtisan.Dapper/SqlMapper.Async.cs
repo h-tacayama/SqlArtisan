@@ -1,6 +1,7 @@
 using System.Data;
 using System.Data.Common;
 using Dapper;
+using SqlArtisan.Dapper.Internal;
 using static Dapper.SqlMapper;
 
 namespace SqlArtisan.Dapper;
@@ -24,7 +25,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build(cnn);
         return new CommandDefinition(
             sql.Text,
-            sql.Parameters.ToDynamicParameters(),
+            sql.ToDapperParametersOrThrow(),
             transaction,
             commandTimeout,
             commandType,

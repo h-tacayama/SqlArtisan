@@ -155,9 +155,9 @@ public class PublicSurfaceBoundaryTests
     }
 
     /// <summary>
-    /// The companion packages have no <see cref="InternalNamespace"/> to hold their
-    /// helpers, so their exported set is closed outright: a helper slipped to
-    /// <c>public</c> fails here instead of shipping as surface (#640).
+    /// No companion signature hands a helper back, so a companion's exported set is
+    /// closed outright: a helper slipped to <c>public</c>, in its <c>.Internal</c>
+    /// namespace or not, fails here instead of shipping as surface (#640).
     /// </summary>
     [Fact]
     public void CompanionAssemblies_ExportOnlyTheirStaticEntryPoints()

@@ -1,4 +1,5 @@
 using Dapper;
+using SqlArtisan.Dapper.Internal;
 
 namespace SqlArtisan.Dapper;
 
@@ -15,8 +16,9 @@ public static class SqlParametersExtensions
     /// </summary>
     /// <param name="parameters">The SqlArtisan parameter bindings to convert.</param>
     /// <returns>A <see cref="DynamicParameters"/> carrying the same bindings, ready for Dapper.</returns>
-    /// <remarks>Used mainly by this package's <see cref="SqlMapper"/> connection
-    /// extensions.</remarks>
+    /// <remarks>The <see cref="SqlMapper"/> verbs also refuse text holding a token Dapper
+    /// rewrites (<c>{=name}</c>, or <c>?name?</c> naming a parameter); passing the text
+    /// to Dapper yourself skips that check.</remarks>
     public static DynamicParameters ToDynamicParameters(this SqlParameters parameters)
     {
         DynamicParameters dynamicParameters = new();
