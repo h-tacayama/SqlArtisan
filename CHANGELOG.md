@@ -549,8 +549,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Docs
 - `docs/analyzer.md` names a kind of `SQLA0100` that reports SQL the engine
-  runs: a spelling the dialect reads as something else, such as `||` on MySQL. The 2-argument `Log`'s remark says the swapped SQL
-  Server call still draws it, to suppress at that call. (#681)
+  runs: a spelling the dialect reads as something else, such as `||` on MySQL.
+  The 2-argument `Log`'s remark says the swapped SQL Server call still draws it,
+  to suppress at that call. (#681)
 - The joined and correlated `UPDATE`/`DELETE` docs no longer suggest a
   correlated subquery or a `MERGE` in place of a joined form Oracle or SQLite
   lacks below its floor; they say the form is unavailable there. For a
