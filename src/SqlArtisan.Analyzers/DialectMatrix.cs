@@ -277,13 +277,9 @@ internal static class DialectMatrix
         // 1-arg form is Oracle-only.
         [new MatrixKey("ToNumber", 1)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("ToTimestamp")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
-        // Format: SQL Server's FORMAT (Sql.F.cs XML docs, #231); both the 2-arg and
-        // 3-arg (culture) overloads share this support, so one member-wide entry covers both.
-        // MySQL, PostgreSQL, and SQLite each have their own same-named but incompatible
-        // FORMAT() (a number-decimals formatter and two printf()-style substitutions)
-        // that can accept the call syntax without erroring — live-verified false positive
-        // on the MySQL 8.0 integration sweep — so all three stay false here despite the
-        // call "working".
+        // Format: SQL Server's FORMAT (#231). MySQL's and SQLite's own FORMAT() run the call
+        // with another meaning (dbms-differences.md); PostgreSQL's takes text first and
+        // rejects a date or a number.
         [new MatrixKey("Format")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         // --- REGEXP_* family: Oracle syntax; MySQL 8.0 has REGEXP_LIKE/REGEXP_REPLACE/
         // REGEXP_SUBSTR/REGEXP_INSTR (live-verified by the integration smoke catalog;

@@ -497,7 +497,8 @@ Never omit a legitimate SQL spelling to steer users toward a "better" one —
 the `COUNT(*)` lesson (#233, #232): knowledge encoded as API absence is
 invisible, unexplained, and unsuppressible, and the adoption test is binary.
 Emit faithfully; put the guidance in `docs/`; let the matrix warn where a
-dialect genuinely rejects the construct.
+dialect genuinely rejects the construct, or reads its token as something else
+(`dbms-differences.md`).
 
 The converse is ADR 0010's triage: an addition earns its surface by
 strengthening a deterministic layer or by unblocking adoption, whose test is a

@@ -56,6 +56,24 @@ A construct that simply does not exist on a DBMS needs no flag at all: emit
 faithfully and leave availability to the database and the analyzer (ADR 0003) —
 do not gate it at `Build` time.
 
+**A token the engine reads as something else is unavailable too, and its
+cell is `false`** — `||` (logical OR on MySQL), `<=>` (MySQL's NULL-safe
+equality, not pgvector's cosine distance), the foreign `FORMAT()` of MySQL and
+SQLite, T-SQL's value-first `LOG(x, b)`, and `MINUS`, which SQL Server reads as
+a table alias before a second statement. The engine runs the text, so nothing
+fails; the report is the only layer that sees the meaning change, at the price
+of a report on a deliberate use of the engine's own reading, which a
+suppression at the site removes. Such a cell needs a sweep `NegativeSkip`
+naming the other meaning, a per-engine twin that asserts that meaning, and, on
+its own, a `[!NOTE]` docs callout, since the analyzer catches it (`docs-style.md`
+§ "Hazard callouts"); #681 tracks the cells that lack them. The same function
+with engine-defined semantics stays `true` and is a docs matter (ADR 0003):
+`LOG(x)`'s base, `STDDEV`'s population or sample. `GroupConcat(expr, sep)` on
+MySQL, which reads `sep` as another value, belongs to the class but stays
+`true`: its arity-2 key is a union with the inline-`ORDER BY` and `SEPARATOR`
+overloads MySQL runs (the `DialectMatrix` key-collision caveat), so its
+`[!WARNING]` in `docs/functions.md` is the record.
+
 Three further classes look like dialect differences but belong in **neither**
 the dialect layer nor a plain matrix entry (the first two identified in the
 #225 triage, the third by #528/#529):
@@ -96,8 +114,9 @@ resolved target is legitimately read, and `SqlBuildingBuffer.Dbms` exists to
 carry it there.
 
 Before adding anything to `IDbmsDialect` or `DialectMatrix`, walk the classes
-above in order: token-level → construct-level → plain unavailability →
-version-bounded → context-bounded → value-bounded.
+above in order: token-level → construct-level → plain unavailability (a token
+the engine reads as something else included) → version-bounded →
+context-bounded → value-bounded.
 
 An engine-rejection claim written in prose — a comment, an XML doc, a docs
 page — names the engine version it was observed on and has a live twin, or is
