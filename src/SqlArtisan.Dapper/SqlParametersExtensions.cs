@@ -1,4 +1,5 @@
 using Dapper;
+using SqlArtisan.Dapper.Internal;
 
 namespace SqlArtisan.Dapper;
 

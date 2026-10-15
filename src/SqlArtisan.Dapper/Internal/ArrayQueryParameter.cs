@@ -1,6 +1,6 @@
 using System.Data;
 
-namespace SqlArtisan.Dapper;
+namespace SqlArtisan.Dapper.Internal;
 
 // Bypasses Dapper's IEnumerable list expansion: the array must reach ADO.NET as
 // one parameter for = ANY (:n); the provider maps the array value natively.

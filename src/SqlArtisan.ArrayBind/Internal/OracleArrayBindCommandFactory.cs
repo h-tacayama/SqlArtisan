@@ -2,7 +2,7 @@ using System.Data;
 using System.Globalization;
 using Oracle.ManagedDataAccess.Client;
 
-namespace SqlArtisan.ArrayBind;
+namespace SqlArtisan.ArrayBind.Internal;
 
 internal static class OracleArrayBindCommandFactory
 {

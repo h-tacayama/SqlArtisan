@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using Dapper;
 
-namespace SqlArtisan.Dapper;
+namespace SqlArtisan.Dapper.Internal;
 
 /// <summary>
 /// Dapper rewrites two token shapes anywhere in the command text, string literals

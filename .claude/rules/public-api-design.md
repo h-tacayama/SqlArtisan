@@ -476,12 +476,12 @@ emit an arbitrary operator token (#492). So write the constructor out: `internal
 on a public concrete node, `private protected` on a public abstract base. An
 internal node can keep its primary constructor.
 
-The companion packages (`SqlArtisan.Dapper`, `SqlArtisan.ArrayBind`) have no
-`Internal` namespace, so the rule there is plainer: a type is `internal` unless
-it is a static entry point a caller names. `PublicSurfaceBoundaryTests` holds
-each companion's exported set to its listed entry points (#640). An internal
-type's file sits under the package's `Internal/` folder, as the core's do, and
-keeps the package namespace: the folder places the file, not the namespace.
+The companion packages (`SqlArtisan.Dapper`, `SqlArtisan.ArrayBind`) place a
+helper as the core does, its file under `Internal/` and its type in the
+package's `.Internal` namespace, but the rule there is plainer: no signature
+hands a helper back, so a type is `internal` unless it is a static entry point a
+caller names. `PublicSurfaceBoundaryTests` holds each companion's exported set
+to its listed entry points (#640).
 
 > Worked example (#282): fixing `Sql.Bind` to return `BindValue` (above) put
 > that type through criterion 2 — its entire feature is a caller holding the

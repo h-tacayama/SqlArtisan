@@ -1,4 +1,5 @@
 using Oracle.ManagedDataAccess.Client;
+using SqlArtisan.ArrayBind.Internal;
 
 namespace SqlArtisan.ArrayBind;
 

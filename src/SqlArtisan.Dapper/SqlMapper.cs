@@ -1,5 +1,6 @@
 using System.Data;
 using Dapper;
+using SqlArtisan.Dapper.Internal;
 using static Dapper.SqlMapper;
 
 namespace SqlArtisan.Dapper;

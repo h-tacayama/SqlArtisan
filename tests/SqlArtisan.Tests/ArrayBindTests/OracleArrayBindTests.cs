@@ -1,5 +1,6 @@
 using Oracle.ManagedDataAccess.Client;
 using SqlArtisan.ArrayBind;
+using SqlArtisan.ArrayBind.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
