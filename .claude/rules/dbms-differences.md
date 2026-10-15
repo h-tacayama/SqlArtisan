@@ -6,6 +6,7 @@ paths:
   - "src/SqlArtisan.Analyzers/ContextRules.cs"
   - "src/SqlArtisan.Analyzers/ArgumentValueValidity.cs"
   - "src/SqlArtisan.Analyzers/DatepartValidity.cs"
+  - "tests/SqlArtisan.IntegrationTests/Infrastructure/MatrixSweepCatalog.cs"
 ---
 
 # Handling a DBMS syntax difference
@@ -73,6 +74,19 @@ MySQL, which reads `sep` as another value, belongs to the class but stays
 `true`: its arity-2 key is a union with the inline-`ORDER BY` and `SEPARATOR`
 overloads MySQL runs (the `DialectMatrix` key-collision caveat), so its
 `[!WARNING]` in `docs/functions.md` is the record.
+
+**A sweep negative is rejected by its key's own construct.** `MatrixSweepTests`
+counts any `DbException` as the rejection, so a case whose `false` engine stops
+first at something else the statement needs — an argument
+(`Interval(30, DateTimePart.Day)` under `DateAdd`), a host clause (`LIMIT` under
+`Offset`, `MERGE` under `Using`), an unmet requirement (`WithRecursive` with no
+column list on Oracle) — tests no cell, and an engine release that later accepts the key
+leaves the cell `false` unseen. Where the API can emit a statement that isolates
+the key, the case uses it, per engine if need be (`Build` receives the engine);
+where the key cannot be emitted without a construct that is itself `false` on
+that engine (a `MERGE` branch step, `DoNothing` after `OnConflict`, `Listagg`
+before its `WITHIN GROUP`), the case says so. #681 tracks the cases that do not
+yet.
 
 Three further classes look like dialect differences but belong in **neither**
 the dialect layer nor a plain matrix entry (the first two identified in the
