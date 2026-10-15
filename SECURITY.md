@@ -12,8 +12,8 @@ unless you prefer otherwise.
 ## What counts as a vulnerability here
 
 SqlArtisan builds SQL text and bind parameters — it does not execute queries
-(the optional Dapper integration hands both to Dapper as-is). The guarantees
-worth attacking:
+(the optional Dapper integration hands both to Dapper as-is, after refusing
+text that holds a token Dapper would rewrite). The guarantees worth attacking:
 
 - **Automatic parameterization** — a value you supply is bound as a parameter,
   or, where the grammar demands a literal, inlined with its quotes escaped.

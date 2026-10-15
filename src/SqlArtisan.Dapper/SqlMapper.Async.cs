@@ -24,7 +24,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build(cnn);
         return new CommandDefinition(
             sql.Text,
-            sql.Parameters.ToDynamicParameters(),
+            sql.ToDapperParameters(),
             transaction,
             commandTimeout,
             commandType,

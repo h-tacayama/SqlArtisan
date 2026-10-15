@@ -16,7 +16,8 @@ public static class SqlParametersExtensions
     /// <param name="parameters">The SqlArtisan parameter bindings to convert.</param>
     /// <returns>A <see cref="DynamicParameters"/> carrying the same bindings, ready for Dapper.</returns>
     /// <remarks>Used mainly by this package's <see cref="SqlMapper"/> connection
-    /// extensions.</remarks>
+    /// extensions, which also refuse text holding a token Dapper rewrites
+    /// (<c>{=name}</c>); passing the text to Dapper yourself skips that check.</remarks>
     public static DynamicParameters ToDynamicParameters(this SqlParameters parameters)
     {
         DynamicParameters dynamicParameters = new();
