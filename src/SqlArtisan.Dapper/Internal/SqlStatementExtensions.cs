@@ -5,10 +5,10 @@ namespace SqlArtisan.Dapper;
 
 /// <summary>
 /// Dapper rewrites two token shapes anywhere in the command text, string literals
-/// included, so a caller string SqlArtisan inlined as an escaped literal would reach
-/// the engine as another parameter's value. The text is refused before Dapper sees it.
+/// included, so a caller string SqlArtisan inlined as an escaped literal would be
+/// rewritten after escaping. The text is refused before Dapper sees it.
 /// </summary>
-internal static partial class DapperTextGuard
+internal static partial class SqlStatementExtensions
 {
     // Dapper's own patterns (CompiledRegex.cs, 2.1.66); a {=name} token is replaced
     // even when no parameter has that name, a ?name? one only when one does.
@@ -22,7 +22,7 @@ internal static partial class DapperTextGuard
         RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant)]
     private static partial Regex PseudoPositionalToken();
 
-    internal static DynamicParameters ToDapperParameters(this SqlStatement sql)
+    internal static DynamicParameters ToDapperParametersOrThrow(this SqlStatement sql)
     {
         ThrowIfRewritable(sql);
         return sql.Parameters.ToDynamicParameters();

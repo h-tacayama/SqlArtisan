@@ -9,8 +9,8 @@ namespace SqlArtisan.Tests;
 
 /// <summary>
 /// Dapper rewrites <c>{=name}</c> and <c>?name?</c> anywhere in the command text, so a
-/// caller string SqlArtisan escaped into a literal would reach the engine as another
-/// parameter's value; the package refuses such text before Dapper sees it.
+/// caller string SqlArtisan escaped into a literal would be rewritten after escaping;
+/// the package refuses such text before Dapper sees it.
 /// </summary>
 public class SqlMapperDapperTokenTests
 {
