@@ -479,7 +479,9 @@ internal node can keep its primary constructor.
 The companion packages (`SqlArtisan.Dapper`, `SqlArtisan.ArrayBind`) have no
 `Internal` namespace, so the rule there is plainer: a type is `internal` unless
 it is a static entry point a caller names. `PublicSurfaceBoundaryTests` holds
-each companion's exported set to its listed entry points (#640).
+each companion's exported set to its listed entry points (#640). An internal
+type's file sits under the package's `Internal/` folder, as the core's do, and
+keeps the package namespace: the folder places the file, not the namespace.
 
 > Worked example (#282): fixing `Sql.Bind` to return `BindValue` (above) put
 > that type through criterion 2 — its entire feature is a caller holding the
