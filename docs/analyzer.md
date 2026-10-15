@@ -125,6 +125,13 @@ and shows up live as you type.
 without a matrix entry stays silent rather than guessed at, so an incomplete
 matrix can under-warn but never produce a false positive.
 
+One kind of entry reports SQL the engine runs: a spelling the dialect reads as
+a different operator or function — `||` as logical OR on MySQL, `<=>` as
+MySQL's NULL-safe equality, MySQL's, PostgreSQL's and SQLite's own `FORMAT()`,
+and SQL Server's value-first `LOG(x, b)`. Nothing fails there, so the warning is
+the only signal; where you mean the dialect's own reading, suppress it at that
+call.
+
 `SQLA0103` checks compile-time identifier literals — table and expression
 aliases (`.As(...)`), CTE and derived-table names, `VALUES` column names, and
 the Oracle `RETURNING ... INTO` output variable — against each dialect's limit:

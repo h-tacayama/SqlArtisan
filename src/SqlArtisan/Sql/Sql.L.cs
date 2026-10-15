@@ -214,8 +214,8 @@ public static partial class Sql
     /// <param name="expr">The value whose logarithm is taken.</param>
     /// <returns>A <c>LOG</c> function expression.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+) syntax — all four read the base
-    /// first; SQL Server reads <c>LOG(value, base)</c>, so swap the arguments there.
-    /// PostgreSQL defines this form for <c>numeric</c> only.</remarks>
+    /// first; PostgreSQL takes <c>numeric</c> only. SQL Server reads <c>LOG(value, base)</c>:
+    /// swap the arguments there, and suppress the <c>SQLA0100</c> it still draws.</remarks>
     public static LogFunction Log(object @base, object expr) =>
         new(Resolve(@base), Resolve(expr));
 

@@ -56,6 +56,20 @@ A construct that simply does not exist on a DBMS needs no flag at all: emit
 faithfully and leave availability to the database and the analyzer (ADR 0003) —
 do not gate it at `Build` time.
 
+**A token the engine binds to a different operator or function is unavailable
+too, and its cell is `false`** — `||` (logical OR on MySQL), `<=>` (MySQL's
+NULL-safe equality, not pgvector's cosine distance), the foreign `FORMAT()` of
+MySQL, PostgreSQL and SQLite, and T-SQL's value-first `LOG(x, b)`. The engine
+runs the text, so nothing fails; the report is the only layer that sees the
+meaning change, at the price of a report on a deliberate use of the engine's
+own reading, which a suppression at the site removes. The cell's sweep case
+carries a `NegativeSkip` naming the other meaning, and a per-engine twin
+asserts that meaning (#681). The hazard is one the analyzer catches, so on its
+own its docs callout is a `[!NOTE]` (`docs-style.md` § "Hazard callouts"). The
+same function with engine-defined semantics stays `true` and is a docs matter
+(ADR 0003): `LOG(x)`'s base, `STDDEV`'s population or sample, `GROUP_CONCAT`'s
+separator.
+
 Three further classes look like dialect differences but belong in **neither**
 the dialect layer nor a plain matrix entry (the first two identified in the
 #225 triage, the third by #528/#529):
@@ -96,8 +110,9 @@ resolved target is legitimately read, and `SqlBuildingBuffer.Dbms` exists to
 carry it there.
 
 Before adding anything to `IDbmsDialect` or `DialectMatrix`, walk the classes
-above in order: token-level → construct-level → plain unavailability →
-version-bounded → context-bounded → value-bounded.
+above in order: token-level → construct-level → plain unavailability (a token
+bound to another operator or function included) → version-bounded →
+context-bounded → value-bounded.
 
 An engine-rejection claim written in prose — a comment, an XML doc, a docs
 page — names the engine version it was observed on and has a live twin, or is
