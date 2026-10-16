@@ -79,9 +79,10 @@ overloads MySQL runs (the `DialectMatrix` key-collision caveat), so its
 counts any `DbException` as the rejection, so a case whose `false` engine stops
 first at something else the statement needs — an argument
 (`Interval(30, DateTimePart.Day)` under `DateAdd`), a host clause (`LIMIT` under
-`Offset`, `MERGE` under `Using`), an unmet requirement (`WithRecursive` with no
-column list on Oracle) — tests no cell, and an engine release that later accepts the key
-leaves the cell `false` unseen. Where the API can emit a statement that isolates
+`Offset`, `MERGE` under `Using`) — tests no cell. A case that would still fail
+once the engine accepts the key, such as `WithRecursive` with no column list on
+Oracle, tests the cell until then and leaves it `false` unseen once a release
+does. Where the API can emit a statement that isolates
 the key, the case uses it, per engine if need be (`Build` receives the engine);
 where the key cannot be emitted without a construct that is itself `false` on
 that engine (a `MERGE` branch step, `DoNothing` after `OnConflict`, `Listagg`
