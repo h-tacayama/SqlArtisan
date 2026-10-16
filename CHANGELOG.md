@@ -86,6 +86,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   column, read as a string constant on SQLite, or failed. Pass the aliased
   expression instead.
   A query's own `.OrderBy(...)` still takes an alias. (#672)
+- **Breaking:** `Build()` throws `ArgumentException` when a subquery reads a
+  column of an unaliased table it does not list itself — a correlated
+  `EXISTS`, `IN`, scalar or `LATERAL` subquery in a `SELECT`, or a subquery of
+  an `INSERT`'s `DO UPDATE SET` / `ON DUPLICATE KEY UPDATE` / `RETURNING` that
+  reads the target. The column rendered bare and bound any same-named column
+  of the subquery's own tables: `EXISTS (SELECT id FROM orders WHERE user_id =
+  id)` matched every user, live on PostgreSQL 16 and SQLite. Alias the outer
+  table. As with the correlated `UPDATE` / `DELETE` / `MERGE` guard, the
+  library cannot see the schema, so a reference no inner column could capture
+  is rejected too. (#677)
 - A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
   release year on SQL Server, the engine's own version number elsewhere. A SQL
   Server value below 2000 (`16`, SQL Server 2022's product version, compared as

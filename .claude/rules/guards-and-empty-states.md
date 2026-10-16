@@ -341,6 +341,23 @@ table inside the subquery renders the tautology unguarded
 records for the analyzer — the harness template uses one instance for that
 reason.
 
+**Every unaliased table a nested block reads without listing it is rejected
+(decided — do not re-file):** the correlated-DML guard's reasoning holds for
+any table, not just a DML target. A column of an unaliased table renders bare,
+and a bare name in a subquery binds that block's own same-named column first, so
+`Build()` throws when a nested query block (a subquery, a CTE body, a `LATERAL`
+body) renders one whose table its own `FROM` and joins do not list (#677). The
+schema is not visible, so a reference no inner column could capture is rejected
+too, as for the DML target, which keeps its own message (ADR 0011 decides the
+class outside its bar). A compound's branches count together, which can let a
+branch's capture pass but rejects nothing a per-branch check would accept. A
+top-level column whose table no clause lists stays permissive, and so does an
+`INSERT ... SELECT` body inside a CTE, which is not a `SELECT` block. On MySQL,
+whose `INSERT` target cannot be aliased (ADR 0011), an `ON DUPLICATE KEY UPDATE`
+subquery reaches the inserted row through `Excluded(...)` and has no spelling
+for the existing row's other columns. The check costs every build 8 bytes, one
+field on the buffer (ADR 0006).
+
 ## The empty-state policy (#236)
 
 Never elide a clause the caller wrote. A written condition clause with no

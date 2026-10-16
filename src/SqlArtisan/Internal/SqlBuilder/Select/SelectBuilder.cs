@@ -100,6 +100,31 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         }
     }
 
+    // Whether a FROM or JOIN of this query lists the relation itself; a compound's
+    // branches count together, so a branch's capture is missed, never invented.
+    internal bool ListsRelation(TableReference relation)
+    {
+        foreach (SqlPart part in PartsSpan)
+        {
+            if (part is FromClause from)
+            {
+                foreach (TableReference table in from.Tables)
+                {
+                    if (ReferenceEquals(table, relation))
+                    {
+                        return true;
+                    }
+                }
+            }
+            else if (part is IJoinedRelation join && ReferenceEquals(join.Relation, relation))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // Whether any FROM or JOIN relation of this subquery's blocks exposes the
     // RETURNING target's name or alias (SqlBuildingBuffer, #595).
     internal bool BindsAnyRelation(DbTableBase target)
