@@ -250,6 +250,21 @@ and from any relation so named. It is pinned by
 `Returning_Sqlite_SameNamedInnerRelation_IsRejectedByTheEngine` on the SQLite
 lane.
 
+**A sort key emitted as a bare name: rejected where no alias is in scope,
+documented in the statement `ORDER BY` (decided — do not re-file):** an
+alias key renders its name, and a column of an unaliased table renders
+bare, so the engine may resolve either to another column (#672). Inside
+`OVER`, `WITHIN GROUP` and the inline aggregate orderings no select alias
+is in scope on any engine, so `Sql.OrderBy(...)` and `PartitionBy(...)
+.OrderBy(...)` reject an alias key at the call, on every dialect. In a
+statement `ORDER BY` an alias the block selects is the valid spelling, and
+telling it from one the block does not select, or a bare column from a
+same-named output alias, takes the block's select list at `Build()` and,
+for a compound, the first branch's; that rewrite was weighed against how
+rarely the collision is written and left out. The statement position emits
+as written, and `docs/query-statements.md` § ORDER BY carries the
+`[!WARNING]` (live: PostgreSQL 16, SQLite 3.45.1).
+
 **A held stage's out-of-order clause stays unguarded (decided — do not
 re-file):** a held builder can still append a clause after the one it must
 precede — `Output(...)` after an `INSERT`'s `Values(...)` (#542), or

@@ -57,6 +57,8 @@ public sealed class SortOrder : SqlPart
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder NullsLast => WithNullOrdering(NullOrdering.NullsLast);
 
+    internal bool SortsByAlias => _exprOrAlias is ExpressionAlias;
+
     // A second ordering would silently replace the first; the SQL as written
     // (`NULLS FIRST NULLS LAST`) is rejected by PostgreSQL 16 and SQLite.
     private SortOrder WithNullOrdering(NullOrdering nullOrdering) =>

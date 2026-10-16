@@ -41,6 +41,26 @@ public sealed class OrderByClause : SqlPart
     internal static OrderByClause Parse(object[] orderByItems) =>
         new(OrderByItemResolver.Resolve(orderByItems));
 
+    // A select alias is in scope only in its own block's statement ORDER BY; in
+    // OVER or an aggregate its bare name reads an input column instead (#672).
+    internal static OrderByClause ParseInExpression(object[] orderByItems)
+    {
+        SqlPart[] items = OrderByItemResolver.Resolve(orderByItems);
+
+        foreach (SqlPart item in items)
+        {
+            if (item is ExpressionAlias or SortOrder { SortsByAlias: true })
+            {
+                throw new ArgumentException(
+                    "An ORDER BY inside OVER, WITHIN GROUP or an aggregate cannot sort by a "
+                        + "select alias; pass the aliased expression instead.",
+                    nameof(orderByItems));
+            }
+        }
+
+        return new(items);
+    }
+
     // Read by the PostgreSQL bounded-exception guard (ADR 0011).
     internal bool HasFractionalSortKey
     {

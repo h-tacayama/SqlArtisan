@@ -35,11 +35,14 @@ public static partial class Sql
     /// <summary>
     /// An <c>ORDER BY</c> list. Each item is a column or expression, optionally with
     /// a direction (<c>.Asc</c> / <c>.Desc</c>) and null placement, and is
-    /// emitted as <c>ORDER BY a, b DESC</c>. Used as a query clause and inside the
-    /// ordered aggregates.
+    /// emitted as <c>ORDER BY a, b DESC</c>. Used inside <c>OVER</c>,
+    /// <c>WITHIN GROUP</c> and the ordered aggregates; a query's own <c>ORDER BY</c>
+    /// is its <c>.OrderBy(...)</c> step.
     /// </summary>
     /// <param name="orderByItems">The columns or expressions to order by.</param>
     /// <returns>An <c>ORDER BY</c> clause.</returns>
+    /// <exception cref="ArgumentException">An element of <paramref name="orderByItems"/> is a
+    /// select alias (<c>.As(...)</c>), which these positions cannot resolve.</exception>
     public static OrderByClause OrderBy(params object[] orderByItems) =>
-        OrderByClause.Parse(orderByItems);
+        OrderByClause.ParseInExpression(orderByItems);
 }

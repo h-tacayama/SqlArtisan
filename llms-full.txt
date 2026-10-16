@@ -813,6 +813,16 @@ SqlStatement sql =
 
 **Dialect note:** `NullsFirst` / `NullsLast` emit `NULLS FIRST` / `NULLS LAST`, which MySQL and SQL Server reject — neither engine has the clause.
 
+> [!WARNING]
+> **A sort key emitted as a bare name can sort by another column than the one the C# names.**
+> An alias key (`.As(...)`) and a column of an unaliased table both render as a bare name, and in
+> `ORDER BY` a name matches the query's output columns before its input columns:
+> - `OrderBy(t.A)` beside a select item aliased `"a"` (`Select(t.B.As("a"))`) sorts by that item.
+> - An alias key the same query block does not select sorts by a same-named input column, or by nothing.
+>
+> Alias the table, and order by an alias only where the same block selects it. Inside `OVER`,
+> `WITHIN GROUP` and the aggregates, `OrderBy(...)` rejects an alias outright.
+
 ---
 
 ### GROUP BY and HAVING Clause
