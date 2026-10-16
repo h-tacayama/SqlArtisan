@@ -104,6 +104,22 @@ public class CorrelatedSubqueryTests
     }
 
     [Fact]
+    public void With_TopLevelCteBodyReadingUnlistedTable_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new("a");
+        TestCte c = new("c");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(c.As(Select(a.Code.As(c.CteCode)).From(a).Where(a.Name == t.Name)))
+            .Select(c.CteCode)
+            .From(c)
+            .Build());
+
+        Assert.Equal(Message, ex.Message);
+    }
+
+    [Fact]
     public void DoUpdateSet_SubqueryReadingUnaliasedTarget_ThrowsArgumentException()
     {
         TestTable t = new();
@@ -154,6 +170,29 @@ public class CorrelatedSubqueryTests
                 + "WHERE code IN (SELECT code FROM archive_table WHERE name = :0)",
             sql.Text);
         Assert.Equal("x", sql.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
+    public void In_NestedCteBodyListingItsOwnUnaliasedTable_CorrectSql()
+    {
+        TestTable t = new("t");
+        ArchiveTable a = new();
+        TestCte c = new("c");
+
+        SqlStatement sql =
+            Select(t.Name)
+            .From(t)
+            .Where(t.Code.In(
+                With(c.As(Select(a.Code.As(c.CteCode)).From(a)))
+                .Select(c.CteCode)
+                .From(c)))
+            .Build();
+
+        Assert.Equal(
+            "SELECT \"t\".name FROM test_table \"t\" WHERE \"t\".code IN "
+                + "(WITH \"c\" AS (SELECT code cte_code FROM archive_table) "
+                + "SELECT \"c\".cte_code FROM \"c\")",
+            sql.Text);
     }
 
     [Fact]

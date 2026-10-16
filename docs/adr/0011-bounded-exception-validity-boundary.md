@@ -129,7 +129,11 @@ override — so every build path (including `Returning()`, which funnels through
   its own same-named column first, so `Build()` rejects the reference on every
   dialect, even where no inner column has the name and the engine reaches the
   outer row. The schema is not visible, so the shape that can capture is
-  rejected whole; aliasing the outer table is the spelling.
+  rejected whole; aliasing the outer table is the spelling, except for a MySQL
+  `ON DUPLICATE KEY UPDATE` subquery reading the `INSERT` target, which MySQL
+  cannot alias: it reaches the inserted row through `Excluded(...)` and has no
+  spelling for the existing row's other columns (`guards-and-empty-states.md`,
+  recorded exception).
 - **Revisit when joined DML lands (#237).** Once `UPDATE … FROM` / `DELETE … FROM`
   give SQL Server a real spelling for the aliased/correlated shape, this guard's
   premise ("no valid spelling exists") weakens; re-evaluate whether it should
