@@ -6,8 +6,8 @@ namespace SqlArtisan;
 /// <summary>
 /// An aliased <c>SELECT</c>-list item — <c>expr "alias"</c> — produced by
 /// <c>.As(...)</c> on an expression or subquery. Usable as a select item and
-/// as an <c>ORDER BY</c> key (by its alias). Type a helper as this to return
-/// a named computed column.
+/// as a query's <c>ORDER BY</c> key (by its alias), not inside <c>OVER</c> or an
+/// aggregate. Type a helper as this to return a named computed column.
 /// </summary>
 public sealed class ExpressionAlias : SqlPart, ISortable
 {

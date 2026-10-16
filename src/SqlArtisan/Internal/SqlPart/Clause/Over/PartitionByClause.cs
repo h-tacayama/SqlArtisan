@@ -17,5 +17,5 @@ public sealed class PartitionByClause : SqlPart
         .AppendCsv(_expressions);
 
     public PartitionByAndOrderBy OrderBy(params object[] orderByItems) =>
-        new(this, OrderByClause.Parse(orderByItems));
+        new(this, OrderByClause.ParseInExpression(orderByItems));
 }

@@ -360,6 +360,50 @@ public class OrderByTests
         Assert.Equal("SELECT \"t\".code FROM test_table \"t\" ORDER BY 1", sql.Text);
     }
 
+    private const string AliasInExpressionMessage =
+        "An ORDER BY inside OVER, WITHIN GROUP or an aggregate cannot sort by a select alias; "
+            + "pass the aliased expression instead. (Parameter 'orderByItems')";
+
+    [Fact]
+    public void OrderBy_AliasInWindowPosition_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => OrderBy(_t.Code.As("c")));
+
+        Assert.Equal(AliasInExpressionMessage, ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_SortedAliasInWindowPosition_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => OrderBy(_t.Code, (_t.Code + 1).As("c").Desc.NullsLast));
+
+        Assert.Equal(AliasInExpressionMessage, ex.Message);
+    }
+
+    [Fact]
+    public void PartitionByOrderBy_Alias_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => PartitionBy(_t.Name).OrderBy(_t.Code.As("c").Asc));
+
+        Assert.Equal(AliasInExpressionMessage, ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_AliasedExpressionPassedBare_InWindowPosition_CorrectSql()
+    {
+        SqlStatement sql = Select(RowNumber().Over(OrderBy((_t.Code + 1).Desc)))
+            .From(_t)
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal(
+            "SELECT ROW_NUMBER() OVER (ORDER BY (\"t\".code + :0) DESC) FROM test_table \"t\"",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
+
     [Fact]
     public void OrderBy_NullOrderingRepeated_ThrowsInvalidOperationException()
     {
