@@ -103,7 +103,9 @@ defeats the language's own readonly-ref semantics.
 The rule identifies a target column by its receiver symbol, not by the
 column's run-time owner, so a table class exposing another instance's
 `DbColumn` (`public DbColumn OrderId => _o.Id;`) reports on code that
-builds; TableClassGen emits columns owned by their own instance. The walk
+builds when `_o` is aliased or the subquery lists it (an unaliased `_o` the
+subquery does not list throws since #677); TableClassGen emits columns owned
+by their own instance. The walk
 is also flow-insensitive: a correlated subquery under `ConditionIf(false,
 …)` or in an untaken `?:` arm reports though it never renders. So the rule
 fails toward silence where it cannot prove a shape, but it is not free of

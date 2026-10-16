@@ -85,6 +85,25 @@ public class CorrelatedSubqueryTests
     }
 
     [Fact]
+    public void With_CteBodyReadingUnaliasedOuterTable_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new("a");
+        TestCte c = new("c");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(t.Name)
+            .From(t)
+            .Where(t.Code.In(
+                With(c.As(Select(a.Code.As(c.CteCode)).From(a).Where(a.Name == t.Name)))
+                .Select(c.CteCode)
+                .From(c)))
+            .Build());
+
+        Assert.Equal(Message, ex.Message);
+    }
+
+    [Fact]
     public void DoUpdateSet_SubqueryReadingUnaliasedTarget_ThrowsArgumentException()
     {
         TestTable t = new();

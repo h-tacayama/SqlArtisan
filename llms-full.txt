@@ -1298,9 +1298,7 @@ values**. SqlArtisan refuses to build that form; `Build()` throws:
 
 The same guard arms `MergeInto(...)`: a target column referenced inside a
 subquery in any `MERGE` clause needs the aliased target too. Any other table a
-subquery reads without listing it — the outer table of a correlated `SELECT`,
-an `INSERT` target read from its `DO UPDATE SET` or `RETURNING` subquery —
-throws `A table a correlated subquery references must be aliased.` for the same
+subquery reads without listing it, in any statement, throws `A table a correlated subquery references must be aliased.` for the same
 reason (see [Scalar Subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#scalar-subquery)).
 
 Alias the target — the outer reference then renders qualified and the
@@ -4633,7 +4631,8 @@ suppressing it does not stop the exception — the statement still fails to
 build. The analyzer reads the source, not the built statement, so it can
 report a statement that builds. Known cases include:
 
-- a table class whose column members belong to another instance;
+- a table class whose column members belong to another instance, when that
+  instance is aliased or the subquery lists it;
 - a correlated subquery that never renders, under `ConditionIf(false, …)`
   or in an untaken `?:` arm;
 - a `readonly` target rewritten through `Unsafe.AsRef`.
