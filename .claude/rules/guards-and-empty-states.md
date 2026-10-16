@@ -356,7 +356,8 @@ top-level column whose table no clause lists stays permissive; an
 `INSERT ... SELECT` CTE body is a block like any other. On MySQL,
 whose `INSERT` target cannot be aliased (ADR 0011), an `ON DUPLICATE KEY UPDATE`
 subquery reaches the inserted row through `Excluded(...)` and has no spelling
-for the existing row's other columns. The check costs every build 8 bytes, one
+for the existing row's other columns; the message's alias remedy is unreachable
+there (§ Message grammar, recorded exception). The check costs every build 8 bytes, one
 field on the buffer (ADR 0006).
 
 ## The empty-state policy (#236)
@@ -704,6 +705,12 @@ so the wording is part of the contract.
   split, pass 5; the UPDATE twin, pass 8). The empty join `ON` names
   `CROSS JOIN` only on the `SELECT` chain, the one with `CrossJoin`; a joined
   `UPDATE` or `DELETE` states the requirement alone (`DmlOnClause`, #582).
+  Recorded exception (#677): the every-table correlated guard's "must be
+  aliased" also fires for a MySQL `ON DUPLICATE KEY UPDATE` subquery reading
+  the `INSERT` target, which MySQL cannot alias. The buffer that throws does
+  not know which table is the `INSERT` target, and a message split for one
+  dialect's one clause was weighed against the docs note and left out; the
+  CHANGELOG and `docs/query-statements.md` name `Excluded(...)` there.
 - A guard shared by several clauses names the clause the caller wrote, never
   one sibling's spelling: `AssignmentResolver` takes each caller's clause,
   since `ON DUPLICATE KEY UPDATE` has no `SET` token to name (#582).

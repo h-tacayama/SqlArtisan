@@ -97,7 +97,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   WHERE user_id = id)` matched every user or none, live on PostgreSQL 16 and
   SQLite. Alias the outer table. As with the correlated `UPDATE` / `DELETE` /
   `MERGE` guard, the library cannot see the schema, so a reference no inner
-  column could capture is rejected too. (#677)
+  column could capture is rejected too. On MySQL, whose `INSERT` target cannot
+  be aliased, an `ON DUPLICATE KEY UPDATE` subquery reads the inserted row
+  through `Excluded(...)` instead, and has no spelling for the existing row's
+  other columns. (#677)
 - A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
   release year on SQL Server, the engine's own version number elsewhere. A SQL
   Server value below 2000 (`16`, SQL Server 2022's product version, compared as
