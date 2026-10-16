@@ -81,9 +81,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** `Sql.OrderBy(...)` and `PartitionBy(...).OrderBy(...)` throw
   `ArgumentException` on a select alias (`.As(...)`, with or without
   `.Asc` / `.Desc` / `.NullsFirst` / `.NullsLast`). Both feed only `OVER`,
-  `WITHIN GROUP` and the inline aggregate orderings, where no select alias is in
-  scope: the alias's bare name sorted by a same-named input column, read as a
-  string constant on SQLite, or failed. Pass the aliased expression instead.
+  `WITHIN GROUP` and the inline aggregate orderings, where PostgreSQL and SQLite
+  read no select alias: the alias's bare name sorted by a same-named input
+  column, read as a string constant on SQLite, or failed. Pass the aliased
+  expression instead.
   A query's own `.OrderBy(...)` still takes an alias. (#672)
 - A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
   release year on SQL Server, the engine's own version number elsewhere. A SQL

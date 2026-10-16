@@ -115,13 +115,14 @@ override — so every build path (including `Returning()`, which funnels through
   chain does not offer. `public-api-design.md` § "Opinions live in docs and
   the analyzer, not in API holes" records the first, second and fourth forms
   as not offered. The fourth class is an alias sort key inside `OVER`,
-  `WITHIN GROUP` or an aggregate's inline ordering (#672): no engine has a
-  select alias in scope there, so its bare name resolves to a same-named input
-  column or to nothing, and `Sql.OrderBy(...)` / `PartitionBy(...).OrderBy(...)`
-  reject it at the call on every dialect, even where an engine runs the text
-  (SQLite reads an unknown quoted name as a string). The C# names an alias no
-  engine reads there, so the key is a slip, and the aliased expression is the
-  spelling.
+  `WITHIN GROUP` or an aggregate's inline ordering (#672). PostgreSQL and
+  SQLite read no select alias there, so its bare name resolves to a same-named
+  input column or to nothing (SQLite reads an unknown quoted name as a
+  string); SQL Server's window ordering refers only to `FROM` columns, and
+  MySQL and Oracle are not verified. `Sql.OrderBy(...)` /
+  `PartitionBy(...).OrderBy(...)` reject it at the call on every dialect, even
+  where an engine runs the text: the aliased expression is the spelling every
+  engine reads as the C# names it, so the alias key is read as a slip.
 - **Revisit when joined DML lands (#237).** Once `UPDATE … FROM` / `DELETE … FROM`
   give SQL Server a real spelling for the aliased/correlated shape, this guard's
   premise ("no valid spelling exists") weakens; re-evaluate whether it should

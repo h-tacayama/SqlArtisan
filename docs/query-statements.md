@@ -378,9 +378,9 @@ SqlStatement sql =
 
 > [!WARNING]
 > **A sort key emitted as a bare name can sort by another column than the one the C# names.**
-> An alias key (`.As(...)`) and a column of an unaliased table both render as a bare name, and in
-> `ORDER BY` a name matches the query's output columns before its input columns:
-> - `OrderBy(t.A)` beside a select item aliased `"a"` (`Select(t.B.As("a"))`) sorts by that item.
+> An alias key (`.As(...)`) and a column of an unaliased table both render as a bare name, which
+> the engine may resolve to an output column or to an input column of that name:
+> - `OrderBy(t.A)` beside `Select(t.B.As("a"))` sorts by `b` on PostgreSQL and SQLite (live).
 > - An alias key the same query block does not select sorts by a same-named input column, or, with none, fails or sorts by a constant.
 >
 > Alias the table, and order by an alias only where the same block selects it. Inside `OVER`,

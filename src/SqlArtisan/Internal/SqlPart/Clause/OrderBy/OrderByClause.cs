@@ -41,8 +41,8 @@ public sealed class OrderByClause : SqlPart
     internal static OrderByClause Parse(object[] orderByItems) =>
         new(OrderByItemResolver.Resolve(orderByItems));
 
-    // A select alias is in scope only in its own block's statement ORDER BY; in
-    // OVER or an aggregate its bare name reads an input column instead (#672).
+    // PostgreSQL and SQLite read no select alias here, so its bare name sorts by an
+    // input column or a constant; the aliased expression reads the same everywhere (#672).
     internal static OrderByClause ParseInExpression(object[] orderByItems)
     {
         SqlPart[] items = OrderByItemResolver.Resolve(orderByItems);
