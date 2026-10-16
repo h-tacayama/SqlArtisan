@@ -214,7 +214,8 @@ matrix in both directions, so a wrong entry is caught by a live engine, not
 a user. `MatrixSweepCatalogTests` fails the suite when an entry has neither
 a sweep case nor a documented `ExcludedEntries` reason. Copy a nearby shape
 (`Scalar(...)` for a plain function) and keep the statement minimal — one
-construct per case.
+construct per case. On an engine the matrix marks `false`, the statement must
+fail at that construct, not at another one it needs (`dbms-differences.md`).
 
 ## DBMS-specific syntax
 
