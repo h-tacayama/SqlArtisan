@@ -255,8 +255,10 @@ documented in the statement `ORDER BY` (decided — do not re-file):** an
 alias key renders its name, and a column of an unaliased table renders
 bare, so the engine may resolve either to another column (#672). Inside
 `OVER`, `WITHIN GROUP` and the inline aggregate orderings no select alias
-is in scope on any engine, so `Sql.OrderBy(...)` and `PartitionBy(...)
-.OrderBy(...)` reject an alias key at the call, on every dialect. In a
+is in scope on any engine, so `Sql.OrderBy(...)` and
+`PartitionBy(...).OrderBy(...)` reject an alias key at the call, on every
+dialect, even where an engine runs the text (ADR 0011 decides the class
+outside its bar). In a
 statement `ORDER BY` an alias the block selects is the valid spelling, and
 telling it from one the block does not select, or a bare column from a
 same-named output alias, takes the block's select list at `Build()` and,

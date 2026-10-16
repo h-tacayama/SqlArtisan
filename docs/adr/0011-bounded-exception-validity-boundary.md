@@ -1,6 +1,7 @@
 # ADR 0011 — Bounded exceptions to the validity-enforcement boundary: when a construct valid on some dialect may still be rejected
 
-**Status:** Accepted
+**Status:** Accepted — #672 adds a fourth class decided outside the bar (an alias sort
+key where no select alias is in scope).
 
 ## Context
 
@@ -85,7 +86,7 @@ override — so every build path (including `Returning()`, which funnels through
   structurally can't see it, *and* the resolved target has no valid spelling.
   Absent both, the answer stays ADR 0007's default — emit faithfully. Some
   rejections of valid-somewhere text do not follow that today: ADR 0017 is its
-  own exception, and three classes are decided outside the bar here. The
+  own exception, and four classes are decided outside the bar here. The
   call-site-defect guards, enumerated in `guards-and-empty-states.md` — a
   fixed list that repeats a name, and an `OUTPUT ... INTO` list whose width
   differs from its `OUTPUT` list — reject on every dialect, even where an
@@ -113,7 +114,14 @@ override — so every build path (including `Returning()`, which funnels through
   (`SqlServerTests.OutputAfterOutputInto_IsAcceptedByTheEngine`), a pair the
   chain does not offer. `public-api-design.md` § "Opinions live in docs and
   the analyzer, not in API holes" records the first, second and fourth forms
-  as not offered.
+  as not offered. The fourth class is an alias sort key inside `OVER`,
+  `WITHIN GROUP` or an aggregate's inline ordering (#672): no engine has a
+  select alias in scope there, so its bare name resolves to a same-named input
+  column or to nothing, and `Sql.OrderBy(...)` / `PartitionBy(...).OrderBy(...)`
+  reject it at the call on every dialect, even where an engine runs the text
+  (SQLite reads an unknown quoted name as a string). The C# names an alias no
+  engine reads there, so the key is a slip, and the aliased expression is the
+  spelling.
 - **Revisit when joined DML lands (#237).** Once `UPDATE … FROM` / `DELETE … FROM`
   give SQL Server a real spelling for the aliased/correlated shape, this guard's
   premise ("no valid spelling exists") weakens; re-evaluate whether it should
