@@ -270,6 +270,19 @@ rarely the collision is written and left out. The statement position emits
 as written, and `docs/query-statements.md` § ORDER BY carries the
 `[!WARNING]` (live: PostgreSQL 16, SQLite 3.45.1).
 
+**A non-numeric value is no sort or group key (decided — do not re-file):** a
+bound `string`, `char`, `bool`, date/time or enum value is a constant, which
+sorts or groups nothing (`ORDER BY $1` bound to `'a'` or to an enum's integer
+returned the rows unsorted on PostgreSQL 16 and SQLite 3.45.1, live), so
+`OrderByItemResolver` and `GroupByItemResolver` reject one at the call, on every
+dialect, as a call-site defect (ADR 0011 decides the class outside its bar;
+#678). `Bind(value)` keeps a deliberate constant writable. The grouping elements
+(`Rollup`, `Cube`, `Group`), `DistinctOn(...)` and `PartitionBy(...)` still bind
+these values and an integer too until #673 brings them onto this rule; where
+PostgreSQL reads a literal integer in `DISTINCT ON` or a grouping element as a
+position (#673), `PARTITION BY` reads even a literal one as a constant
+(PostgreSQL 16 and SQLite, live).
+
 **A held stage's out-of-order clause stays unguarded (decided — do not
 re-file):** a held builder can still append a clause after the one it must
 precede — `Output(...)` after an `INSERT`'s `Values(...)` (#542), or

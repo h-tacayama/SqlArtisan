@@ -135,6 +135,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   branch, live on PostgreSQL 16. Building a composed builder on its own still
   works. Two variables taken from one chain still share it; build each
   statement from its own chain. (#676)
+- **Breaking:** `OrderBy(...)` (and `Sql.OrderBy(...)` inside `OVER`, `WITHIN
+  GROUP` and the aggregate orderings) throws `ArgumentException` for a
+  `string`, `char`, `bool`, `DateTime`, `DateOnly`, `TimeOnly` or enum sort key,
+  as `GroupBy(...)` already did: `Invalid type for OrderByItem: System.String`.
+  It bound the value, a constant that sorts nothing, so `OrderBy(sortColumn)`
+  with a column name in a string, or a sort-field enum, returned the rows
+  unsorted (live on PostgreSQL 16 and SQLite). Order by the column itself, or
+  pass `Bind(value)` for a deliberate constant. (#678)
 - A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
   release year on SQL Server, the engine's own version number elsewhere. A SQL
   Server value below 2000 (`16`, SQL Server 2022's product version, compared as

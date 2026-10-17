@@ -46,10 +46,8 @@ internal static class OrderByItemResolver
         {
             return ResolveNumericSortKey(orderByItem);
         }
-        else if (IsBindable(orderByItem))
-        {
-            return new BindValue(orderByItem);
-        }
+        // A bound sort key is a constant that sorts nothing (#678), so no value
+        // binds implicitly here; Bind(x) is the explicit spelling of one.
         else
         {
             throw UnresolvableValue("OrderByItem", orderByItem);

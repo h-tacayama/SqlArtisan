@@ -72,13 +72,13 @@ yes-somewhere → dialect availability → permissive.
   exception — an aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server — admitted only
   because the analyzer structurally cannot see the construct *and* the resolved
   target has no valid spelling at all; any further exception must clear the same
-  bar. ADR 0011 also decides five classes outside it, each rejected even where
+  bar. ADR 0011 also decides six classes outside it, each rejected even where
   an engine runs the text: the once-per-block walk's rejections — a
   once-per-block clause or slot a held stage writes twice (#581, #582) — the
   call-site-defect guards (a list that repeats a name, or an `OUTPUT ... INTO`
   width mismatch), the joined-target alias requirement (#258), an alias sort
-  key inside `OVER` or an aggregate (#672), and the correlated guards (#253,
-  #677).
+  key inside `OVER` or an aggregate (#672), the correlated guards (#253,
+  #677), and a non-numeric sort or group key (#678).
 - **A pseudo-column reference outside its context stays permissive.**
   `Sql.Excluded(...)` outside an upsert's `DO UPDATE SET`, or
   `Inserted`/`Deleted` under the wrong `OUTPUT` verb, builds and emits: each

@@ -360,6 +360,46 @@ public class OrderByTests
         Assert.Equal("SELECT \"t\".code FROM test_table \"t\" ORDER BY 1", sql.Text);
     }
 
+    // #678: bound, each would be a constant sort key that sorts nothing.
+    public static TheoryData<object, string> NonNumericSortKeys => new()
+    {
+        { "code", "System.String" },
+        { 'c', "System.Char" },
+        { true, "System.Boolean" },
+        { new DateTime(2020, 1, 1), "System.DateTime" },
+        { new DateOnly(2020, 1, 1), "System.DateOnly" },
+        { new TimeOnly(1, 0), "System.TimeOnly" },
+        { DayOfWeek.Monday, "System.DayOfWeek" },
+        { DateTimePart.Year, "SqlArtisan.DateTimePart" },
+    };
+
+    [Theory]
+    [MemberData(nameof(NonNumericSortKeys))]
+    public void OrderBy_NonNumericValue_ThrowsArgumentException(object key, string typeName)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).OrderBy(_t.Code, key));
+
+        Assert.Equal($"Invalid type for OrderByItem: {typeName}", ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_NonNumericValueInWindowPosition_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => OrderBy("code"));
+
+        Assert.Equal("Invalid type for OrderByItem: System.String", ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_ExplicitBind_CorrectSql()
+    {
+        SqlStatement sql = Select(_t.Code).From(_t).OrderBy(Bind("code")).Build();
+
+        Assert.Equal("SELECT \"t\".code FROM test_table \"t\" ORDER BY :0", sql.Text);
+        Assert.Equal("code", sql.Parameters.Get<string>(":0"));
+    }
+
     private const string AliasInExpressionMessage =
         "An ORDER BY inside OVER, WITHIN GROUP or an aggregate cannot sort by a select alias; "
             + "pass the aliased expression instead. (Parameter 'orderByItems')";
