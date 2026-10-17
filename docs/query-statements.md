@@ -861,12 +861,13 @@ column must belong to an aliased table.` instead.
 
 > [!WARNING]
 > **A table sharing the target's name passes the check, and its column still sets the target's.**
-> Tables are compared by name, with the schema only when both handles name one, so neither the
-> source of a self-`MERGE` nor a same-named table in another schema, when either handle omits
-> its schema, is caught: a swapped `UPDATE ... FROM` or `MERGE` assignment then runs and
-> changes nothing (live: `UPDATE ... FROM` on PostgreSQL 16 and SQLite, `MERGE` on PostgreSQL 16).
+> Tables are compared by name, with the schema only when both handles name one, so neither another
+> handle of the target's own table (a self-join `UPDATE ... FROM` or a self-`MERGE` source) nor a
+> same-named table in another schema, when either handle omits its schema, is caught: a swapped
+> assignment then runs and changes nothing (live: `UPDATE ... FROM` on PostgreSQL 16 and SQLite,
+> `MERGE` on PostgreSQL 16).
 >
-> Name the schema on both handles, and write the target's column on the left of `==`.
+> Write the target's column on the left of `==`; across schemas, name the schema on both handles.
 
 **Dialect note:** As with `DELETE`, on SQL Server the `UPDATE` target cannot be aliased — pass an unaliased table; building an aliased target for SQL Server throws.
 
