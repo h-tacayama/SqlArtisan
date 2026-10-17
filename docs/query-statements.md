@@ -847,6 +847,15 @@ SqlStatement sql =
 
 **Note:** SqlArtisan's `Set()` method uses `Column == Value` for SQL-like assignment, unlike standard C# `==` (comparison). In `Where()` clauses, `==` is used for comparison as expected.
 
+The left side names a column of the target table. A `SET` column renders by its
+name alone, so a column of another table would set the target's same-named
+column; `Build()` throws `The SET assignment list must assign only columns of
+the target table.` instead. `ThenUpdateSet`, `DoUpdateSet`,
+`OnDuplicateKeyUpdate` and `InsertInto(...).Set` throw at the call, naming
+their own clause. A MySQL joined `UPDATE` and a SQL Server `UPDATE` re-listing
+its target qualify the column, so another table's column renders as written
+there (see [Joined UPDATE / DELETE](#joined-update--delete)).
+
 **Dialect note:** As with `DELETE`, on SQL Server the `UPDATE` target cannot be aliased — pass an unaliased table; building an aliased target for SQL Server throws.
 
 ### Correlated UPDATE / DELETE
@@ -1300,6 +1309,8 @@ unconditioned `WhenMatched()` / `WhenNotMatched()` branch offers the filters.
 `UPDATE SET` and the `INSERT` column list both name target columns, which the
 engine resolves against the target table alone — passing the aliased target's
 own columns (`t.Name`, `t.Id`) still renders the bare, unqualified names above.
+A source column on the left of an `UPDATE SET` assignment throws (see
+[UPDATE Statement](#update-statement)).
 
 #### MERGE source forms
 

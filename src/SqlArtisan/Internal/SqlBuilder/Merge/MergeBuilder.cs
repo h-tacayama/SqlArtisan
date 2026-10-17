@@ -88,21 +88,21 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     IMergeBuilderThenUpdateSet IMergeBuilderWhenMatched.ThenUpdateSet(
         params EqualityCondition[] assignments)
     {
-        AddPart(MergeUpdateSetClause.Parse(assignments));
+        AddPart(MergeUpdateSetClause.Parse(assignments, target));
         return this;
     }
 
     IMergeBuilderWhen IMergeBuilderWhenMatchedAnd.ThenUpdateSet(
         params EqualityCondition[] assignments)
     {
-        AddPart(MergeUpdateSetClause.Parse(assignments));
+        AddPart(MergeUpdateSetClause.Parse(assignments, target));
         return this;
     }
 
     IMergeBuilderWhen IMergeBuilderWhenNotMatchedBySource.ThenUpdateSet(
         params EqualityCondition[] assignments)
     {
-        AddPart(MergeUpdateSetClause.Parse(assignments));
+        AddPart(MergeUpdateSetClause.Parse(assignments, target));
         return this;
     }
 

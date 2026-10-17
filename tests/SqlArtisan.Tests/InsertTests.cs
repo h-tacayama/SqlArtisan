@@ -929,4 +929,52 @@ public class InsertTests
             "The ON DUPLICATE KEY UPDATE assignment list must not assign the same column twice.",
             ex.Message);
     }
+
+    [Fact]
+    public void InsertInto_SetOtherTableColumn_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t).Set(a.Name == "x"));
+
+        Assert.Equal(
+            "The SET assignment list must assign only columns of the target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void DoUpdateSet_OtherTableColumn_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code)
+                .Values(1)
+                .OnConflict(t.Code)
+                .DoUpdateSet(a.Name == "x"));
+
+        Assert.Equal(
+            "The DO UPDATE SET assignment list must assign only columns of the target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void OnDuplicateKeyUpdate_OtherTableColumn_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code)
+                .Values(1)
+                .OnDuplicateKeyUpdate(a.Name == "x"));
+
+        Assert.Equal(
+            "The ON DUPLICATE KEY UPDATE assignment list must assign only columns of the "
+                + "target table.",
+            ex.Message);
+    }
 }

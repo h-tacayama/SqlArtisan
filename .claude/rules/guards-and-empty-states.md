@@ -79,7 +79,8 @@ the full rationale.
   or that are both unaliased, which render one token either way), a `WITH` clause's CTE names, a `Values(...)`
   source's column names, an `ON CONFLICT` target, a join `USING` list, an
   `OUTPUT ... INTO` list — and an `OUTPUT ... INTO` list whose width differs
-  from the `OUTPUT` list.
+  from the `OUTPUT` list; a `SET` target another table owns, in an arm that
+  renders it bare (the paragraph below, #674).
   These are call-site defects rejected whatever the engine does (ADR 0011
   decides the class outside its bar) — eagerly, the `OUTPUT ... INTO` width
   at `Into(...)`, but for the joined-`UPDATE` arm's cross-name pairs above,
@@ -359,6 +360,23 @@ subquery reaches the inserted row through `Excluded(...)` and has no spelling
 for the existing row's other columns; the message's alias remedy is unreachable
 there (§ Message grammar, recorded exception). The check costs every build 8 bytes, one
 field on the buffer (ADR 0006).
+
+**A bare `SET` target is a column of the statement's target table (decided —
+do not re-file):** MERGE's `UPDATE SET`, `DO UPDATE SET`,
+`ON DUPLICATE KEY UPDATE`, `InsertInto(...).Set` and an `UPDATE` that does not
+qualify its target render a `SET` column by its name alone, so another
+relation's column became the target's same-named one: `UPDATE ... FROM` and
+`MERGE` ran and changed neither table, and a plain `UPDATE` wrote the target's
+column (live: PostgreSQL 16, SQLite 3.45.1; #674). The qualified spelling of
+what was written, `SET "u".b`, runs on neither, so `AssignmentResolver` rejects
+the call as a call-site defect. It keys on the table name the target renders,
+without its schema and compared ordinally: another handle of the target's table
+stays legal, schema-qualified or not, so a swapped assignment over two handles of
+one table (a self-`MERGE`) passes, and a handle spelling the name in another case
+throws. The arms that qualify the target (MySQL's direct-join `UPDATE`, SQL
+Server's re-listed target) render the owner as written, and MySQL's sets a joined
+table's column that way, so they are left alone; `UpdateSetClause` decides at
+`Build()`, where that shape is final, the other clauses at the call.
 
 ## The empty-state policy (#236)
 

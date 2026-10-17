@@ -13,10 +13,11 @@ internal sealed class MergeUpdateSetClause : SqlPart
         _assignments = assignments;
     }
 
-    internal static MergeUpdateSetClause Parse(EqualityCondition[] assignments)
+    internal static MergeUpdateSetClause Parse(EqualityCondition[] assignments, DbTableBase target)
     {
         EqualCondition[] resolved = AssignmentResolver.Resolve(assignments, Clause);
         AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: false, Clause);
+        AssignmentResolver.ThrowIfNotTargetColumn(resolved, target, Clause);
 
         return new(resolved);
     }

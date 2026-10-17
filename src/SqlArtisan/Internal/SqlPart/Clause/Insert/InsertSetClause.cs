@@ -11,10 +11,11 @@ internal sealed class InsertSetClause : SqlPart
         _values = values;
     }
 
-    internal static InsertSetClause Parse(EqualityCondition[] assignments)
+    internal static InsertSetClause Parse(EqualityCondition[] assignments, DbTableBase target)
     {
         EqualCondition[] resolved = AssignmentResolver.Resolve(assignments, Keywords.Set);
         AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: false, Keywords.Set);
+        AssignmentResolver.ThrowIfNotTargetColumn(resolved, target, Keywords.Set);
 
         var columns = new SqlExpression[resolved.Length];
         var values = new SqlExpression[resolved.Length];

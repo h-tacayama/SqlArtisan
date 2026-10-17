@@ -784,6 +784,52 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_FromSetSourceColumn_ThrowsArgumentException()
+    {
+        // The bare SET target would render `SET name = "t".name`, which runs and
+        // changes neither table.
+        TestTable t = new("t");
+        ArchiveTable a = new("a");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .Set(a.Name == t.Name)
+            .From(a)
+            .Where(t.Code == a.Code)
+            .Build());
+
+        Assert.Equal(
+            "The SET assignment list must assign only columns of the target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Update_SetOtherTableColumn_ThrowsArgumentException()
+    {
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(_t).Set(a.Name == "x").Build());
+
+        Assert.Equal(
+            "The SET assignment list must assign only columns of the target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Update_SetOtherHandleOfTargetTable_CorrectSql()
+    {
+        TestTable other = new("t2");
+        SchemaTestTable qualified = new();
+
+        SqlStatement sql = Update(_t).Set(other.Code == 1, qualified.Name == "x").Build();
+
+        Assert.Equal("UPDATE test_table SET code = :0, name = :1", sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal("x", sql.Parameters.Get<string>(":1"));
+    }
+
+    [Fact]
     public void Update_MySql_JoinedSetDistinctCorrelationNames_CorrectSql()
     {
         // The one qualified position: two targets that render distinct tokens
@@ -937,4 +983,15 @@ public class UpdateTests
     private const string JoinedUpdateReturningMessage =
         "RETURNING cannot be combined with an UPDATE that joins before SET or re-lists its "
             + "target in FROM; join through From(...) without the target instead.";
+
+    // The target's table under a schema: SET renders its columns as the target's.
+    private sealed class SchemaTestTable : DbTableBase
+    {
+        public SchemaTestTable() : base("public.test_table", "")
+        {
+            Name = new DbColumn(this, "name");
+        }
+
+        public DbColumn Name { get; }
+    }
 }

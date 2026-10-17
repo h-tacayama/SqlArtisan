@@ -101,6 +101,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   be aliased, an `ON DUPLICATE KEY UPDATE` subquery reads the inserted row
   through `Excluded(...)` instead, and has no spelling for the existing row's
   other columns. (#677)
+- **Breaking:** a `SET` assignment whose column belongs to a table other than
+  the statement's target throws `ArgumentException` (`The SET assignment list
+  must assign only columns of the target table.`, each clause naming itself) in
+  `Update(...).Set(...)`, `ThenUpdateSet(...)`, `DoUpdateSet(...)`,
+  `OnDuplicateKeyUpdate(...)` and `InsertInto(...).Set(...)`. The column
+  rendered by its name alone and became the target's same-named column:
+  `Update(t).Set(u.B == t.B).From(u)` built `SET b = "t".b`, which ran and
+  changed neither table on PostgreSQL 16 and SQLite, and `Update(t).Set(u.B ==
+  1)` wrote `t.b`. A column of another handle of the target's table, with or
+  without a schema, is still accepted. MySQL's joined `UPDATE` and SQL Server's
+  `UPDATE` re-listing its target qualify the column, so it renders as written
+  there. (#674)
 - A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
   release year on SQL Server, the engine's own version number elsewhere. A SQL
   Server value below 2000 (`16`, SQL Server 2022's product version, compared as

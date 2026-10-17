@@ -1005,6 +1005,22 @@ public class MergeTests
     }
 
     [Fact]
+    public void Merge_ThenUpdateSetSourceColumn_ThrowsArgumentException()
+    {
+        ArchiveTable a = new("a");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+                .Using(a)
+                .On(_t.Code == a.Code)
+                .WhenMatched().ThenUpdateSet(a.Name == _t.Name));
+
+        Assert.Equal(
+            "The UPDATE SET assignment list must assign only columns of the target table.",
+            ex.Message);
+    }
+
+    [Fact]
     public void Merge_SqlServer_RepeatedWhenBranch_StaysPermissive()
     {
         // MERGE branch arity is dialect availability, not a guard: the engine

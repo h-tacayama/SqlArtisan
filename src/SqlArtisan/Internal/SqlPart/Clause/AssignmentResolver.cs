@@ -46,6 +46,26 @@ internal static class AssignmentResolver
         return resolved;
     }
 
+    // An unqualified SET target renders its name alone, so another relation's column
+    // would set the target's same-named one (#674). Keyed on the table name the
+    // target renders, so another handle of the target's table stays legal.
+    internal static void ThrowIfNotTargetColumn(
+        EqualCondition[] assignments, DbTableBase target, string clause)
+    {
+        for (int i = 0; i < assignments.Length; i++)
+        {
+            TableReference owner = ((DbColumn)assignments[i].LeftSide).Owner;
+            if (!ReferenceEquals(owner, target)
+                && (owner is not DbTableBase
+                    || !owner.NameWithoutSchema.SequenceEqual(target.NameWithoutSchema)))
+            {
+                throw new ArgumentException(
+                    $"The {clause} assignment list must assign only columns of the "
+                    + "target table.");
+            }
+        }
+    }
+
     // Keyed on the token the target renders as, never on its owner: the
     // always-unqualified clauses drop owner and alias, so two handles — or two
     // tables — sharing a column name emit `SET a = 1, a = 2` all the same.
