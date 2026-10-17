@@ -382,8 +382,9 @@ or qualifying it differently (`db.dbo.t` beside `dbo.t`), throws. The arms that
 qualify the target (MySQL's direct-join `UPDATE`, SQL Server's re-listed target)
 render each column by its owner's alias, and MySQL's sets a joined table's column
 that way, so they skip the name check; an owner with no alias renders bare there
-too, and since the joined target is always aliased it is another table, so
-`ThrowIfUnaliasedOwner` rejects it. `UpdateSetClause` decides at
+too, whichever table it is, so `ThrowIfUnaliasedOwner` rejects it, a second
+unaliased handle of the target's own table included (the target instance itself
+is always aliased in these arms). `UpdateSetClause` decides at
 `Build()`, where that shape is final, the other clauses at the call. A column
 list renders its entries bare too, so `ColumnListGuard.IsColumnOf` holds the
 `INSERT` and MERGE `ThenInsert` lists and the `ON CONFLICT` target to the

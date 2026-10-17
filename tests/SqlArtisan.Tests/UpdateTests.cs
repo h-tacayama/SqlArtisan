@@ -882,7 +882,7 @@ public class UpdateTests
             .Build(Dbms.MySql));
 
         Assert.Equal(
-            "A joined table whose column a SET assignment names must be aliased.", ex.Message);
+            "In a joined UPDATE, each SET column must belong to an aliased table.", ex.Message);
     }
 
     [Fact]
@@ -899,7 +899,25 @@ public class UpdateTests
             .Build(Dbms.SqlServer));
 
         Assert.Equal(
-            "A joined table whose column a SET assignment names must be aliased.", ex.Message);
+            "In a joined UPDATE, each SET column must belong to an aliased table.", ex.Message);
+    }
+
+    [Fact]
+    public void Update_SqlServer_RelistedTargetSetUnaliasedHandleOfTarget_ThrowsArgumentException()
+    {
+        TestTable t = new("t1");
+        TestTable other = new();
+        ArchiveTable a = new("a");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .Set(other.Name == "x")
+            .From(t)
+            .InnerJoin(a).On(a.Code == t.Code)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "In a joined UPDATE, each SET column must belong to an aliased table.", ex.Message);
     }
 
     [Fact]

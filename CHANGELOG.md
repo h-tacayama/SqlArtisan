@@ -115,10 +115,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   spelling the target's table name the same way is still accepted, and so is a
   source sharing that name, such as a self-`MERGE`'s. MySQL's joined `UPDATE`
   and SQL Server's `UPDATE` re-listing its target qualify the column by its
-  table's alias, so another table's column renders as written there; one of a
-  joined table with no alias rendered bare too, and now throws `A joined table
-  whose column a SET assignment names must be aliased.` at `Build()`. A column list
-  is checked the same way, at the call: `InsertInto(...)`,
+  table's alias, so another table's column renders as written there; a column
+  whose table has no alias rendered bare too, and now throws `In a joined
+  UPDATE, each SET column must belong to an aliased table.` at `Build()`. A
+  column list is checked the same way, at the call: `InsertInto(...)`,
   `InsertIgnoreInto(...)` and `ThenInsert(...)` throw `An INSERT column list
   must name only columns of the target table.`, `OnConflict(...)` throws `An ON
   CONFLICT target must name only columns of the target table.`, and

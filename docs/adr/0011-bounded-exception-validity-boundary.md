@@ -93,7 +93,7 @@ override — so every build path (including `Returning()`, which funnels through
   differs from its `OUTPUT` list, a bare `SET` target or column list entry
   whose table is named other than the table the list writes (the statement's
   target, or an `OUTPUT ... INTO` list's own table), and a qualified `SET`
-  column whose joined table has no alias (#674) — reject on every dialect, even
+  column whose table has no alias (#674) — reject on every dialect, even
   where an engine runs the text: a name listed twice in one list, an `INTO` list
   that does not match the list it stores, or another table's column rendered as
   that table's, is read as a slip, not a spelling.

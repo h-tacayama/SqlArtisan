@@ -61,8 +61,8 @@ internal static class AssignmentResolver
         }
     }
 
-    // The joined target is always aliased, so an owner without a correlation name is
-    // another table, whose bare column the engine may resolve against the target (#674).
+    // These arms qualify a column by its owner's alias, so an unaliased owner, whichever
+    // table it is, renders bare beside the joined tables and may bind the wrong one (#674).
     internal static void ThrowIfUnaliasedOwner(EqualCondition[] assignments)
     {
         for (int i = 0; i < assignments.Length; i++)
@@ -70,7 +70,7 @@ internal static class AssignmentResolver
             if (((DbColumn)assignments[i].LeftSide).Owner.CorrelationName.Length == 0)
             {
                 throw new ArgumentException(
-                    "A joined table whose column a SET assignment names must be aliased.");
+                    "In a joined UPDATE, each SET column must belong to an aliased table.");
             }
         }
     }
