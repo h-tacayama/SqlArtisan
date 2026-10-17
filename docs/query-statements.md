@@ -376,6 +376,13 @@ SqlStatement sql =
 
 **Dialect note:** `NullsFirst` / `NullsLast` emit `NULLS FIRST` / `NULLS LAST`, which MySQL and SQL Server reject — neither engine has the clause.
 
+A sort key is a column, an expression, or an integer select-list position. A
+`string`, `char`, `bool` or date/time value throws `Invalid type for
+OrderByItem: ...` at the call: bound, it would be a constant that sorts
+nothing, so a column name held in a string cannot pick the sort column. Choose
+the column in C# instead (`OrderBy(sortByName ? u.Name : u.Id)`), and pass
+`Bind(value)` only to order by a deliberate constant.
+
 > [!WARNING]
 > **A sort key emitted as a bare name can sort by another column than the one the C# names.**
 > An alias key (`.As(...)`) and a column of an unaliased table both render as a bare name, which

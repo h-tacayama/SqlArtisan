@@ -46,7 +46,9 @@ internal static class OrderByItemResolver
         {
             return ResolveNumericSortKey(orderByItem);
         }
-        else if (IsBindable(orderByItem))
+        // A bound sort key is a constant that sorts nothing (#678), so only an
+        // enum, whose rendering #667 decides, still binds; Bind(x) stays explicit.
+        else if (IsEnum(orderByItem))
         {
             return new BindValue(orderByItem);
         }
