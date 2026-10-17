@@ -2,7 +2,7 @@
 
 **Status:** Accepted — #672 adds a fourth class decided outside the bar (an alias sort
 key where no select alias is in scope), #677 a fifth (the correlated guards, the
-DML-target one included).
+DML-target one included), #678 a sixth (a non-numeric value as a sort key).
 
 ## Context
 
@@ -87,7 +87,7 @@ override — so every build path (including `Returning()`, which funnels through
   structurally can't see it, *and* the resolved target has no valid spelling.
   Absent both, the answer stays ADR 0007's default — emit faithfully. Some
   rejections of valid-somewhere text do not follow that today: ADR 0017 is its
-  own exception, and five classes are decided outside the bar here. The
+  own exception, and six classes are decided outside the bar here. The
   call-site-defect guards, enumerated in `guards-and-empty-states.md` — a
   fixed list that repeats a name, an `OUTPUT ... INTO` list whose width
   differs from its `OUTPUT` list, a bare `SET` target or column list entry
@@ -137,7 +137,12 @@ override — so every build path (including `Returning()`, which funnels through
   `ON DUPLICATE KEY UPDATE` subquery reading the `INSERT` target, which MySQL
   cannot alias: it reaches the inserted row through `Excluded(...)` and has no
   spelling for the existing row's other columns (`guards-and-empty-states.md`,
-  recorded exception).
+  recorded exception). The sixth is a `string`, `char`, `bool` or date/time
+  sort key (#678): bound, it is a constant that sorts nothing (PostgreSQL 16 and
+  SQLite 3.45.1 run `ORDER BY $1` and leave the rows unsorted, live), so
+  `OrderBy(...)` rejects it at the call on every dialect, even where an engine
+  runs the text; the column the value names is the spelling, and `Bind(value)`
+  keeps a deliberate constant.
 - **Revisit when joined DML lands (#237).** Once `UPDATE … FROM` / `DELETE … FROM`
   give SQL Server a real spelling for the aliased/correlated shape, this guard's
   premise ("no valid spelling exists") weakens; re-evaluate whether it should

@@ -277,8 +277,10 @@ PostgreSQL 16 and SQLite 3.45.1, live), so `OrderByItemResolver` and
 `GroupByItemResolver` reject one at the call, on every dialect, as a call-site
 defect (ADR 0011 decides the class outside its bar; #678). `Bind(value)` keeps a
 deliberate constant writable. An enum still binds as a sort key until #667
-decides enum values, and the grouping elements (`Rollup`, `Cube`, `Group`) still
-bind these values until #673 brings them onto this rule.
+decides enum values. The grouping elements (`Rollup`, `Cube`, `Group`),
+`DistinctOn(...)` and `PartitionBy(...)` still bind these values, `PartitionBy`
+an integer too, which PostgreSQL 16 and SQLite read as a constant there (live),
+until #673 brings them onto this rule.
 
 **A held stage's out-of-order clause stays unguarded (decided — do not
 re-file):** a held builder can still append a clause after the one it must
