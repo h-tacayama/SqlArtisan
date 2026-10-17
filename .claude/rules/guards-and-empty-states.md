@@ -366,10 +366,10 @@ field on the buffer (ADR 0006).
 do not re-file):** MERGE's `UPDATE SET`, `DO UPDATE SET`,
 `ON DUPLICATE KEY UPDATE`, `InsertInto(...).Set`, `InsertIgnoreInto(...).Set`
 and an `UPDATE` that does not qualify its target render a `SET` column by its
-name alone, so another
-relation's column became the target's same-named one: `UPDATE ... FROM` and
-`MERGE` ran and changed neither table, and a plain `UPDATE` wrote the target's
-column (live: PostgreSQL 16, SQLite 3.45.1; #674). The qualified spelling of
+name alone, so another relation's column became the target's same-named one: a
+swapped assignment (`u.B == t.B`) ran as a no-op under `UPDATE ... FROM`
+(PostgreSQL 16, SQLite 3.45.1) and `MERGE` (PostgreSQL 16), and any other value
+wrote the target's column (live; #674). The qualified spelling of
 what was written, `SET "u".b`, runs on neither, so `AssignmentResolver` rejects
 the call as a call-site defect. It keys on the table name, compared ordinally
 (`TableReference.NamesSameTable`): with its schema when both handles carry one,
@@ -378,9 +378,12 @@ search path the library cannot see. So a schema-less handle of a qualified targe
 stays legal; a same-named table in another schema throws when both name their
 schema and passes when either does not; a swapped assignment over two handles of
 one table (a self-`MERGE`) passes; and a handle spelling the name in another case,
-or qualifying it differently (`db.dbo.t` beside `dbo.t`), throws. The arms that qualify the target (MySQL's direct-join `UPDATE`, SQL
-Server's re-listed target) render the owner as written, and MySQL's sets a joined
-table's column that way, so they are left alone; `UpdateSetClause` decides at
+or qualifying it differently (`db.dbo.t` beside `dbo.t`), throws. The arms that
+qualify the target (MySQL's direct-join `UPDATE`, SQL Server's re-listed target)
+render each column by its owner's alias, and MySQL's sets a joined table's column
+that way, so they skip the name check; an owner with no alias renders bare there
+too, and since the joined target is always aliased it is another table, so
+`ThrowIfUnaliasedOwner` rejects it. `UpdateSetClause` decides at
 `Build()`, where that shape is final, the other clauses at the call. A column
 list renders its entries bare too, so `ColumnListGuard.IsColumnOf` holds the
 `INSERT` and MERGE `ThenInsert` lists and the `ON CONFLICT` target to the

@@ -113,8 +113,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   SQLite, and `Update(t).Set(u.B == 1)` wrote `t.b`. Tables are compared by
   name as spelled, with the schema when both name one, so another handle
   spelling the target's table name the same way is still accepted, and so is a
-  source sharing that name, such as a self-`MERGE`'s. MySQL's joined `UPDATE` and SQL Server's `UPDATE` re-listing
-  its target qualify the column, so it renders as written there. A column list
+  source sharing that name, such as a self-`MERGE`'s. MySQL's joined `UPDATE`
+  and SQL Server's `UPDATE` re-listing its target qualify the column by its
+  table's alias, so another table's column renders as written there; one of a
+  joined table with no alias rendered bare too, and now throws `A joined table
+  whose column a SET assignment names must be aliased.` at `Build()`. A column list
   is checked the same way, at the call: `InsertInto(...)`,
   `InsertIgnoreInto(...)` and `ThenInsert(...)` throw `An INSERT column list
   must name only columns of the target table.`, `OnConflict(...)` throws `An ON

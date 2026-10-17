@@ -61,6 +61,20 @@ internal static class AssignmentResolver
         }
     }
 
+    // The joined target is always aliased, so an owner without a correlation name is
+    // another table, whose bare column the engine may resolve against the target (#674).
+    internal static void ThrowIfUnaliasedOwner(EqualCondition[] assignments)
+    {
+        for (int i = 0; i < assignments.Length; i++)
+        {
+            if (((DbColumn)assignments[i].LeftSide).Owner.CorrelationName.Length == 0)
+            {
+                throw new ArgumentException(
+                    "A joined table whose column a SET assignment names must be aliased.");
+            }
+        }
+    }
+
     // Keyed on the token the target renders as, never on its owner: the
     // always-unqualified clauses drop owner and alias, so two handles — or two
     // tables — sharing a column name emit `SET a = 1, a = 2` all the same.

@@ -870,6 +870,39 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_MySql_DirectJoinSetUnaliasedJoinedColumn_ThrowsArgumentException()
+    {
+        TestTable t = new("t1");
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .InnerJoin(a).On(a.Code == t.Code)
+            .Set(a.Name == "x")
+            .Build(Dbms.MySql));
+
+        Assert.Equal(
+            "A joined table whose column a SET assignment names must be aliased.", ex.Message);
+    }
+
+    [Fact]
+    public void Update_SqlServer_RelistedTargetSetUnaliasedJoinedColumn_ThrowsArgumentException()
+    {
+        TestTable t = new("t1");
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .Set(a.Name == "x")
+            .From(t)
+            .InnerJoin(a).On(a.Code == t.Code)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "A joined table whose column a SET assignment names must be aliased.", ex.Message);
+    }
+
+    [Fact]
     public void Update_MySql_JoinedSetSameCorrelationNameTwice_ThrowsAtSet()
     {
         TestTable t = new("t1");

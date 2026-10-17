@@ -1290,8 +1290,11 @@ column; `Build()` throws `The SET assignment list must assign only columns of
 the target table.` instead. `ThenUpdateSet`, `DoUpdateSet`,
 `OnDuplicateKeyUpdate`, `InsertInto(...).Set` and `InsertIgnoreInto(...).Set`
 throw at the call, naming their own clause. A MySQL joined `UPDATE` and a SQL
-Server `UPDATE` re-listing its target qualify the column, so another table's
-column renders as written there (see [Joined UPDATE / DELETE](#joined-update--delete)).
+Server `UPDATE` re-listing its target qualify the column by its table's alias,
+so another table's column renders as written there (see
+[Joined UPDATE / DELETE](#joined-update--delete)); a column of a joined table
+with no alias would render bare, and `Build()` throws `A joined table whose
+column a SET assignment names must be aliased.` instead.
 
 > [!WARNING]
 > **A table sharing the target's name passes the check, and its column still sets the target's.**

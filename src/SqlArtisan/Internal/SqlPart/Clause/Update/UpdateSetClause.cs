@@ -35,12 +35,13 @@ internal sealed class UpdateSetClause : SqlPart
 
         if (_state.QualifiesSetTarget)
         {
+            // This arm names each column's owner, and MySQL's joined UPDATE sets another
+            // table's column that way; an unaliased owner renders bare, as the other arm does.
+            AssignmentResolver.ThrowIfUnaliasedOwner(_assignments);
             buffer.AppendCsv(_assignments);
         }
         else
         {
-            // A qualified target names its owner, and MySQL's joined UPDATE sets
-            // another table's column that way; only the bare arm can mistake one.
             AssignmentResolver.ThrowIfNotTargetColumn(_assignments, _target, Keywords.Set);
             buffer.AppendAssignmentsCsv(_assignments);
         }
