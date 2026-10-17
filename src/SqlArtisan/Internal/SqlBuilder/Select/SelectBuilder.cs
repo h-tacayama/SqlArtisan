@@ -46,6 +46,12 @@ internal class SelectBuilder :
 
     protected override string StatementName => Keywords.Select;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public ISelectBuilderSetOperator Union => ContinueAfter(new UnionOperator(false));
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public ISelectBuilderSetOperator UnionAll => ContinueAfter(new UnionOperator(true));
+
     // A held left branch would grow into the right one, so the compound continues
     // on a new builder and the left is frozen (#676).
     private SelectBuilder ContinueAfter(SqlPart setOperator)
@@ -58,12 +64,6 @@ internal class SelectBuilder :
     }
 
     private protected virtual SelectBuilder CreateContinuation() => new(this);
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator Union => ContinueAfter(new UnionOperator(false));
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator UnionAll => ContinueAfter(new UnionOperator(true));
 
     // Whether a FROM or JOIN of this query lists the relation itself; a compound's
     // branches count together, so a branch's capture is missed, never invented.
