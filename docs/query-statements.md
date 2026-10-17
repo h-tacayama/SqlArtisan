@@ -787,7 +787,7 @@ On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is r
 
 #### Reusing a builder chain
 
-A builder chain is **single-use**: once you call `Build()`, that builder is finished — any further call on it, including a second `Build()`, throws. This turns a silently-wrong reuse into a loud error:
+A builder chain is **single-use**: once you call `Build()`, that builder is finished — any further stage call on it, including a second `Build()`, throws. This turns a silently-wrong reuse into a loud error:
 
 ```csharp
 // NG — holding a base query to fetch each page throws on the second Build().
@@ -812,17 +812,18 @@ SqlStatement page2 = Page(10);
 
 Composing a builder into another statement — `In`, `NotIn`, `Exists`,
 `NotExists`, `Any` / `All` / `Some`, a scalar subquery, `AsTable`, a CTE's
-`As`, a lateral or apply join — finishes it for further clauses: a later stage call throws `This SELECT statement is
-composed into another statement; start a new chain to change it.`, since it
-would also change the statement that holds it. A set operator (`Union`,
-`UnionAll`, …) continues on the builder it returns; the builder it was called
-on can no longer be used.
+`As`, a lateral or apply join — finishes it for further clauses: a later stage
+call throws `This SELECT statement is composed into another statement; start a
+new chain to change it.`, since it would also change the statement that holds
+it. A built builder can still be composed, and renders what it was built with.
+A set operator (`Union`, `UnionAll`, …) continues on the builder it returns;
+the builder it was called on can no longer be used.
 
 > [!NOTE]
-> **Every stage but a set operator returns the builder it was called on, so two variables taken
-> from one chain share it.** After `var all = q; var page = q.OrderBy(t.Code).Limit(10);`,
-> `all` carries the `ORDER BY` and `LIMIT` too, and only a second `Build()` reports it. Build
-> each statement from its own chain, as above.
+> **Every stage but a set operator adds to the builder it was called on, so two variables taken from
+> one chain share it.** After `var all = q; var page = q.OrderBy(t.Code).Limit(10);`, `all` carries
+> the `ORDER BY` and `LIMIT` too. A second `Build()` reports it, but composing `all` after
+> `page.Build()` does not: `all.AsTable("x")` renders the page. Build each statement from its own chain.
 
 ---
 

@@ -875,6 +875,55 @@ public class BuilderReuseTests
         Assert.Equal("SELECT \"u\".code FROM test_table \"u\"", sql.Text);
     }
 
+    [Theory]
+    [InlineData("In")]
+    [InlineData("NotIn")]
+    [InlineData("Exists")]
+    [InlineData("NotExists")]
+    [InlineData("Any")]
+    [InlineData("All")]
+    [InlineData("Some")]
+    [InlineData("Scalar")]
+    [InlineData("AsTable")]
+    [InlineData("CteAs")]
+    [InlineData("CrossApply")]
+    [InlineData("OuterApply")]
+    [InlineData("JoinLateral")]
+    [InlineData("LeftJoinLateral")]
+    [InlineData("CrossJoinLateral")]
+    public void Composition_StageCallAfterComposing_ThrowsArgumentException(string site)
+    {
+        TestTable u = new("u");
+        var sub = Select(u.Code).From(u);
+        _ = Compose(site, sub);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => sub.Where(u.Name == "x"));
+
+        Assert.Equal(ComposedMessage, ex.Message);
+    }
+
+    private object Compose(string site, ISubquery sub) => site switch
+    {
+        "In" => _t.Code.In(sub),
+        "NotIn" => _t.Code.NotIn(sub),
+        "Exists" => Exists(sub),
+        "NotExists" => NotExists(sub),
+        "Any" => Any(sub),
+        "All" => All(sub),
+        "Some" => Some(sub),
+        "Scalar" => Select(sub),
+        "AsTable" => sub.AsTable("x"),
+        "CteAs" => new TestCte("c").As(sub),
+        "CrossApply" => Select(_t.Code).From(_t).CrossApply(sub, new DerivedTable("x")),
+        "OuterApply" => Select(_t.Code).From(_t).OuterApply(sub, new DerivedTable("x")),
+        "JoinLateral" => Select(_t.Code).From(_t).JoinLateral(sub, new DerivedTable("x")),
+        "LeftJoinLateral" =>
+            Select(_t.Code).From(_t).LeftJoinLateral(sub, new DerivedTable("x")),
+        "CrossJoinLateral" =>
+            Select(_t.Code).From(_t).CrossJoinLateral(sub, new DerivedTable("x")),
+        _ => throw new ArgumentOutOfRangeException(nameof(site)),
+    };
+
     [Fact]
     public void Returning_ThenInnerBuild_ThrowsArgumentException()
     {

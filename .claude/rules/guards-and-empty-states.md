@@ -411,7 +411,10 @@ two-branch `UNION ALL` build, and a non-compound build is unchanged (ADR 0006).
 Two statements cut from one held prefix (`var all = q; var page =
 q.OrderBy(...)`) still share the instance, which only builders returning a new
 instance from every stage would separate; `docs/query-statements.md` §
-"Reusing a builder chain" states it.
+"Reusing a builder chain" states it. A built builder stays composable, so
+composing `all` after `page.Build()` renders the page (#676's build-then-compose
+count): that is this fork, and rejecting a built builder in `FormatCore` would
+also break composing a chain built as written, which renders what was built.
 
 ## The empty-state policy (#236)
 
@@ -453,8 +456,10 @@ could stack past the once-per-kind check — and made a condition-free join
 (`CROSS JOIN`, `NATURAL ...`, `APPLY`) *consume* the `ON`/`USING` slot rather
 than re-admit it. **The walk checks multiplicity and slot exclusivity, not
 clause order** (decided, pass 5, SD23): a held earlier stage gets past the
-typestate (`var o = q.OrderBy(t.A); q.Where(...)` builds `ORDER BY a WHERE ...`),
-but every engine rejects the out-of-order text, so it fails loudly there, and the
+typestate (`var o = q.OrderBy(t.A); q.Where(...)` builds `ORDER BY a WHERE ...`,
+which PostgreSQL 16 and SQLite 3.45.1 reject). A pair PostgreSQL 16 runs out of
+order (`OFFSET ... LIMIT`, `FOR UPDATE ... LIMIT`) returns the in-order text's
+rows and SQLite rejects both (live; the other engines are not verified), so the
 walk stays a backstop for a repeated or stacked stage on one held instance
 (#676).
 Some repeats it rejects run on some engine (for example SQLite's second
