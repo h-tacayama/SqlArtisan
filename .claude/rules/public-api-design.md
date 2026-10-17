@@ -421,9 +421,11 @@ a factory fills before returning the node (`Sql.Values`' rows) is
 construction, and one only its owning builder grows (`InsertValuesClause`'s
 rows under a repeat `.Values(...)`) is builder state, never a member reached
 on the node. The statement builders are the stateful exception: a stage
-appends to the held builder by design, and the freeze-after-`Build()` and
-duplicate-clause guards
-(`guards-and-empty-states.md` § "The empty-state policy") keep that safe.
+appends to the held builder by design. The freeze-after-`Build()`, the
+compose and set-operator freezes, and the duplicate-clause guard
+(`guards-and-empty-states.md` § "The empty-state policy" and § "A builder is one
+chain") reject the reuse shapes that would rewrite a statement already holding
+the builder; two statements cut from one held prefix still share it.
 
 ## Root namespace vs `Internal` (ADR 0005)
 

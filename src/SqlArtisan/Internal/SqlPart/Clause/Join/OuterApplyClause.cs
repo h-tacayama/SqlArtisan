@@ -9,7 +9,7 @@ internal sealed class OuterApplyClause : SqlPart, IJoinedRelation
 
     internal OuterApplyClause(ISubquery subquery, DerivedTableBase alias)
     {
-        _subquery = subquery;
+        _subquery = SqlBuilderBase.Composed(subquery);
         _alias = alias;
     }
 

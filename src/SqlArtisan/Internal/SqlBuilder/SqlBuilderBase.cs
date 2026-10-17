@@ -16,6 +16,14 @@ internal abstract class SqlBuilderBase
     // call or Build() throws, blocking silent state contamination from a reused chain.
     private bool _built;
 
+    // A stage call would rewrite every statement already holding this chain (#676);
+    // building it alone changes nothing they render, so Build() stays open.
+    private bool _composed;
+
+    // A set operator moved the chain to a new builder (#676), so this one is only
+    // its left branch; any use of it would drop what was written after it.
+    private bool _continued;
+
     protected SqlBuilderBase(SqlPart[] rootParts)
     {
         _parts = new List<SqlPart>(Math.Max(rootParts.Length, ExpectedClauseCount));
@@ -42,12 +50,48 @@ internal abstract class SqlBuilderBase
 
     protected void ThrowIfBuilt()
     {
+        ThrowIfAlreadyBuilt();
+        if (_composed)
+        {
+            throw new ArgumentException(
+                $"This {StatementName} statement is composed into another statement; "
+                + "start a new chain to change it.");
+        }
+    }
+
+    private void ThrowIfAlreadyBuilt()
+    {
         if (_built)
         {
             throw new ArgumentException(
                 $"This {StatementName} statement was already built; start a new chain.");
         }
+
+        ThrowIfContinued();
     }
+
+    private void ThrowIfContinued()
+    {
+        if (_continued)
+        {
+            throw new ArgumentException(
+                $"This {StatementName} statement was continued by a set operator; "
+                + "use the builder the operator returned.");
+        }
+    }
+
+    // Every node that embeds a subquery takes it through here.
+    internal static ISubquery Composed(ISubquery subquery)
+    {
+        if (subquery is SqlBuilderBase builder)
+        {
+            builder._composed = true;
+        }
+
+        return subquery;
+    }
+
+    private protected void FreezeAsContinued() => _continued = true;
 
     // Returning(...) hands the chain to a stage that appends its clause only when it
     // builds, so a build that does not carry the clause would drop it silently; every
@@ -64,7 +108,7 @@ internal abstract class SqlBuilderBase
 
     internal SqlStatement BuildWithPart(SqlPart extraPart, Dbms dbms)
     {
-        ThrowIfBuilt();
+        ThrowIfAlreadyBuilt();
         if (_pendingReturning > 1)
         {
             throw new ArgumentException(
@@ -93,7 +137,7 @@ internal abstract class SqlBuilderBase
 
     protected SqlStatement BuildCore(Dbms dbms)
     {
-        ThrowIfBuilt();
+        ThrowIfAlreadyBuilt();
         // Resolves the dialect first: Validate's dialect checks would otherwise
         // answer an Unknown target (an unregistered Build(cnn)) with their own message.
         using SqlBuildingBuffer buffer = new(dbms);
@@ -130,6 +174,7 @@ internal abstract class SqlBuilderBase
     // rejected ordinal is no less wrong one level down (release audit, pass 4).
     internal void FormatCore(SqlBuildingBuffer buffer)
     {
+        ThrowIfContinued();
         ThrowIfDuplicateClauseInBlock();
         Validate(buffer.Dbms);
         AppendNestedParts(buffer, CollectionsMarshal.AsSpan(_parts));

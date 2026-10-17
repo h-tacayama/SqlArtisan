@@ -9,7 +9,7 @@ internal sealed class CrossApplyClause : SqlPart, IJoinedRelation
 
     internal CrossApplyClause(ISubquery subquery, DerivedTableBase alias)
     {
-        _subquery = subquery;
+        _subquery = SqlBuilderBase.Composed(subquery);
         _alias = alias;
     }
 

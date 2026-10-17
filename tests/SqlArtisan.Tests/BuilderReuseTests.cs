@@ -10,6 +10,14 @@ namespace SqlArtisan.Tests;
 // the next build.
 public class BuilderReuseTests
 {
+    private const string ComposedMessage =
+        "This SELECT statement is composed into another statement; "
+            + "start a new chain to change it.";
+
+    private const string ContinuedMessage =
+        "This SELECT statement was continued by a set operator; "
+            + "use the builder the operator returned.";
+
     private const string SelectBuiltMessage =
         "This SELECT statement was already built; start a new chain.";
 
@@ -769,36 +777,51 @@ public class BuilderReuseTests
     }
 
     [Fact]
-    public void Union_WithoutSelect_OnHeldStage_ThrowsArgumentException()
+    public void Union_WithoutSelect_OnContinuation_ThrowsArgumentException()
     {
+        var pending = Select(_t.Code).From(_t).Union;
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            ((ISqlBuilder)pending).Build());
+
+        Assert.Equal(
+            "A UNION, INTERSECT, EXCEPT, or MINUS is missing its SELECT; the statement was "
+                + "built from a held builder before the operator was completed.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Union_HeldLeftBranchBuilt_ThrowsArgumentException()
+    {
+        // The compound continues on the builder Union returned, so the held left
+        // branch alone would drop the operator the caller wrote.
         var held = Select(_t.Code).From(_t);
         _ = held.Union;
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Build());
 
-        Assert.Equal(
-            "A UNION, INTERSECT, EXCEPT, or MINUS is missing its SELECT; the statement was "
-                + "built from a held builder before the operator was completed.",
-            ex.Message);
+        Assert.Equal(ContinuedMessage, ex.Message);
     }
 
     [Fact]
-    public void Union_ThenWhere_OnHeldStage_ThrowsArgumentException()
+    public void Union_HeldLeftBranchExtended_ThrowsArgumentException()
     {
-        var held = Select(_t.Code).From(_t);
-        _ = held.Union;
-        var second = held.Where(_t.Code == 1);
+        // #676: the WHERE would land on the right branch of the compound.
+        TestTable u = new("u");
+        var first = Select(_t.Code).From(_t);
+        var compound = first.UnionAll.Select(u.Code).From(u);
 
-        ArgumentException ex = Assert.Throws<ArgumentException>(() => second.Build());
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            first.Where(_t.Code == 1));
 
+        Assert.Equal(ContinuedMessage, ex.Message);
         Assert.Equal(
-            "A UNION, INTERSECT, EXCEPT, or MINUS is missing its SELECT; the statement was "
-                + "built from a held builder before the operator was completed.",
-            ex.Message);
+            "SELECT code FROM test_table UNION ALL SELECT \"u\".code FROM test_table \"u\"",
+            compound.Build().Text);
     }
 
     [Fact]
-    public void Union_WithoutSelect_OnHeldSubquery_ThrowsArgumentException()
+    public void Union_HeldLeftBranchComposed_ThrowsArgumentException()
     {
         TestTable r = new("r");
         var held = Select(r.Code).From(r);
@@ -807,10 +830,49 @@ public class BuilderReuseTests
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Select(_t.Code).From(_t).Where(_t.Code.In(held)).Build());
 
+        Assert.Equal(ContinuedMessage, ex.Message);
+    }
+
+    [Fact]
+    public void In_SubqueryRefinedAfterComposing_ThrowsArgumentException()
+    {
+        // #676: the outer statement would read the refined subquery.
+        TestTable u = new("u");
+        var sub = Select(u.Code).From(u);
+        var outer = Select(_t.Code).From(_t).Where(_t.Code.In(sub));
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => sub.Where(u.Name == "x"));
+
+        Assert.Equal(ComposedMessage, ex.Message);
         Assert.Equal(
-            "A UNION, INTERSECT, EXCEPT, or MINUS is missing its SELECT; the statement was "
-                + "built from a held builder before the operator was completed.",
-            ex.Message);
+            "SELECT code FROM test_table WHERE code IN (SELECT \"u\".code FROM test_table \"u\")",
+            outer.Build().Text);
+    }
+
+    [Fact]
+    public void AsTable_SubqueryPagedAfterComposing_ThrowsArgumentException()
+    {
+        // #676: a total count over the held query would count one page.
+        var q = Select(_t.Code).From(_t);
+        var total = Select(Count(Asterisk)).From(q.AsTable("x"));
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => q.OrderBy(_t.Code));
+
+        Assert.Equal(ComposedMessage, ex.Message);
+        Assert.Equal(
+            "SELECT COUNT(*) FROM (SELECT code FROM test_table) \"x\"", total.Build().Text);
+    }
+
+    [Fact]
+    public void Exists_ComposedSubqueryBuiltAlone_CorrectSql()
+    {
+        TestTable u = new("u");
+        var sub = Select(u.Code).From(u);
+        _ = Exists(sub);
+
+        SqlStatement sql = sub.Build();
+
+        Assert.Equal("SELECT \"u\".code FROM test_table \"u\"", sql.Text);
     }
 
     [Fact]

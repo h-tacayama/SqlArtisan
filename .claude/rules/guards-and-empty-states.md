@@ -394,6 +394,25 @@ owner too, but they sit in value positions and checking them needs the target at
 format time; they are left to the value-slot item for those accessors (#675's B3
 hand-off, #666's class), not this guard.
 
+**A builder is one chain (decided — do not re-file):** a stage call appends to
+the instance it is called on and returns it, so a held builder that another
+statement already holds would change that statement too (#676, live on
+PostgreSQL 16). Two shapes are rejected. A builder composed into another
+statement — `In`, `NotIn`, `Exists`, `NotExists`, `Any` / `All` / `Some`, a
+scalar subquery, `AsTable`, a CTE's `As`, a lateral or apply join — takes no
+further stage call (`This SELECT statement is composed into another statement;
+start a new chain to change it.`); building it alone stays legal, since that
+changes nothing the other statement renders. A set operator returns a new
+builder holding the chain so far, and the held left branch can no longer be
+extended, built or composed (`This SELECT statement was continued by a set
+operator; use the builder the operator returned.`), since its `WHERE` would land
+on the right branch. The continuation copies the parts, measured at +168 B for a
+two-branch `UNION ALL` build, and a non-compound build is unchanged (ADR 0006).
+Two statements cut from one held prefix (`var all = q; var page =
+q.OrderBy(...)`) still share the instance, which only builders returning a new
+instance from every stage would separate; `docs/query-statements.md` §
+"Reusing a builder chain" states it.
+
 ## The empty-state policy (#236)
 
 Never elide a clause the caller wrote. A written condition clause with no
@@ -433,9 +452,11 @@ dimension — `LIMIT`/`FETCH`, a `DELETE`'s `FROM`/`USING`, and an `INSERT`'s
 could stack past the once-per-kind check — and made a condition-free join
 (`CROSS JOIN`, `NATURAL ...`, `APPLY`) *consume* the `ON`/`USING` slot rather
 than re-admit it. **The walk checks multiplicity and slot exclusivity, not
-clause order** (decided, pass 5, SD23): a held `ORDER BY ... WHERE` is the
-typestate's to prevent, and the walk stays a backstop for what the typestate
-cannot see — a repeated or stacked stage on one held instance.
+clause order** (decided, pass 5, SD23): a held earlier stage gets past the
+typestate (`var o = q.OrderBy(t.A); q.Where(...)` builds `ORDER BY a WHERE ...`),
+but every engine rejects the out-of-order text, so it fails loudly there, and the
+walk stays a backstop for a repeated or stacked stage on one held instance
+(#676).
 Some repeats it rejects run on some engine (for example SQLite's second
 `ON CONFLICT`, PostgreSQL's second locking clause); they are rejected on
 every dialect by decision (ADR 0011, which lists the recorded cases).

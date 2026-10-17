@@ -124,6 +124,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   CONFLICT target must name only columns of the target table.`, and
   `Into(table, ...)` after `Output(...)` throws `An OUTPUT INTO column list
   must name only columns of its table.` (#674)
+- **Breaking:** a builder composed into another statement (`In`, `NotIn`,
+  `Exists`, `NotExists`, `Any` / `All` / `Some`, a scalar subquery,
+  `AsTable`, a CTE's `As`, a lateral or apply join) throws `ArgumentException`
+  on a later stage call, and a set operator returns a new builder, after which
+  the one it was called on throws on any use. Both rewrote a statement already
+  holding the builder: refining a subquery after composing it changed the outer
+  query, paging a query after composing it into a count made the count one
+  page's, and extending a held first branch put its `WHERE` on the second
+  branch, live on PostgreSQL 16. Building a composed builder on its own still
+  works. Two variables taken from one chain still share it; build each
+  statement from its own chain. (#676)
 - A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
   release year on SQL Server, the engine's own version number elsewhere. A SQL
   Server value below 2000 (`16`, SQL Server 2022's product version, compared as

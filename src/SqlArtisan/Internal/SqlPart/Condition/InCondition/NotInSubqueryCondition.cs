@@ -8,7 +8,7 @@ public sealed class NotInSubqueryCondition : SqlCondition
     internal NotInSubqueryCondition(SqlExpression leftSide, ISubquery subquery)
     {
         _leftSide = leftSide;
-        _subquery = subquery;
+        _subquery = SqlBuilderBase.Composed(subquery);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer

@@ -27,6 +27,9 @@ internal sealed class InsertBuilder(
 
     protected override string StatementName => Keywords.Insert;
 
+    private protected override SelectBuilder CreateContinuation(SqlPart[] parts) =>
+        new InsertBuilder(table, columnCount, parts) { _valuesClause = _valuesClause };
+
     public IReturning DoNothing()
     {
         AddPart(new DoNothingClause());
