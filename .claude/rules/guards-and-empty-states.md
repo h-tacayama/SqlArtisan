@@ -278,10 +278,11 @@ returned the rows unsorted on PostgreSQL 16 and SQLite 3.45.1, live), so
 dialect, as a call-site defect (ADR 0011 decides the class outside its bar;
 #678). `Bind(value)` keeps a deliberate constant writable. The other key
 positions follow (#673): a grouping element (`Rollup`, `Cube`, `Group`) and a
-`PartitionBy(...)` key resolve only an expression or a subquery
+`PartitionBy(...)` key take an expression or a subquery and reject every value
 (`ExpressionResolver.ResolveKey`), an integer included, since `PARTITION BY`
 reads even a literal one as a constant (PostgreSQL 16 and SQLite, live) and how
-Oracle, SQL Server and MySQL read one in a grouping element is not verified. A
+Oracle and SQL Server read one in a grouping element is not verified (MySQL and
+SQLite have no grouping element). A
 subquery stays a grouping element (it runs on PostgreSQL 16, live).
 `DistinctOn(...)` renders an integer as the select-list position PostgreSQL, its
 one engine, reads there, rejecting one below 1 at the call as `GroupBy` does
