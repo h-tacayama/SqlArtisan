@@ -9,7 +9,7 @@ internal sealed class CrossJoinLateralClause : SqlPart, IJoinedRelation
 
     internal CrossJoinLateralClause(ISubquery subquery, DerivedTableBase alias)
     {
-        _subquery = subquery;
+        _subquery = SqlBuilderBase.Composed(subquery);
         _alias = alias;
     }
 

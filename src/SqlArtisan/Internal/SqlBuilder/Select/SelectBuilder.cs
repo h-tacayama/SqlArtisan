@@ -2,8 +2,8 @@ using System.Diagnostics;
 
 namespace SqlArtisan.Internal;
 
-internal class SelectBuilder(params SqlPart[] rootParts) :
-    SqlBuilderBase(rootParts),
+internal class SelectBuilder :
+    SqlBuilderBase,
     ISelectBuilderForUpdate,
     ISelectBuilderFrom,
     ISelectBuilderGroupBy,
@@ -18,87 +18,52 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
     ISelectBuilderWhere,
     ISelectBuilderWithRollup
 {
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator Except
+    internal SelectBuilder(params SqlPart[] rootParts) : base(rootParts)
     {
-        get
-        {
-            AddPart(new ExceptOperator(false));
-            return this;
-        }
+    }
+
+    private protected SelectBuilder(SelectBuilder leftBranch) : base(leftBranch)
+    {
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator ExceptAll
-    {
-        get
-        {
-            AddPart(new ExceptOperator(true));
-            return this;
-        }
-    }
+    public ISelectBuilderSetOperator Except => ContinueAfter(new ExceptOperator(false));
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator Intersect
-    {
-        get
-        {
-            AddPart(new IntersectOperator(false));
-            return this;
-        }
-    }
+    public ISelectBuilderSetOperator ExceptAll => ContinueAfter(new ExceptOperator(true));
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator IntersectAll
-    {
-        get
-        {
-            AddPart(new IntersectOperator(true));
-            return this;
-        }
-    }
+    public ISelectBuilderSetOperator Intersect => ContinueAfter(new IntersectOperator(false));
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator Minus
-    {
-        get
-        {
-            AddPart(new MinusOperator(false));
-            return this;
-        }
-    }
+    public ISelectBuilderSetOperator IntersectAll => ContinueAfter(new IntersectOperator(true));
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator MinusAll
-    {
-        get
-        {
-            AddPart(new MinusOperator(true));
-            return this;
-        }
-    }
+    public ISelectBuilderSetOperator Minus => ContinueAfter(new MinusOperator(false));
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public ISelectBuilderSetOperator MinusAll => ContinueAfter(new MinusOperator(true));
 
     protected override string StatementName => Keywords.Select;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator Union
-    {
-        get
-        {
-            AddPart(new UnionOperator(false));
-            return this;
-        }
-    }
+    public ISelectBuilderSetOperator Union => ContinueAfter(new UnionOperator(false));
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator UnionAll
+    public ISelectBuilderSetOperator UnionAll => ContinueAfter(new UnionOperator(true));
+
+    // A held left branch would grow into the right one, so the compound continues
+    // on a new builder and the left is frozen (#676).
+    private SelectBuilder ContinueAfter(SqlPart setOperator)
     {
-        get
-        {
-            AddPart(new UnionOperator(true));
-            return this;
-        }
+        ThrowIfBuilt();
+        SelectBuilder next = CreateContinuation();
+        FreezeAsContinued();
+        next.AddPart(setOperator);
+        return next;
     }
+
+    private protected virtual SelectBuilder CreateContinuation() => new(this);
 
     // Whether a FROM or JOIN of this query lists the relation itself; a compound's
     // branches count together, so a branch's capture is missed, never invented.

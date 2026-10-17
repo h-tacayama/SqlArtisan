@@ -14,7 +14,7 @@ public sealed class SubqueryDerivedTable : DerivedTableBase, IColumnAccessor
 
     internal SubqueryDerivedTable(ISubquery subquery, string name) : base(name)
     {
-        _subquery = subquery;
+        _subquery = SqlBuilderBase.Composed(subquery);
     }
 
     /// <inheritdoc/>

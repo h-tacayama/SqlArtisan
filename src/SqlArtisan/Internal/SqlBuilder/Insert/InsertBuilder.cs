@@ -1,10 +1,7 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class InsertBuilder(
-    DbTableBase table,
-    int columnCount,
-    params SqlPart[] rootParts) :
-    SelectBuilder(rootParts),
+internal sealed class InsertBuilder :
+    SelectBuilder,
     IInsertBuilderColumns,
     IInsertBuilderColumnsOutput,
     IInsertBuilderDoUpdateSet,
@@ -21,11 +18,29 @@ internal sealed class InsertBuilder(
     private const string NoRowsMessage =
         "VALUES requires at least one row; the row collection is empty.";
 
+    private readonly DbTableBase _table;
+    private readonly int _columnCount;
     private InsertValuesClause? _valuesClause;
 
-    private protected override DbTableBase? ReturningTarget => table;
+    internal InsertBuilder(DbTableBase table, int columnCount, params SqlPart[] rootParts) :
+        base(rootParts)
+    {
+        _table = table;
+        _columnCount = columnCount;
+    }
+
+    private InsertBuilder(InsertBuilder leftBranch) : base(leftBranch)
+    {
+        _table = leftBranch._table;
+        _columnCount = leftBranch._columnCount;
+        _valuesClause = leftBranch._valuesClause;
+    }
+
+    private protected override DbTableBase? ReturningTarget => _table;
 
     protected override string StatementName => Keywords.Insert;
+
+    private protected override SelectBuilder CreateContinuation() => new InsertBuilder(this);
 
     public IReturning DoNothing()
     {
@@ -35,7 +50,7 @@ internal sealed class InsertBuilder(
 
     public IInsertBuilderDoUpdateSet DoUpdateSet(params EqualityCondition[] assignments)
     {
-        AddPart(DoUpdateSetClause.Parse(assignments, table));
+        AddPart(DoUpdateSetClause.Parse(assignments, _table));
         return this;
     }
 
@@ -49,7 +64,7 @@ internal sealed class InsertBuilder(
 
     public IInsertBuilderOnConflict OnConflict(params DbColumn[] conflictTarget)
     {
-        AddPart(new OnConflictClause(conflictTarget, table));
+        AddPart(new OnConflictClause(conflictTarget, _table));
         return this;
     }
 
@@ -57,7 +72,7 @@ internal sealed class InsertBuilder(
     {
         // Parse first: a throw after AddPart(RowAliasClause) would leave the alias, and a
         // fix-up retry on the same instance would emit it twice (`AS new AS new`).
-        OnDuplicateKeyUpdateClause parsed = OnDuplicateKeyUpdateClause.Parse(assignments, table);
+        OnDuplicateKeyUpdateClause parsed = OnDuplicateKeyUpdateClause.Parse(assignments, _table);
         AddPart(new RowAliasClause());
         AddPart(parsed);
         return this;
@@ -76,7 +91,7 @@ internal sealed class InsertBuilder(
 
     public IInsertBuilderSet Set(params EqualityCondition[] assignments)
     {
-        AddPart(InsertSetClause.Parse(assignments, table));
+        AddPart(InsertSetClause.Parse(assignments, _table));
         return this;
     }
 
@@ -155,7 +170,7 @@ internal sealed class InsertBuilder(
     // feeds the column list; a set operator's later blocks are the engine's to width.
     private protected override void OnSelectItems(SqlPart[] selectItems)
     {
-        if (columnCount == 0 || FirstSelectItems() is not null)
+        if (_columnCount == 0 || FirstSelectItems() is not null)
         {
             return;
         }
@@ -168,10 +183,10 @@ internal sealed class InsertBuilder(
             }
         }
 
-        if (selectItems.Length != columnCount)
+        if (selectItems.Length != _columnCount)
         {
             throw new ArgumentException(
-                $"The INSERT column list declares {columnCount} column(s), "
+                $"The INSERT column list declares {_columnCount} column(s), "
                 + $"but the SELECT list has {selectItems.Length} item(s).");
         }
     }
@@ -186,8 +201,8 @@ internal sealed class InsertBuilder(
         DmlTargetGuard.ThrowIfLeadingWithBeforeOnDuplicateKeyUpdate(
             PartsSpan, onDuplicateKeyUpdate);
         DmlTargetGuard.ThrowIfLeadingWithUnsupported(PartsSpan, dbms, insert: true);
-        DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms, Keywords.Insert);
-        DmlTargetGuard.ThrowIfInsertTargetAliasedOnMySql(table, dbms);
+        DmlTargetGuard.ThrowIfAliasedOnSqlServer(_table, dbms, Keywords.Insert);
+        DmlTargetGuard.ThrowIfInsertTargetAliasedOnMySql(_table, dbms);
 
         OnConflictClause? onConflict = FindPart<OnConflictClause>();
         if (dbms == Dbms.PostgreSql
@@ -229,10 +244,10 @@ internal sealed class InsertBuilder(
             SqlExpression[] resolvedRow = InsertValueResolver.Resolve(row);
             if (expectedWidth == 0)
             {
-                if (columnCount > 0 && resolvedRow.Length != columnCount)
+                if (_columnCount > 0 && resolvedRow.Length != _columnCount)
                 {
                     throw new ArgumentException(
-                        $"The INSERT column list declares {columnCount} column(s), "
+                        $"The INSERT column list declares {_columnCount} column(s), "
                         + $"but this VALUES row has {resolvedRow.Length} value(s).");
                 }
 
@@ -279,10 +294,10 @@ internal sealed class InsertBuilder(
 
         if (_valuesClause is null)
         {
-            if (columnCount > 0 && values.Length > 0 && values.Length != columnCount)
+            if (_columnCount > 0 && values.Length > 0 && values.Length != _columnCount)
             {
                 throw new ArgumentException(
-                    $"The INSERT column list declares {columnCount} column(s), "
+                    $"The INSERT column list declares {_columnCount} column(s), "
                     + $"but this VALUES row has {values.Length} value(s).");
             }
 

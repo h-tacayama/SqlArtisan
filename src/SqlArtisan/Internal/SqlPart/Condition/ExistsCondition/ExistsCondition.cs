@@ -6,7 +6,7 @@ public sealed class ExistsCondition : SqlCondition
 
     internal ExistsCondition(ISubquery subquery)
     {
-        _subquery = subquery;
+        _subquery = SqlBuilderBase.Composed(subquery);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer

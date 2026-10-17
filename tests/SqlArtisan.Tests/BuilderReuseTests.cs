@@ -10,6 +10,14 @@ namespace SqlArtisan.Tests;
 // the next build.
 public class BuilderReuseTests
 {
+    private const string ComposedMessage =
+        "This SELECT statement is composed into another statement; "
+            + "start a new chain to change it.";
+
+    private const string ContinuedMessage =
+        "This SELECT statement was continued by a set operator; "
+            + "use the builder the operator returned.";
+
     private const string SelectBuiltMessage =
         "This SELECT statement was already built; start a new chain.";
 
@@ -607,6 +615,44 @@ public class BuilderReuseTests
     }
 
     [Fact]
+    public void InsertSelect_SqlServer_AliasedTargetAfterUnion_ThrowsArgumentException()
+    {
+        // The continuation is still the INSERT, with its target, so its guards run.
+        TestTable x = new("x");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(x, x.Code)
+            .Select(s.Code).From(s)
+            .UnionAll
+            .Select(s.Code).From(s)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "SQL Server does not support aliasing the target of an INSERT statement; "
+                + "use an unaliased target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertSelect_UnionEmbeddedAsSubquery_ThrowsArgumentException()
+    {
+        TestTable s = new("s");
+        var insert =
+            InsertInto(_t, _t.Code)
+            .Select(s.Code).From(s)
+            .UnionAll
+            .Select(s.Code).From(s);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).Where(Exists(insert)).Build());
+
+        Assert.Equal(
+            "An INSERT statement cannot be embedded as a subquery; embed its SELECT instead.",
+            ex.Message);
+    }
+
+    [Fact]
     public void From_ThenUsing_OnHeldDeleteStage_ThrowsArgumentException()
     {
         TestTable t = new("t");
@@ -769,36 +815,51 @@ public class BuilderReuseTests
     }
 
     [Fact]
-    public void Union_WithoutSelect_OnHeldStage_ThrowsArgumentException()
+    public void Union_WithoutSelect_OnContinuation_ThrowsArgumentException()
     {
+        var pending = Select(_t.Code).From(_t).Union;
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            ((ISqlBuilder)pending).Build());
+
+        Assert.Equal(
+            "A UNION, INTERSECT, EXCEPT, or MINUS is missing its SELECT; the statement was "
+                + "built from a held builder before the operator was completed.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Union_HeldLeftBranchBuilt_ThrowsArgumentException()
+    {
+        // The held left branch shares the compound's parts, so building it would
+        // build the compound's parts under a second handle.
         var held = Select(_t.Code).From(_t);
         _ = held.Union;
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Build());
 
-        Assert.Equal(
-            "A UNION, INTERSECT, EXCEPT, or MINUS is missing its SELECT; the statement was "
-                + "built from a held builder before the operator was completed.",
-            ex.Message);
+        Assert.Equal(ContinuedMessage, ex.Message);
     }
 
     [Fact]
-    public void Union_ThenWhere_OnHeldStage_ThrowsArgumentException()
+    public void Union_HeldLeftBranchExtended_ThrowsArgumentException()
     {
-        var held = Select(_t.Code).From(_t);
-        _ = held.Union;
-        var second = held.Where(_t.Code == 1);
+        // #676: the WHERE would land on the right branch of the compound.
+        TestTable u = new("u");
+        var first = Select(_t.Code).From(_t);
+        var compound = first.UnionAll.Select(u.Code).From(u);
 
-        ArgumentException ex = Assert.Throws<ArgumentException>(() => second.Build());
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            first.Where(_t.Code == 1));
 
+        Assert.Equal(ContinuedMessage, ex.Message);
         Assert.Equal(
-            "A UNION, INTERSECT, EXCEPT, or MINUS is missing its SELECT; the statement was "
-                + "built from a held builder before the operator was completed.",
-            ex.Message);
+            "SELECT code FROM test_table UNION ALL SELECT \"u\".code FROM test_table \"u\"",
+            compound.Build().Text);
     }
 
     [Fact]
-    public void Union_WithoutSelect_OnHeldSubquery_ThrowsArgumentException()
+    public void Union_HeldLeftBranchComposed_ThrowsArgumentException()
     {
         TestTable r = new("r");
         var held = Select(r.Code).From(r);
@@ -807,11 +868,151 @@ public class BuilderReuseTests
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Select(_t.Code).From(_t).Where(_t.Code.In(held)).Build());
 
-        Assert.Equal(
-            "A UNION, INTERSECT, EXCEPT, or MINUS is missing its SELECT; the statement was "
-                + "built from a held builder before the operator was completed.",
-            ex.Message);
+        Assert.Equal(ContinuedMessage, ex.Message);
     }
+
+    [Fact]
+    public void In_SubqueryRefinedAfterComposing_ThrowsArgumentException()
+    {
+        // #676: the outer statement would read the refined subquery.
+        TestTable u = new("u");
+        var sub = Select(u.Code).From(u);
+        var outer = Select(_t.Code).From(_t).Where(_t.Code.In(sub));
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => sub.Where(u.Name == "x"));
+
+        Assert.Equal(ComposedMessage, ex.Message);
+        Assert.Equal(
+            "SELECT code FROM test_table WHERE code IN (SELECT \"u\".code FROM test_table \"u\")",
+            outer.Build().Text);
+    }
+
+    [Fact]
+    public void AsTable_SubqueryPagedAfterComposing_ThrowsArgumentException()
+    {
+        // #676: a total count over the held query would count one page.
+        var q = Select(_t.Code).From(_t);
+        var total = Select(Count(Asterisk)).From(q.AsTable("x"));
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => q.OrderBy(_t.Code));
+
+        Assert.Equal(ComposedMessage, ex.Message);
+        Assert.Equal(
+            "SELECT COUNT(*) FROM (SELECT code FROM test_table) \"x\"", total.Build().Text);
+    }
+
+    [Fact]
+    public void Exists_ComposedSubqueryBuiltAlone_CorrectSql()
+    {
+        TestTable u = new("u");
+        var sub = Select(u.Code).From(u);
+        _ = Exists(sub);
+
+        SqlStatement sql = sub.Build();
+
+        Assert.Equal("SELECT \"u\".code FROM test_table \"u\"", sql.Text);
+    }
+
+    [Fact]
+    public void AsTable_BuiltSubqueryComposed_CorrectSql()
+    {
+        TestTable u = new("u");
+        var sub = Select(u.Code).From(u);
+        sub.Build();
+
+        SqlStatement sql = Select(Count(Asterisk)).From(sub.AsTable("x")).Build();
+
+        Assert.Equal(
+            "SELECT COUNT(*) FROM (SELECT \"u\".code FROM test_table \"u\") \"x\"", sql.Text);
+    }
+
+    [Fact]
+    public void Union_AfterBuild_ThrowsArgumentException()
+    {
+        var q = Select(_t.Code).From(_t);
+        q.Build();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => { _ = q.UnionAll; });
+
+        Assert.Equal(SelectBuiltMessage, ex.Message);
+    }
+
+    [Fact]
+    public void Union_AfterComposing_ThrowsArgumentException()
+    {
+        var sub = Select(_t.Code).From(_t);
+        _ = Exists(sub);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => { _ = sub.UnionAll; });
+
+        Assert.Equal(ComposedMessage, ex.Message);
+    }
+
+    [Fact]
+    public void Union_SecondOnHeldLeftBranch_ThrowsArgumentException()
+    {
+        // The second compound would share the first one's parts and grow it.
+        TestTable u = new("u");
+        TestTable r = new("r");
+        var first = Select(_t.Code).From(_t);
+        var compound = first.UnionAll.Select(u.Code).From(u);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => { _ = first.Union; });
+
+        Assert.Equal(ContinuedMessage, ex.Message);
+        Assert.Equal(
+            "SELECT code FROM test_table UNION ALL SELECT \"u\".code FROM test_table \"u\"",
+            compound.Build().Text);
+    }
+
+    [Theory]
+    [InlineData("In")]
+    [InlineData("NotIn")]
+    [InlineData("Exists")]
+    [InlineData("NotExists")]
+    [InlineData("Any")]
+    [InlineData("All")]
+    [InlineData("Some")]
+    [InlineData("Scalar")]
+    [InlineData("AsTable")]
+    [InlineData("CteAs")]
+    [InlineData("CrossApply")]
+    [InlineData("OuterApply")]
+    [InlineData("JoinLateral")]
+    [InlineData("LeftJoinLateral")]
+    [InlineData("CrossJoinLateral")]
+    public void Composition_StageCallAfterComposing_ThrowsArgumentException(string site)
+    {
+        TestTable u = new("u");
+        var sub = Select(u.Code).From(u);
+        _ = Compose(site, sub);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => sub.Where(u.Name == "x"));
+
+        Assert.Equal(ComposedMessage, ex.Message);
+    }
+
+    private object Compose(string site, ISubquery sub) => site switch
+    {
+        "In" => _t.Code.In(sub),
+        "NotIn" => _t.Code.NotIn(sub),
+        "Exists" => Exists(sub),
+        "NotExists" => NotExists(sub),
+        "Any" => Any(sub),
+        "All" => All(sub),
+        "Some" => Some(sub),
+        "Scalar" => Select(sub),
+        "AsTable" => sub.AsTable("x"),
+        "CteAs" => new TestCte("c").As(sub),
+        "CrossApply" => Select(_t.Code).From(_t).CrossApply(sub, new DerivedTable("x")),
+        "OuterApply" => Select(_t.Code).From(_t).OuterApply(sub, new DerivedTable("x")),
+        "JoinLateral" => Select(_t.Code).From(_t).JoinLateral(sub, new DerivedTable("x")),
+        "LeftJoinLateral" =>
+            Select(_t.Code).From(_t).LeftJoinLateral(sub, new DerivedTable("x")),
+        "CrossJoinLateral" =>
+            Select(_t.Code).From(_t).CrossJoinLateral(sub, new DerivedTable("x")),
+        _ => throw new ArgumentOutOfRangeException(nameof(site)),
+    };
 
     [Fact]
     public void Returning_ThenInnerBuild_ThrowsArgumentException()

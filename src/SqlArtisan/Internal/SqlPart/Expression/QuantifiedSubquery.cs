@@ -8,7 +8,7 @@ public sealed class QuantifiedSubquery : SqlExpression
     internal QuantifiedSubquery(string keyword, ISubquery subquery)
     {
         _keyword = keyword;
-        _subquery = subquery;
+        _subquery = SqlBuilderBase.Composed(subquery);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
