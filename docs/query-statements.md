@@ -851,10 +851,10 @@ The left side names a column of the target table. A `SET` column renders by its
 name alone, so a column of another table would set the target's same-named
 column; `Build()` throws `The SET assignment list must assign only columns of
 the target table.` instead. `ThenUpdateSet`, `DoUpdateSet`,
-`OnDuplicateKeyUpdate` and `InsertInto(...).Set` throw at the call, naming
-their own clause. A MySQL joined `UPDATE` and a SQL Server `UPDATE` re-listing
-its target qualify the column, so another table's column renders as written
-there (see [Joined UPDATE / DELETE](#joined-update--delete)).
+`OnDuplicateKeyUpdate`, `InsertInto(...).Set` and `InsertIgnoreInto(...).Set`
+throw at the call, naming their own clause. A MySQL joined `UPDATE` and a SQL
+Server `UPDATE` re-listing its target qualify the column, so another table's
+column renders as written there (see [Joined UPDATE / DELETE](#joined-update--delete)).
 
 > [!WARNING]
 > **A table sharing the target's name passes the check, and its column still sets the target's.**

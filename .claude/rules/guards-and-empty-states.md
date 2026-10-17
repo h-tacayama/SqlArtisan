@@ -364,8 +364,9 @@ field on the buffer (ADR 0006).
 
 **A bare `SET` target is a column of the statement's target table (decided —
 do not re-file):** MERGE's `UPDATE SET`, `DO UPDATE SET`,
-`ON DUPLICATE KEY UPDATE`, `InsertInto(...).Set` and an `UPDATE` that does not
-qualify its target render a `SET` column by its name alone, so another
+`ON DUPLICATE KEY UPDATE`, `InsertInto(...).Set`, `InsertIgnoreInto(...).Set`
+and an `UPDATE` that does not qualify its target render a `SET` column by its
+name alone, so another
 relation's column became the target's same-named one: `UPDATE ... FROM` and
 `MERGE` ran and changed neither table, and a plain `UPDATE` wrote the target's
 column (live: PostgreSQL 16, SQLite 3.45.1; #674). The qualified spelling of
@@ -383,7 +384,11 @@ table's column that way, so they are left alone; `UpdateSetClause` decides at
 `Build()`, where that shape is final, the other clauses at the call. A column
 list renders its entries bare too, so `ColumnListGuard.IsColumnOf` holds the
 `INSERT` and MERGE `ThenInsert` lists and the `ON CONFLICT` target to the
-target, and an `OUTPUT ... INTO` list to its own table, at the call.
+target, and an `OUTPUT ... INTO` list to its own table, at the call. The
+pseudo-row accessors `Excluded(...)`, `Inserted(...)` and `Deleted(...)` drop the
+owner too, but they sit in value positions and checking them needs the target at
+format time; they are left to the value-slot item for those accessors (#675's B3
+hand-off, #666's class), not this guard.
 
 ## The empty-state policy (#236)
 

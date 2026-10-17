@@ -105,7 +105,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   the statement's target throws `ArgumentException`, `The SET assignment list
   must assign only columns of the target table.` with each clause naming
   itself: at the call in `ThenUpdateSet(...)`, `DoUpdateSet(...)`,
-  `OnDuplicateKeyUpdate(...)` and `InsertInto(...).Set(...)`, and at `Build()`
+  `OnDuplicateKeyUpdate(...)`, `InsertInto(...).Set(...)` and
+  `InsertIgnoreInto(...).Set(...)`, and at `Build()`
   for `Update(...).Set(...)`. The column rendered by its name alone and became
   the target's same-named column: `Update(t).Set(u.B == t.B).From(u)` built
   `SET b = "t".b`, which ran and changed neither table on PostgreSQL 16 and

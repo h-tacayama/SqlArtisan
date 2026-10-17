@@ -998,6 +998,20 @@ public class InsertTests
     }
 
     [Fact]
+    public void InsertIgnoreInto_SetOtherTableColumn_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertIgnoreInto(t).Set(a.Name == "x"));
+
+        Assert.Equal(
+            "The SET assignment list must assign only columns of the target table.",
+            ex.Message);
+    }
+
+    [Fact]
     public void DoUpdateSet_OtherTableColumn_ThrowsArgumentException()
     {
         TestTable t = new();
