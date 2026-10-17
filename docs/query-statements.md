@@ -852,7 +852,9 @@ name alone, so a column of another table would set the target's same-named
 column; `Build()` throws `The SET assignment list must assign only columns of
 the target table.` instead. `ThenUpdateSet`, `DoUpdateSet`,
 `OnDuplicateKeyUpdate` and `InsertInto(...).Set` throw at the call, naming
-their own clause. A MySQL joined `UPDATE` and a SQL Server `UPDATE` re-listing
+their own clause. Tables are compared by name, with the schema when both name
+one, so a table sharing the target's name — the source of a self-`MERGE`, or a
+same-named table when either side omits its schema — is not caught. A MySQL joined `UPDATE` and a SQL Server `UPDATE` re-listing
 its target qualify the column, so another table's column renders as written
 there (see [Joined UPDATE / DELETE](#joined-update--delete)).
 
@@ -1024,7 +1026,8 @@ SqlStatement sql =
 The column list names columns of the target table. It renders each column by its
 name alone, so a column of another table throws `An INSERT column list must name
 only columns of the target table.` at the call, as `OnConflict(...)`'s target and
-an `OUTPUT ... INTO` list do for their tables.
+an `OUTPUT ... INTO` list do for their tables. Tables are compared by name, as for
+`SET` (see [UPDATE Statement](#update-statement)).
 
 **Dialect note:** On MySQL and SQL Server the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`). T-SQL introduces a table alias through a `FROM` clause instead, and MySQL's `INSERT` grammar has no target-alias slot at all (its `AS new` row alias is the separate UPSERT construct) — building an aliased target for either throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-update-or-skip), and Oracle and SQLite accept the alias as well.
 
@@ -1315,7 +1318,8 @@ unconditioned `WhenMatched()` / `WhenNotMatched()` branch offers the filters.
 engine resolves against the target table alone — passing the aliased target's
 own columns (`t.Name`, `t.Id`) still renders the bare, unqualified names above.
 A source column on the left of an `UPDATE SET` assignment, or in the `INSERT`
-column list, throws (see [UPDATE Statement](#update-statement)).
+column list, throws unless the source shares the target's table name, as in a
+self-`MERGE` (see [UPDATE Statement](#update-statement)).
 
 #### MERGE source forms
 

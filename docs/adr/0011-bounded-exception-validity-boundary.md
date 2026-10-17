@@ -91,8 +91,8 @@ override — so every build path (including `Returning()`, which funnels through
   call-site-defect guards, enumerated in `guards-and-empty-states.md` — a
   fixed list that repeats a name, an `OUTPUT ... INTO` list whose width
   differs from its `OUTPUT` list, and a bare `SET` target or column list entry
-  another table owns (#674) — reject on every dialect, even where an engine
-  runs the text: a name listed twice in one list, an `INTO` list that does not
+  whose table is named other than the target (#674) — reject on every dialect,
+  even where an engine runs the text: a name listed twice in one list, an `INTO` list that does not
   match the list it stores, or another table's column rendered as the target's,
   is read as a slip, not a spelling.
   An engine that runs the repeat reports nothing — MySQL and SQLite silently

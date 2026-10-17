@@ -102,21 +102,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   through `Excluded(...)` instead, and has no spelling for the existing row's
   other columns. (#677)
 - **Breaking:** a `SET` assignment whose column belongs to a table other than
-  the statement's target throws `ArgumentException` (`The SET assignment list
-  must assign only columns of the target table.`, each clause naming itself) in
-  `Update(...).Set(...)`, `ThenUpdateSet(...)`, `DoUpdateSet(...)`,
-  `OnDuplicateKeyUpdate(...)` and `InsertInto(...).Set(...)`. The column
-  rendered by its name alone and became the target's same-named column:
-  `Update(t).Set(u.B == t.B).From(u)` built `SET b = "t".b`, which ran and
-  changed neither table on PostgreSQL 16 and SQLite, and `Update(t).Set(u.B ==
-  1)` wrote `t.b`. A column of another handle of the target's table, with or
-  without a schema, is still accepted. MySQL's joined `UPDATE` and SQL Server's
-  `UPDATE` re-listing its target qualify the column, so it renders as written
-  there. A column list does the same for its table: `InsertInto(...)`,
-  `InsertIgnoreInto(...)`, `ThenInsert(...)` and `OnConflict(...)` throw for a
-  column of a table other than the target (`An INSERT column list must name only
-  columns of the target table.`), and `Into(table, ...)` after `Output(...)` for
-  one of a table other than its own. (#674)
+  the statement's target throws `ArgumentException`, `The SET assignment list
+  must assign only columns of the target table.` with each clause naming
+  itself: at the call in `ThenUpdateSet(...)`, `DoUpdateSet(...)`,
+  `OnDuplicateKeyUpdate(...)` and `InsertInto(...).Set(...)`, and at `Build()`
+  for `Update(...).Set(...)`. The column rendered by its name alone and became
+  the target's same-named column: `Update(t).Set(u.B == t.B).From(u)` built
+  `SET b = "t".b`, which ran and changed neither table on PostgreSQL 16 and
+  SQLite, and `Update(t).Set(u.B == 1)` wrote `t.b`. Tables are compared by
+  name, with the schema when both name one, so another handle of the target's
+  table is still accepted, and so is a source sharing its name, such as a
+  self-`MERGE`'s. MySQL's joined `UPDATE` and SQL Server's `UPDATE` re-listing
+  its target qualify the column, so it renders as written there. A column list
+  is checked the same way, at the call: `InsertInto(...)`,
+  `InsertIgnoreInto(...)` and `ThenInsert(...)` throw `An INSERT column list
+  must name only columns of the target table.`, `OnConflict(...)` throws `An ON
+  CONFLICT target must name only columns of the target table.`, and
+  `Into(table, ...)` after `Output(...)` throws `An OUTPUT INTO column list
+  must name only columns of its table.` (#674)
 - A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
   release year on SQL Server, the engine's own version number elsewhere. A SQL
   Server value below 2000 (`16`, SQL Server 2022's product version, compared as

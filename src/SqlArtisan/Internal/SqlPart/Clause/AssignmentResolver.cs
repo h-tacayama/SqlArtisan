@@ -47,15 +47,16 @@ internal static class AssignmentResolver
     }
 
     internal static void ThrowIfNotTargetColumn(
-        EqualCondition[] assignments, DbTableBase target, string clause)
+        EqualCondition[] assignments,
+        DbTableBase target,
+        string clause)
     {
         for (int i = 0; i < assignments.Length; i++)
         {
             if (!ColumnListGuard.IsColumnOf((DbColumn)assignments[i].LeftSide, target))
             {
                 throw new ArgumentException(
-                    $"The {clause} assignment list must assign only columns of the "
-                    + "target table.");
+                    $"The {clause} assignment list must assign only columns of the target table.");
             }
         }
     }

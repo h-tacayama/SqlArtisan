@@ -1036,6 +1036,23 @@ public class MergeTests
     }
 
     [Fact]
+    public void Merge_ThenUpdateSetSameNamedTableInOtherSchema_ThrowsArgumentException()
+    {
+        SchemaTestTable t = new("public.test_table", "t");
+        SchemaTestTable s = new("archive.test_table", "s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(t)
+                .Using(s)
+                .On(t.Code == s.Code)
+                .WhenMatched().ThenUpdateSet(s.Name == t.Name));
+
+        Assert.Equal(
+            "The UPDATE SET assignment list must assign only columns of the target table.",
+            ex.Message);
+    }
+
+    [Fact]
     public void Merge_SqlServer_RepeatedWhenBranch_StaysPermissive()
     {
         // MERGE branch arity is dialect availability, not a guard: the engine

@@ -370,10 +370,13 @@ relation's column became the target's same-named one: `UPDATE ... FROM` and
 `MERGE` ran and changed neither table, and a plain `UPDATE` wrote the target's
 column (live: PostgreSQL 16, SQLite 3.45.1; #674). The qualified spelling of
 what was written, `SET "u".b`, runs on neither, so `AssignmentResolver` rejects
-the call as a call-site defect. It keys on the table name the target renders,
-without its schema and compared ordinally: another handle of the target's table
-stays legal, schema-qualified or not, so a swapped assignment over two handles of
-one table (a self-`MERGE`) passes, and a handle spelling the name in another case
+the call as a call-site defect. It keys on the table name, compared ordinally
+(`TableReference.NamesSameTable`): with its schema when both handles carry one,
+without it when either lacks one, since an unqualified name resolves through a
+search path the library cannot see. So a schema-less handle of a qualified target
+stays legal; a same-named table in another schema throws when both name their
+schema and passes when either does not; a swapped assignment over two handles of
+one table (a self-`MERGE`) passes; and a handle spelling the name in another case
 throws. The arms that qualify the target (MySQL's direct-join `UPDATE`, SQL
 Server's re-listed target) render the owner as written, and MySQL's sets a joined
 table's column that way, so they are left alone; `UpdateSetClause` decides at

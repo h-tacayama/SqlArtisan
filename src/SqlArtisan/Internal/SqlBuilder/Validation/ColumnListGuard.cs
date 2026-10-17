@@ -32,9 +32,8 @@ internal static class ColumnListGuard
 
     // A column list or bare SET target renders a column by its name alone, so another
     // relation's column would name the table's same-named one (#674). Keyed on the
-    // name the table renders, without its schema, so another handle of it stays legal.
+    // table name, so another handle of the same table stays legal.
     internal static bool IsColumnOf(DbColumn column, DbTableBase table) =>
         ReferenceEquals(column.Owner, table)
-        || (column.Owner is DbTableBase
-            && column.Owner.NameWithoutSchema.SequenceEqual(table.NameWithoutSchema));
+        || (column.Owner is DbTableBase && TableReference.NamesSameTable(column.Owner, table));
 }

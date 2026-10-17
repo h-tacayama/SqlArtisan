@@ -1026,8 +1026,8 @@ public class InsertTests
                 .OnDuplicateKeyUpdate(a.Name == "x"));
 
         Assert.Equal(
-            "The ON DUPLICATE KEY UPDATE assignment list must assign only columns of the "
-                + "target table.",
+            "The ON DUPLICATE KEY UPDATE assignment list must assign only columns of the target "
+                + "table.",
             ex.Message);
     }
 }

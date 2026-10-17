@@ -817,10 +817,28 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_FromSetSameNamedTableInOtherSchema_ThrowsArgumentException()
+    {
+        SchemaTestTable t = new("public.test_table", "t");
+        SchemaTestTable s = new("archive.test_table", "s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .Set(s.Name == t.Name)
+            .From(s)
+            .Where(t.Code == s.Code)
+            .Build());
+
+        Assert.Equal(
+            "The SET assignment list must assign only columns of the target table.",
+            ex.Message);
+    }
+
+    [Fact]
     public void Update_SetOtherHandleOfTargetTable_CorrectSql()
     {
         TestTable other = new("t2");
-        SchemaTestTable qualified = new();
+        SchemaTestTable qualified = new("public.test_table");
 
         SqlStatement sql = Update(_t).Set(other.Code == 1, qualified.Name == "x").Build();
 
@@ -983,15 +1001,4 @@ public class UpdateTests
     private const string JoinedUpdateReturningMessage =
         "RETURNING cannot be combined with an UPDATE that joins before SET or re-lists its "
             + "target in FROM; join through From(...) without the target instead.";
-
-    // The target's table under a schema: SET renders its columns as the target's.
-    private sealed class SchemaTestTable : DbTableBase
-    {
-        public SchemaTestTable() : base("public.test_table", "")
-        {
-            Name = new DbColumn(this, "name");
-        }
-
-        public DbColumn Name { get; }
-    }
 }
