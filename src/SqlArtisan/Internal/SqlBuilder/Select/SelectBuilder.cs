@@ -2,8 +2,8 @@ using System.Diagnostics;
 
 namespace SqlArtisan.Internal;
 
-internal class SelectBuilder(params SqlPart[] rootParts) :
-    SqlBuilderBase(rootParts),
+internal class SelectBuilder :
+    SqlBuilderBase,
     ISelectBuilderForUpdate,
     ISelectBuilderFrom,
     ISelectBuilderGroupBy,
@@ -18,6 +18,14 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
     ISelectBuilderWhere,
     ISelectBuilderWithRollup
 {
+    internal SelectBuilder(params SqlPart[] rootParts) : base(rootParts)
+    {
+    }
+
+    private protected SelectBuilder(SelectBuilder leftBranch) : base(leftBranch)
+    {
+    }
+
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public ISelectBuilderSetOperator Except => ContinueAfter(new ExceptOperator(false));
 
@@ -43,12 +51,13 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
     private SelectBuilder ContinueAfter(SqlPart setOperator)
     {
         ThrowIfBuilt();
-        SelectBuilder next = CreateContinuation([.. PartsSpan, setOperator]);
+        SelectBuilder next = CreateContinuation();
         FreezeAsContinued();
+        next.AddPart(setOperator);
         return next;
     }
 
-    private protected virtual SelectBuilder CreateContinuation(SqlPart[] parts) => new(parts);
+    private protected virtual SelectBuilder CreateContinuation() => new(this);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public ISelectBuilderSetOperator Union => ContinueAfter(new UnionOperator(false));

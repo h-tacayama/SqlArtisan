@@ -615,6 +615,44 @@ public class BuilderReuseTests
     }
 
     [Fact]
+    public void InsertSelect_SqlServer_AliasedTargetAfterUnion_ThrowsArgumentException()
+    {
+        // The continuation is still the INSERT, with its target, so its guards run.
+        TestTable x = new("x");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(x, x.Code)
+            .Select(s.Code).From(s)
+            .UnionAll
+            .Select(s.Code).From(s)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "SQL Server does not support aliasing the target of an INSERT statement; "
+                + "use an unaliased target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertSelect_UnionEmbeddedAsSubquery_ThrowsArgumentException()
+    {
+        TestTable s = new("s");
+        var insert =
+            InsertInto(_t, _t.Code)
+            .Select(s.Code).From(s)
+            .UnionAll
+            .Select(s.Code).From(s);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).Where(Exists(insert)).Build());
+
+        Assert.Equal(
+            "An INSERT statement cannot be embedded as a subquery; embed its SELECT instead.",
+            ex.Message);
+    }
+
+    [Fact]
     public void From_ThenUsing_OnHeldDeleteStage_ThrowsArgumentException()
     {
         TestTable t = new("t");

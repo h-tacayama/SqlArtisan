@@ -405,14 +405,16 @@ start a new chain to change it.`); building it alone stays legal, since that
 changes nothing the other statement renders. A set operator returns a new
 builder holding the chain so far, and the held left branch can no longer be
 extended, built or composed (`This SELECT statement was continued by a set
-operator; use the builder the operator returned.`), since its `WHERE` would land
-on the right branch. The continuation copies the parts, measured at +168 B for a
-two-branch `UNION ALL` build, and a non-compound build is unchanged (ADR 0006).
+operator; use the builder the operator returned.`): before #676 its `WHERE` landed
+on the right branch, and now it would drop out of the compound. The continuation
+takes the left branch's part list over instead of copying it, so a set operator
+costs one builder (+32 B each, measured) and a non-compound build is unchanged
+(ADR 0006).
 Two statements cut from one held prefix (`var all = q; var page =
 q.OrderBy(...)`) still share the instance, which only builders returning a new
 instance from every stage would separate; `docs/query-statements.md` §
-"Reusing a builder chain" states it. A built builder stays composable, so
-composing `all` after `page.Build()` renders the page (#676's build-then-compose
+"Reusing a builder chain" states it. Composing `all` once `page` is derived,
+before or after `page.Build()`, renders the page (#676's build-then-compose
 count): that is this fork, and rejecting a built builder in `FormatCore` would
 also break composing a chain built as written, which renders what was built.
 
