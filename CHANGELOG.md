@@ -143,6 +143,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   with a column name in a string, or a sort-field enum, returned the rows
   unsorted (live on PostgreSQL 16 and SQLite). Order by the column itself, or
   pass `Bind(value)` for a deliberate constant. (#678)
+- **Breaking:** the other key positions bind no value either. An integer,
+  string or other value in `Rollup(...)`, `Cube(...)`, `Group(...)` or
+  `PartitionBy(...)` throws `ArgumentException` (`Invalid type for GroupByItem`
+  / `PartitionByItem`), and a non-integer value in `DistinctOn(...)` throws
+  `Invalid type for DistinctOnItem`; bound, each was a constant, so
+  `GroupBy(Rollup(1))` grouped by nothing, `PartitionBy(column)` numbered the
+  whole table as one partition and `DistinctOn(1)` kept a single row (live on
+  PostgreSQL 16; SQLite for `PARTITION BY`). `DistinctOn(1)` now emits the
+  select-list position `DISTINCT ON (1)`, and a position below 1 throws. A
+  subquery stays a grouping element. (#673)
 - A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
   release year on SQL Server, the engine's own version number elsewhere. A SQL
   Server value below 2000 (`16`, SQL Server 2022's product version, compared as

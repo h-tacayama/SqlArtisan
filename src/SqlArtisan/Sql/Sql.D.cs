@@ -472,11 +472,12 @@ public static partial class Sql
     /// <paramref name="expressions"/> (the first per the query's <c>ORDER BY</c>).
     /// Pass to <c>Select(DistinctOn(...), ...)</c>.
     /// </summary>
-    /// <param name="expressions">The expressions to deduplicate on; at least one.</param>
+    /// <param name="expressions">The expressions to deduplicate on, or a select-list position
+    /// (<c>1</c> is the first item); at least one.</param>
     /// <returns>A <c>DISTINCT ON (...)</c> select prefix.</returns>
     /// <remarks>PostgreSQL syntax; emitted faithfully on every dialect.</remarks>
     public static DistinctOnKeyword DistinctOn(params object[] expressions) =>
-        new(Resolve(expressions));
+        new(DistinctOnItemResolver.Resolve(expressions));
 
     /// <summary>
     /// The <c>||</c> concatenation operator: <c>(<paramref name="primary"/> ||

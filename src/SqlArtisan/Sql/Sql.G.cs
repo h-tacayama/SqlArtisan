@@ -27,7 +27,7 @@ public static partial class Sql
     /// empty set <c>()</c>.</param>
     /// <returns>A <see cref="GroupingSet"/> rendering the parenthesized element.</returns>
     public static GroupingSet Group(params object[] columns) =>
-        new(Resolve(columns));
+        new(ResolveKeys(columns, "GroupByItem"));
 
     /// <summary>
     /// The <c>GROUP_CONCAT(expr)</c> string aggregate (MySQL and SQLite), using

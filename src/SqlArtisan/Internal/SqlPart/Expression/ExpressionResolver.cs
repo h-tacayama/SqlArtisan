@@ -145,6 +145,40 @@ internal static class ExpressionResolver
 #pragma warning restore IDE0046
     }
 
+    // A grouping, partition or DISTINCT ON key: a bound value there is a constant
+    // that groups nothing (#673), so only an expression or a subquery resolves.
+    internal static SqlExpression[] ResolveKeys(object[] items, string position)
+    {
+        if (items is null)
+        {
+            throw new ArgumentNullException(nameof(items), NullValueMessage);
+        }
+
+        var resolved = new SqlExpression[items.Length];
+
+        for (int i = 0; i < items.Length; i++)
+        {
+            resolved[i] = ResolveKey(items[i], position);
+        }
+
+        return resolved;
+    }
+
+    internal static SqlExpression ResolveKey(object item, string position)
+    {
+        if (item is null)
+        {
+            throw new ArgumentNullException(nameof(item), NullValueMessage);
+        }
+
+        return item switch
+        {
+            SqlExpression expr => expr,
+            ISubquery subquery => new ScalarSubquery(subquery),
+            _ => throw UnresolvableValue(position, item),
+        };
+    }
+
     // The comparison and predicate positions' resolver. A C# null there is usually a
     // nullable variable meant as a NULL test, and NullValueMessage's Sql.Null would build
     // `= NULL`, which is unknown rather than a test; paramName is the caller's own.

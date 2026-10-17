@@ -45,6 +45,23 @@ public class AggregateWindowTests
         Assert.Equal(expected, sql.Text);
     }
 
+    // #673: no PARTITION BY value is a position, so each would partition by a constant.
+    public static TheoryData<object, string> BoundPartitionValues => new()
+    {
+        { 1, "System.Int32" },
+        { "code", "System.String" },
+        { DayOfWeek.Monday, "System.DayOfWeek" },
+    };
+
+    [Theory]
+    [MemberData(nameof(BoundPartitionValues))]
+    public void PartitionBy_BoundValue_ThrowsArgumentException(object key, string typeName)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => PartitionBy(key));
+
+        Assert.Equal($"Invalid type for PartitionByItem: {typeName}", ex.Message);
+    }
+
     [Fact]
     public void Sum_OverOrderBy_CorrectSql()
     {

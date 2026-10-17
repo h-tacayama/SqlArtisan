@@ -592,4 +592,40 @@ public class GroupByTests
 
         Assert.Equal("A GROUP BY numeric group key must be finite.", ex.Message);
     }
+
+    // #673: bound, each would be a constant that groups nothing.
+    public static TheoryData<object, string> BoundGroupingValues => new()
+    {
+        { 1, "System.Int32" },
+        { "code", "System.String" },
+        { DayOfWeek.Monday, "System.DayOfWeek" },
+    };
+
+    [Theory]
+    [MemberData(nameof(BoundGroupingValues))]
+    public void GroupingElement_BoundValue_ThrowsArgumentException(object key, string typeName)
+    {
+        string expected = $"Invalid type for GroupByItem: {typeName}";
+
+        Assert.Equal(expected, Assert.Throws<ArgumentException>(() => Rollup(key)).Message);
+        Assert.Equal(expected, Assert.Throws<ArgumentException>(() => Cube(key)).Message);
+        Assert.Equal(expected, Assert.Throws<ArgumentException>(() => Group(key)).Message);
+    }
+
+    [Fact]
+    public void Rollup_SubqueryElement_CorrectSql()
+    {
+        TestTable u = new("u");
+
+        SqlStatement sql =
+            Select(Count(Asterisk))
+            .From(_t)
+            .GroupBy(Rollup(Select(Max(u.Code)).From(u), _t.Name))
+            .Build();
+
+        Assert.Equal(
+            "SELECT COUNT(*) FROM test_table \"t\" "
+                + "GROUP BY ROLLUP((SELECT MAX(\"u\".code) FROM test_table \"u\"), \"t\".name)",
+            sql.Text);
+    }
 }

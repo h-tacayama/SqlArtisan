@@ -42,8 +42,10 @@ public class FactoryGuardSweepTests
         ["JsonArrowText(Object, String) :: key=\"\""] = "SELECT (:0 ->> '')",
         // A leading parameter plus an empty params tail is the documented smaller
         // call (Coalesce/Concat/Grouping), not a dropped clause.
-        ["Cube(Object, Object[]) :: elements=[]"] = "SELECT \"x\".c FROM e \"x\" GROUP BY CUBE(:0)",
-        ["Rollup(Object, Object[]) :: elements=[]"] = "SELECT \"x\".c FROM e \"x\" GROUP BY ROLLUP(:0)",
+        ["Cube(Object, Object[]) :: elements=[]"] =
+            "SELECT \"x\".c FROM e \"x\" GROUP BY CUBE(\"a\".c)",
+        ["Rollup(Object, Object[]) :: elements=[]"] =
+            "SELECT \"x\".c FROM e \"x\" GROUP BY ROLLUP(\"a\".c)",
         ["GroupingSets(GroupingSet, GroupingSet[]) :: sets=[]"] =
             "SELECT \"x\".c FROM e \"x\" GROUP BY GROUPING SETS(\"a\".c)",
         ["Of(DbTableBase, DbTableBase[]) :: moreTables=[]"] =
@@ -351,7 +353,8 @@ public class FactoryGuardSweepTests
 
         if (t == typeof(object))
         {
-            return 1;
+            // A grouping element binds no value (#673), so its valid filler is a column.
+            return method.Name is "Cube" or "Rollup" ? table.Column("c") : 1;
         }
 
         if (t == typeof(string))

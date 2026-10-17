@@ -104,6 +104,11 @@ SqlStatement sql =
 ```
 PostgreSQL syntax; emitted faithfully on every dialect, with availability left to the database.
 
+An integer is a select-list position, as in `OrderBy(1)`: `DistinctOn(1)` emits
+`DISTINCT ON (1)`. A position below 1 throws at the call, and so does a string,
+a non-integer number or another value, which bound would be a constant that
+keeps a single row.
+
 #### Hints
 ```csharp
 // The hint below refers to this alias "u".
@@ -427,9 +432,11 @@ such a constant as a single group; Oracle, PostgreSQL and SQL Server reject it,
 which the analyzer reports as `SQLA0104` — unlike `OrderBy`, which refuses a
 non-integer sort key at `Build(Dbms)` for the dialects that reject it.
 
-An integer inside `Rollup(...)`, `Cube(...)` or `GroupingSets(...)` is **not** a
-position: those take expressions, so `GroupBy(Rollup(1, 2))` emits
-`ROLLUP(:0, :1)` and groups by two bound constants. Pass the columns there.
+An element of `Rollup(...)`, `Cube(...)` or `Group(...)` is a column, an
+expression or a subquery. An integer, a string or another value throws
+`Invalid type for GroupByItem: ...` at the call: bound, it would be a constant
+that groups nothing, so `Rollup(1, 2)` takes no select-list positions. Pass the
+columns there.
 
 To group by an expression that carries bind parameters — a `CASE` label, a `DECODE`, date math with a parameter — hold the expression in a variable and pass the **same instance** to `Select(...)` and `GroupBy(...)`; both occurrences then emit identical parameter markers and the statement runs everywhere. The two clauses need not match otherwise — here the `SELECT` side aliases the instance and adds an aggregate:
 

@@ -12,7 +12,7 @@ public static partial class Sql
     /// <param name="expressions">The columns or expressions to partition by.</param>
     /// <returns>A <c>PARTITION BY</c> clause.</returns>
     public static PartitionByClause PartitionBy(params object[] expressions) =>
-        new(Resolve(expressions));
+        new(ResolveKeys(expressions, "PartitionByItem"));
 
     /// <summary>
     /// The <c>PERCENTILE_CONT(fraction)</c> ordered-set aggregate (continuous

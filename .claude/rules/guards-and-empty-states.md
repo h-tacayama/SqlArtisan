@@ -276,12 +276,16 @@ sorts or groups nothing (`ORDER BY $1` bound to `'a'` or to an enum's integer
 returned the rows unsorted on PostgreSQL 16 and SQLite 3.45.1, live), so
 `OrderByItemResolver` and `GroupByItemResolver` reject one at the call, on every
 dialect, as a call-site defect (ADR 0011 decides the class outside its bar;
-#678). `Bind(value)` keeps a deliberate constant writable. The grouping elements
-(`Rollup`, `Cube`, `Group`), `DistinctOn(...)` and `PartitionBy(...)` still bind
-these values and an integer too until #673 brings them onto this rule; where
-PostgreSQL reads a literal integer in `DISTINCT ON` or a grouping element as a
-position (#673), `PARTITION BY` reads even a literal one as a constant
-(PostgreSQL 16 and SQLite, live).
+#678). `Bind(value)` keeps a deliberate constant writable. The other key
+positions follow (#673): a grouping element (`Rollup`, `Cube`, `Group`) and a
+`PartitionBy(...)` key resolve only an expression or a subquery
+(`ExpressionResolver.ResolveKey`), an integer included, since `PARTITION BY`
+reads even a literal one as a constant (PostgreSQL 16 and SQLite, live) and how
+Oracle, SQL Server and MySQL read one in a grouping element is not verified. A
+subquery stays a grouping element (it runs on PostgreSQL 16, live).
+`DistinctOn(...)` renders an integer as the select-list position PostgreSQL, its
+one engine, reads there, rejecting one below 1 at the call as `GroupBy` does
+(both live), and rejects every other value.
 
 **A held stage's out-of-order clause stays unguarded (decided — do not
 re-file):** a held builder can still append a clause after the one it must
@@ -806,7 +810,8 @@ so the wording is part of the contract.
 The `Invalid type for <X>: <type>` family is built by one helper,
 `ExpressionResolver.UnresolvableValue`, and `<X>` names **the position the
 value reached** — `SelectItem`, `ReturningItem`, `OutputItem`, `OrderByItem`,
-`GroupByItem`, `InsertValue`, `Assignment`, and `nameof(Bind)` where the factory
+`GroupByItem`, `PartitionByItem`, `DistinctOnItem`, `InsertValue`, `Assignment`,
+and `nameof(Bind)` where the factory
 resolves its own argument, and `ValuesItem` for a `Sql.Values(...)` row.
 `RETURNING`, `OUTPUT` and `Sql.Values(...)` borrow the `SELECT`-list or `INSERT`
 resolver but pass their own names (#569).

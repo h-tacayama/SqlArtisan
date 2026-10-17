@@ -112,5 +112,5 @@ internal static class GroupByItemResolver
     }
 
     private static SqlPart ResolveElement(object element) =>
-        element is GroupingSet set ? set : ExpressionResolver.Resolve(element);
+        element is GroupingSet set ? set : ExpressionResolver.ResolveKey(element, "GroupByItem");
 }

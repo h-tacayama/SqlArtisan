@@ -297,6 +297,42 @@ public class SelectTests
     }
 
     [Fact]
+    public void Select_DistinctOnOrdinal_CorrectSql()
+    {
+        // #673: PostgreSQL reads the integer as the first select-list column.
+        SqlStatement sql = Select(DistinctOn(1), _t.Code, _t.Name).From(_t).Build();
+
+        Assert.Equal(
+            "SELECT DISTINCT ON (1) \"t\".code, \"t\".name FROM test_table \"t\"", sql.Text);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Select_DistinctOnOrdinalBelowOne_ThrowsArgumentException(int ordinal)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => DistinctOn(ordinal));
+
+        Assert.Equal("A DISTINCT ON column ordinal must be 1 or greater.", ex.Message);
+    }
+
+    public static TheoryData<object, string> BoundDistinctOnValues => new()
+    {
+        { "code", "System.String" },
+        { 2.5, "System.Double" },
+        { DayOfWeek.Monday, "System.DayOfWeek" },
+    };
+
+    [Theory]
+    [MemberData(nameof(BoundDistinctOnValues))]
+    public void Select_DistinctOnBoundValue_ThrowsArgumentException(object key, string typeName)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => DistinctOn(key));
+
+        Assert.Equal($"Invalid type for DistinctOnItem: {typeName}", ex.Message);
+    }
+
+    [Fact]
     public void Select_DistinctOnWithOrderBy_CorrectSql()
     {
         SqlStatement sql =
