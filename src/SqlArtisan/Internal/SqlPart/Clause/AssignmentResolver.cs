@@ -46,6 +46,35 @@ internal static class AssignmentResolver
         return resolved;
     }
 
+    internal static void ThrowIfNotTargetColumn(
+        EqualCondition[] assignments,
+        DbTableBase target,
+        string clause)
+    {
+        for (int i = 0; i < assignments.Length; i++)
+        {
+            if (!ColumnListGuard.IsColumnOf((DbColumn)assignments[i].LeftSide, target))
+            {
+                throw new ArgumentException(
+                    $"The {clause} assignment list must assign only columns of the target table.");
+            }
+        }
+    }
+
+    // These arms qualify a column by its owner's alias, so an unaliased owner, whichever
+    // table it is, renders bare beside the joined tables and may bind the wrong one (#674).
+    internal static void ThrowIfUnaliasedOwner(EqualCondition[] assignments)
+    {
+        for (int i = 0; i < assignments.Length; i++)
+        {
+            if (((DbColumn)assignments[i].LeftSide).Owner.CorrelationName.Length == 0)
+            {
+                throw new ArgumentException(
+                    "In a joined UPDATE, each SET column must belong to an aliased table.");
+            }
+        }
+    }
+
     // Keyed on the token the target renders as, never on its owner: the
     // always-unqualified clauses drop owner and alias, so two handles — or two
     // tables — sharing a column name emit `SET a = 1, a = 2` all the same.

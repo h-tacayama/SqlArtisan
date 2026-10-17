@@ -127,13 +127,13 @@ internal sealed class UpdateBuilder(
 
     public IUpdateBuilderSetOutput Set(params EqualityCondition[] assignments)
     {
-        AddPart(UpdateSetClause.Parse(assignments, state));
+        AddPart(UpdateSetClause.Parse(assignments, table, state));
         return this;
     }
 
     IUpdateBuilderJoinedSet IUpdateBuilderJoined.Set(params EqualityCondition[] assignments)
     {
-        AddPart(UpdateSetClause.Parse(assignments, state));
+        AddPart(UpdateSetClause.Parse(assignments, table, state));
         return this;
     }
 

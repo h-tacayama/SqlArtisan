@@ -101,6 +101,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   be aliased, an `ON DUPLICATE KEY UPDATE` subquery reads the inserted row
   through `Excluded(...)` instead, and has no spelling for the existing row's
   other columns. (#677)
+- **Breaking:** a `SET` assignment whose column belongs to a table other than
+  the statement's target throws `ArgumentException`, `The SET assignment list
+  must assign only columns of the target table.` with each clause naming
+  itself: at the call in `ThenUpdateSet(...)`, `DoUpdateSet(...)`,
+  `OnDuplicateKeyUpdate(...)`, `InsertInto(...).Set(...)` and
+  `InsertIgnoreInto(...).Set(...)`, and at `Build()`
+  for `Update(...).Set(...)`. The column rendered by its name alone and became
+  the target's same-named column: `Update(t).Set(u.B == t.B).From(u)` built
+  `SET b = "t".b`, which ran and changed neither table on PostgreSQL 16 and
+  SQLite, and `Update(t).Set(u.B == 1)` wrote `t.b`. Tables are compared by
+  name as spelled, with the schema when both name one, so another handle
+  spelling the target's table name the same way is still accepted, and so is a
+  source sharing that name, such as a self-`MERGE`'s. MySQL's joined `UPDATE`
+  and SQL Server's `UPDATE` re-listing its target qualify the column by its
+  table's alias, so another table's column renders as written there; a column
+  whose table has no alias rendered bare too, and now throws `In a joined
+  UPDATE, each SET column must belong to an aliased table.` at `Build()`. A
+  column list is checked the same way, at the call: `InsertInto(...)`,
+  `InsertIgnoreInto(...)` and `ThenInsert(...)` throw `An INSERT column list
+  must name only columns of the target table.`, `OnConflict(...)` throws `An ON
+  CONFLICT target must name only columns of the target table.`, and
+  `Into(table, ...)` after `Output(...)` throws `An OUTPUT INTO column list
+  must name only columns of its table.` (#674)
 - A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
   release year on SQL Server, the engine's own version number elsewhere. A SQL
   Server value below 2000 (`16`, SQL Server 2022's product version, compared as

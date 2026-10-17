@@ -784,6 +784,70 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_FromSetSourceColumn_ThrowsArgumentException()
+    {
+        // The bare SET target would render `SET name = "t".name`, which runs and
+        // changes neither table.
+        TestTable t = new("t");
+        ArchiveTable a = new("a");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .Set(a.Name == t.Name)
+            .From(a)
+            .Where(t.Code == a.Code)
+            .Build());
+
+        Assert.Equal(
+            "The SET assignment list must assign only columns of the target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Update_SetOtherTableColumn_ThrowsArgumentException()
+    {
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(_t).Set(a.Name == "x").Build());
+
+        Assert.Equal(
+            "The SET assignment list must assign only columns of the target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Update_FromSetSameNamedTableInOtherSchema_ThrowsArgumentException()
+    {
+        SchemaTestTable t = new("public.test_table", "t");
+        SchemaTestTable s = new("archive.test_table", "s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .Set(s.Name == t.Name)
+            .From(s)
+            .Where(t.Code == s.Code)
+            .Build());
+
+        Assert.Equal(
+            "The SET assignment list must assign only columns of the target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Update_SetOtherHandleOfTargetTable_CorrectSql()
+    {
+        TestTable other = new("t2");
+        SchemaTestTable qualified = new("public.test_table");
+
+        SqlStatement sql = Update(_t).Set(other.Code == 1, qualified.Name == "x").Build();
+
+        Assert.Equal("UPDATE test_table SET code = :0, name = :1", sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal("x", sql.Parameters.Get<string>(":1"));
+    }
+
+    [Fact]
     public void Update_MySql_JoinedSetDistinctCorrelationNames_CorrectSql()
     {
         // The one qualified position: two targets that render distinct tokens
@@ -803,6 +867,57 @@ public class UpdateTests
             sql.Text);
         Assert.Equal("a", sql.Parameters.Get<string>("?0"));
         Assert.Equal("b", sql.Parameters.Get<string>("?1"));
+    }
+
+    [Fact]
+    public void Update_MySql_DirectJoinSetUnaliasedJoinedColumn_ThrowsArgumentException()
+    {
+        TestTable t = new("t1");
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .InnerJoin(a).On(a.Code == t.Code)
+            .Set(a.Name == "x")
+            .Build(Dbms.MySql));
+
+        Assert.Equal(
+            "In a joined UPDATE, each SET column must belong to an aliased table.", ex.Message);
+    }
+
+    [Fact]
+    public void Update_SqlServer_RelistedTargetSetUnaliasedJoinedColumn_ThrowsArgumentException()
+    {
+        TestTable t = new("t1");
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .Set(a.Name == "x")
+            .From(t)
+            .InnerJoin(a).On(a.Code == t.Code)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "In a joined UPDATE, each SET column must belong to an aliased table.", ex.Message);
+    }
+
+    [Fact]
+    public void Update_SqlServer_RelistedTargetSetUnaliasedHandleOfTarget_ThrowsArgumentException()
+    {
+        TestTable t = new("t1");
+        TestTable other = new();
+        ArchiveTable a = new("a");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .Set(other.Name == "x")
+            .From(t)
+            .InnerJoin(a).On(a.Code == t.Code)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "In a joined UPDATE, each SET column must belong to an aliased table.", ex.Message);
     }
 
     [Fact]

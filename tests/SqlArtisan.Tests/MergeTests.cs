@@ -960,6 +960,21 @@ public class MergeTests
     }
 
     [Fact]
+    public void Merge_ThenInsertSourceColumn_ThrowsArgumentException()
+    {
+        ArchiveTable a = new("a");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+            .Using(a)
+            .On(_t.Code == a.Code)
+            .WhenNotMatched().ThenInsert(a.Code));
+
+        Assert.Equal(
+            "An INSERT column list must name only columns of the target table.", ex.Message);
+    }
+
+    [Fact]
     public void Values_DuplicateColumnName_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
@@ -1002,6 +1017,39 @@ public class MergeTests
 
         Assert.Equal(
             "The UPDATE SET assignment list must not assign the same column twice.", ex.Message);
+    }
+
+    [Fact]
+    public void Merge_ThenUpdateSetSourceColumn_ThrowsArgumentException()
+    {
+        ArchiveTable a = new("a");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+                .Using(a)
+                .On(_t.Code == a.Code)
+                .WhenMatched().ThenUpdateSet(a.Name == _t.Name));
+
+        Assert.Equal(
+            "The UPDATE SET assignment list must assign only columns of the target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Merge_ThenUpdateSetSameNamedTableInOtherSchema_ThrowsArgumentException()
+    {
+        SchemaTestTable t = new("public.test_table", "t");
+        SchemaTestTable s = new("archive.test_table", "s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(t)
+                .Using(s)
+                .On(t.Code == s.Code)
+                .WhenMatched().ThenUpdateSet(s.Name == t.Name));
+
+        Assert.Equal(
+            "The UPDATE SET assignment list must assign only columns of the target table.",
+            ex.Message);
     }
 
     [Fact]

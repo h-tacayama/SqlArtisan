@@ -1034,6 +1034,20 @@ public class WithTests
     }
 
     [Fact]
+    public void With_InsertInto_OtherTableColumn_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        ArchiveTable b = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(Select(a.Code).From(a))).InsertInto(b, a.Code));
+
+        Assert.Equal(
+            "An INSERT column list must name only columns of the target table.", ex.Message);
+    }
+
+    [Fact]
     public void With_MergeInto_CorrectSql()
     {
         // Arrange

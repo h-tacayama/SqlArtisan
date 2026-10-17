@@ -1284,6 +1284,28 @@ SqlStatement sql =
 
 **Note:** SqlArtisan's `Set()` method uses `Column == Value` for SQL-like assignment, unlike standard C# `==` (comparison). In `Where()` clauses, `==` is used for comparison as expected.
 
+The left side names a column of the target table. A `SET` column renders by its
+name alone, so a column of another table would set the target's same-named
+column; `Build()` throws `The SET assignment list must assign only columns of
+the target table.` instead. `ThenUpdateSet`, `DoUpdateSet`,
+`OnDuplicateKeyUpdate`, `InsertInto(...).Set` and `InsertIgnoreInto(...).Set`
+throw at the call, naming their own clause. A MySQL joined `UPDATE` and a SQL
+Server `UPDATE` re-listing its target qualify the column by its table's alias,
+so another table's column renders as written there (see
+[Joined UPDATE / DELETE](#joined-update--delete)); a column whose table has no
+alias would render bare, and `Build()` throws `In a joined UPDATE, each SET
+column must belong to an aliased table.` instead.
+
+> [!WARNING]
+> **A table sharing the target's name passes the check, and its column still sets the target's.**
+> Tables are compared by name, with the schema only when both handles name one, so neither another
+> handle of the target's own table (a self-join `UPDATE ... FROM` or a self-`MERGE` source) nor a
+> same-named table in another schema, when either handle omits its schema, is caught: a swapped
+> assignment then runs and changes nothing (live: `UPDATE ... FROM` on PostgreSQL 16 and SQLite,
+> `MERGE` on PostgreSQL 16).
+>
+> Write the target's column on the left of `==`; across schemas, name the schema on both handles.
+
 **Dialect note:** As with `DELETE`, on SQL Server the `UPDATE` target cannot be aliased — pass an unaliased table; building an aliased target for SQL Server throws.
 
 ### Correlated UPDATE / DELETE
@@ -1448,6 +1470,12 @@ SqlStatement sql =
 // VALUES
 // (:0, :1, CURRENT_TIMESTAMP)
 ```
+
+The column list names columns of the target table. It renders each column by its
+name alone, so a column of another table throws `An INSERT column list must name
+only columns of the target table.` at the call, as `OnConflict(...)`'s target and
+an `OUTPUT ... INTO` list do for their tables. Tables are compared by name, as for
+`SET` (see [UPDATE Statement](#update-statement)).
 
 **Dialect note:** On MySQL and SQL Server the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`). T-SQL introduces a table alias through a `FROM` clause instead, and MySQL's `INSERT` grammar has no target-alias slot at all (its `AS new` row alias is the separate UPSERT construct) — building an aliased target for either throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-update-or-skip), and Oracle and SQLite accept the alias as well.
 
@@ -1737,6 +1765,9 @@ unconditioned `WhenMatched()` / `WhenNotMatched()` branch offers the filters.
 `UPDATE SET` and the `INSERT` column list both name target columns, which the
 engine resolves against the target table alone — passing the aliased target's
 own columns (`t.Name`, `t.Id`) still renders the bare, unqualified names above.
+A source column on the left of an `UPDATE SET` assignment, or in the `INSERT`
+column list, throws unless the source shares the target's table name, as in a
+self-`MERGE` (see [UPDATE Statement](#update-statement)).
 
 #### MERGE source forms
 

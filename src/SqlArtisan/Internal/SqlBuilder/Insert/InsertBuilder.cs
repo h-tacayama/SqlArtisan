@@ -35,7 +35,7 @@ internal sealed class InsertBuilder(
 
     public IInsertBuilderDoUpdateSet DoUpdateSet(params EqualityCondition[] assignments)
     {
-        AddPart(DoUpdateSetClause.Parse(assignments));
+        AddPart(DoUpdateSetClause.Parse(assignments, table));
         return this;
     }
 
@@ -49,7 +49,7 @@ internal sealed class InsertBuilder(
 
     public IInsertBuilderOnConflict OnConflict(params DbColumn[] conflictTarget)
     {
-        AddPart(new OnConflictClause(conflictTarget));
+        AddPart(new OnConflictClause(conflictTarget, table));
         return this;
     }
 
@@ -57,7 +57,7 @@ internal sealed class InsertBuilder(
     {
         // Parse first: a throw after AddPart(RowAliasClause) would leave the alias, and a
         // fix-up retry on the same instance would emit it twice (`AS new AS new`).
-        OnDuplicateKeyUpdateClause parsed = OnDuplicateKeyUpdateClause.Parse(assignments);
+        OnDuplicateKeyUpdateClause parsed = OnDuplicateKeyUpdateClause.Parse(assignments, table);
         AddPart(new RowAliasClause());
         AddPart(parsed);
         return this;
@@ -76,7 +76,7 @@ internal sealed class InsertBuilder(
 
     public IInsertBuilderSet Set(params EqualityCondition[] assignments)
     {
-        AddPart(InsertSetClause.Parse(assignments));
+        AddPart(InsertSetClause.Parse(assignments, table));
         return this;
     }
 

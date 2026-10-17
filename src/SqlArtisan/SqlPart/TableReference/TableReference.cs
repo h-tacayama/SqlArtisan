@@ -47,6 +47,18 @@ public abstract class TableReference : SqlPart
         }
     }
 
+    // Whole names when both carry a schema; otherwise the names without it, since an
+    // unqualified name resolves through a search path the library cannot see (#674).
+    internal static bool NamesSameTable(TableReference left, TableReference right)
+    {
+        ReadOnlySpan<char> leftName = left.NameWithoutSchema;
+        ReadOnlySpan<char> rightName = right.NameWithoutSchema;
+
+        return leftName.Length < left._name.Length && rightName.Length < right._name.Length
+            ? string.Equals(left._name, right._name, StringComparison.Ordinal)
+            : leftName.SequenceEqual(rightName);
+    }
+
     // A CTE or derived-table name also qualifies column references, so it is quoted
     // to match them: a bare name case-folds on Oracle while the quoted reference does
     // not (ORA-00904).

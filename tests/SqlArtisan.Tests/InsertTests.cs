@@ -801,6 +801,44 @@ public class InsertTests
     }
 
     [Fact]
+    public void InsertInto_OtherTableColumn_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code, a.Name));
+
+        Assert.Equal(
+            "An INSERT column list must name only columns of the target table.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertIgnoreInto_OtherTableColumn_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertIgnoreInto(t, a.Name));
+
+        Assert.Equal(
+            "An INSERT column list must name only columns of the target table.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_OtherHandleOfTargetTable_CorrectSql()
+    {
+        TestTable t = new();
+        TestTable other = new("t2");
+
+        SqlStatement sql = InsertInto(t, other.Code).Values(1).Build();
+
+        Assert.Equal("INSERT INTO test_table (code) VALUES (:0)", sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
     public void InsertInto_SqlServer_OutputIntoWidthMismatch_ThrowsAtInto()
     {
         TestTable t = new();
@@ -837,6 +875,21 @@ public class InsertTests
 
         Assert.Equal(
             "An OUTPUT INTO column list must not name a column twice.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_SqlServer_OutputIntoOtherTableColumn_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code)
+            .Output(Inserted(t.Code))
+            .Into(a, t.Code));
+
+        Assert.Equal(
+            "An OUTPUT INTO column list must name only columns of its table.", ex.Message);
     }
 
     [Fact]
@@ -927,6 +980,68 @@ public class InsertTests
 
         Assert.Equal(
             "The ON DUPLICATE KEY UPDATE assignment list must not assign the same column twice.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_SetOtherTableColumn_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t).Set(a.Name == "x"));
+
+        Assert.Equal(
+            "The SET assignment list must assign only columns of the target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertIgnoreInto_SetOtherTableColumn_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertIgnoreInto(t).Set(a.Name == "x"));
+
+        Assert.Equal(
+            "The SET assignment list must assign only columns of the target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void DoUpdateSet_OtherTableColumn_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code)
+                .Values(1)
+                .OnConflict(t.Code)
+                .DoUpdateSet(a.Name == "x"));
+
+        Assert.Equal(
+            "The DO UPDATE SET assignment list must assign only columns of the target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void OnDuplicateKeyUpdate_OtherTableColumn_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code)
+                .Values(1)
+                .OnDuplicateKeyUpdate(a.Name == "x"));
+
+        Assert.Equal(
+            "The ON DUPLICATE KEY UPDATE assignment list must assign only columns of the target "
+                + "table.",
             ex.Message);
     }
 }

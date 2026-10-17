@@ -79,11 +79,13 @@ the full rationale.
   or that are both unaliased, which render one token either way), a `WITH` clause's CTE names, a `Values(...)`
   source's column names, an `ON CONFLICT` target, a join `USING` list, an
   `OUTPUT ... INTO` list — and an `OUTPUT ... INTO` list whose width differs
-  from the `OUTPUT` list.
+  from the `OUTPUT` list; a `SET` target another table owns, in an arm that
+  renders it bare, and a column list entry another table owns (the paragraph
+  below, #674).
   These are call-site defects rejected whatever the engine does (ADR 0011
   decides the class outside its bar) — eagerly, the `OUTPUT ... INTO` width
-  at `Into(...)`, but for the joined-`UPDATE` arm's cross-name pairs above,
-  which wait for `Build()` — not ADR 0012 domain guards: only a duplicated CTE name is rejected everywhere.
+  at `Into(...)`, but for the joined-`UPDATE` arm's cross-name pairs above and
+  every `UPDATE`'s `SET` owner check (#674), which wait for `Build()` — not ADR 0012 domain guards: only a duplicated CTE name is rejected everywhere.
   Live-verified (PostgreSQL 16, MySQL 8.0, SQLite 3.45): PostgreSQL rejects a
   duplicated `INSERT` list, `SET` list, and `USING` list but accepts a
   duplicated CTE/derived column list; MySQL rejects the `INSERT` and CTE
@@ -359,6 +361,38 @@ subquery reaches the inserted row through `Excluded(...)` and has no spelling
 for the existing row's other columns; the message's alias remedy is unreachable
 there (§ Message grammar, recorded exception). The check costs every build 8 bytes, one
 field on the buffer (ADR 0006).
+
+**A bare `SET` target is a column of the statement's target table (decided —
+do not re-file):** MERGE's `UPDATE SET`, `DO UPDATE SET`,
+`ON DUPLICATE KEY UPDATE`, `InsertInto(...).Set`, `InsertIgnoreInto(...).Set`
+and an `UPDATE` that does not qualify its target render a `SET` column by its
+name alone, so another relation's column became the target's same-named one: a
+swapped assignment (`u.B == t.B`) ran as a no-op under `UPDATE ... FROM`
+(PostgreSQL 16, SQLite 3.45.1) and `MERGE` (PostgreSQL 16), and any other value
+wrote the target's column (live; #674). The qualified spelling of
+what was written, `SET "u".b`, runs on neither, so `AssignmentResolver` rejects
+the call as a call-site defect. It keys on the table name, compared ordinally
+(`TableReference.NamesSameTable`): with its schema when both handles carry one,
+without it when either lacks one, since an unqualified name resolves through a
+search path the library cannot see. So a schema-less handle of a qualified target
+stays legal; a same-named table in another schema throws when both name their
+schema and passes when either does not; a swapped assignment over two handles of
+one table (a self-`MERGE`) passes; and a handle spelling the name in another case,
+or qualifying it differently (`db.dbo.t` beside `dbo.t`), throws. The arms that
+qualify the target (MySQL's direct-join `UPDATE`, SQL Server's re-listed target)
+render each column by its owner's alias, and MySQL's sets a joined table's column
+that way, so they skip the name check; an owner with no alias renders bare there
+too, whichever table it is, so `ThrowIfUnaliasedOwner` rejects it, a second
+unaliased handle of the target's own table included (the target instance itself
+is always aliased in these arms). `UpdateSetClause` decides at
+`Build()`, where that shape is final, the other clauses at the call. A column
+list renders its entries bare too, so `ColumnListGuard.IsColumnOf` holds the
+`INSERT` and MERGE `ThenInsert` lists and the `ON CONFLICT` target to the
+target, and an `OUTPUT ... INTO` list to its own table, at the call. The
+pseudo-row accessors `Excluded(...)`, `Inserted(...)` and `Deleted(...)` drop the
+owner too, but they sit in value positions and checking them needs the target at
+format time; they are left to the value-slot item for those accessors (#675's B3
+hand-off, #666's class), not this guard.
 
 ## The empty-state policy (#236)
 

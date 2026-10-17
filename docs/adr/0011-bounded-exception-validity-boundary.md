@@ -89,10 +89,14 @@ override — so every build path (including `Returning()`, which funnels through
   rejections of valid-somewhere text do not follow that today: ADR 0017 is its
   own exception, and five classes are decided outside the bar here. The
   call-site-defect guards, enumerated in `guards-and-empty-states.md` — a
-  fixed list that repeats a name, and an `OUTPUT ... INTO` list whose width
-  differs from its `OUTPUT` list — reject on every dialect, even where an
-  engine runs the text: a name listed twice in one list, or an `INTO` list
-  that does not match the list it stores, is read as a slip, not a spelling.
+  fixed list that repeats a name, an `OUTPUT ... INTO` list whose width
+  differs from its `OUTPUT` list, a bare `SET` target or column list entry
+  whose table is named other than the table the list writes (the statement's
+  target, or an `OUTPUT ... INTO` list's own table), and a qualified `SET`
+  column whose table has no alias (#674) — reject on every dialect, even
+  where an engine runs the text: a name listed twice in one list, an `INTO` list
+  that does not match the list it stores, or another table's column rendered as
+  that table's, is read as a slip, not a spelling.
   An engine that runs the repeat reports nothing — MySQL and SQLite silently
   keep a duplicated `SET`'s last assignment
   (`DuplicateSetAssignment_IsAcceptedByTheEngine` on both lanes). The
