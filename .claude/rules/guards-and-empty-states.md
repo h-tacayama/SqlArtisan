@@ -84,8 +84,8 @@ the full rationale.
   below, #674).
   These are call-site defects rejected whatever the engine does (ADR 0011
   decides the class outside its bar) — eagerly, the `OUTPUT ... INTO` width
-  at `Into(...)`, but for the joined-`UPDATE` arm's cross-name pairs above,
-  which wait for `Build()` — not ADR 0012 domain guards: only a duplicated CTE name is rejected everywhere.
+  at `Into(...)`, but for the joined-`UPDATE` arm's cross-name pairs above and
+  every `UPDATE`'s `SET` owner check (#674), which wait for `Build()` — not ADR 0012 domain guards: only a duplicated CTE name is rejected everywhere.
   Live-verified (PostgreSQL 16, MySQL 8.0, SQLite 3.45): PostgreSQL rejects a
   duplicated `INSERT` list, `SET` list, and `USING` list but accepts a
   duplicated CTE/derived column list; MySQL rejects the `INSERT` and CTE

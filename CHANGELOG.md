@@ -110,9 +110,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   the target's same-named column: `Update(t).Set(u.B == t.B).From(u)` built
   `SET b = "t".b`, which ran and changed neither table on PostgreSQL 16 and
   SQLite, and `Update(t).Set(u.B == 1)` wrote `t.b`. Tables are compared by
-  name, with the schema when both name one, so another handle of the target's
-  table is still accepted, and so is a source sharing its name, such as a
-  self-`MERGE`'s. MySQL's joined `UPDATE` and SQL Server's `UPDATE` re-listing
+  name as spelled, with the schema when both name one, so another handle
+  spelling the target's table name the same way is still accepted, and so is a
+  source sharing that name, such as a self-`MERGE`'s. MySQL's joined `UPDATE` and SQL Server's `UPDATE` re-listing
   its target qualify the column, so it renders as written there. A column list
   is checked the same way, at the call: `InsertInto(...)`,
   `InsertIgnoreInto(...)` and `ThenInsert(...)` throw `An INSERT column list
