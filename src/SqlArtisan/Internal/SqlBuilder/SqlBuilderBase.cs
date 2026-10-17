@@ -31,7 +31,8 @@ internal abstract class SqlBuilderBase
     }
 
     // A set operator's continuation takes the frozen left branch's list over rather
-    // than copying it, which grew with every branch (ADR 0006); the left never reads it again.
+    // than copying it, which grew with every branch (ADR 0006); every render of the left
+    // throws first, so only the continuation renders the list.
     private protected SqlBuilderBase(SqlBuilderBase leftBranch)
     {
         _parts = leftBranch._parts;

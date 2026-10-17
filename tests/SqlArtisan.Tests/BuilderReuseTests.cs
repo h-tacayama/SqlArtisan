@@ -913,6 +913,58 @@ public class BuilderReuseTests
         Assert.Equal("SELECT \"u\".code FROM test_table \"u\"", sql.Text);
     }
 
+    [Fact]
+    public void AsTable_BuiltSubqueryComposed_CorrectSql()
+    {
+        TestTable u = new("u");
+        var sub = Select(u.Code).From(u);
+        sub.Build();
+
+        SqlStatement sql = Select(Count(Asterisk)).From(sub.AsTable("x")).Build();
+
+        Assert.Equal(
+            "SELECT COUNT(*) FROM (SELECT \"u\".code FROM test_table \"u\") \"x\"", sql.Text);
+    }
+
+    [Fact]
+    public void Union_AfterBuild_ThrowsArgumentException()
+    {
+        var q = Select(_t.Code).From(_t);
+        q.Build();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => { _ = q.UnionAll; });
+
+        Assert.Equal(SelectBuiltMessage, ex.Message);
+    }
+
+    [Fact]
+    public void Union_AfterComposing_ThrowsArgumentException()
+    {
+        var sub = Select(_t.Code).From(_t);
+        _ = Exists(sub);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => { _ = sub.UnionAll; });
+
+        Assert.Equal(ComposedMessage, ex.Message);
+    }
+
+    [Fact]
+    public void Union_SecondOnHeldLeftBranch_ThrowsArgumentException()
+    {
+        // The second compound would share the first one's parts and grow it.
+        TestTable u = new("u");
+        TestTable r = new("r");
+        var first = Select(_t.Code).From(_t);
+        var compound = first.UnionAll.Select(u.Code).From(u);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => { _ = first.Union; });
+
+        Assert.Equal(ContinuedMessage, ex.Message);
+        Assert.Equal(
+            "SELECT code FROM test_table UNION ALL SELECT \"u\".code FROM test_table \"u\"",
+            compound.Build().Text);
+    }
+
     [Theory]
     [InlineData("In")]
     [InlineData("NotIn")]

@@ -819,11 +819,12 @@ it. A built builder can still be composed, and renders what it was built with.
 A set operator (`Union`, `UnionAll`, …) continues on the builder it returns;
 the builder it was called on can no longer be used.
 
-> [!NOTE]
-> **Every stage but a set operator adds to the builder it was called on, so two variables taken from
-> one chain share it.** After `var all = q; var page = q.OrderBy(t.Code).Limit(10);`, `all` carries
-> the `ORDER BY` and `LIMIT` too. A second `Build()` reports it, but composing `all` does not:
-> once `page` is derived, `all.AsTable("x")` renders the page. Build each statement from its own chain.
+> [!WARNING]
+> **Two variables taken from one `SELECT` chain are one builder, so a stage on either changes
+> both.** Every stage after `Select(...)` but a set operator adds to the builder it was called on:
+> after `var all = q; var page = q.OrderBy(t.Code).Limit(10);`, `all` carries the `ORDER BY` and
+> `LIMIT` too. A second `Build()` reports it, but composing `all` does not: once `page` is
+> derived, `all.AsTable("x")` renders the page. Build each statement from its own chain.
 
 ---
 

@@ -394,9 +394,10 @@ owner too, but they sit in value positions and checking them needs the target at
 format time; they are left to the value-slot item for those accessors (#675's B3
 hand-off, #666's class), not this guard.
 
-**A builder is one chain (decided — do not re-file):** a stage call appends to
-the instance it is called on and returns it, so a held builder that another
-statement already holds would change that statement too (#676, live on
+**A builder is one chain (decided — do not re-file):** a stage on a statement
+builder appends to it (`Returning(...)` once the statement builds; `With(...)` is
+no statement builder, and each head called on it starts a new one), so a held
+builder that another statement already holds would change that statement too (#676, live on
 PostgreSQL 16). Two shapes are rejected. A builder composed into another
 statement — `In`, `NotIn`, `Exists`, `NotExists`, `Any` / `All` / `Some`, a
 scalar subquery, `AsTable`, a CTE's `As`, a lateral or apply join — takes no

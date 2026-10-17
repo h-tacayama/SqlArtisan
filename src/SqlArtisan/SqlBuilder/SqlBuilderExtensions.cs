@@ -16,8 +16,9 @@ public static class SqlBuilderExtensions
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="cnn"/> is
     /// <see langword="null"/> or its provider is unregistered (either resolves to
     /// <see cref="Dbms.Unknown"/>).</exception>
-    /// <exception cref="ArgumentException">The builder was already built, or the statement
-    /// breaks a rule only the whole statement shows on the resolved dialect.</exception>
+    /// <exception cref="ArgumentException">The builder was already built or was continued by a set
+    /// operator, or the statement breaks a rule only the whole statement shows on the resolved
+    /// dialect.</exception>
     public static SqlStatement Build(this ISqlBuilder sqlBuilder, IDbConnection cnn)
     {
         Dbms dbms = DbmsResolver.Resolve(cnn);
