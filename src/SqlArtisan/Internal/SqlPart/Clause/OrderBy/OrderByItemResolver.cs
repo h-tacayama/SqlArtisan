@@ -46,12 +46,8 @@ internal static class OrderByItemResolver
         {
             return ResolveNumericSortKey(orderByItem);
         }
-        // A bound sort key is a constant that sorts nothing (#678), so only an
-        // enum, whose rendering #667 decides, still binds; Bind(x) stays explicit.
-        else if (IsEnum(orderByItem))
-        {
-            return new BindValue(orderByItem);
-        }
+        // A bound sort key is a constant that sorts nothing (#678), so no value
+        // binds implicitly here; Bind(x) is the explicit spelling of one.
         else
         {
             throw UnresolvableValue("OrderByItem", orderByItem);

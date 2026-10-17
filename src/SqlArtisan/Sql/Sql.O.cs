@@ -43,7 +43,7 @@ public static partial class Sql
     /// <returns>An <c>ORDER BY</c> clause.</returns>
     /// <exception cref="ArgumentException">An element of <paramref name="orderByItems"/> is a
     /// select alias (<c>.As(...)</c>; pass the aliased expression instead), or a string, char,
-    /// bool or date/time value, which would bind as a constant that sorts nothing.</exception>
+    /// bool, date/time or enum value, which binds as a constant that sorts nothing.</exception>
     public static OrderByClause OrderBy(params object[] orderByItems) =>
         OrderByClause.ParseInExpression(orderByItems);
 }

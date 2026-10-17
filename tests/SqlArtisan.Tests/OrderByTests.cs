@@ -369,6 +369,8 @@ public class OrderByTests
         { new DateTime(2020, 1, 1), "System.DateTime" },
         { new DateOnly(2020, 1, 1), "System.DateOnly" },
         { new TimeOnly(1, 0), "System.TimeOnly" },
+        { DayOfWeek.Monday, "System.DayOfWeek" },
+        { DateTimePart.Year, "SqlArtisan.DateTimePart" },
     };
 
     [Theory]
@@ -396,16 +398,6 @@ public class OrderByTests
 
         Assert.Equal("SELECT \"t\".code FROM test_table \"t\" ORDER BY :0", sql.Text);
         Assert.Equal("code", sql.Parameters.Get<string>(":0"));
-    }
-
-    [Fact]
-    public void OrderBy_EnumValue_CorrectSql()
-    {
-        // An enum still binds; whether it should is #667's to decide.
-        SqlStatement sql = Select(_t.Code).From(_t).OrderBy(DayOfWeek.Monday).Build();
-
-        Assert.Equal("SELECT \"t\".code FROM test_table \"t\" ORDER BY :0", sql.Text);
-        Assert.Equal(DayOfWeek.Monday, sql.Parameters.Get<DayOfWeek>(":0"));
     }
 
     private const string AliasInExpressionMessage =

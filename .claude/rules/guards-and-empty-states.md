@@ -271,13 +271,12 @@ as written, and `docs/query-statements.md` § ORDER BY carries the
 `[!WARNING]` (live: PostgreSQL 16, SQLite 3.45.1).
 
 **A non-numeric value is no sort or group key (decided — do not re-file):** a
-bound `string`, `char`, `bool` or date/time value is a constant, which sorts or
-groups nothing (`ORDER BY $1` bound to `'a'` returned the rows unsorted on
-PostgreSQL 16 and SQLite 3.45.1, live), so `OrderByItemResolver` and
-`GroupByItemResolver` reject one at the call, on every dialect, as a call-site
-defect (ADR 0011 decides the class outside its bar; #678). `Bind(value)` keeps a
-deliberate constant writable. An enum still binds as a sort key until #667
-decides enum values. The grouping elements (`Rollup`, `Cube`, `Group`),
+bound `string`, `char`, `bool`, date/time or enum value is a constant, which
+sorts or groups nothing (`ORDER BY $1` bound to `'a'` or to an enum's integer
+returned the rows unsorted on PostgreSQL 16 and SQLite 3.45.1, live), so
+`OrderByItemResolver` and `GroupByItemResolver` reject one at the call, on every
+dialect, as a call-site defect (ADR 0011 decides the class outside its bar;
+#678). `Bind(value)` keeps a deliberate constant writable. The grouping elements (`Rollup`, `Cube`, `Group`),
 `DistinctOn(...)` and `PartitionBy(...)` still bind these values, `PartitionBy`
 an integer too, which PostgreSQL 16 and SQLite read as a constant there (live),
 until #673 brings them onto this rule.

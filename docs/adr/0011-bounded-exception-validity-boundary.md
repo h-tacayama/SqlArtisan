@@ -2,7 +2,7 @@
 
 **Status:** Accepted — #672 adds a fourth class decided outside the bar (an alias sort
 key where no select alias is in scope), #677 a fifth (the correlated guards, the
-DML-target one included), #678 a sixth (a non-numeric value as a sort key).
+DML-target one included), #678 a sixth (a non-numeric value as a sort or group key).
 
 ## Context
 
@@ -137,12 +137,13 @@ override — so every build path (including `Returning()`, which funnels through
   `ON DUPLICATE KEY UPDATE` subquery reading the `INSERT` target, which MySQL
   cannot alias: it reaches the inserted row through `Excluded(...)` and has no
   spelling for the existing row's other columns (`guards-and-empty-states.md`,
-  recorded exception). The sixth is a `string`, `char`, `bool` or date/time
-  sort key (#678): bound, it is a constant that sorts nothing (PostgreSQL 16 and
-  SQLite 3.45.1 run `ORDER BY $1` and leave the rows unsorted, live), so
-  `OrderBy(...)` rejects it at the call on every dialect, even where an engine
-  runs the text; the column the value names is the spelling, and `Bind(value)`
-  keeps a deliberate constant.
+  recorded exception). The sixth is a `string`, `char`, `bool`, date/time or
+  enum value as a sort or group key (#678): bound, it is a constant that sorts
+  or groups nothing (PostgreSQL 16 and SQLite 3.45.1 run `ORDER BY $1` and leave
+  the rows unsorted, and run `GROUP BY $1` as one group, live), so `OrderBy(...)`
+  and `GroupBy(...)` reject it at the call on every dialect, even where an engine
+  runs the text (`GroupBy` already did); the column the value names is the
+  spelling, and `Bind(value)` keeps a deliberate constant.
 - **Revisit when joined DML lands (#237).** Once `UPDATE … FROM` / `DELETE … FROM`
   give SQL Server a real spelling for the aliased/correlated shape, this guard's
   premise ("no valid spelling exists") weakens; re-evaluate whether it should
