@@ -820,10 +820,10 @@ A set operator (`Union`, `UnionAll`, …) continues on the builder it returns;
 the builder it was called on can no longer be used.
 
 > [!WARNING]
-> **Two variables taken from one `SELECT` chain are one builder, so a stage on either changes
-> both.** Every stage after `Select(...)` but a set operator adds to the builder it was called on:
-> after `var all = q; var page = q.OrderBy(t.Code).Limit(10);`, `all` carries the `ORDER BY` and
-> `LIMIT` too. A second `Build()` reports it, but composing `all` does not: once `page` is
+> **Two variables taken from one statement chain are one builder, so a stage on either changes
+> both.** Every stage after a statement's head but a set operator adds to the builder it was called
+> on: after `var all = q; var page = q.OrderBy(t.Code).Limit(10);`, `all` carries the `ORDER BY`
+> and `LIMIT` too. A second `Build()` reports it, but composing `all` does not: once `page` is
 > derived, `all.AsTable("x")` renders the page. Build each statement from its own chain.
 
 ---
