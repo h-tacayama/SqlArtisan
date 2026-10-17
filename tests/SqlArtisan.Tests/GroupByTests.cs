@@ -613,19 +613,21 @@ public class GroupByTests
     }
 
     [Fact]
-    public void Rollup_SubqueryElement_CorrectSql()
+    public void Rollup_CorrelatedSubqueryElement_CorrectSql()
     {
+        // A correlated subquery is a per-row grouping key, unlike a bound value.
         TestTable u = new("u");
 
         SqlStatement sql =
             Select(Count(Asterisk))
             .From(_t)
-            .GroupBy(Rollup(Select(Max(u.Code)).From(u), _t.Name))
+            .GroupBy(Rollup(Select(Max(u.Code)).From(u).Where(u.Name == _t.Name), _t.Name))
             .Build();
 
         Assert.Equal(
-            "SELECT COUNT(*) FROM test_table \"t\" "
-                + "GROUP BY ROLLUP((SELECT MAX(\"u\".code) FROM test_table \"u\"), \"t\".name)",
+            "SELECT COUNT(*) FROM test_table \"t\" GROUP BY ROLLUP("
+                + "(SELECT MAX(\"u\".code) FROM test_table \"u\" WHERE \"u\".name = \"t\".name), "
+                + "\"t\".name)",
             sql.Text);
     }
 }

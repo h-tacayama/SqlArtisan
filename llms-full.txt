@@ -872,8 +872,8 @@ non-integer sort key at `Build(Dbms)` for the dialects that reject it.
 An element of `Rollup(...)`, `Cube(...)` or `Group(...)` is a column, an
 expression or a subquery. An integer, a string or another value throws
 `Invalid type for GroupByItem: ...` at the call: bound, it would be a constant
-that groups nothing, so `Rollup(1, 2)` takes no select-list positions. Pass the
-columns there.
+that groups nothing. Unlike `GroupBy(1, 2)`, `Rollup(1, 2)` emits no
+select-list positions either; pass the columns there.
 
 To group by an expression that carries bind parameters — a `CASE` label, a `DECODE`, date math with a parameter — hold the expression in a variable and pass the **same instance** to `Select(...)` and `GroupBy(...)`; both occurrences then emit identical parameter markers and the statement runs everywhere. The two clauses need not match otherwise — here the `SELECT` side aliases the instance and adds an aggregate:
 

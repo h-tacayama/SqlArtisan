@@ -650,6 +650,32 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             $"SELECT department_id FROM users GROUP BY {constant}"));
     }
 
+    // The live twins of DistinctOnItemResolver's ordinal guard (#673): PostgreSQL,
+    // the one engine with DISTINCT ON, reads an integer there as a select-list
+    // position and names none below 1.
+    [Fact]
+    public void DistinctOnOrdinal_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            connection.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM (SELECT DISTINCT department_id FROM users) d"),
+            connection.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM (SELECT DISTINCT ON (1) department_id, name FROM users) d"));
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-1")]
+    public void DistinctOnNonPositiveOrdinal_IsRejectedByTheEngine(string ordinal)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            $"SELECT DISTINCT ON ({ordinal}) department_id, name FROM users"));
+    }
+
     // The live twin of SelectBuilder's non-integer sort-key guard (ADR 0011).
     [Fact]
     public void OrderByNonIntegerConstant_IsRejectedByTheEngine()

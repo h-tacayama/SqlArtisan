@@ -270,7 +270,8 @@ rarely the collision is written and left out. The statement position emits
 as written, and `docs/query-statements.md` § ORDER BY carries the
 `[!WARNING]` (live: PostgreSQL 16, SQLite 3.45.1).
 
-**A non-numeric value is no sort or group key (decided — do not re-file):** a
+**A bound value is no sort, group, partition or `DISTINCT ON` key (decided — do not
+re-file):** a
 bound `string`, `char`, `bool`, date/time or enum value is a constant, which
 sorts or groups nothing (`ORDER BY $1` bound to `'a'` or to an enum's integer
 returned the rows unsorted on PostgreSQL 16 and SQLite 3.45.1, live), so
@@ -279,10 +280,13 @@ dialect, as a call-site defect (ADR 0011 decides the class outside its bar;
 #678). `Bind(value)` keeps a deliberate constant writable. The other key
 positions follow (#673): a grouping element (`Rollup`, `Cube`, `Group`) and a
 `PartitionBy(...)` key take an expression or a subquery and reject every value
-(`ExpressionResolver.ResolveKey`), an integer included, since `PARTITION BY`
-reads even a literal one as a constant (PostgreSQL 16 and SQLite, live) and how
-Oracle and SQL Server read one in a grouping element is not verified (MySQL and
-SQLite have no grouping element). A
+(`ExpressionResolver.ResolveKey`), an integer included. `PARTITION BY` reads even
+a literal integer as a constant (PostgreSQL 16 and SQLite, live); PostgreSQL 16
+reads one in a grouping element as a position (live), but how Oracle and SQL
+Server read it is not verified (MySQL and SQLite have no grouping element), so
+it is not emitted as one there as it is in `GroupBy`. `GroupBy(...)` itself still
+rejects a subquery: taking one directly is an addition, left to demand
+(ADR 0010). A
 subquery stays a grouping element (it runs on PostgreSQL 16, live).
 `DistinctOn(...)` renders an integer as the select-list position PostgreSQL, its
 one engine, reads there, rejecting one below 1 at the call as `GroupBy` does
