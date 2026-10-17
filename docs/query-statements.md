@@ -854,9 +854,9 @@ the target table.` instead. `ThenUpdateSet`, `DoUpdateSet`,
 `OnDuplicateKeyUpdate` and `InsertInto(...).Set` throw at the call, naming
 their own clause. Tables are compared by name, with the schema when both name
 one, so a table sharing the target's name — the source of a self-`MERGE`, or a
-same-named table when either side omits its schema — is not caught. A MySQL joined `UPDATE` and a SQL Server `UPDATE` re-listing
-its target qualify the column, so another table's column renders as written
-there (see [Joined UPDATE / DELETE](#joined-update--delete)).
+same-named table when either side omits its schema — is not caught. A MySQL
+joined `UPDATE` and a SQL Server `UPDATE` re-listing its target qualify the
+column, so another table's column renders as written there (see [Joined UPDATE / DELETE](#joined-update--delete)).
 
 **Dialect note:** As with `DELETE`, on SQL Server the `UPDATE` target cannot be aliased — pass an unaliased table; building an aliased target for SQL Server throws.
 

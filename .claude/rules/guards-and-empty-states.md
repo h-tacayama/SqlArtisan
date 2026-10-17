@@ -376,8 +376,8 @@ without it when either lacks one, since an unqualified name resolves through a
 search path the library cannot see. So a schema-less handle of a qualified target
 stays legal; a same-named table in another schema throws when both name their
 schema and passes when either does not; a swapped assignment over two handles of
-one table (a self-`MERGE`) passes; and a handle spelling the name in another case
-throws. The arms that qualify the target (MySQL's direct-join `UPDATE`, SQL
+one table (a self-`MERGE`) passes; and a handle spelling the name in another case,
+or qualifying it differently (`db.dbo.t` beside `dbo.t`), throws. The arms that qualify the target (MySQL's direct-join `UPDATE`, SQL
 Server's re-listed target) render the owner as written, and MySQL's sets a joined
 table's column that way, so they are left alone; `UpdateSetClause` decides at
 `Build()`, where that shape is final, the other clauses at the call. A column
