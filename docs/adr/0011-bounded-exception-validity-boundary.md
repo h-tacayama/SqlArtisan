@@ -1,7 +1,8 @@
 # ADR 0011 — Bounded exceptions to the validity-enforcement boundary: when a construct valid on some dialect may still be rejected
 
 **Status:** Accepted — #672 adds a fourth class decided outside the bar (an alias sort
-key where no select alias is in scope).
+key where no select alias is in scope), #677 a fifth (the correlated guards, the
+DML-target one included).
 
 ## Context
 
@@ -86,7 +87,7 @@ override — so every build path (including `Returning()`, which funnels through
   structurally can't see it, *and* the resolved target has no valid spelling.
   Absent both, the answer stays ADR 0007's default — emit faithfully. Some
   rejections of valid-somewhere text do not follow that today: ADR 0017 is its
-  own exception, and four classes are decided outside the bar here. The
+  own exception, and five classes are decided outside the bar here. The
   call-site-defect guards, enumerated in `guards-and-empty-states.md` — a
   fixed list that repeats a name, and an `OUTPUT ... INTO` list whose width
   differs from its `OUTPUT` list — reject on every dialect, even where an
@@ -122,7 +123,17 @@ override — so every build path (including `Returning()`, which funnels through
   MySQL and Oracle are not verified. `Sql.OrderBy(...)` /
   `PartitionBy(...).OrderBy(...)` reject it at the call on every dialect, even
   where an engine runs the text: the aliased expression is the spelling every
-  engine reads as the C# names it, so the alias key is read as a slip.
+  engine reads as the C# names it, so the alias key is read as a slip. The
+  fifth is the correlated guards (#253, #677): a column of an unaliased table
+  renders bare, and a nested block that reads it without listing the table binds
+  its own same-named column first, so `Build()` rejects the reference on every
+  dialect, even where no inner column has the name and the engine reaches the
+  outer row. The schema is not visible, so the shape that can capture is
+  rejected whole; aliasing the outer table is the spelling, except for a MySQL
+  `ON DUPLICATE KEY UPDATE` subquery reading the `INSERT` target, which MySQL
+  cannot alias: it reaches the inserted row through `Excluded(...)` and has no
+  spelling for the existing row's other columns (`guards-and-empty-states.md`,
+  recorded exception).
 - **Revisit when joined DML lands (#237).** Once `UPDATE … FROM` / `DELETE … FROM`
   give SQL Server a real spelling for the aliased/correlated shape, this guard's
   premise ("no valid spelling exists") weakens; re-evaluate whether it should

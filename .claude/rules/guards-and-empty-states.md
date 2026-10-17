@@ -336,10 +336,29 @@ among its own columns, so it stays outside the guard. With no listing the target
 cannot be what the name means, so the bare target column is rejected as in any
 block that does not list the target. The
 guard keys on the target *instance*: a second, unaliased instance of the target
-table inside the subquery renders the tautology unguarded
-(`Update(new T()) ... new T().Id`), the same instance-identity fact ADR 0014
+table that the subquery itself lists renders the tautology unguarded (it is that
+block's own relation by instance), the same instance-identity fact ADR 0014
 records for the analyzer — the harness template uses one instance for that
-reason.
+reason. A second instance the subquery does not list is rejected by the
+every-table rule below (#677).
+
+**Every unaliased table a nested block reads without listing it is rejected
+(decided — do not re-file):** the correlated-DML guard's reasoning holds for
+any table, not just a DML target. A column of an unaliased table renders bare,
+and a bare name in a subquery binds that block's own same-named column first, so
+`Build()` throws when a nested query block (a subquery, a CTE body, a `LATERAL`
+body) renders one whose table its own `FROM` and joins do not list (#677). The
+schema is not visible, so a reference no inner column could capture is rejected
+too, as for the DML target, which keeps its own message (ADR 0011 decides the
+class outside its bar). A compound's branches count together, which can let a
+branch's capture pass but rejects nothing a per-branch check would accept. A
+top-level column whose table no clause lists stays permissive; an
+`INSERT ... SELECT` CTE body is a block like any other. On MySQL,
+whose `INSERT` target cannot be aliased (ADR 0011), an `ON DUPLICATE KEY UPDATE`
+subquery reaches the inserted row through `Excluded(...)` and has no spelling
+for the existing row's other columns; the message's alias remedy is unreachable
+there (§ Message grammar, recorded exception). The check costs every build 8 bytes, one
+field on the buffer (ADR 0006).
 
 ## The empty-state policy (#236)
 
@@ -686,6 +705,12 @@ so the wording is part of the contract.
   split, pass 5; the UPDATE twin, pass 8). The empty join `ON` names
   `CROSS JOIN` only on the `SELECT` chain, the one with `CrossJoin`; a joined
   `UPDATE` or `DELETE` states the requirement alone (`DmlOnClause`, #582).
+  Recorded exception (#677): the every-table correlated guard's "must be
+  aliased" also fires for a MySQL `ON DUPLICATE KEY UPDATE` subquery reading
+  the `INSERT` target, which MySQL cannot alias. The buffer that throws does
+  not know which table is the `INSERT` target, and a message split for one
+  dialect's one clause was weighed against the docs note and left out; the
+  CHANGELOG and `docs/query-statements.md` name `Excluded(...)` there.
 - A guard shared by several clauses names the clause the caller wrote, never
   one sibling's spelling: `AssignmentResolver` takes each caller's clause,
   since `ON DUPLICATE KEY UPDATE` has no `SET` token to name (#582).

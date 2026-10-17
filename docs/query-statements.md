@@ -860,7 +860,14 @@ values**. SqlArtisan refuses to build that form; `Build()` throws:
 > The target of a correlated UPDATE, DELETE, or MERGE must be aliased.
 
 The same guard arms `MergeInto(...)`: a target column referenced inside a
-subquery in any `MERGE` clause needs the aliased target too.
+subquery in any `MERGE` clause needs the aliased target too. Any other table a
+subquery reads without listing it, in any statement, throws `A table a correlated subquery references must be aliased.` for the same
+reason (see [Scalar Subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#scalar-subquery)).
+
+**Dialect note:** On MySQL the `INSERT` target cannot be aliased, so an
+`ON DUPLICATE KEY UPDATE` subquery reads the inserted row through
+`Excluded(...)` (`new.col`); reading the existing row's other columns there is
+not available.
 
 Alias the target — the outer reference then renders qualified and the
 statement means what it says:

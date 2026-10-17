@@ -1297,7 +1297,14 @@ values**. SqlArtisan refuses to build that form; `Build()` throws:
 > The target of a correlated UPDATE, DELETE, or MERGE must be aliased.
 
 The same guard arms `MergeInto(...)`: a target column referenced inside a
-subquery in any `MERGE` clause needs the aliased target too.
+subquery in any `MERGE` clause needs the aliased target too. Any other table a
+subquery reads without listing it, in any statement, throws `A table a correlated subquery references must be aliased.` for the same
+reason (see [Scalar Subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#scalar-subquery)).
+
+**Dialect note:** On MySQL the `INSERT` target cannot be aliased, so an
+`ON DUPLICATE KEY UPDATE` subquery reads the inserted row through
+`Excluded(...)` (`new.col`); reading the existing row's other columns there is
+not available.
 
 Alias the target — the outer reference then renders qualified and the
 statement means what it says:
@@ -2759,6 +2766,11 @@ SqlStatement sql =
 // WHERE "u".age > (SELECT MAX("s".age) FROM users "s"
 // WHERE "s".name = "u".name)
 ```
+
+> [!NOTE]
+> A table a correlated subquery reads must be aliased: an unaliased table's column renders bare,
+> and inside the subquery a bare name binds the subquery's own same-named column first. `Build()`
+> throws `A table a correlated subquery references must be aliased.` instead of emitting it.
 
 ---
 
@@ -4624,7 +4636,8 @@ suppressing it does not stop the exception — the statement still fails to
 build. The analyzer reads the source, not the built statement, so it can
 report a statement that builds. Known cases include:
 
-- a table class whose column members belong to another instance;
+- a table class whose column members belong to another instance, when that
+  instance is aliased or the subquery lists it;
 - a correlated subquery that never renders, under `ConditionIf(false, …)`
   or in an untaken `?:` arm;
 - a `readonly` target rewritten through `Unsafe.AsRef`.

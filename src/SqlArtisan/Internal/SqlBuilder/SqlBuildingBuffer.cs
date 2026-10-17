@@ -31,6 +31,9 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // column is legitimate only where its own block lists the target (#607).
     // A byte flags enum, so it shares that padding.
     private CteGuard _cteGuard;
+    // The innermost nested query block, whose FROM a bare column is checked against
+    // (#677); this one field costs every build 8 bytes.
+    private SelectBuilder? _block;
 
     internal SqlBuildingBuffer(Dbms dbms)
     {
@@ -353,6 +356,9 @@ internal sealed class SqlBuildingBuffer : IDisposable
         CteGuard outer = _cteGuard;
         _cteGuard &= CteGuard.InBody;
 
+        SelectBuilder? outerBlock = _block;
+        _block = subquery as SelectBuilder;
+
         Append('(');
         _subqueryDepth++;
         subquery.Format(this);
@@ -361,6 +367,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
         Append(')');
         _correlatedDmlTarget = target;
         _cteGuard = outer;
+        _block = outerBlock;
         return this;
     }
 
@@ -427,6 +434,8 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
         CteGuard outer = _cteGuard;
         _cteGuard = guardsTarget ? CteGuard.InBody : 0;
+        SelectBuilder? outerBlock = _block;
+        _block = body as SelectBuilder;
 
         try
         {
@@ -437,6 +446,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
         {
             _correlatedDmlTarget = target;
             _cteGuard = outer;
+            _block = outerBlock;
         }
     }
 
@@ -444,6 +454,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         if (!ReferenceEquals(owner, _correlatedDmlTarget))
         {
+            ThrowIfCorrelatedUnaliasedTable(owner);
             return;
         }
 
@@ -454,6 +465,17 @@ internal sealed class SqlBuildingBuffer : IDisposable
         else if (_subqueryDepth > 0)
         {
             DmlTargetGuard.ThrowCorrelatedUnaliasedTarget();
+        }
+    }
+
+    // The schema is not visible here, so a correlated reference is rejected whether
+    // or not an inner relation has the name, as the DML guard does (#677).
+    private void ThrowIfCorrelatedUnaliasedTable(TableReference owner)
+    {
+        if (_block is not null && owner is DbTableBase && !_block.ListsRelation(owner))
+        {
+            throw new ArgumentException(
+                "A table a correlated subquery references must be aliased.");
         }
     }
 

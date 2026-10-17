@@ -1079,7 +1079,8 @@ suppressing it does not stop the exception — the statement still fails to
 build. The analyzer reads the source, not the built statement, so it can
 report a statement that builds. Known cases include:
 
-- a table class whose column members belong to another instance;
+- a table class whose column members belong to another instance, when that
+  instance is aliased or the subquery lists it;
 - a correlated subquery that never renders, under `ConditionIf(false, …)`
   or in an untaken `?:` arm;
 - a `readonly` target rewritten through `Unsafe.AsRef`.

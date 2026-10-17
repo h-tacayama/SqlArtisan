@@ -684,6 +684,11 @@ SqlStatement sql =
 // WHERE "s".name = "u".name)
 ```
 
+> [!NOTE]
+> A table a correlated subquery reads must be aliased: an unaliased table's column renders bare,
+> and inside the subquery a bare name binds the subquery's own same-named column first. `Build()`
+> throws `A table a correlated subquery references must be aliased.` instead of emitting it.
+
 ---
 
 ## ALL / ANY / SOME
