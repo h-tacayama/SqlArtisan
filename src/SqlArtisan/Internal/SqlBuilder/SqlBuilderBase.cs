@@ -20,8 +20,8 @@ internal abstract class SqlBuilderBase
     // building it alone changes nothing they render, so Build() stays open.
     private bool _composed;
 
-    // A set operator moved the chain to a new builder (#676), so this one is only
-    // its left branch; any use of it would drop what was written after it.
+    // A set operator moved the chain to a new builder sharing this one's parts (#676),
+    // so any use of this one would extend or render the whole compound.
     private bool _continued;
 
     protected SqlBuilderBase(SqlPart[] rootParts)

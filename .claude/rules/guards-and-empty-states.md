@@ -405,11 +405,11 @@ start a new chain to change it.`); building it alone stays legal, since that
 changes nothing the other statement renders. A set operator returns a new
 builder holding the chain so far, and the held left branch can no longer be
 extended, built or composed (`This SELECT statement was continued by a set
-operator; use the builder the operator returned.`): before #676 its `WHERE` landed
-on the right branch, and now it would drop out of the compound. The continuation
-takes the left branch's part list over instead of copying it, so a set operator
-costs one builder (+32 B each, measured) and a non-compound build is unchanged
-(ADR 0006).
+operator; use the builder the operator returned.`): the continuation takes the left
+branch's part list over instead of copying it, so a stage call on the left would
+land on the right branch and a build or compose of it would render the whole
+compound. A set operator costs one builder, measured at +32 B on `SELECT` and
++56 B on `INSERT ... SELECT`, and a non-compound build is unchanged (ADR 0006).
 Two statements cut from one held prefix (`var all = q; var page =
 q.OrderBy(...)`) still share the instance, which only builders returning a new
 instance from every stage would separate; `docs/query-statements.md` §

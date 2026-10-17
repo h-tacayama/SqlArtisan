@@ -831,8 +831,8 @@ public class BuilderReuseTests
     [Fact]
     public void Union_HeldLeftBranchBuilt_ThrowsArgumentException()
     {
-        // The compound continues on the builder Union returned, so the held left
-        // branch alone would drop the operator the caller wrote.
+        // The held left branch shares the compound's parts, so building it would
+        // build the compound's parts under a second handle.
         var held = Select(_t.Code).From(_t);
         _ = held.Union;
 
