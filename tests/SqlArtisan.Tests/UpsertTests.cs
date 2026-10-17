@@ -396,4 +396,16 @@ public class UpsertTests
 
         Assert.Equal("An ON CONFLICT target must not name a column twice.", ex.Message);
     }
+
+    [Fact]
+    public void OnConflict_OtherTableColumn_ThrowsArgumentException()
+    {
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(_t, _t.Code).Values(1).OnConflict(a.Code));
+
+        Assert.Equal(
+            "An ON CONFLICT target must name only columns of the target table.", ex.Message);
+    }
 }

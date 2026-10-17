@@ -80,7 +80,8 @@ the full rationale.
   source's column names, an `ON CONFLICT` target, a join `USING` list, an
   `OUTPUT ... INTO` list — and an `OUTPUT ... INTO` list whose width differs
   from the `OUTPUT` list; a `SET` target another table owns, in an arm that
-  renders it bare (the paragraph below, #674).
+  renders it bare, and a column list entry another table owns (the paragraph
+  below, #674).
   These are call-site defects rejected whatever the engine does (ADR 0011
   decides the class outside its bar) — eagerly, the `OUTPUT ... INTO` width
   at `Into(...)`, but for the joined-`UPDATE` arm's cross-name pairs above,
@@ -376,7 +377,10 @@ one table (a self-`MERGE`) passes, and a handle spelling the name in another cas
 throws. The arms that qualify the target (MySQL's direct-join `UPDATE`, SQL
 Server's re-listed target) render the owner as written, and MySQL's sets a joined
 table's column that way, so they are left alone; `UpdateSetClause` decides at
-`Build()`, where that shape is final, the other clauses at the call.
+`Build()`, where that shape is final, the other clauses at the call. A column
+list renders its entries bare too, so `ColumnListGuard.IsColumnOf` holds the
+`INSERT` and MERGE `ThenInsert` lists and the `ON CONFLICT` target to the
+target, and an `OUTPUT ... INTO` list to its own table, at the call.
 
 ## The empty-state policy (#236)
 

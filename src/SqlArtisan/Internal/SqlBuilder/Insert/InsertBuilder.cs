@@ -49,7 +49,7 @@ internal sealed class InsertBuilder(
 
     public IInsertBuilderOnConflict OnConflict(params DbColumn[] conflictTarget)
     {
-        AddPart(new OnConflictClause(conflictTarget));
+        AddPart(new OnConflictClause(conflictTarget, table));
         return this;
     }
 

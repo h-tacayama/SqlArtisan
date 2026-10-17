@@ -46,18 +46,12 @@ internal static class AssignmentResolver
         return resolved;
     }
 
-    // An unqualified SET target renders its name alone, so another relation's column
-    // would set the target's same-named one (#674). Keyed on the table name the
-    // target renders, so another handle of the target's table stays legal.
     internal static void ThrowIfNotTargetColumn(
         EqualCondition[] assignments, DbTableBase target, string clause)
     {
         for (int i = 0; i < assignments.Length; i++)
         {
-            TableReference owner = ((DbColumn)assignments[i].LeftSide).Owner;
-            if (!ReferenceEquals(owner, target)
-                && (owner is not DbTableBase
-                    || !owner.NameWithoutSchema.SequenceEqual(target.NameWithoutSchema)))
+            if (!ColumnListGuard.IsColumnOf((DbColumn)assignments[i].LeftSide, target))
             {
                 throw new ArgumentException(
                     $"The {clause} assignment list must assign only columns of the "

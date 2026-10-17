@@ -112,7 +112,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   1)` wrote `t.b`. A column of another handle of the target's table, with or
   without a schema, is still accepted. MySQL's joined `UPDATE` and SQL Server's
   `UPDATE` re-listing its target qualify the column, so it renders as written
-  there. (#674)
+  there. A column list does the same for its table: `InsertInto(...)`,
+  `InsertIgnoreInto(...)`, `ThenInsert(...)` and `OnConflict(...)` throw for a
+  column of a table other than the target (`An INSERT column list must name only
+  columns of the target table.`), and `Into(table, ...)` after `Output(...)` for
+  one of a table other than its own. (#674)
 - A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
   release year on SQL Server, the engine's own version number elsewhere. A SQL
   Server value below 2000 (`16`, SQL Server 2022's product version, compared as

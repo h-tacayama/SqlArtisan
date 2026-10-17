@@ -64,6 +64,8 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
             columns, nameof(columns), "An INSERT column list must not contain a null column.");
         ColumnListGuard.ThrowIfDuplicate(
             columns, "An INSERT column list must not name a column twice.");
+        ColumnListGuard.ThrowIfForeignColumn(
+            columns, target, "An INSERT column list must name only columns of the target table.");
 
         _pendingInsertColumnCount = columns.Length;
         AddPart(new MergeInsertClause(columns));

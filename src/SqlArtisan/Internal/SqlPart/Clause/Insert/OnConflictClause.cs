@@ -4,7 +4,7 @@ internal sealed class OnConflictClause : SqlPart
 {
     private readonly DbColumn[] _conflictTarget;
 
-    internal OnConflictClause(DbColumn[] conflictTarget)
+    internal OnConflictClause(DbColumn[] conflictTarget, DbTableBase table)
     {
         CollectionGuard.ThrowIfNullElement(
             conflictTarget,
@@ -12,6 +12,10 @@ internal sealed class OnConflictClause : SqlPart
             "An ON CONFLICT target must not contain a null column.");
         ColumnListGuard.ThrowIfDuplicate(
             conflictTarget, "An ON CONFLICT target must not name a column twice.");
+        ColumnListGuard.ThrowIfForeignColumn(
+            conflictTarget,
+            table,
+            "An ON CONFLICT target must name only columns of the target table.");
         _conflictTarget = conflictTarget;
     }
 

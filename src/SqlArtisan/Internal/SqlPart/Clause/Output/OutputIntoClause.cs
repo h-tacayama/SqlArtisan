@@ -15,6 +15,8 @@ internal sealed class OutputIntoClause : SqlPart
             columns, nameof(columns), "An OUTPUT INTO column list must not contain a null column.");
         ColumnListGuard.ThrowIfDuplicate(
             columns, "An OUTPUT INTO column list must not name a column twice.");
+        ColumnListGuard.ThrowIfForeignColumn(
+            columns, table, "An OUTPUT INTO column list must name only columns of its table.");
         _table = table;
         _columns = columns;
     }

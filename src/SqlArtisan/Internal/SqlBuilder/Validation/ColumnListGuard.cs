@@ -18,4 +18,23 @@ internal static class ColumnListGuard
             }
         }
     }
+
+    internal static void ThrowIfForeignColumn(DbColumn[] columns, DbTableBase table, string message)
+    {
+        for (int i = 0; i < columns.Length; i++)
+        {
+            if (!IsColumnOf(columns[i], table))
+            {
+                throw new ArgumentException(message);
+            }
+        }
+    }
+
+    // A column list or bare SET target renders a column by its name alone, so another
+    // relation's column would name the table's same-named one (#674). Keyed on the
+    // name the table renders, without its schema, so another handle of it stays legal.
+    internal static bool IsColumnOf(DbColumn column, DbTableBase table) =>
+        ReferenceEquals(column.Owner, table)
+        || (column.Owner is DbTableBase
+            && column.Owner.NameWithoutSchema.SequenceEqual(table.NameWithoutSchema));
 }
