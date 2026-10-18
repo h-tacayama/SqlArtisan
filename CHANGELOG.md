@@ -71,7 +71,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `SQLA0102` reports `.Over()` and `.Over(PartitionBy(...))` on a `DISTINCT`
   aggregate (`Count`, `Sum` or `Avg` with `Distinct`) on MySQL, PostgreSQL,
   SQLite and SQL Server, which reject a window there; Oracle runs both.
-  Live-verified on every integration lane. (#662)
+  Live-verified on MySQL 8.0, Oracle XE 21.3.0 and Free 23ai, PostgreSQL 16 and
+  17, SQLite 3.50, and SQL Server 2022 and 2025. (#662)
 
 ### Changed
 - **Breaking:** `TopClause.Percent()` and `WithTies()` return a new
@@ -320,8 +321,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `.Over(PartitionBy(...))` and `.Filter(...)`, and `.Filter(...)` on it returns
   `FilteredDistinctAggregateFunction`, which offers no `.Over(...)`. An ordered
   or framed window over a `DISTINCT` aggregate, or any window after its
-  `FILTER`, runs on no engine, and is now a compile error rather than SQL every
-  engine rejects. The emitted SQL is unchanged. A result passed to an `object`
+  `FILTER`, runs on none of the lanes the `SQLA0102` entry names, and is now a
+  compile error rather than SQL every engine rejects. The emitted SQL is unchanged. A result passed to an `object`
   or `SqlExpression` slot or to `.As(...)` compiles as before; code that writes
   the old type out (`CountFunction`, `SumFunction`, `AvgFunction`,
   `AggregateFunction`, `UnfilteredAggregateFunction`,
