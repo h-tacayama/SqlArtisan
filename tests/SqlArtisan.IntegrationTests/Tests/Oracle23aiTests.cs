@@ -8,9 +8,9 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.IntegrationTests.Tests;
 
 /// <summary>
-/// Engine facts true at Oracle 23ai but not at the 21c baseline lane. Each
-/// test is the live gate for a doc claim whose rejecting half the 21c lane
-/// (<see cref="OracleTests"/>) asserts.
+/// Engine facts read at Oracle 23ai. Most are not true at the 21c baseline lane, each the live
+/// gate for a doc claim whose rejecting half the 21c lane (<see cref="OracleTests"/>) asserts;
+/// a test pinning another fact says what it pins.
 /// </summary>
 [Trait("Engine", "Oracle23ai")]
 public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>

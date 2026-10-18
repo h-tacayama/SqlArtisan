@@ -7,7 +7,8 @@ namespace SqlArtisan.IntegrationTests.Tests;
 
 /// <summary>
 /// Engine facts true at PostgreSQL 17 but not at the 16 baseline lane, each the live gate
-/// for a record whose rejecting half the 16 lane (<see cref="PostgreSqlTests"/>) asserts.
+/// for a record whose rejecting half the 16 lane (<see cref="PostgreSqlTests"/>) asserts,
+/// and the 16 lane's DISTINCT-window facts re-run (#662).
 /// </summary>
 [Trait("Engine", "PostgreSql17")]
 public sealed class PostgreSql17Tests : IClassFixture<PostgreSql17Fixture>
