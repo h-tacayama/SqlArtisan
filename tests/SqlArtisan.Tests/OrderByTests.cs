@@ -158,7 +158,7 @@ public class OrderByTests
     {
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => OrderBy(null!));
 
-        Assert.Equal("orderByItems", ex.ParamName);
+        Assert.Equal(NullOrderByKeyMessage, ex.Message);
     }
 
     private const string NullOrderByKeyMessage =
