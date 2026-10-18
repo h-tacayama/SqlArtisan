@@ -41,9 +41,9 @@ public static partial class Sql
     /// </summary>
     /// <param name="orderByItems">The columns or expressions to order by.</param>
     /// <returns>An <c>ORDER BY</c> clause.</returns>
-    /// <exception cref="ArgumentException">An element of <paramref name="orderByItems"/> is a
-    /// select alias (<c>.As(...)</c>; pass the aliased expression instead), or a string, char,
-    /// bool, date/time or enum value, which binds as a constant that sorts nothing.</exception>
+    /// <exception cref="ArgumentException">An element is a select alias (<c>.As(...)</c>; pass
+    /// the aliased expression instead), a number (pass the column), or a string, char, bool,
+    /// date/time or enum value, which binds as a constant that sorts nothing.</exception>
     public static OrderByClause OrderBy(params object[] orderByItems) =>
         OrderByClause.ParseInExpression(orderByItems);
 }

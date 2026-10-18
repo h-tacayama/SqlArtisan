@@ -62,8 +62,9 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   reuse slip, #581, #582), the call-site-defect guards (a list that repeats a
   name, or an `OUTPUT ... INTO` width mismatch), the joined-target alias
   requirement (#258), an alias sort key inside `OVER` or an aggregate (#672),
-  the correlated guards (#253, #677), and a bound sort, group, partition or
-  `DISTINCT ON` key (#678, #673); 0012 adds value-domain guards (a universally invalid
+  the correlated guards (#253, #677), a bound sort, group, partition or
+  `DISTINCT ON` key (#678, #673), and a number as an expression-position sort
+  key (#693); 0012 adds value-domain guards (a universally invalid
   embedded value also rejects); 0017 adds a second enumerated exception (an omitted
   join predicate some dialects silently reinterpret as `CROSS JOIN`). All four
   are required to answer "will the library throw for this?"

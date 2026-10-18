@@ -108,8 +108,8 @@ the full rationale.
   `OrderBy(...)` call and its dialect-scoped negative-ordinal sibling below at
   `Build()`, both for the statement position of every query block — a nested
   `SELECT` and a CTE body resolve their own ordinals — while `OVER (...)`,
-  `WITHIN GROUP` and `GROUP_CONCAT` read the same literal as an expression and
-  take it, so those positions stay unguarded on every dialect.
+  `WITHIN GROUP` and the inline aggregate orderings reject every number at the
+  call (the bound-value paragraph below, #693).
 - *Value-domain*: percentile fraction — finite (pre-existing) and 0..1 (#295);
   `Ntile(buckets)` and `NthValue(expr, n)` — both positive; a `PRECEDING`/
   `FOLLOWING` frame-bound offset — non-negative; a window frame's bound kind
@@ -270,8 +270,8 @@ rarely the collision is written and left out. The statement position emits
 as written, and `docs/query-statements.md` § ORDER BY carries the
 `[!WARNING]` (live: PostgreSQL 16, SQLite 3.45.1).
 
-**A bound value is no sort, group, partition or `DISTINCT ON` key (decided — do not
-re-file):** a
+**A bound value is no sort, group, partition or `DISTINCT ON` key, nor a number
+an expression-position sort key (decided — do not re-file):** a
 bound `string`, `char`, `bool`, date/time or enum value is a constant, which
 sorts or groups nothing (`ORDER BY $1` bound to `'a'` or to an enum's integer
 returned the rows unsorted on PostgreSQL 16 and SQLite 3.45.1, live), so
@@ -290,7 +290,15 @@ rejects a subquery: taking one directly is an addition, left to demand
 subquery stays a grouping element (it runs on PostgreSQL 16, live).
 `DistinctOn(...)` renders an integer as the select-list position PostgreSQL, its
 one engine, reads there, rejecting one below 1 at the call as `GroupBy` does
-(both live), and rejects every other value.
+(both live), and rejects every other value. Inside `OVER`, `WITHIN GROUP` or an
+aggregate a number in an `ORDER BY` is a constant key, as in `PARTITION BY`
+(`ROW_NUMBER() OVER (ORDER BY 1)` numbers
+the rows in input order on PostgreSQL 16 and SQLite 3.45.1, and
+`PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY 1)` returns `1` on PostgreSQL 16,
+live): `Sql.OrderBy(...)` and
+`PartitionBy(...).OrderBy(...)` reject every number at the call (#693); how
+MySQL, Oracle and SQL Server read one there is not verified. The statement
+`ORDER BY` keeps its ordinals and its non-integer constants (ADR 0011).
 
 **A held stage's out-of-order clause stays unguarded (decided — do not
 re-file):** a held builder can still append a clause after the one it must
@@ -586,6 +594,12 @@ the caller did not mean. Judge a null argument by which failure it produces:
   SQLite) and rejected by PostgreSQL 16 in `GROUP BY`, a grouping element and
   `DISTINCT ON` (all live), so it is no remedy in any of the three and
   `ExpressionResolver.NullKey` names a column or an expression instead (#673).
+  An `ORDER BY` key is a fourth (#693): a statement `ORDER BY NULL` fails on
+  PostgreSQL 16 and sorts by a constant on SQLite, and `PERCENTILE_CONT(0.5)
+  WITHIN GROUP (ORDER BY NULL)` returns NULL with no error on PostgreSQL 16
+  (live). `OrderBy(Null)` inside `OVER` runs on PostgreSQL 16 and SQLite 3.45.1
+  (live) and stays the frame spelling with no ordering; the message's "an
+  expression" covers it.
   MySQL's `Against` takes search text, not a compared value, so neither remedy
   fits: its own message says a NULL search text
   matches no row (live on 8.0, in every modifier form) and names passing the

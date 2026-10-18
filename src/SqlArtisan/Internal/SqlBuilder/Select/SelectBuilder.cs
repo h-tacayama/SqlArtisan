@@ -276,8 +276,7 @@ internal class SelectBuilder :
     public ISelectBuilderOrderBy OrderBy(params object[] orderByItems)
     {
         OrderByClause orderBy = OrderByClause.Parse(orderByItems);
-        // No engine resolves column position 0 (ADR 0007's incomplete construct);
-        // checked here, not in Parse, because a window's ordering takes the literal.
+        // No engine resolves column position 0 (ADR 0007's incomplete construct).
         if (orderBy.HasZeroOrdinal)
         {
             throw new ArgumentException(
