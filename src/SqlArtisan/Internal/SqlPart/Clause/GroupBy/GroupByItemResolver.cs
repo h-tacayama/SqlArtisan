@@ -4,6 +4,8 @@ namespace SqlArtisan.Internal;
 
 internal static class GroupByItemResolver
 {
+    private const string GroupBy = $"{Keywords.Group} {Keywords.By}";
+
     internal static SqlPart[] Resolve(object[] groupByItems)
     {
         if (groupByItems is null)
@@ -97,20 +99,22 @@ internal static class GroupByItemResolver
     {
         if (elements is null)
         {
-            throw new ArgumentNullException(nameof(elements), ExpressionResolver.NullValueMessage);
+            throw ExpressionResolver.NullKey(nameof(elements), GroupBy);
         }
 
         SqlPart[] resolved = new SqlPart[elements.Length + 1];
-        resolved[0] = ResolveElement(element);
+        resolved[0] = ResolveElement(element, nameof(element));
 
         for (int i = 0; i < elements.Length; i++)
         {
-            resolved[i + 1] = ResolveElement(elements[i]);
+            resolved[i + 1] = ResolveElement(elements[i], nameof(elements));
         }
 
         return resolved;
     }
 
-    private static SqlPart ResolveElement(object element) =>
-        element is GroupingSet set ? set : ExpressionResolver.ResolveKey(element, "GroupByItem");
+    private static SqlPart ResolveElement(object element, string paramName) =>
+        element is GroupingSet set
+            ? set
+            : ExpressionResolver.ResolveKey(element, paramName, "GroupByItem", GroupBy);
 }

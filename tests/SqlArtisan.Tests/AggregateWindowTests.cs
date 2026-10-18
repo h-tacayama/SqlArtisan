@@ -63,6 +63,19 @@ public class AggregateWindowTests
     }
 
     [Fact]
+    public void PartitionBy_NullKey_ThrowsArgumentNullException()
+    {
+        // Sql.Null, the generic remedy, would partition by a constant too.
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            PartitionBy(_t.Code, null!));
+
+        Assert.Equal(
+            "A PARTITION BY key cannot be a C# null; pass a column or an expression. "
+                + "(Parameter 'expressions')",
+            ex.Message);
+    }
+
+    [Fact]
     public void Sum_OverOrderBy_CorrectSql()
     {
         // Arrange

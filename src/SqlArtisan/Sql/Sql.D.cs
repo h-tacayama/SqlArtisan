@@ -476,6 +476,8 @@ public static partial class Sql
     /// (<c>1</c> is the first item); at least one.</param>
     /// <returns>A <c>DISTINCT ON (...)</c> select prefix.</returns>
     /// <remarks>PostgreSQL syntax; emitted faithfully on every dialect.</remarks>
+    /// <exception cref="ArgumentException">An element is an integer below 1, or a value other
+    /// than an integer, an expression or a subquery, which would bind as a constant.</exception>
     public static DistinctOnKeyword DistinctOn(params object[] expressions) =>
         new(DistinctOnItemResolver.Resolve(expressions));
 

@@ -11,8 +11,14 @@ public static partial class Sql
     /// </summary>
     /// <param name="expressions">The columns or expressions to partition by.</param>
     /// <returns>A <c>PARTITION BY</c> clause.</returns>
+    /// <exception cref="ArgumentException">An element is a value rather than an expression or a
+    /// subquery, which would bind as a constant that groups nothing.</exception>
     public static PartitionByClause PartitionBy(params object[] expressions) =>
-        new(ResolveKeys(expressions, "PartitionByItem"));
+        new(ResolveKeys(
+            expressions,
+            nameof(expressions),
+            "PartitionByItem",
+            $"{Keywords.Partition} {Keywords.By}"));
 
     /// <summary>
     /// The <c>PERCENTILE_CONT(fraction)</c> ordered-set aggregate (continuous

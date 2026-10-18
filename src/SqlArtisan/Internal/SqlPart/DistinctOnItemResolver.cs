@@ -7,11 +7,16 @@ namespace SqlArtisan.Internal;
 // that keeps a single row (#673).
 internal static class DistinctOnItemResolver
 {
+    private const string DistinctOn = $"{Keywords.Distinct} {Keywords.On}";
+
+    // The parameter of Sql.DistinctOn a null is reported against.
+    private const string ExpressionsParam = "expressions";
+
     internal static SqlExpression[] Resolve(object[] items)
     {
         if (items is null)
         {
-            throw new ArgumentNullException(nameof(items), ExpressionResolver.NullValueMessage);
+            throw ExpressionResolver.NullKey(ExpressionsParam, DistinctOn);
         }
 
         var resolved = new SqlExpression[items.Length];
@@ -21,7 +26,8 @@ internal static class DistinctOnItemResolver
             resolved[i] = items[i] is sbyte or byte or short or ushort or int or uint or nint
                 or nuint or long or ulong
                 ? ResolveOrdinal((IFormattable)items[i])
-                : ExpressionResolver.ResolveKey(items[i], "DistinctOnItem");
+                : ExpressionResolver.ResolveKey(
+                    items[i], ExpressionsParam, "DistinctOnItem", DistinctOn);
         }
 
         return resolved;

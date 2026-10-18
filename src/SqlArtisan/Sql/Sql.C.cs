@@ -682,6 +682,8 @@ public static partial class Sql
     /// </summary>
     /// <remarks>Not supported by MySQL or SQLite; emitted as written for the
     /// database to reject.</remarks>
+    /// <exception cref="ArgumentException">An element is a value rather than an expression or a
+    /// subquery, which would bind as a constant that groups nothing.</exception>
     public static CubeGrouping Cube(object element, params object[] elements) =>
         new(GroupByItemResolver.ResolveElements(element, elements));
 
