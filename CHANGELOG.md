@@ -320,9 +320,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   now return `DistinctAggregateFunction`, which offers only `.Over()`,
   `.Over(PartitionBy(...))` and `.Filter(...)`, and `.Filter(...)` on it returns
   `FilteredDistinctAggregateFunction`, which offers no `.Over(...)`. An ordered
-  or framed window over a `DISTINCT` aggregate, or any window after its
-  `FILTER`, runs on none of the lanes the `SQLA0102` entry names, and is now a
-  compile error rather than SQL every engine rejects. The emitted SQL is unchanged. A result passed to an `object`
+  or framed window over a `DISTINCT` aggregate runs on none of the lanes the
+  `SQLA0102` entry names, and a window after its `FILTER` runs on neither
+  engine with `FILTER` (observed on PostgreSQL 16 and SQLite 3.50); both are
+  now compile errors rather than SQL those engines reject. The emitted SQL is unchanged. A result passed to an `object`
   or `SqlExpression` slot or to `.As(...)` compiles as before; code that writes
   the old type out (`CountFunction`, `SumFunction`, `AvgFunction`,
   `AggregateFunction`, `UnfilteredAggregateFunction`,
