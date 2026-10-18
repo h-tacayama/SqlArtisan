@@ -120,7 +120,8 @@ public static <Name>Function <Name>(object a, object b) =>
 
 // DISTINCT overload (aggregates), see Avg in Sql.A.cs. It returns the shared
 // DistinctAggregateFunction, which withholds the windows no engine runs on a
-// DISTINCT aggregate (#662):
+// DISTINCT aggregate (#662); add the token to DistinctAggregateWindows.Aggregates
+// in the integration tests so every lane pins its windows:
 public static DistinctAggregateFunction <Name>(DistinctKeyword distinct, object expr) =>
     new(Keywords.<Name>, distinct, Resolve(expr));
 ```
