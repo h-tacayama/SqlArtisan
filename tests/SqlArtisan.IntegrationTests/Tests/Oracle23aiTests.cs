@@ -267,8 +267,9 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         transaction.Rollback();
     }
 
-    // #662: whether the engine runs a window on a DISTINCT aggregate decides
-    // whether the library may reject the pairing as valid on no dialect (ADR 0007).
+    // The 21c lane's #662 DISTINCT-window facts, re-run at 23ai: whether the engine
+    // runs a window on a DISTINCT aggregate decides whether the library may reject the
+    // pairing as valid on no dialect (ADR 0007).
     [Theory]
     [MemberData(
         nameof(DistinctAggregateWindows.OrderedOnly),

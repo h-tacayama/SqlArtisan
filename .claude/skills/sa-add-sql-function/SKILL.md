@@ -118,9 +118,11 @@ public static <Name>Function <Name>(object expr) => new(Resolve(expr));
 public static <Name>Function <Name>(object a, object b) =>
     new(Resolve(a), Resolve(b));
 
-// DISTINCT overload (aggregates), see Avg in Sql.A.cs:
-public static <Name>Function <Name>(DistinctKeyword distinct, object expr) =>
-    new(distinct, Resolve(expr));
+// DISTINCT overload (aggregates), see Avg in Sql.A.cs. It returns the shared
+// DistinctAggregateFunction, which withholds the windows no engine runs on a
+// DISTINCT aggregate (#662):
+public static DistinctAggregateFunction <Name>(DistinctKeyword distinct, object expr) =>
+    new(Keywords.<Name>, distinct, Resolve(expr));
 ```
 
 Rules:

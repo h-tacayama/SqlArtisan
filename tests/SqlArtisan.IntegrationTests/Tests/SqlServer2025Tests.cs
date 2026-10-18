@@ -6,7 +6,8 @@ namespace SqlArtisan.IntegrationTests.Tests;
 
 /// <summary>
 /// SQL Server 2025 facts beside its bound sweep (#614): the <c>REGEXP_*</c> match-parameter
-/// alphabet, and what a database kept at compatibility level 160 still accepts.
+/// alphabet, what a database kept at compatibility level 160 still accepts, and the 2022
+/// lane's DISTINCT-window rejections re-run (#662).
 /// </summary>
 [Trait("Engine", "SqlServer2025")]
 public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
@@ -89,8 +90,9 @@ public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
         }
     }
 
-    // #662: whether the engine runs a window on a DISTINCT aggregate decides
-    // whether the library may reject the pairing as valid on no dialect (ADR 0007).
+    // The 2022 lane's #662 DISTINCT-window facts, re-run at 2025: whether the engine
+    // runs a window on a DISTINCT aggregate decides whether the library may reject the
+    // pairing as valid on no dialect (ADR 0007).
     [Theory]
     [MemberData(
         nameof(DistinctAggregateWindows.Every),

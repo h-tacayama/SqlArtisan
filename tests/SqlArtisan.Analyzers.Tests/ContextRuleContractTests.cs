@@ -83,20 +83,22 @@ public class ContextRuleContractTests
             declaringTypes);
     }
 
-    [Theory]
-    [InlineData("Count")]
-    [InlineData("Sum")]
-    [InlineData("Avg")]
-    public void DistinctAggregateOver_IsTheNodeTheDistinctFactoriesReturn(string factory)
+    [Fact]
+    public void DistinctAggregateOver_IsTheNodeEveryDistinctFactoryReturns()
     {
-        // The DISTINCT window rule keys on this receiver name; a DISTINCT factory
-        // returning another type would escape it.
-        MethodInfo method = Assert.Single(
-            typeof(Sql).GetMethods(BindingFlags.Public | BindingFlags.Static)
-                .Where(m => m.Name == factory
-                    && m.GetParameters() is [{ ParameterType.Name: "DistinctKeyword" }, _]));
+        // The DISTINCT window rule keys on this name; another node reopens #662's windows.
+        // GroupConcat stays one type across its forms (public-api-design.md, #664).
+        string[] factories = [.. typeof(Sql).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Where(m => m.GetParameters() is [{ ParameterType.Name: "DistinctKeyword" }, ..]
+                && typeof(SqlExpression).IsAssignableFrom(m.ReturnType)
+                && m.Name != "GroupConcat")
+            .Select(m => $"{m.Name}:{m.ReturnType.Name}")
+            .Order()];
 
-        Assert.Equal("DistinctAggregateFunction", method.ReturnType.Name);
+        Assert.Equal(
+            ["Avg:DistinctAggregateFunction", "Count:DistinctAggregateFunction",
+                "Sum:DistinctAggregateFunction"],
+            factories);
     }
 
     [Fact]

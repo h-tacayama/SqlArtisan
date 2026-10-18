@@ -56,8 +56,9 @@ public sealed class PostgreSql17Tests : IClassFixture<PostgreSql17Fixture>
         transaction.Rollback();
     }
 
-    // #662: whether the engine runs a window on a DISTINCT aggregate decides
-    // whether the library may reject the pairing as valid on no dialect (ADR 0007).
+    // The 16 lane's #662 DISTINCT-window facts, re-run at 17: whether the engine
+    // runs a window on a DISTINCT aggregate decides whether the library may reject the
+    // pairing as valid on no dialect (ADR 0007).
     [Theory]
     [MemberData(
         nameof(DistinctAggregateWindows.Every),
