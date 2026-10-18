@@ -53,6 +53,20 @@ public class DistinctAggregateTests
     }
 
     [Fact]
+    public void CountDistinct_FilterPartlyExcludedConditions_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Count(Distinct, _t.Code).Filter(ConditionIf(false, _t.Code > 0) & (_t.Code < 9)))
+            .From(_t)
+            .Build();
+
+        Assert.Equal(
+            "SELECT COUNT(DISTINCT code) FILTER (WHERE (code < :0)) FROM test_table",
+            sql.Text);
+        Assert.Equal(9, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
     public void CountDistinct_FilterAllConditionsExcluded_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
