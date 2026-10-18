@@ -323,9 +323,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   or framed window over a `DISTINCT` aggregate runs on none of the lanes the
   `SQLA0102` entry names, and a window after its `FILTER` runs on neither
   engine with `FILTER` (observed on PostgreSQL 16 and SQLite 3.50); both are
-  now compile errors rather than SQL those engines reject. The emitted SQL is unchanged. A result passed to an `object`
-  or `SqlExpression` slot or to `.As(...)` compiles as before; code that writes
-  the old type out (`CountFunction`, `SumFunction`, `AvgFunction`,
+  now compile errors rather than SQL those engines reject. The emitted SQL is
+  unchanged. A result passed to an `object` or `SqlExpression` slot or to
+  `.As(...)` compiles as before; code that writes the old type out
+  (`CountFunction`, `SumFunction`, `AvgFunction`,
   `AggregateFunction`, `UnfilteredAggregateFunction`,
   `FilteredAggregateFunction`), or infers one type from a `DISTINCT` and a
   plain call (`cond ? Count(Distinct, x) : Count(x)`, an implicitly typed array
