@@ -186,7 +186,7 @@ public class OrderByTests
     [Fact]
     public void OrderBy_StatementNullItem_ThrowsArgumentNullException()
     {
-        // Sql.Null, the generic remedy, sorts by a constant here too.
+        // Sql.Null is no remedy here either: PostgreSQL rejects it, SQLite sorts by a constant.
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             Select(_t.Code).From(_t).OrderBy(_t.Code, null!));
 

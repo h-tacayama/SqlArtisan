@@ -263,8 +263,8 @@ a new one the analyzer can see.
   dialect-blind guard: no engine resolves position 0, so it is ADR 0007's
   incomplete construct and owes no entry here. Both arms are statement-scoped
   through `FindPart<OrderByClause>()`, in each query block the build renders;
-  `OVER (...)`, `WITHIN GROUP` and `GROUP_CONCAT` orderings reject every number
-  at the call instead (#693).
+  `OVER (...)`, `WITHIN GROUP` and the inline aggregate orderings reject every
+  number at the call instead (#693).
   Live twins: `OrderByNegativeOrdinal_IsRejectedByTheEngine` on the PostgreSQL,
   SQLite and SQL Server lanes, `OrderByNegativeOrdinalInSubquery_IsRejectedByTheEngine`
   and `OrderByZeroOrdinalInCteBody_IsRejectedByTheEngine` for the nested blocks,

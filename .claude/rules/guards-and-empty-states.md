@@ -108,8 +108,8 @@ the full rationale.
   `OrderBy(...)` call and its dialect-scoped negative-ordinal sibling below at
   `Build()`, both for the statement position of every query block — a nested
   `SELECT` and a CTE body resolve their own ordinals — while `OVER (...)`,
-  `WITHIN GROUP` and `GROUP_CONCAT` reject every number at the call (the
-  bound-value paragraph below, #693).
+  `WITHIN GROUP` and the inline aggregate orderings reject every number at the
+  call (the bound-value paragraph below, #693).
 - *Value-domain*: percentile fraction — finite (pre-existing) and 0..1 (#295);
   `Ntile(buckets)` and `NthValue(expr, n)` — both positive; a `PRECEDING`/
   `FOLLOWING` frame-bound offset — non-negative; a window frame's bound kind

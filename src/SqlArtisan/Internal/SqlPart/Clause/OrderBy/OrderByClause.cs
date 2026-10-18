@@ -64,7 +64,7 @@ public sealed class OrderByClause : SqlPart
     }
 
     // Checked before resolving, so NaN gets this message rather than the finite one;
-    // a null array or element is left to the resolver's own message.
+    // a number anywhere in the list is reported before a null or another bad item.
     private static void ThrowIfNumericKey(object[] orderByItems)
     {
         if (orderByItems is null)
@@ -74,7 +74,7 @@ public sealed class OrderByClause : SqlPart
 
         foreach (object item in orderByItems)
         {
-            if (item is not null && ExpressionResolver.IsNumeric(item))
+            if (ExpressionResolver.IsNumeric(item))
             {
                 throw new ArgumentException(
                     "An ORDER BY inside OVER, WITHIN GROUP or an aggregate cannot sort by a "
