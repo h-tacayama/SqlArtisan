@@ -387,7 +387,7 @@ nothing, so a column name held in a string, or a sort-field enum, cannot pick
 the sort column. Choose
 the column in C# instead (`OrderBy(sortByName ? u.Name : u.Id)`), and pass
 `Bind(value)` only to order by a deliberate constant. Inside `OVER`,
-`WITHIN GROUP` and the aggregates, `Sql.OrderBy(...)` throws for a number too;
+`WITHIN GROUP` and the aggregates, `OrderBy(...)` throws for a number too;
 pass the column there.
 
 > [!WARNING]

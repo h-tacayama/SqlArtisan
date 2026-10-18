@@ -595,8 +595,8 @@ the caller did not mean. Judge a null argument by which failure it produces:
   `DISTINCT ON` (all live), so it is no remedy in any of the three and
   `ExpressionResolver.NullKey` names a column or an expression instead (#673).
   An `ORDER BY` key is a fourth (#693): `ORDER BY NULL` fails on PostgreSQL 16
-  and sorts by a constant on SQLite, and `WITHIN GROUP (ORDER BY NULL)` returns
-  NULL with no error (live). `OrderBy(Null)` inside `OVER` stays the frame
+  and sorts by a constant on SQLite, and `PERCENTILE_CONT(0.5) WITHIN GROUP
+  (ORDER BY NULL)` returns NULL with no error on PostgreSQL 16 (live). `OrderBy(Null)` inside `OVER` stays the frame
   spelling with no ordering; the message's "an expression" covers it.
   MySQL's `Against` takes search text, not a compared value, so neither remedy
   fits: its own message says a NULL search text

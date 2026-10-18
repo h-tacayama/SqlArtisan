@@ -149,8 +149,8 @@ override — so every build path (including `Returning()`, which funnels through
   one as a constant in `PARTITION BY`, live), and `DISTINCT ON` takes an integer
   only as the select-list position PostgreSQL reads it as. #693 extends it to an
   `ORDER BY` inside `OVER`, `WITHIN GROUP` or an aggregate, where a number is a
-  constant key (PostgreSQL 16 and SQLite 3.45.1, live), so `Sql.OrderBy(...)`
-  rejects every number, as `PartitionBy` does.
+  constant key (PostgreSQL 16 and SQLite 3.45.1, live), so `Sql.OrderBy(...)` and
+  `PartitionBy(...).OrderBy(...)` reject every number, as `PartitionBy` does.
 - **Revisit when joined DML lands (#237).** Once `UPDATE … FROM` / `DELETE … FROM`
   give SQL Server a real spelling for the aliased/correlated shape, this guard's
   premise ("no valid spelling exists") weakens; re-evaluate whether it should
