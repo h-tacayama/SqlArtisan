@@ -653,4 +653,13 @@ public class GroupByTests
                 + "\"t\".name)",
             sql.Text);
     }
+
+    [Fact]
+    public void Rollup_ExplicitBind_CorrectSql()
+    {
+        SqlStatement sql = Select(Count(Asterisk)).From(_t).GroupBy(Rollup(Bind(1))).Build();
+
+        Assert.Equal("SELECT COUNT(*) FROM test_table \"t\" GROUP BY ROLLUP(:0)", sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
 }

@@ -306,6 +306,16 @@ public class SelectTests
             "SELECT DISTINCT ON (1) \"t\".code, \"t\".name FROM test_table \"t\"", sql.Text);
     }
 
+    [Fact]
+    public void Select_DistinctOnExplicitBind_CorrectSql()
+    {
+        // A bound integer is a constant, not the ordinal a literal one renders as.
+        SqlStatement sql = Select(DistinctOn(Bind(1)), _t.Code).From(_t).Build();
+
+        Assert.Equal("SELECT DISTINCT ON (:0) \"t\".code FROM test_table \"t\"", sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]

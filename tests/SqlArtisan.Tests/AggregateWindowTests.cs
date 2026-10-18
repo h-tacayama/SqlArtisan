@@ -63,6 +63,15 @@ public class AggregateWindowTests
     }
 
     [Fact]
+    public void PartitionBy_ExplicitBind_CorrectSql()
+    {
+        SqlStatement sql = Select(Sum(_t.Code).Over(PartitionBy(Bind("a")))).Build();
+
+        Assert.Equal("SELECT SUM(code) OVER (PARTITION BY :0)", sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
     public void PartitionBy_NullKey_ThrowsArgumentNullException()
     {
         // Sql.Null, the generic remedy, would partition by a constant too.
