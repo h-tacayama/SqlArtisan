@@ -333,6 +333,18 @@ public class SelectTests
     }
 
     [Fact]
+    public void Select_DistinctOnNullKey_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            DistinctOn(_t.Code, null!));
+
+        Assert.Equal(
+            "A DISTINCT ON key cannot be a C# null; pass a column or an expression. "
+                + "(Parameter 'expressions')",
+            ex.Message);
+    }
+
+    [Fact]
     public void Select_DistinctOnWithOrderBy_CorrectSql()
     {
         SqlStatement sql =

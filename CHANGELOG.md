@@ -154,7 +154,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `PARTITION BY`). Pass the column itself, or `Bind(value)` for a deliberate
   constant. `DistinctOn(1)` now emits the select-list position
   `DISTINCT ON (1)`, and a position below 1 throws. A subquery stays a grouping
-  element. (#673)
+  element. A C# null in any of these positions, or in `GroupBy(...)` itself, now
+  says `A GROUP BY key cannot be a C# null; pass a column or an expression.` (or
+  `PARTITION BY` / `DISTINCT ON`) instead of naming `Sql.Null`, which is itself a
+  constant key (`GROUP BY NULL` is one group on SQLite, live). (#673)
 - A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
   release year on SQL Server, the engine's own version number elsewhere. A SQL
   Server value below 2000 (`16`, SQL Server 2022's product version, compared as

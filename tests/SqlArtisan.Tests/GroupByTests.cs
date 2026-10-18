@@ -488,7 +488,7 @@ public class GroupByTests
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             Select(_t.Code).From(_t).GroupBy(null!));
 
-        Assert.Equal("groupByItems", ex.ParamName);
+        Assert.Equal(NullGroupByKey("groupByItems"), ex.Message);
     }
 
     [Fact]
@@ -498,11 +498,21 @@ public class GroupByTests
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             Select(_t.Code).From(_t).GroupBy(_t.Code, null!));
 
-        Assert.Equal(
-            "A GROUP BY key cannot be a C# null; pass a column or an expression. "
-                + "(Parameter 'groupByItems')",
-            ex.Message);
+        Assert.Equal(NullGroupByKey("groupByItems"), ex.Message);
     }
+
+    [Fact]
+    public void Group_NullKey_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            Group(_t.Code, null!));
+
+        Assert.Equal(NullGroupByKey("columns"), ex.Message);
+    }
+
+    private static string NullGroupByKey(string paramName) =>
+        "A GROUP BY key cannot be a C# null; pass a column or an expression. "
+            + $"(Parameter '{paramName}')";
 
     [Fact]
     public void Rollup_WithNullElements_ThrowsArgumentNullException()
@@ -510,7 +520,7 @@ public class GroupByTests
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             Rollup(_t.Code, null!));
 
-        Assert.Equal("elements", ex.ParamName);
+        Assert.Equal(NullGroupByKey("elements"), ex.Message);
     }
 
     [Fact]
@@ -519,7 +529,7 @@ public class GroupByTests
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             Cube(_t.Code, null!));
 
-        Assert.Equal("elements", ex.ParamName);
+        Assert.Equal(NullGroupByKey("elements"), ex.Message);
     }
 
     [Fact]
