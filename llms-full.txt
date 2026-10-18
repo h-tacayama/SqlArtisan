@@ -3111,7 +3111,7 @@ SqlStatement sql =
 
 A `PartitionBy(...)` key is a column, an expression or a subquery. An integer, a string or another value throws `Invalid type for PartitionByItem: ...` at the call: bound, it would partition by a constant.
 
-A `DISTINCT` aggregate — `Count(Distinct, ...)`, `Sum(Distinct, ...)` or `Avg(Distinct, ...)` — takes only `Over()` and `Over(PartitionBy(...))`: an ordered or framed window over one runs on no engine, so it does not compile. Oracle runs those two; MySQL, PostgreSQL, SQLite and SQL Server reject them, which the [analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102) flags.
+A `DISTINCT` aggregate — `Count(Distinct, ...)`, `Sum(Distinct, ...)` or `Avg(Distinct, ...)` — takes only `Over()` and `Over(PartitionBy(...))`: an ordered or framed window over one runs on no engine, so it does not compile. Oracle runs those two; MySQL, PostgreSQL, SQLite and SQL Server reject them (observed on MySQL 8.0, Oracle XE 21.3.0 and Free 23ai, PostgreSQL 16 and 17, SQLite 3.50, and SQL Server 2022 and 2025), which the [analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102) flags.
 
 #### Window Frames (ROWS / RANGE)
 
@@ -3181,7 +3181,7 @@ SqlStatement sql =
 // FROM users
 ```
 
-Chain `.Over(...)` afterwards for a filtered window function — `SUM(amount) FILTER (WHERE ...) OVER (PARTITION BY ...)`. A filtered `DISTINCT` aggregate takes no `.Over(...)`: PostgreSQL and SQLite, the engines with `FILTER`, run no window over a `DISTINCT` aggregate.
+Chain `.Over(...)` afterwards for a filtered window function — `SUM(amount) FILTER (WHERE ...) OVER (PARTITION BY ...)`. A filtered `DISTINCT` aggregate takes no `.Over(...)`: PostgreSQL and SQLite, the engines with `FILTER`, run no window over a `DISTINCT` aggregate (observed on PostgreSQL 16 and 17 and SQLite 3.50).
 
 - Native on PostgreSQL and SQLite. It is emitted faithfully on every dialect (never rewritten to a `CASE` expression); engines without it reject it, which the analyzer can flag.
 
