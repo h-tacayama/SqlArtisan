@@ -187,7 +187,7 @@ internal static class ExpressionResolver
         };
     }
 
-    // NullValueMessage's Sql.Null is itself the constant key a key position rejects.
+    // NullValueMessage's remedy, Sql.Null, is itself a constant key, so it is no remedy here.
     internal static ArgumentNullException NullKey(string paramName, string construct) =>
         new(paramName, $"A {construct} key cannot be a C# null; pass a column or an expression.");
 

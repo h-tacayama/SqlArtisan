@@ -3107,7 +3107,7 @@ SqlStatement sql =
 
 `Over()` supports the whole result set (`OVER ()`), `PartitionBy(...)`, `OrderBy(...)`, and `PartitionBy(...).OrderBy(...)`.
 
-A `PartitionBy(...)` key is a column, an expression or a subquery. An integer, a string or another value throws `Invalid type for PartitionByItem: ...` at the call: bound, it would partition by a constant, and no integer there is a select-list position.
+A `PartitionBy(...)` key is a column, an expression or a subquery. An integer, a string or another value throws `Invalid type for PartitionByItem: ...` at the call: bound, it would partition by a constant.
 
 **Note:** Most databases do not allow `DISTINCT` in a windowed aggregate (e.g. `SUM(DISTINCT x) OVER (...)`), so avoid combining a distinct aggregate with `Over(...)`.
 
