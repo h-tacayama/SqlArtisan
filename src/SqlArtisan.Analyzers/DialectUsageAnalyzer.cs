@@ -367,9 +367,19 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 ContextRules.CheckPercentileRequiresOver(
                     context, invocation, TargetDbmsNames.Display(TargetDbms.SqlServer));
                 break;
-            case "Over" when targets.Contains(TargetDbms.SqlServer):
-                ContextRules.CheckUnorderedWindowRequiresOrderBy(
-                    context, invocation, TargetDbmsNames.Display(TargetDbms.SqlServer));
+            case "Over":
+                if (targets.Contains(TargetDbms.SqlServer))
+                {
+                    ContextRules.CheckUnorderedWindowRequiresOrderBy(
+                        context, invocation, TargetDbmsNames.Display(TargetDbms.SqlServer));
+                }
+
+                if (ContextRules.RejectingTargets(targets, s_distinctWindowUnsupported)
+                    is { } distinctNames)
+                {
+                    ContextRules.CheckDistinctAggregateWindow(context, invocation, distinctNames);
+                }
+
                 break;
             case "Inserted" or "Deleted" when targets.Contains(TargetDbms.SqlServer):
                 ContextRules.CheckPseudoTableRequiresOutput(
@@ -427,6 +437,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         [TargetDbms.Oracle, TargetDbms.PostgreSql, TargetDbms.Sqlite];
 
     private static readonly TargetDbms[] s_deleteUsingUnsupported = [TargetDbms.Oracle];
+
+    // Every engine but Oracle (live twins, #662).
+    private static readonly TargetDbms[] s_distinctWindowUnsupported =
+        [TargetDbms.MySql, TargetDbms.PostgreSql, TargetDbms.Sqlite, TargetDbms.SqlServer];
 
     private static readonly TargetDbms[] s_updateFromUnsupported =
         [TargetDbms.MySql, TargetDbms.Oracle, TargetDbms.Sqlite];

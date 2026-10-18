@@ -129,6 +129,27 @@ internal static class ContextRules
     }
 
     /// <summary>
+    /// Oracle alone runs a window on a <c>DISTINCT</c> aggregate, and only the empty
+    /// and partition-only ones, which are all the node offers (live twins on every
+    /// lane, #662).
+    /// </summary>
+    public static void CheckDistinctAggregateWindow(
+        OperationAnalysisContext context, IInvocationOperation over, string dialectNames)
+    {
+        if (over.TargetMethod.ContainingType.Name != "DistinctAggregateFunction")
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            over.Syntax.GetLocation(),
+            over.TargetMethod.Name,
+            "over a DISTINCT aggregate",
+            dialectNames));
+    }
+
+    /// <summary>
     /// SQL Server exposes the percentiles only as window functions, so the bare
     /// <c>WITHIN GROUP</c> form Oracle and PostgreSQL accept has no spelling there.
     /// </summary>

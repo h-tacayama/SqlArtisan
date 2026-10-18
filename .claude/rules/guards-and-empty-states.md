@@ -680,10 +680,11 @@ stage.
 - **Four or fewer copies: compile time.** `WithRecursive` (1, #521), the
   `WhenNotMatchedBySource` branch (1), the direct-join `UPDATE`'s `SET`,
   which leaves out `From` (1), `StringAgg`'s inline `ORDER BY` (1, #582),
-  `RETURNING` on the joined `DELETE ... FROM` and direct-join `UPDATE` (2: their
-  `WHERE` stages, #582), Oracle's MERGE action filters on a conditioned branch
-  (3: the `WHEN MATCHED AND` and `WHEN NOT MATCHED AND` stages and the latter's
-  `INSERT`, #582) and `InsertIgnoreInto` (4: its Table, Columns, Values and Set
+  DISTINCT aggregate windows (2: the node the three DISTINCT factories share
+  and its filtered form, #662), `RETURNING` on the joined `DELETE ... FROM`
+  and direct-join `UPDATE` (2: their `WHERE` stages, #582), Oracle's MERGE
+  action filters on a conditioned branch (3: the `WHEN MATCHED AND` and
+  `WHEN NOT MATCHED AND` stages and the latter's `INSERT`, #582) and `InsertIgnoreInto` (4: its Table, Columns, Values and Set
   stages, #275).
 - **Five or more: a `Build()` guard**, its count recorded here. A leading
   `WITH` before `ON DUPLICATE KEY UPDATE` (6, #569); `TOP` beside

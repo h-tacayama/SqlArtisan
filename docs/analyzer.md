@@ -597,7 +597,7 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. Eighteen rules ship today — eleven reading
+expression where the construct is used. Nineteen rules ship today — twelve reading
 the construct's surroundings, seven reading the DML statement a clause sits in.
 Every verdict below, rejection and acceptance alike, is live-verified on the
 pinned lanes: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
@@ -671,6 +671,19 @@ var q = Select(FirstValue(u.Age).Over(PartitionBy(u.DepartmentId))).From(u);
 // warning SQLA0102: 'Over' is not supported without an ORDER BY in a value analytic function's window on SQL Server
 var r = Select(FirstValue(u.Age).Over()).From(u);
 // warning SQLA0102: 'Over' is not supported without an ORDER BY in a value analytic function's window on SQL Server
+```
+
+**A window over a `DISTINCT` aggregate.** `Count(Distinct, ...)`,
+`Sum(Distinct, ...)` and `Avg(Distinct, ...)` offer only `.Over()` and
+`.Over(PartitionBy(...))`, the two windows an engine runs on one. Oracle runs
+both; MySQL, PostgreSQL, SQLite and SQL Server reject them. An ordered or framed
+window over a `DISTINCT` aggregate runs on none of the five, so it does not
+compile.
+
+```csharp
+// sqlartisan_syntax_postgresql = any
+var q = Select(Count(Distinct, u.Age).Over(PartitionBy(u.DepartmentId))).From(u);
+// warning SQLA0102: 'Over' is not supported over a DISTINCT aggregate on PostgreSQL
 ```
 
 **`INSERTED` / `DELETED` outside an `OUTPUT` clause.** The pseudo-tables are
@@ -871,7 +884,7 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the eleven that read the construct's surroundings, any shape the
+itself. For the twelve that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the

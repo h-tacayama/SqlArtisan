@@ -60,7 +60,8 @@ public class ContextRuleContractTests
             .OrderBy(n => n, StringComparer.Ordinal)];
 
         Assert.Equal(
-            ["AggregateFunction", "PercentileFunction", "ValueAnalyticFunction"],
+            ["AggregateFunction", "DistinctAggregateFunction", "PercentileFunction",
+                "ValueAnalyticFunction"],
             declaringTypes);
     }
 
@@ -77,8 +78,25 @@ public class ContextRuleContractTests
             .OrderBy(n => n, StringComparer.Ordinal)];
 
         Assert.Equal(
-            ["AggregateFunction", "PercentileFunction", "ValueAnalyticFunction"],
+            ["AggregateFunction", "DistinctAggregateFunction", "PercentileFunction",
+                "ValueAnalyticFunction"],
             declaringTypes);
+    }
+
+    [Theory]
+    [InlineData("Count")]
+    [InlineData("Sum")]
+    [InlineData("Avg")]
+    public void DistinctAggregateOver_IsTheNodeTheDistinctFactoriesReturn(string factory)
+    {
+        // The DISTINCT window rule keys on this receiver name; a DISTINCT factory
+        // returning another type would escape it.
+        MethodInfo method = Assert.Single(
+            typeof(Sql).GetMethods(BindingFlags.Public | BindingFlags.Static)
+                .Where(m => m.Name == factory
+                    && m.GetParameters() is [{ ParameterType.Name: "DistinctKeyword" }, _]));
+
+        Assert.Equal("DistinctAggregateFunction", method.ReturnType.Name);
     }
 
     [Fact]

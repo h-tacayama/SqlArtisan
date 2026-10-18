@@ -3111,7 +3111,7 @@ SqlStatement sql =
 
 A `PartitionBy(...)` key is a column, an expression or a subquery. An integer, a string or another value throws `Invalid type for PartitionByItem: ...` at the call: bound, it would partition by a constant.
 
-**Note:** Most databases do not allow `DISTINCT` in a windowed aggregate (e.g. `SUM(DISTINCT x) OVER (...)`), so avoid combining a distinct aggregate with `Over(...)`.
+A `DISTINCT` aggregate — `Count(Distinct, ...)`, `Sum(Distinct, ...)` or `Avg(Distinct, ...)` — takes only `Over()` and `Over(PartitionBy(...))`: an ordered or framed window over one runs on no engine, so it does not compile. Oracle runs those two; MySQL, PostgreSQL, SQLite and SQL Server reject them, which the [analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102) flags.
 
 #### Window Frames (ROWS / RANGE)
 
@@ -3181,7 +3181,7 @@ SqlStatement sql =
 // FROM users
 ```
 
-Chain `.Over(...)` afterwards for a filtered window function — `SUM(amount) FILTER (WHERE ...) OVER (PARTITION BY ...)`.
+Chain `.Over(...)` afterwards for a filtered window function — `SUM(amount) FILTER (WHERE ...) OVER (PARTITION BY ...)`. A filtered `DISTINCT` aggregate takes no `.Over(...)`: PostgreSQL and SQLite, the engines with `FILTER`, run no window over a `DISTINCT` aggregate.
 
 - Native on PostgreSQL and SQLite. It is emitted faithfully on every dialect (never rewritten to a `CASE` expression); engines without it reject it, which the analyzer can flag.
 
@@ -4221,7 +4221,7 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. Eighteen rules ship today — eleven reading
+expression where the construct is used. Nineteen rules ship today — twelve reading
 the construct's surroundings, seven reading the DML statement a clause sits in.
 Every verdict below, rejection and acceptance alike, is live-verified on the
 pinned lanes: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
@@ -4295,6 +4295,19 @@ var q = Select(FirstValue(u.Age).Over(PartitionBy(u.DepartmentId))).From(u);
 // warning SQLA0102: 'Over' is not supported without an ORDER BY in a value analytic function's window on SQL Server
 var r = Select(FirstValue(u.Age).Over()).From(u);
 // warning SQLA0102: 'Over' is not supported without an ORDER BY in a value analytic function's window on SQL Server
+```
+
+**A window over a `DISTINCT` aggregate.** `Count(Distinct, ...)`,
+`Sum(Distinct, ...)` and `Avg(Distinct, ...)` offer only `.Over()` and
+`.Over(PartitionBy(...))`, the two windows an engine runs on one. Oracle runs
+both; MySQL, PostgreSQL, SQLite and SQL Server reject them. An ordered or framed
+window over a `DISTINCT` aggregate runs on none of the five, so it does not
+compile.
+
+```csharp
+// sqlartisan_syntax_postgresql = any
+var q = Select(Count(Distinct, u.Age).Over(PartitionBy(u.DepartmentId))).From(u);
+// warning SQLA0102: 'Over' is not supported over a DISTINCT aggregate on PostgreSQL
 ```
 
 **`INSERTED` / `DELETED` outside an `OUTPUT` clause.** The pseudo-tables are
@@ -4495,7 +4508,7 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the eleven that read the construct's surroundings, any shape the
+itself. For the twelve that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the

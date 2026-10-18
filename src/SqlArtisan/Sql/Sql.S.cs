@@ -358,8 +358,9 @@ public static partial class Sql
     /// <inheritdoc cref="Sum(object)"/>
     /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Distinct"/>), emitting <c>SUM(DISTINCT expr)</c>.</param>
     /// <param name="expr">The numeric expression to total.</param>
-    public static SumFunction Sum(DistinctKeyword distinct, object expr) =>
-        new(distinct, Resolve(expr));
+    /// <returns>A <see cref="DistinctAggregateFunction"/> emitting <c>SUM(DISTINCT expr)</c>.</returns>
+    public static DistinctAggregateFunction Sum(DistinctKeyword distinct, object expr) =>
+        new(Keywords.Sum, distinct, Resolve(expr));
 
     /// <summary>
     /// The <c>SYSDATE</c> function.

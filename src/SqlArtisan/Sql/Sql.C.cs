@@ -670,9 +670,9 @@ public static partial class Sql
     /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Sql.Distinct"/>),
     /// counting only distinct values.</param>
     /// <param name="expr">The expression to count.</param>
-    /// <returns>A <see cref="CountFunction"/> emitting <c>COUNT(DISTINCT expr)</c>.</returns>
-    public static CountFunction Count(DistinctKeyword distinct, object expr) =>
-        new(distinct, Resolve(expr));
+    /// <returns>A <see cref="DistinctAggregateFunction"/> emitting <c>COUNT(DISTINCT expr)</c>.</returns>
+    public static DistinctAggregateFunction Count(DistinctKeyword distinct, object expr) =>
+        new(Keywords.Count, distinct, Resolve(expr));
 
     /// <summary>
     /// The <c>CUBE(...)</c> GROUP BY grouping extension. Each element is an ordinary

@@ -397,6 +397,46 @@ public class ContextRuleAnalyzerTests
             var q = Select(Sum(t.Id).Over(PartitionBy(t.Dep))).From(t);
             """, "sqlserver");
 
+    [Theory]
+    [InlineData("mysql")]
+    [InlineData("postgresql")]
+    [InlineData("sqlite")]
+    [InlineData("sqlserver")]
+    public Task CountDistinctOverEmpty_ReportsSqla0102(string dbms) =>
+        RunReporting("""
+            var q = Select({|#0:Count(Distinct, t.Id).Over()|}).From(t);
+            """, dbms);
+
+    [Fact]
+    public Task SumDistinctOverPartitionOnly_PostgreSql_ReportsSqla0102() =>
+        RunReporting("""
+            var q = Select({|#0:Sum(Distinct, t.Id).Over(PartitionBy(t.Dep))|}).From(t);
+            """, "postgresql");
+
+    [Fact]
+    public Task AvgDistinctOverEmpty_Sqlite_ReportsSqla0102() =>
+        RunReporting("""
+            var q = Select({|#0:Avg(Distinct, t.Id).Over()|}).From(t);
+            """, "sqlite");
+
+    [Fact]
+    public Task CountDistinctOverPartitionOnly_Oracle_StaysSilent() =>
+        RunSilent("""
+            var q = Select(Count(Distinct, t.Id).Over(PartitionBy(t.Dep))).From(t);
+            """, "oracle");
+
+    [Fact]
+    public Task CountDistinctFilter_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(Count(Distinct, t.Id).Filter(t.Dep > 0)).From(t);
+            """, "postgresql");
+
+    [Fact]
+    public Task CountDistinctOverEmpty_NoTargetConfigured_StaysSilent() =>
+        RunSilent("""
+            var q = Select(Count(Distinct, t.Id).Over()).From(t);
+            """, dbms: null);
+
     // SQL Server has no NTH_VALUE at all, so SQLA0100 is the whole verdict —
     // naming the window shape would misname why it fails there.
     [Fact]
