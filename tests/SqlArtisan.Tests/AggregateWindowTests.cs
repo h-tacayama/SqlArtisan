@@ -45,7 +45,7 @@ public class AggregateWindowTests
         Assert.Equal(expected, sql.Text);
     }
 
-    // #673: no PARTITION BY value is a position, so each would partition by a constant.
+    // #673: bound, each would partition by a constant.
     public static TheoryData<object, string> BoundPartitionValues => new()
     {
         { 1, "System.Int32" },
