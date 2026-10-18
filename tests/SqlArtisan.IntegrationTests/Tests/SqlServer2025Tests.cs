@@ -88,4 +88,17 @@ public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
             return "rejected";
         }
     }
+
+    // #662: whether the engine runs a window on a DISTINCT aggregate decides
+    // whether the library may reject the pairing as valid on no dialect (ADR 0007).
+    [Theory]
+    [MemberData(
+        nameof(DistinctAggregateWindows.Every),
+        MemberType = typeof(DistinctAggregateWindows))]
+    public void DistinctAggregateWindow_IsRejectedByTheEngine(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<System.Data.Common.DbException>(() => connection.Execute(sql));
+    }
 }
