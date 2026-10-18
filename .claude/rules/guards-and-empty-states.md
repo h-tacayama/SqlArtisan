@@ -584,9 +584,10 @@ the caller did not mean. Judge a null argument by which failure it produces:
   `Sql.Null` there is a constant key, silent where it runs (`PARTITION BY NULL`
   is one partition on PostgreSQL 16 and SQLite, `GROUP BY NULL` one group on
   SQLite) and rejected by PostgreSQL 16 in `GROUP BY`, a grouping element and
-  `DISTINCT ON` (all live), so it is no remedy in any key position and
-  `ResolveKey` names a column or an expression instead (#673). MySQL's `Against` takes search text, not a compared
-  value, so neither remedy fits: its own message says a NULL search text
+  `DISTINCT ON` (all live), so it is no remedy in any of the three and
+  `ExpressionResolver.NullKey` names a column or an expression instead (#673).
+  MySQL's `Against` takes search text, not a compared value, so neither remedy
+  fits: its own message says a NULL search text
   matches no row (live on 8.0, in every modifier form) and names passing the
   text or dropping the predicate; `AgainstScore`, unmeasured, keeps the
   `Sql.Null` message. The other full-text predicates (`Contains`, `Freetext`,
