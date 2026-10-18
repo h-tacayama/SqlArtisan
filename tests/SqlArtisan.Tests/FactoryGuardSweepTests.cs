@@ -405,7 +405,8 @@ public class FactoryGuardSweepTests
 
         if (t == typeof(object[]))
         {
-            return new object[] { 1 };
+            object[] filler = method.Name is "Cube" or "Rollup" ? [table.Column("c")] : [1];
+            return filler;
         }
 
         if (t == typeof(object[][]))

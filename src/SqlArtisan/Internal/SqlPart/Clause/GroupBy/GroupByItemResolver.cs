@@ -10,8 +10,7 @@ internal static class GroupByItemResolver
     {
         if (groupByItems is null)
         {
-            throw new ArgumentNullException(
-                nameof(groupByItems), ExpressionResolver.NullValueMessage);
+            throw ExpressionResolver.NullKey(nameof(groupByItems), GroupBy);
         }
 
         var resolved = new SqlPart[groupByItems.Length];
@@ -28,8 +27,8 @@ internal static class GroupByItemResolver
     {
         if (groupByItem is null)
         {
-            throw new ArgumentNullException(
-                nameof(groupByItem), ExpressionResolver.NullValueMessage);
+            // Reported against GroupBy's own params array, which this element came in.
+            throw ExpressionResolver.NullKey("groupByItems", GroupBy);
         }
 
         if (groupByItem is SqlExpression expr)

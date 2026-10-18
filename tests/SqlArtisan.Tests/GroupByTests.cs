@@ -492,6 +492,19 @@ public class GroupByTests
     }
 
     [Fact]
+    public void GroupBy_NullKey_ThrowsArgumentNullException()
+    {
+        // Sql.Null, the generic remedy, groups by a constant on SQLite.
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            Select(_t.Code).From(_t).GroupBy(_t.Code, null!));
+
+        Assert.Equal(
+            "A GROUP BY key cannot be a C# null; pass a column or an expression. "
+                + "(Parameter 'groupByItems')",
+            ex.Message);
+    }
+
+    [Fact]
     public void Rollup_WithNullElements_ThrowsArgumentNullException()
     {
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>

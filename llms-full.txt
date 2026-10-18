@@ -869,7 +869,8 @@ such a constant as a single group; Oracle, PostgreSQL and SQL Server reject it,
 which the analyzer reports as `SQLA0104` — unlike `OrderBy`, which refuses a
 non-integer sort key at `Build(Dbms)` for the dialects that reject it.
 
-An element of `Rollup(...)`, `Cube(...)` or `Group(...)` is a column, an
+An element of `Rollup(...)` or `Cube(...)` is a column, an expression, a
+subquery or a `Group(...)` set, and one of `Group(...)` is a column, an
 expression or a subquery. An integer, a string or another value throws
 `Invalid type for GroupByItem: ...` at the call: bound, it would be a constant
 that groups nothing. Unlike `GroupBy(1, 2)`, `Rollup(1, 2)` emits no
