@@ -1206,4 +1206,28 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
             "SELECT d.id FROM (SELECT id FROM users FOR UPDATE) d").ToList());
     }
+
+    // #662: whether the engine runs a window on a DISTINCT aggregate decides
+    // whether the library may reject the pairing as valid on no dialect (ADR 0007).
+    [Theory]
+    [MemberData(
+        nameof(DistinctAggregateWindows.OrderedOnly),
+        MemberType = typeof(DistinctAggregateWindows))]
+    public void DistinctAggregateOrderedWindow_IsRejectedByTheEngine(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(sql));
+    }
+
+    [Theory]
+    [MemberData(
+        nameof(DistinctAggregateWindows.UnorderedOnly),
+        MemberType = typeof(DistinctAggregateWindows))]
+    public void DistinctAggregateUnorderedWindow_IsAcceptedByTheEngine(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute(sql);
+    }
 }

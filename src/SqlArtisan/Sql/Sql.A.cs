@@ -152,7 +152,7 @@ public static partial class Sql
     /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Sql.Distinct"/>),
     /// restricting the average to distinct values.</param>
     /// <param name="expr">The numeric expression to average.</param>
-    /// <returns>An <see cref="AvgFunction"/> emitting <c>AVG(DISTINCT expr)</c>.</returns>
-    public static AvgFunction Avg(DistinctKeyword distinct, object expr) =>
-        new(distinct, Resolve(expr));
+    /// <returns>A <see cref="DistinctAggregateFunction"/> emitting <c>AVG(DISTINCT expr)</c>.</returns>
+    public static DistinctAggregateFunction Avg(DistinctKeyword distinct, object expr) =>
+        new(Keywords.Avg, distinct, Resolve(expr));
 }

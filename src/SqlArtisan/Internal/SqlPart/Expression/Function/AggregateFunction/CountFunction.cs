@@ -2,33 +2,21 @@ namespace SqlArtisan.Internal;
 
 public sealed class CountFunction : UnfilteredAggregateFunction
 {
-    private readonly DistinctKeyword? _distinct;
     private readonly SqlPart _expr;
 
     internal CountFunction(AsteriskMarker asterisk)
     {
-        _distinct = null;
         _expr = asterisk;
     }
 
     internal CountFunction(SqlExpression expr)
     {
-        _distinct = null;
-        _expr = expr;
-    }
-
-    internal CountFunction(DistinctKeyword distinct, SqlExpression expr)
-    {
-        ArgumentNullException.ThrowIfNull(distinct);
-
-        _distinct = distinct;
         _expr = expr;
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Count)
         .OpenParenthesis()
-        .AppendSpaceIfNotNull(_distinct)
         .Append(_expr)
         .CloseParenthesis();
 }

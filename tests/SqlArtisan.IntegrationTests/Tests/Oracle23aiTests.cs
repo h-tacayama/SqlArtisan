@@ -8,9 +8,9 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.IntegrationTests.Tests;
 
 /// <summary>
-/// Engine facts true at Oracle 23ai but not at the 21c baseline lane. Each
-/// test is the live gate for a doc claim whose rejecting half the 21c lane
-/// (<see cref="OracleTests"/>) asserts.
+/// Engine facts read at Oracle 23ai: those 23ai changed from the 21c baseline lane, each the
+/// live gate for a doc claim whose rejecting half the 21c lane (<see cref="OracleTests"/>)
+/// asserts, and others re-checked at 23ai.
 /// </summary>
 [Trait("Engine", "Oracle23ai")]
 public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
@@ -265,5 +265,30 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
                     + "SET \"u\".age = 1",
                 transaction: transaction));
         transaction.Rollback();
+    }
+
+    // The 21c lane's #662 DISTINCT-window facts, re-run at 23ai: whether the engine
+    // runs a window on a DISTINCT aggregate decides whether the library may reject the
+    // pairing as valid on no dialect (ADR 0007).
+    [Theory]
+    [MemberData(
+        nameof(DistinctAggregateWindows.OrderedOnly),
+        MemberType = typeof(DistinctAggregateWindows))]
+    public void DistinctAggregateOrderedWindow_IsRejectedByTheEngine(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<System.Data.Common.DbException>(() => connection.Execute(sql));
+    }
+
+    [Theory]
+    [MemberData(
+        nameof(DistinctAggregateWindows.UnorderedOnly),
+        MemberType = typeof(DistinctAggregateWindows))]
+    public void DistinctAggregateUnorderedWindow_IsAcceptedByTheEngine(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute(sql);
     }
 }

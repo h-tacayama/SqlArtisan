@@ -1310,4 +1310,39 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         connection.Query<int>(
             "SELECT d.id FROM (SELECT id FROM users FOR UPDATE) d").ToList();
     }
+
+    // #662: whether the engine runs a window on a DISTINCT aggregate decides
+    // whether the library may reject the pairing as valid on no dialect (ADR 0007).
+    [Theory]
+    [MemberData(
+        nameof(DistinctAggregateWindows.Every),
+        MemberType = typeof(DistinctAggregateWindows))]
+    public void DistinctAggregateWindow_IsRejectedByTheEngine(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(sql));
+    }
+
+    [Theory]
+    [MemberData(
+        nameof(DistinctAggregateWindows.FilteredEvery),
+        MemberType = typeof(DistinctAggregateWindows))]
+    public void FilteredDistinctAggregateWindow_IsRejectedByTheEngine(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(sql));
+    }
+
+    [Theory]
+    [MemberData(
+        nameof(DistinctAggregateWindows.FilteredWithoutWindow),
+        MemberType = typeof(DistinctAggregateWindows))]
+    public void FilteredDistinctAggregate_IsAcceptedByTheEngine(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute(sql);
+    }
 }

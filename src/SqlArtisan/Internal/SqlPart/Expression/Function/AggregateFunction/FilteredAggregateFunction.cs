@@ -26,18 +26,26 @@ public sealed class FilteredAggregateFunction : AggregateFunction
         _filterWhere = new WhereClause(condition);
     }
 
-    internal override void Format(SqlBuildingBuffer buffer)
+    internal override void Format(SqlBuildingBuffer buffer) =>
+        FormatFiltered(buffer, _aggregate, _condition, _filterWhere);
+
+    // Shared with FilteredDistinctAggregateFunction, which offers no window.
+    internal static void FormatFiltered(
+        SqlBuildingBuffer buffer,
+        SqlPart aggregate,
+        SqlCondition condition,
+        WhereClause filterWhere)
     {
-        // Guarded on _condition here, ahead of the embedded _filterWhere (itself a
+        // Guarded on condition here, ahead of the embedded filterWhere (itself a
         // WhereClause that would also throw), so the message names FILTER, not WHERE.
         ConditionGuard.ThrowIfEmpty(
-            _condition,
+            condition,
             "An aggregate's FILTER requires a condition; omit it for an unfiltered aggregate.");
 
         buffer
-            .Append(_aggregate)
+            .Append(aggregate)
             .EncloseInSpaces(Keywords.Filter)
-            .OpenParenthesis(_filterWhere)
+            .OpenParenthesis(filterWhere)
             .CloseParenthesis();
     }
 }

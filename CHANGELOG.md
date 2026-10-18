@@ -68,6 +68,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   repeated clause-and-action pair on SQL Server. Each rejection is live-verified
   on the Oracle XE 21.3.0, PostgreSQL 16 and 17, and SQL Server 2022 lanes. An
   earlier branch held in a variable stays silent. (#582)
+- `SQLA0102` reports `.Over()` and `.Over(PartitionBy(...))` on a `DISTINCT`
+  aggregate (`Count`, `Sum` or `Avg` with `Distinct`) on MySQL, PostgreSQL,
+  SQLite and SQL Server, which reject a window there; Oracle runs both.
+  Live-verified on MySQL 8.0, Oracle XE 21.3.0 and Free 23ai, PostgreSQL 16 and
+  17, SQLite 3.50, and SQL Server 2022 and 2025. (#662)
 
 ### Changed
 - **Breaking:** `TopClause.Percent()` and `WithTies()` return a new
@@ -311,6 +316,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (`id IN ((SELECT ... FOR UPDATE))`), now bind to the subquery overloads and
   emit `id IN (SELECT ... FOR UPDATE)`. An assembly compiled against an earlier
   version must be rebuilt. (#590)
+- **Breaking:** `Count(Distinct, x)`, `Sum(Distinct, x)` and `Avg(Distinct, x)`
+  now return `DistinctAggregateFunction`, which offers only `.Over()`,
+  `.Over(PartitionBy(...))` and `.Filter(...)`, and `.Filter(...)` on it returns
+  `FilteredDistinctAggregateFunction`, which offers no `.Over(...)`. An ordered
+  or framed window over a `DISTINCT` aggregate runs on none of the lanes the
+  `SQLA0102` entry names, and a window after its `FILTER` runs on neither
+  engine with `FILTER` (observed on PostgreSQL 16 and SQLite 3.50); both are
+  now compile errors rather than SQL those engines reject. The emitted SQL is
+  unchanged. A result passed to an `object` or `SqlExpression` slot or to
+  `.As(...)` compiles as before; code that writes the old type out
+  (`CountFunction`, `SumFunction`, `AvgFunction`,
+  `AggregateFunction`, `UnfilteredAggregateFunction`,
+  `FilteredAggregateFunction`), or infers one type from a `DISTINCT` and a
+  plain call (`cond ? Count(Distinct, x) : Count(x)`, an implicitly typed array
+  mixing the two), needs the new types or an explicit `SqlExpression`. An
+  assembly compiled against an earlier version must be rebuilt. (#662)
 - **Breaking:** renamed the stage types `Limit(...)` and `OffsetRows(...)`
   return to follow the other stages' `I<Statement>Builder<State>` names:
   `ILimitOffsetBuilder` → `ISelectBuilderLimitOffset`, `IOffsetFetchBuilder` →

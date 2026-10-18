@@ -7,7 +7,8 @@ namespace SqlArtisan.IntegrationTests.Tests;
 
 /// <summary>
 /// Engine facts true at PostgreSQL 17 but not at the 16 baseline lane, each the live gate
-/// for a record whose rejecting half the 16 lane (<see cref="PostgreSqlTests"/>) asserts.
+/// for a record whose rejecting half the 16 lane (<see cref="PostgreSqlTests"/>) asserts,
+/// and the 16 lane's DISTINCT-window facts re-run (#662).
 /// </summary>
 [Trait("Engine", "PostgreSql17")]
 public sealed class PostgreSql17Tests : IClassFixture<PostgreSql17Fixture>
@@ -54,5 +55,41 @@ public sealed class PostgreSql17Tests : IClassFixture<PostgreSql17Fixture>
                 + "WHEN NOT MATCHED BY SOURCE AND t.id < 0 THEN DELETE",
             transaction: transaction));
         transaction.Rollback();
+    }
+
+    // The 16 lane's #662 DISTINCT-window facts, re-run at 17: whether the engine
+    // runs a window on a DISTINCT aggregate decides whether the library may reject the
+    // pairing as valid on no dialect (ADR 0007).
+    [Theory]
+    [MemberData(
+        nameof(DistinctAggregateWindows.Every),
+        MemberType = typeof(DistinctAggregateWindows))]
+    public void DistinctAggregateWindow_IsRejectedByTheEngine(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(sql));
+    }
+
+    [Theory]
+    [MemberData(
+        nameof(DistinctAggregateWindows.FilteredEvery),
+        MemberType = typeof(DistinctAggregateWindows))]
+    public void FilteredDistinctAggregateWindow_IsRejectedByTheEngine(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(sql));
+    }
+
+    [Theory]
+    [MemberData(
+        nameof(DistinctAggregateWindows.FilteredWithoutWindow),
+        MemberType = typeof(DistinctAggregateWindows))]
+    public void FilteredDistinctAggregate_IsAcceptedByTheEngine(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute(sql);
     }
 }

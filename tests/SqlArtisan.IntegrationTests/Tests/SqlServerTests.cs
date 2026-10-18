@@ -933,4 +933,17 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
                 transaction: transaction));
         transaction.Rollback();
     }
+
+    // #662: whether the engine runs a window on a DISTINCT aggregate decides
+    // whether the library may reject the pairing as valid on no dialect (ADR 0007).
+    [Theory]
+    [MemberData(
+        nameof(DistinctAggregateWindows.Every),
+        MemberType = typeof(DistinctAggregateWindows))]
+    public void DistinctAggregateWindow_IsRejectedByTheEngine(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(sql));
+    }
 }

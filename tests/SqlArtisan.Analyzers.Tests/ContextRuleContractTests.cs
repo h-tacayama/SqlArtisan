@@ -60,7 +60,8 @@ public class ContextRuleContractTests
             .OrderBy(n => n, StringComparer.Ordinal)];
 
         Assert.Equal(
-            ["AggregateFunction", "PercentileFunction", "ValueAnalyticFunction"],
+            ["AggregateFunction", "DistinctAggregateFunction", "PercentileFunction",
+                "ValueAnalyticFunction"],
             declaringTypes);
     }
 
@@ -77,8 +78,27 @@ public class ContextRuleContractTests
             .OrderBy(n => n, StringComparer.Ordinal)];
 
         Assert.Equal(
-            ["AggregateFunction", "PercentileFunction", "ValueAnalyticFunction"],
+            ["AggregateFunction", "DistinctAggregateFunction", "PercentileFunction",
+                "ValueAnalyticFunction"],
             declaringTypes);
+    }
+
+    [Fact]
+    public void DistinctAggregateOver_IsTheNodeEveryDistinctFactoryReturns()
+    {
+        // The DISTINCT window rule keys on this name; another node reopens #662's windows.
+        // GroupConcat stays one type across its forms (public-api-design.md, #664).
+        string[] factories = [.. typeof(Sql).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Where(m => m.GetParameters() is [{ ParameterType.Name: "DistinctKeyword" }, ..]
+                && typeof(SqlExpression).IsAssignableFrom(m.ReturnType)
+                && m.Name != "GroupConcat")
+            .Select(m => $"{m.Name}:{m.ReturnType.Name}")
+            .Order()];
+
+        Assert.Equal(
+            ["Avg:DistinctAggregateFunction", "Count:DistinctAggregateFunction",
+                "Sum:DistinctAggregateFunction"],
+            factories);
     }
 
     [Fact]
