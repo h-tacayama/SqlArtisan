@@ -266,4 +266,28 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
                 transaction: transaction));
         transaction.Rollback();
     }
+
+    // #662: whether the engine runs a window on a DISTINCT aggregate decides
+    // whether the library may reject the pairing as valid on no dialect (ADR 0007).
+    [Theory]
+    [InlineData("OVER (ORDER BY id)")]
+    [InlineData("OVER (PARTITION BY department_id ORDER BY id)")]
+    [InlineData("OVER (ORDER BY id ROWS 1 PRECEDING)")]
+    public void DistinctAggregateWindow_IsRejectedByTheEngine(string window)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<System.Data.Common.DbException>(() => connection.Execute(
+            $"SELECT COUNT(DISTINCT age) {window} FROM users"));
+    }
+
+    [Theory]
+    [InlineData("OVER ()")]
+    [InlineData("OVER (PARTITION BY department_id)")]
+    public void DistinctAggregatePartitionWindow_IsAcceptedByTheEngine(string window)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute($"SELECT COUNT(DISTINCT age) {window} FROM users");
+    }
 }

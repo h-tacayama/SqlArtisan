@@ -1310,4 +1310,20 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         connection.Query<int>(
             "SELECT d.id FROM (SELECT id FROM users FOR UPDATE) d").ToList();
     }
+
+    // #662: whether the engine runs a window on a DISTINCT aggregate decides
+    // whether the library may reject the pairing as valid on no dialect (ADR 0007).
+    [Theory]
+    [InlineData("OVER ()")]
+    [InlineData("OVER (PARTITION BY department_id)")]
+    [InlineData("OVER (ORDER BY id)")]
+    [InlineData("OVER (PARTITION BY department_id ORDER BY id)")]
+    [InlineData("OVER (ORDER BY id ROWS 1 PRECEDING)")]
+    public void DistinctAggregateWindow_IsRejectedByTheEngine(string window)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            $"SELECT COUNT(DISTINCT age) {window} FROM users"));
+    }
 }
