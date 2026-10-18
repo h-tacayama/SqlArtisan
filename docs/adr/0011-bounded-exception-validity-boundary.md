@@ -2,7 +2,7 @@
 
 **Status:** Accepted — #672 adds a fourth class decided outside the bar (an alias sort
 key where no select alias is in scope), #677 a fifth (the correlated guards, the
-DML-target one included), #678 a sixth (a non-numeric value as a sort or group key).
+DML-target one included), #678 and #673 a sixth (a bound value as a sort, group, partition or `DISTINCT ON` key).
 
 ## Context
 
@@ -143,7 +143,11 @@ override — so every build path (including `Returning()`, which funnels through
   the rows unsorted, and run `GROUP BY $1` as one group, live), so `OrderBy(...)`
   and `GroupBy(...)` reject it at the call on every dialect, even where an engine
   runs the text (`GroupBy` already did); the column the value names is the
-  spelling, and `Bind(value)` keeps a deliberate constant.
+  spelling, and `Bind(value)` keeps a deliberate constant. #673 extends it to
+  the other key positions: a grouping element and a `PARTITION BY` key take no
+  value at all, an integer included (PostgreSQL 16 and SQLite read even a literal
+  one as a constant in `PARTITION BY`, live), and `DISTINCT ON` takes an integer
+  only as the select-list position PostgreSQL reads it as.
 - **Revisit when joined DML lands (#237).** Once `UPDATE … FROM` / `DELETE … FROM`
   give SQL Server a real spelling for the aliased/correlated shape, this guard's
   premise ("no valid spelling exists") weakens; re-evaluate whether it should

@@ -270,18 +270,27 @@ rarely the collision is written and left out. The statement position emits
 as written, and `docs/query-statements.md` § ORDER BY carries the
 `[!WARNING]` (live: PostgreSQL 16, SQLite 3.45.1).
 
-**A non-numeric value is no sort or group key (decided — do not re-file):** a
+**A bound value is no sort, group, partition or `DISTINCT ON` key (decided — do not
+re-file):** a
 bound `string`, `char`, `bool`, date/time or enum value is a constant, which
 sorts or groups nothing (`ORDER BY $1` bound to `'a'` or to an enum's integer
 returned the rows unsorted on PostgreSQL 16 and SQLite 3.45.1, live), so
 `OrderByItemResolver` and `GroupByItemResolver` reject one at the call, on every
 dialect, as a call-site defect (ADR 0011 decides the class outside its bar;
-#678). `Bind(value)` keeps a deliberate constant writable. The grouping elements
-(`Rollup`, `Cube`, `Group`), `DistinctOn(...)` and `PartitionBy(...)` still bind
-these values and an integer too until #673 brings them onto this rule; where
-PostgreSQL reads a literal integer in `DISTINCT ON` or a grouping element as a
-position (#673), `PARTITION BY` reads even a literal one as a constant
-(PostgreSQL 16 and SQLite, live).
+#678). `Bind(value)` keeps a deliberate constant writable. The other key
+positions follow (#673): a grouping element (`Rollup`, `Cube`, `Group`) and a
+`PartitionBy(...)` key take an expression or a subquery and reject every value
+(`ExpressionResolver.ResolveKey`), an integer included. `PARTITION BY` reads even
+a literal integer as a constant (PostgreSQL 16 and SQLite, live); PostgreSQL 16
+reads one in a grouping element as a position (live), but how Oracle and SQL
+Server read it is not verified (MySQL and SQLite have no grouping element), so
+it is not emitted as one there as it is in `GroupBy`. `GroupBy(...)` itself still
+rejects a subquery: taking one directly is an addition, left to demand
+(ADR 0010). A
+subquery stays a grouping element (it runs on PostgreSQL 16, live).
+`DistinctOn(...)` renders an integer as the select-list position PostgreSQL, its
+one engine, reads there, rejecting one below 1 at the call as `GroupBy` does
+(both live), and rejects every other value.
 
 **A held stage's out-of-order clause stays unguarded (decided — do not
 re-file):** a held builder can still append a clause after the one it must
@@ -571,8 +580,14 @@ the caller did not mean. Judge a null argument by which failure it produces:
   `REGEXP_LIKE`, the array and JSONB predicates bar a `?&` / `?|` key, `@@`),
   where `Sql.Null` builds a comparison with NULL rather than a NULL test, so a
   new predicate factory resolves its operands with `ResolveCompared`, which
-  names `.IsNull` (#614). MySQL's `Against` takes search text, not a compared
-  value, so neither remedy fits: its own message says a NULL search text
+  names `.IsNull` (#614). A grouping, partition or `DISTINCT ON` key is another:
+  `Sql.Null` there is a constant key, silent where it runs (`PARTITION BY NULL`
+  is one partition on PostgreSQL 16 and SQLite, `GROUP BY NULL` one group on
+  SQLite) and rejected by PostgreSQL 16 in `GROUP BY`, a grouping element and
+  `DISTINCT ON` (all live), so it is no remedy in any of the three and
+  `ExpressionResolver.NullKey` names a column or an expression instead (#673).
+  MySQL's `Against` takes search text, not a compared value, so neither remedy
+  fits: its own message says a NULL search text
   matches no row (live on 8.0, in every modifier form) and names passing the
   text or dropping the predicate; `AgainstScore`, unmeasured, keeps the
   `Sql.Null` message. The other full-text predicates (`Contains`, `Freetext`,
@@ -806,7 +821,8 @@ so the wording is part of the contract.
 The `Invalid type for <X>: <type>` family is built by one helper,
 `ExpressionResolver.UnresolvableValue`, and `<X>` names **the position the
 value reached** — `SelectItem`, `ReturningItem`, `OutputItem`, `OrderByItem`,
-`GroupByItem`, `InsertValue`, `Assignment`, and `nameof(Bind)` where the factory
+`GroupByItem`, `PartitionByItem`, `DistinctOnItem`, `InsertValue`, `Assignment`,
+and `nameof(Bind)` where the factory
 resolves its own argument, and `ValuesItem` for a `Sql.Values(...)` row.
 `RETURNING`, `OUTPUT` and `Sql.Values(...)` borrow the `SELECT`-list or `INSERT`
 resolver but pass their own names (#569).

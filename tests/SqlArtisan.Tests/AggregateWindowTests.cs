@@ -45,6 +45,45 @@ public class AggregateWindowTests
         Assert.Equal(expected, sql.Text);
     }
 
+    // #673: bound, each would partition by a constant.
+    public static TheoryData<object, string> BoundPartitionValues => new()
+    {
+        { 1, "System.Int32" },
+        { "code", "System.String" },
+        { DayOfWeek.Monday, "System.DayOfWeek" },
+    };
+
+    [Theory]
+    [MemberData(nameof(BoundPartitionValues))]
+    public void PartitionBy_BoundValue_ThrowsArgumentException(object key, string typeName)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => PartitionBy(key));
+
+        Assert.Equal($"Invalid type for PartitionByItem: {typeName}", ex.Message);
+    }
+
+    [Fact]
+    public void PartitionBy_ExplicitBind_CorrectSql()
+    {
+        SqlStatement sql = Select(Sum(_t.Code).Over(PartitionBy(Bind("a")))).Build();
+
+        Assert.Equal("SELECT SUM(code) OVER (PARTITION BY :0)", sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
+    public void PartitionBy_NullKey_ThrowsArgumentNullException()
+    {
+        // Sql.Null, the generic remedy, would partition by a constant too.
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            PartitionBy(_t.Code, null!));
+
+        Assert.Equal(
+            "A PARTITION BY key cannot be a C# null; pass a column or an expression. "
+                + "(Parameter 'expressions')",
+            ex.Message);
+    }
+
     [Fact]
     public void Sum_OverOrderBy_CorrectSql()
     {

@@ -26,8 +26,14 @@ public static partial class Sql
     /// <param name="columns">The columns of the grouping element; none for the
     /// empty set <c>()</c>.</param>
     /// <returns>A <see cref="GroupingSet"/> rendering the parenthesized element.</returns>
+    /// <exception cref="ArgumentException">An element is a value rather than an expression or a
+    /// subquery, which would bind as a constant that groups nothing.</exception>
     public static GroupingSet Group(params object[] columns) =>
-        new(Resolve(columns));
+        new(ResolveKeys(
+            columns,
+            nameof(columns),
+            "GroupByItem",
+            $"{Keywords.Group} {Keywords.By}"));
 
     /// <summary>
     /// The <c>GROUP_CONCAT(expr)</c> string aggregate (MySQL and SQLite), using

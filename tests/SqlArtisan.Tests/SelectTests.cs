@@ -297,6 +297,64 @@ public class SelectTests
     }
 
     [Fact]
+    public void Select_DistinctOnOrdinal_CorrectSql()
+    {
+        // #673: PostgreSQL reads the integer as the first select-list column.
+        SqlStatement sql = Select(DistinctOn(1), _t.Code, _t.Name).From(_t).Build();
+
+        Assert.Equal(
+            "SELECT DISTINCT ON (1) \"t\".code, \"t\".name FROM test_table \"t\"", sql.Text);
+    }
+
+    [Fact]
+    public void Select_DistinctOnExplicitBind_CorrectSql()
+    {
+        // A bound integer is a constant, not the ordinal a literal one renders as.
+        SqlStatement sql = Select(DistinctOn(Bind(1)), _t.Code).From(_t).Build();
+
+        Assert.Equal("SELECT DISTINCT ON (:0) \"t\".code FROM test_table \"t\"", sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Select_DistinctOnOrdinalBelowOne_ThrowsArgumentException(int ordinal)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => DistinctOn(ordinal));
+
+        Assert.Equal("A DISTINCT ON column ordinal must be 1 or greater.", ex.Message);
+    }
+
+    public static TheoryData<object, string> BoundDistinctOnValues => new()
+    {
+        { "code", "System.String" },
+        { 2.5, "System.Double" },
+        { DayOfWeek.Monday, "System.DayOfWeek" },
+    };
+
+    [Theory]
+    [MemberData(nameof(BoundDistinctOnValues))]
+    public void Select_DistinctOnBoundValue_ThrowsArgumentException(object key, string typeName)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => DistinctOn(key));
+
+        Assert.Equal($"Invalid type for DistinctOnItem: {typeName}", ex.Message);
+    }
+
+    [Fact]
+    public void Select_DistinctOnNullKey_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            DistinctOn(_t.Code, null!));
+
+        Assert.Equal(
+            "A DISTINCT ON key cannot be a C# null; pass a column or an expression. "
+                + "(Parameter 'expressions')",
+            ex.Message);
+    }
+
+    [Fact]
     public void Select_DistinctOnWithOrderBy_CorrectSql()
     {
         SqlStatement sql =

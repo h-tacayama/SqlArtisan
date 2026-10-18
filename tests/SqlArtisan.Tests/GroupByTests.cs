@@ -488,8 +488,31 @@ public class GroupByTests
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             Select(_t.Code).From(_t).GroupBy(null!));
 
-        Assert.Equal("groupByItems", ex.ParamName);
+        Assert.Equal(NullGroupByKey("groupByItems"), ex.Message);
     }
+
+    [Fact]
+    public void GroupBy_NullKey_ThrowsArgumentNullException()
+    {
+        // Sql.Null, the generic remedy, groups by a constant on SQLite.
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            Select(_t.Code).From(_t).GroupBy(_t.Code, null!));
+
+        Assert.Equal(NullGroupByKey("groupByItems"), ex.Message);
+    }
+
+    [Fact]
+    public void Group_NullKey_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            Group(_t.Code, null!));
+
+        Assert.Equal(NullGroupByKey("columns"), ex.Message);
+    }
+
+    private static string NullGroupByKey(string paramName) =>
+        "A GROUP BY key cannot be a C# null; pass a column or an expression. "
+            + $"(Parameter '{paramName}')";
 
     [Fact]
     public void Rollup_WithNullElements_ThrowsArgumentNullException()
@@ -497,7 +520,7 @@ public class GroupByTests
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             Rollup(_t.Code, null!));
 
-        Assert.Equal("elements", ex.ParamName);
+        Assert.Equal(NullGroupByKey("elements"), ex.Message);
     }
 
     [Fact]
@@ -506,7 +529,7 @@ public class GroupByTests
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             Cube(_t.Code, null!));
 
-        Assert.Equal("elements", ex.ParamName);
+        Assert.Equal(NullGroupByKey("elements"), ex.Message);
     }
 
     [Fact]
@@ -591,5 +614,52 @@ public class GroupByTests
             Select(_t.Name).From(_t).GroupBy(double.NaN));
 
         Assert.Equal("A GROUP BY numeric group key must be finite.", ex.Message);
+    }
+
+    // #673: bound, each would be a constant that groups nothing.
+    public static TheoryData<object, string> BoundGroupingValues => new()
+    {
+        { 1, "System.Int32" },
+        { "code", "System.String" },
+        { DayOfWeek.Monday, "System.DayOfWeek" },
+    };
+
+    [Theory]
+    [MemberData(nameof(BoundGroupingValues))]
+    public void GroupingElement_BoundValue_ThrowsArgumentException(object key, string typeName)
+    {
+        string expected = $"Invalid type for GroupByItem: {typeName}";
+
+        Assert.Equal(expected, Assert.Throws<ArgumentException>(() => Rollup(key)).Message);
+        Assert.Equal(expected, Assert.Throws<ArgumentException>(() => Cube(key)).Message);
+        Assert.Equal(expected, Assert.Throws<ArgumentException>(() => Group(key)).Message);
+    }
+
+    [Fact]
+    public void Rollup_CorrelatedSubqueryElement_CorrectSql()
+    {
+        // A correlated subquery is a per-row grouping key, unlike a bound value.
+        TestTable u = new("u");
+
+        SqlStatement sql =
+            Select(Count(Asterisk))
+            .From(_t)
+            .GroupBy(Rollup(Select(Max(u.Code)).From(u).Where(u.Name == _t.Name), _t.Name))
+            .Build();
+
+        Assert.Equal(
+            "SELECT COUNT(*) FROM test_table \"t\" GROUP BY ROLLUP("
+                + "(SELECT MAX(\"u\".code) FROM test_table \"u\" WHERE \"u\".name = \"t\".name), "
+                + "\"t\".name)",
+            sql.Text);
+    }
+
+    [Fact]
+    public void Rollup_ExplicitBind_CorrectSql()
+    {
+        SqlStatement sql = Select(Count(Asterisk)).From(_t).GroupBy(Rollup(Bind(1))).Build();
+
+        Assert.Equal("SELECT COUNT(*) FROM test_table \"t\" GROUP BY ROLLUP(:0)", sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
     }
 }
