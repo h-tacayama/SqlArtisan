@@ -78,8 +78,8 @@ yes-somewhere → dialect availability → permissive.
   call-site-defect guards (a list that repeats a name, or an `OUTPUT ... INTO`
   width mismatch), the joined-target alias requirement (#258), an alias sort
   key inside `OVER` or an aggregate (#672), the correlated guards (#253,
-  #677), and a bound or constant sort, group, partition or `DISTINCT ON` key
-  (#678, #673, #693).
+  #677), a bound sort, group, partition or `DISTINCT ON` key (#678, #673),
+  and a number as an expression-position sort key (#693).
 - **A pseudo-column reference outside its context stays permissive.**
   `Sql.Excluded(...)` outside an upsert's `DO UPDATE SET`, or
   `Inserted`/`Deleted` under the wrong `OUTPUT` verb, builds and emits: each

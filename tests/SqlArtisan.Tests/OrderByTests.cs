@@ -294,12 +294,12 @@ public class OrderByTests
     }
 
     private const string NumberInExpressionMessage =
-        "An ORDER BY inside OVER, WITHIN GROUP or an aggregate cannot sort by a number, "
-            + "which is a constant there; pass a column or an expression, or Bind(value) "
-            + "for a deliberate constant. (Parameter 'orderByItems')";
+        "An ORDER BY inside OVER, WITHIN GROUP or an aggregate cannot sort by a number; "
+            + "pass a column or an expression, or Bind(value) for a deliberate constant. "
+            + "(Parameter 'orderByItems')";
 
-    // #693: these positions read no select-list position, so a number is a constant
-    // key, as #673 decided for PARTITION BY.
+    // #693: a number there is a constant key on PostgreSQL and SQLite, as #673
+    // decided for PARTITION BY.
     public static TheoryData<object> NumbersInExpressionPosition => new()
     {
         1,

@@ -43,7 +43,7 @@ public sealed class OrderByClause : SqlPart
 
     // PostgreSQL and SQLite read no select alias here, so its bare name sorts by an
     // input column or a constant; the aliased expression reads the same everywhere (#672).
-    // Nor a select-list position: a number is a constant key, as in PARTITION BY (#693).
+    // Nor a number: a constant key there on PostgreSQL and SQLite, as in PARTITION BY (#693).
     internal static OrderByClause ParseInExpression(object[] orderByItems)
     {
         ThrowIfNumericKey(orderByItems);
@@ -78,8 +78,8 @@ public sealed class OrderByClause : SqlPart
             {
                 throw new ArgumentException(
                     "An ORDER BY inside OVER, WITHIN GROUP or an aggregate cannot sort by a "
-                        + "number, which is a constant there; pass a column or an expression, "
-                        + "or Bind(value) for a deliberate constant.",
+                        + "number; pass a column or an expression, or Bind(value) for a "
+                        + "deliberate constant.",
                     nameof(orderByItems));
             }
         }

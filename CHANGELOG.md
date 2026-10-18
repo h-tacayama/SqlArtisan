@@ -160,10 +160,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   constant key (`GROUP BY NULL` is one group on SQLite, live). (#673)
 - **Breaking:** `Sql.OrderBy(...)` and `PartitionBy(...).OrderBy(...)` throw
   `ArgumentException` for a number. Inside `OVER`, `WITHIN GROUP` and the
-  aggregate orderings no select-list position is read, so `Over(OrderBy(1))`
-  ordered by a constant: `ROW_NUMBER()` numbered the rows in input order (live
-  on PostgreSQL 16 and SQLite) and `PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY
-  1)` returned `1` (PostgreSQL 16). Pass the column, or `Bind(value)` for a
+  aggregate orderings, `Over(OrderBy(1))` ordered by a constant, not a
+  position: `ROW_NUMBER()` numbered the rows in input order (live on PostgreSQL
+  16 and SQLite) and `PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY 1)` returned
+  `1` (PostgreSQL 16). Pass the column, or `Bind(value)` for a
   deliberate constant; a query's own `.OrderBy(1)` stays a position. A C# null
   in any `ORDER BY` now says `An ORDER BY key cannot be a C# null; pass a column
   or an expression.` instead of naming `Sql.Null`. (#693)

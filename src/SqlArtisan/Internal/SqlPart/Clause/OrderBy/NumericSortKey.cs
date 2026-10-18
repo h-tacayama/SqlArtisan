@@ -1,8 +1,8 @@
 namespace SqlArtisan.Internal;
 
-// A numeric statement ORDER BY literal. Which values are out of domain depends
-// on the engine, so each one travels as a flag for Validate(Dbms) rather than
-// throwing at the call.
+// A numeric statement ORDER BY literal. The zero flag is checked at the
+// OrderBy call (no engine resolves it); the fractional and negative ones depend
+// on the engine, so they travel to Validate(Dbms).
 internal sealed class NumericSortKey(
     string text, bool fractional, bool zeroOrdinal, bool negativeOrdinal) : SqlExpression
 {
