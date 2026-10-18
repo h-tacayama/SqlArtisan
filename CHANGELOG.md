@@ -323,12 +323,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `FILTER`, runs on no engine, and is now a compile error rather than SQL every
   engine rejects. The emitted SQL is unchanged. A result passed to an `object`
   or `SqlExpression` slot or to `.As(...)` compiles as before; code that writes
-  the old type out (`CountFunction`, `AggregateFunction`,
-  `UnfilteredAggregateFunction`, `FilteredAggregateFunction`), or infers one
-  type from a `DISTINCT` and a plain call (`cond ? Count(Distinct, x) :
-  Count(x)`, an implicitly typed array mixing the two), needs the new types or
-  an explicit `SqlExpression`. An assembly compiled against an earlier version
-  must be rebuilt. (#662)
+  the old type out (`CountFunction`, `SumFunction`, `AvgFunction`,
+  `AggregateFunction`, `UnfilteredAggregateFunction`,
+  `FilteredAggregateFunction`), or infers one type from a `DISTINCT` and a
+  plain call (`cond ? Count(Distinct, x) : Count(x)`, an implicitly typed array
+  mixing the two), needs the new types or an explicit `SqlExpression`. An
+  assembly compiled against an earlier version must be rebuilt. (#662)
 - **Breaking:** renamed the stage types `Limit(...)` and `OffsetRows(...)`
   return to follow the other stages' `I<Statement>Builder<State>` names:
   `ILimitOffsetBuilder` → `ISelectBuilderLimitOffset`, `IOffsetFetchBuilder` →
