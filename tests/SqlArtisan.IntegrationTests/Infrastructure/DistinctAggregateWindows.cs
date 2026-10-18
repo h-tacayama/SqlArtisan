@@ -19,7 +19,16 @@ public static class DistinctAggregateWindows
         "OVER (ORDER BY id ROWS 1 PRECEDING)",
     ];
 
+    private const string Filter = "FILTER (WHERE age > 0)";
+
     public static TheoryData<string> Every => Build([.. Unordered, .. Ordered]);
+
+    // FILTER exists on PostgreSQL and SQLite alone; without a window it is the
+    // acceptance twin showing the rejection is the window's.
+    public static TheoryData<string> FilteredEvery =>
+        Build([.. Unordered.Concat(Ordered).Select(window => $"{Filter} {window}")]);
+
+    public static TheoryData<string> FilteredWithoutWindow => Build([Filter]);
 
     public static TheoryData<string> UnorderedOnly => Build(Unordered);
 

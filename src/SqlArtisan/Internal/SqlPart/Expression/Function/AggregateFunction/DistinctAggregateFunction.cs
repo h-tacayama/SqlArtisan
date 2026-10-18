@@ -1,13 +1,12 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// A <c>DISTINCT</c> aggregate (<c>COUNT</c>, <c>SUM</c> or <c>AVG</c>). It offers only the
-/// window and the filter an engine runs on one: <c>Over()</c>, <c>Over(PartitionBy(...))</c>
-/// and <c>Filter(...)</c>.
+/// A <c>DISTINCT</c> aggregate. It offers only the windows and the filter an engine runs on
+/// one.
 /// </summary>
 /// <remarks>
-/// The two windows run on Oracle alone. An ordered or framed window runs on no engine, so it
-/// does not compile (live twins on every lane, #662).
+/// Its empty and partition-only windows run on Oracle alone. An ordered or framed window runs
+/// on no engine, so it does not compile (live twins on every lane, #662).
 /// </remarks>
 public sealed class DistinctAggregateFunction : SqlExpression
 {

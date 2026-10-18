@@ -68,4 +68,26 @@ public sealed class PostgreSql17Tests : IClassFixture<PostgreSql17Fixture>
 
         Assert.ThrowsAny<DbException>(() => connection.Execute(sql));
     }
+
+    [Theory]
+    [MemberData(
+        nameof(DistinctAggregateWindows.FilteredEvery),
+        MemberType = typeof(DistinctAggregateWindows))]
+    public void FilteredDistinctAggregateWindow_IsRejectedByTheEngine(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(sql));
+    }
+
+    [Theory]
+    [MemberData(
+        nameof(DistinctAggregateWindows.FilteredWithoutWindow),
+        MemberType = typeof(DistinctAggregateWindows))]
+    public void FilteredDistinctAggregate_IsAcceptedByTheEngine(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute(sql);
+    }
 }
