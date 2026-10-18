@@ -158,6 +158,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   says `A GROUP BY key cannot be a C# null; pass a column or an expression.` (or
   `PARTITION BY` / `DISTINCT ON`) instead of naming `Sql.Null`, which is itself a
   constant key (`GROUP BY NULL` is one group on SQLite, live). (#673)
+- **Breaking:** `Sql.OrderBy(...)` and `PartitionBy(...).OrderBy(...)` throw
+  `ArgumentException` for a number. Inside `OVER`, `WITHIN GROUP` and the
+  aggregate orderings no select-list position is read, so `Over(OrderBy(1))`
+  ordered by a constant: `ROW_NUMBER()` numbered the rows in input order (live
+  on PostgreSQL 16 and SQLite) and `PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY
+  1)` returned `1` (PostgreSQL 16). Pass the column, or `Bind(value)` for a
+  deliberate constant; a query's own `.OrderBy(1)` stays a position. A C# null
+  in any `ORDER BY` now says `An ORDER BY key cannot be a C# null; pass a column
+  or an expression.` instead of naming `Sql.Null`. (#693)
 - A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
   release year on SQL Server, the engine's own version number elsewhere. A SQL
   Server value below 2000 (`16`, SQL Server 2022's product version, compared as

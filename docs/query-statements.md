@@ -396,7 +396,7 @@ the column in C# instead (`OrderBy(sortByName ? u.Name : u.Id)`), and pass
 > - An alias key the same query block does not select sorts by a same-named input column, or, with none, fails or sorts by a constant.
 >
 > Alias the table, and order by an alias only where the same block selects it. Inside `OVER`,
-> `WITHIN GROUP` and the aggregates, `OrderBy(...)` rejects an alias outright.
+> `WITHIN GROUP` and the aggregates, `OrderBy(...)` rejects an alias outright, and a number too.
 
 ---
 

@@ -43,8 +43,10 @@ public sealed class OrderByClause : SqlPart
 
     // PostgreSQL and SQLite read no select alias here, so its bare name sorts by an
     // input column or a constant; the aliased expression reads the same everywhere (#672).
+    // Nor a select-list position: a number is a constant key, as in PARTITION BY (#693).
     internal static OrderByClause ParseInExpression(object[] orderByItems)
     {
+        ThrowIfNumericKey(orderByItems);
         SqlPart[] items = OrderByItemResolver.Resolve(orderByItems);
 
         foreach (SqlPart item in items)
@@ -59,6 +61,28 @@ public sealed class OrderByClause : SqlPart
         }
 
         return new(items);
+    }
+
+    // Checked before resolving, so NaN gets this message rather than the finite one;
+    // a null array or element is left to the resolver's own message.
+    private static void ThrowIfNumericKey(object[] orderByItems)
+    {
+        if (orderByItems is null)
+        {
+            return;
+        }
+
+        foreach (object item in orderByItems)
+        {
+            if (item is not null && ExpressionResolver.IsNumeric(item))
+            {
+                throw new ArgumentException(
+                    "An ORDER BY inside OVER, WITHIN GROUP or an aggregate cannot sort by a "
+                        + "number, which is a constant there; pass a column or an expression, "
+                        + "or Bind(value) for a deliberate constant.",
+                    nameof(orderByItems));
+            }
+        }
     }
 
     // Read by the PostgreSQL bounded-exception guard (ADR 0011).

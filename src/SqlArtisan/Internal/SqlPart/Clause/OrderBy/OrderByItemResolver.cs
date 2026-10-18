@@ -5,12 +5,13 @@ namespace SqlArtisan.Internal;
 
 internal static class OrderByItemResolver
 {
+    private const string OrderBy = $"{Keywords.Order} {Keywords.By}";
+
     internal static SqlPart[] Resolve(object[] orderByItems)
     {
         if (orderByItems is null)
         {
-            throw new ArgumentNullException(
-                nameof(orderByItems), ExpressionResolver.NullValueMessage);
+            throw NullKey(nameof(orderByItems), OrderBy);
         }
 
         var resolved = new SqlPart[orderByItems.Length];
@@ -27,8 +28,8 @@ internal static class OrderByItemResolver
     {
         if (orderByItem is null)
         {
-            throw new ArgumentNullException(
-                nameof(orderByItem), ExpressionResolver.NullValueMessage);
+            // Reported against the OrderBy params array, which this element came in.
+            throw NullKey("orderByItems", OrderBy);
         }
         else if (orderByItem is SqlExpression expr)
         {
@@ -66,8 +67,8 @@ internal static class OrderByItemResolver
         {
             case sbyte or byte or short or ushort or int or uint or nint or nuint
                 or long or ulong:
-                // An ordinal only in the statement position: the ordered
-                // aggregates read the same literal as an expression.
+                // Only the statement position reaches here; ParseInExpression
+                // rejects a number first.
                 return new NumericSortKey(
                     text,
                     fractional: false,

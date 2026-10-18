@@ -161,22 +161,42 @@ public class OrderByTests
         Assert.Equal("orderByItems", ex.ParamName);
     }
 
+    private const string NullOrderByKeyMessage =
+        "An ORDER BY key cannot be a C# null; pass a column or an expression. "
+            + "(Parameter 'orderByItems')";
+
     [Fact]
     public void OrderBy_WithNullItem_ThrowsArgumentNullException()
     {
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             OrderBy(_t.Code, null!));
 
-        Assert.Equal(
-            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'orderByItem')",
-            ex.Message);
+        Assert.Equal(NullOrderByKeyMessage, ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_StatementNullItems_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            Select(_t.Code).From(_t).OrderBy(null!));
+
+        Assert.Equal(NullOrderByKeyMessage, ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_StatementNullItem_ThrowsArgumentNullException()
+    {
+        // Sql.Null, the generic remedy, sorts by a constant here too.
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            Select(_t.Code).From(_t).OrderBy(_t.Code, null!));
+
+        Assert.Equal(NullOrderByKeyMessage, ex.Message);
     }
 
     [Fact]
     public void OrderBy_ZeroOrdinal_ThrowsArgumentException()
     {
-        // Dialect-blind and fixed at the call; only the statement position is
-        // guarded, because a window's ordering reads the same literal as an expression.
+        // Dialect-blind and fixed at the call.
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Select(_t.Code).From(_t).OrderBy(0));
 
@@ -273,45 +293,68 @@ public class OrderByTests
         Assert.Equal("SELECT \"t\".code FROM test_table \"t\" ORDER BY -1", sql.Text);
     }
 
+    private const string NumberInExpressionMessage =
+        "An ORDER BY inside OVER, WITHIN GROUP or an aggregate cannot sort by a number, "
+            + "which is a constant there; pass a column or an expression, or Bind(value) "
+            + "for a deliberate constant. (Parameter 'orderByItems')";
+
+    // #693: these positions read no select-list position, so a number is a constant
+    // key, as #673 decided for PARTITION BY.
+    public static TheoryData<object> NumbersInExpressionPosition => new()
+    {
+        1,
+        0,
+        -1,
+        2L,
+        2.5,
+        2.5m,
+        double.NaN,
+    };
+
     [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void OrderBy_NonPositiveOrdinal_InWindowPosition_CorrectSql(int ordinal)
+    [MemberData(nameof(NumbersInExpressionPosition))]
+    public void OrderBy_NumberInWindowPosition_ThrowsArgumentException(object key)
     {
-        // OVER(...) reads the literal as an expression, and every engine here
-        // takes it (live-verified on PostgreSQL 16 and SQLite 3.41/3.46).
-        SqlStatement sql = Select(RowNumber().Over(OrderBy(ordinal)))
-            .From(_t)
-            .Build(Dbms.PostgreSql);
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            RowNumber().Over(OrderBy(key)));
 
-        Assert.Equal(
-            $"SELECT ROW_NUMBER() OVER (ORDER BY {ordinal}) FROM test_table \"t\"",
-            sql.Text);
+        Assert.Equal(NumberInExpressionMessage, ex.Message);
     }
 
     [Fact]
-    public void OrderBy_ZeroOrdinal_InWithinGroupPosition_CorrectSql()
+    public void OrderBy_NumberAfterPartitionBy_ThrowsArgumentException()
     {
-        SqlStatement sql = Select(StringAgg(_t.Code, ",").WithinGroup(OrderBy(0)))
-            .From(_t)
-            .Build(Dbms.PostgreSql);
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            PartitionBy(_t.Name).OrderBy(_t.Code, 1));
 
-        Assert.Equal(
-            "SELECT STRING_AGG(\"t\".code, ',') WITHIN GROUP (ORDER BY 0) "
-                + "FROM test_table \"t\"",
-            sql.Text);
+        Assert.Equal(NumberInExpressionMessage, ex.Message);
     }
 
     [Fact]
-    public void OrderBy_ZeroOrdinal_InGroupConcatPosition_CorrectSql()
+    public void OrderBy_NumberInWithinGroupPosition_ThrowsArgumentException()
     {
-        SqlStatement sql = Select(GroupConcat(_t.Code, OrderBy(0)))
-            .From(_t)
-            .Build(Dbms.MySql);
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            StringAgg(_t.Code, ",").WithinGroup(OrderBy(0)));
 
-        Assert.Equal(
-            "SELECT GROUP_CONCAT(`t`.code ORDER BY 0) FROM test_table `t`",
-            sql.Text);
+        Assert.Equal(NumberInExpressionMessage, ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_NumberInGroupConcatPosition_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            GroupConcat(_t.Code, OrderBy(1)));
+
+        Assert.Equal(NumberInExpressionMessage, ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_ExplicitBindInWindowPosition_CorrectSql()
+    {
+        SqlStatement sql = Select(RowNumber().Over(OrderBy(Bind(1)))).From(_t).Build();
+
+        Assert.Equal("SELECT ROW_NUMBER() OVER (ORDER BY :0) FROM test_table \"t\"", sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
     }
 
     [Fact]
