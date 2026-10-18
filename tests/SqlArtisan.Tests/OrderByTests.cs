@@ -358,6 +358,21 @@ public class OrderByTests
     }
 
     [Fact]
+    public void OrderBy_SqlNullInWindowPosition_CorrectSql()
+    {
+        // The frame spelling with no ordering (public-api-design.md) stays legal.
+        SqlStatement sql =
+            Select(Sum(_t.Code).Over(OrderBy(Null).Rows(UnboundedPreceding)))
+            .From(_t)
+            .Build();
+
+        Assert.Equal(
+            "SELECT SUM(\"t\".code) OVER (ORDER BY NULL ROWS UNBOUNDED PRECEDING) "
+                + "FROM test_table \"t\"",
+            sql.Text);
+    }
+
+    [Fact]
     public void OrderBy_WholeDoubleLiteral_RendersDecimalPoint()
     {
         // A whole-valued double is a literal sort key, not a column ordinal, so
