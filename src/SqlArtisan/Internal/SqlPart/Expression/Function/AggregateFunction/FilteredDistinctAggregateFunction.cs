@@ -5,8 +5,8 @@ namespace SqlArtisan.Internal;
 /// <c>COUNT(DISTINCT x) FILTER (WHERE ...)</c>.
 /// </summary>
 /// <remarks>
-/// It offers no window: PostgreSQL and SQLite, the engines with <c>FILTER</c>, run no
-/// <c>DISTINCT</c> window (#662).
+/// It offers no window: PostgreSQL 16/17 and SQLite 3.50, the engines with <c>FILTER</c>, run
+/// no <c>DISTINCT</c> window (live twins, #662).
 /// </remarks>
 public sealed class FilteredDistinctAggregateFunction : SqlExpression
 {

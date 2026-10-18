@@ -129,9 +129,9 @@ internal static class ContextRules
     }
 
     /// <summary>
-    /// Oracle alone runs a window on a <c>DISTINCT</c> aggregate, and only the empty
-    /// and partition-only ones, which are all the node offers (live twins on every
-    /// lane, #662).
+    /// Oracle alone runs a window on a <c>DISTINCT</c> aggregate, only the empty and
+    /// partition-only ones the node offers. Live twins: MySQL 8.0, Oracle XE 21.3.0 and Free
+    /// 23ai, PostgreSQL 16/17, SQLite 3.50 and SQL Server 2022/2025 (#662).
     /// </summary>
     public static void CheckDistinctAggregateWindow(
         OperationAnalysisContext context, IInvocationOperation over, string dialectNames)

@@ -5,8 +5,9 @@ namespace SqlArtisan.Internal;
 /// one.
 /// </summary>
 /// <remarks>
-/// Its empty and partition-only windows run on Oracle alone. An ordered or framed window runs
-/// on no engine, so it does not compile (live twins on every lane, #662).
+/// Its empty and partition-only windows run on Oracle XE 21.3.0 and Free 23ai alone. MySQL 8.0,
+/// PostgreSQL 16/17, SQLite 3.50 and SQL Server 2022/2025 reject every window on one, and those
+/// Oracle lanes reject an ordered or framed one, so it does not compile (live twins, #662).
 /// </remarks>
 public sealed class DistinctAggregateFunction : SqlExpression
 {

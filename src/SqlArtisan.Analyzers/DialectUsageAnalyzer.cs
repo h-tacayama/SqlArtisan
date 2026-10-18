@@ -438,7 +438,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     private static readonly TargetDbms[] s_deleteUsingUnsupported = [TargetDbms.Oracle];
 
-    // Every engine but Oracle (live twins, #662).
+    // Every engine but Oracle, on the lanes CheckDistinctAggregateWindow names (#662).
     private static readonly TargetDbms[] s_distinctWindowUnsupported =
         [TargetDbms.MySql, TargetDbms.PostgreSql, TargetDbms.Sqlite, TargetDbms.SqlServer];
 
