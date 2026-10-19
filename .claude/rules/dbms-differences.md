@@ -119,8 +119,12 @@ the dialect layer nor a plain matrix entry (the first two identified in the
   on either. Add the cell to `DatepartValidity.cs` (dateparts) or
   `ArgumentValueValidity.cs` (the rest), with a primary source, a live
   rejection proof, and the acceptance twin that proves the probe was
-  well-formed. A value no engine accepts is ADR 0012's eager guard instead,
-  and an engine nobody has measured is left out, never assumed to reject.
+  well-formed. A value no engine accepts is ADR 0012's eager guard instead
+  only when its domain is closed (condition 3): a vendor's own accepted-value
+  list keeps the cell even where no engine accepts the value today, as
+  `DATE_TRUNC('DAY_HOUR', ts)`, which PostgreSQL 16.15, the one engine with
+  `DATE_TRUNC`, rejects (#661). An engine nobody has measured is left out,
+  never assumed to reject.
 
 No `SqlPart` names `Dbms` at all — `DialectBranchSweepTests` sweeps the two
 `SqlPart/` trees for the type name, so a node reads a difference through
