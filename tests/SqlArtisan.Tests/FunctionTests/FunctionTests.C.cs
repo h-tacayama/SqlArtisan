@@ -315,14 +315,21 @@ public partial class FunctionTests
         Assert.Equal("SELECT CURRENT_TIME(3)", sql.Text);
     }
 
-    [Theory]
-    [InlineData(-1)]
-    [InlineData(10)]
-    public void CurrentTime_PrecisionOutOfRange_ThrowsArgumentException(int precision)
+    [Fact]
+    public void CurrentTime_NegativePrecision_ThrowsArgumentException()
     {
-        ArgumentException ex = Assert.Throws<ArgumentException>(() => CurrentTime(precision));
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => CurrentTime(-1));
 
-        Assert.Equal("CURRENT_TIME precision must be between 0 and 9.", ex.Message);
+        Assert.Equal("CURRENT_TIME precision must not be negative.", ex.Message);
+    }
+
+    // PostgreSQL 16 runs a precision above 9, clamping it with a warning, so only a
+    // negative one is valid nowhere.
+    [Fact]
+    public void CurrentTime_PrecisionAboveNine_CorrectSql()
+    {
+        SqlStatement sql = Select(CurrentTime(10)).Build();
+        Assert.Equal("SELECT CURRENT_TIME(10)", sql.Text);
     }
 
     [Fact]
@@ -339,15 +346,19 @@ public partial class FunctionTests
         Assert.Equal("SELECT CURRENT_TIMESTAMP(3)", sql.Text);
     }
 
-    [Theory]
-    [InlineData(-1)]
-    [InlineData(10)]
-    public void CurrentTimestamp_PrecisionOutOfRange_ThrowsArgumentException(int precision)
+    [Fact]
+    public void CurrentTimestamp_NegativePrecision_ThrowsArgumentException()
     {
-        ArgumentException ex = Assert.Throws<ArgumentException>(
-            () => CurrentTimestamp(precision));
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => CurrentTimestamp(-1));
 
-        Assert.Equal("CURRENT_TIMESTAMP precision must be between 0 and 9.", ex.Message);
+        Assert.Equal("CURRENT_TIMESTAMP precision must not be negative.", ex.Message);
+    }
+
+    [Fact]
+    public void CurrentTimestamp_PrecisionAboveNine_CorrectSql()
+    {
+        SqlStatement sql = Select(CurrentTimestamp(10)).Build();
+        Assert.Equal("SELECT CURRENT_TIMESTAMP(10)", sql.Text);
     }
 
     [Fact]

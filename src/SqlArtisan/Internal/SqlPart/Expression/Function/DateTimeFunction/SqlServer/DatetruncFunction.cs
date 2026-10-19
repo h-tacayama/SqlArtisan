@@ -7,19 +7,19 @@ namespace SqlArtisan.Internal;
 // see .editorconfig's CA1708 override for the resulting warning.
 public sealed class DatetruncFunction : SqlExpression
 {
-    private readonly DateTimePart _datepart;
+    private readonly string _datepart;
     private readonly SqlExpression _date;
 
     internal DatetruncFunction(DateTimePart datepart, SqlExpression date)
     {
-        _datepart = datepart;
+        _datepart = DatepartKeywords.Resolve(datepart, Keywords.Datetrunc, nameof(datepart));
         _date = date;
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Datetrunc)
         .OpenParenthesis()
-        .Append(DatepartKeywords.Of(_datepart))
+        .Append(_datepart)
         .PrependComma(_date)
         .CloseParenthesis();
 }

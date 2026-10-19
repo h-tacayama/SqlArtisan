@@ -718,7 +718,7 @@ public static partial class Sql
     /// The <c>CURRENT_TIME(precision)</c> function: the current time of day with
     /// <paramref name="precision"/> fractional-second digits.
     /// </summary>
-    /// <param name="precision">The fractional-second digits (0-9).</param>
+    /// <param name="precision">The fractional-second digits; zero or more.</param>
     /// <returns>A <see cref="CurrentTimeFunction"/> emitting
     /// <c>CURRENT_TIME(precision)</c>.</returns>
     /// <remarks>MySQL and PostgreSQL syntax.</remarks>
@@ -735,7 +735,7 @@ public static partial class Sql
     /// The <c>CURRENT_TIMESTAMP(precision)</c> function: the current date and time
     /// with <paramref name="precision"/> fractional-second digits.
     /// </summary>
-    /// <param name="precision">The fractional-second digits (0-9).</param>
+    /// <param name="precision">The fractional-second digits; zero or more.</param>
     /// <returns>A <see cref="CurrentTimestampFunction"/> emitting
     /// <c>CURRENT_TIMESTAMP(precision)</c>.</returns>
     /// <remarks>MySQL, Oracle, and PostgreSQL syntax. MySQL's bare

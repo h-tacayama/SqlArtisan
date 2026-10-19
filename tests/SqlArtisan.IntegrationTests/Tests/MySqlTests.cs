@@ -381,6 +381,21 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             connection.Execute("SELECT id FROM users ORDER BY id OFFSET 1"));
     }
 
+    // ADR 0012 (#661): anchors the non-negative CURRENT_TIMESTAMP / CURRENT_TIME
+    // precision guards.
+    [Fact]
+    public void CurrentTimestamp_NegativePrecision_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT CURRENT_TIMESTAMP(3), CURRENT_TIME(3)");
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT CURRENT_TIMESTAMP(-1)"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT CURRENT_TIME(-1)"));
+    }
+
     // Live twins of the duplicate-list guards (guards-and-empty-states.md): the
     // guards reject the shape everywhere, so each lane pins what its engine does.
     [Fact]

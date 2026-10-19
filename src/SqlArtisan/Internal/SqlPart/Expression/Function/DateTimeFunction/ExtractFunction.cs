@@ -2,19 +2,19 @@ namespace SqlArtisan.Internal;
 
 public sealed class ExtractFunction : SqlExpression
 {
-    private readonly DateTimePart _datepart;
+    private readonly string _datepart;
     private readonly SqlExpression _source;
 
     internal ExtractFunction(DateTimePart datepart, SqlExpression source)
     {
-        _datepart = datepart;
+        _datepart = DatepartKeywords.Resolve(datepart, Keywords.Extract, nameof(datepart));
         _source = source;
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Extract)
         .OpenParenthesis()
-        .Append(DatepartKeywords.Of(_datepart))
+        .Append(_datepart)
         .EncloseInSpaces(Keywords.From)
         .Append(_source)
         .CloseParenthesis();

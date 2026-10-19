@@ -137,9 +137,14 @@ the full rationale.
   (the bare-token boundary below, gated by the factory sweep's whitespace injection;
   release audit pass 2); an `UNNEST` column alias list naming one column
   twice (release audit pass 4); a cast-in undefined `DateTimePart` value
-  (`ArgumentOutOfRangeException` at `Build()`, not an index error) and a
+  (`ArgumentOutOfRangeException` at the factory call, naming the construct
+  and the caller's parameter, not an index error at `Build()`; #661) and a
   digit-only `OutputParameter` name, which is the positional bind markers'
-  namespace (release audit pass 5).
+  namespace (release audit pass 5); a `CurrentTimestamp` / `CurrentTime`
+  precision below 0, rejected by MySQL 8.0 and PostgreSQL 16.15 and, for
+  `CURRENT_TIMESTAMP`, Oracle XE 21.3.0 (SQL Server and SQLite take no
+  precision); the ceiling stays each engine's, since PostgreSQL 16.15 runs
+  `CURRENT_TIMESTAMP(10)`, clamping it to 6 (#661).
 - *Bounded exception*: aliased un-joined `INSERT`/`UPDATE`/`DELETE` target on
   SQL Server (on the joined forms the library requires the alias instead —
   next paragraph);

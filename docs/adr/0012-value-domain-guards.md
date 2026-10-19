@@ -94,7 +94,12 @@ refuses it (16.15, live).
 `Wait(seconds)`'s second count —
 non-negative: Oracle is the only engine whose `FOR UPDATE` takes a `WAIT`
 clause, and it rejects every negative count with ORA-30005 at parse time,
-before lock contention can matter (#483).
+before lock contention can matter (#483). A `CurrentTimestamp` /
+`CurrentTime` precision below 0 (#661): MySQL 8.0 and PostgreSQL 16.15 reject
+it in both, Oracle XE 21.3.0 in `CURRENT_TIMESTAMP`, its one precision form,
+and SQL Server and SQLite take no precision at all. The guard once capped it
+at 9 as well, and was narrowed: PostgreSQL 16.15 runs `CURRENT_TIMESTAMP(10)`,
+clamping it to 6 with a warning, so a value above 9 fails condition 1.
 
 **Stated non-goals.** Six value shapes look like candidates and are not,
 because condition 1 fails outright:

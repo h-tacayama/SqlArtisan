@@ -6,11 +6,11 @@ public sealed class CurrentTimeFunction : SqlExpression
 
     internal CurrentTimeFunction(int? precision)
     {
-        // 0-9 spans every dialect's range (Oracle's 9 is the widest), so a value
-        // outside it is rejected everywhere and fails eagerly (ADR 0012).
-        if (precision is < 0 or > 9)
+        // The position takes an unsigned integer, so a negative one is valid nowhere
+        // (ADR 0012); an engine's own ceiling is left to it (PostgreSQL clamps one).
+        if (precision < 0)
         {
-            throw new ArgumentException("CURRENT_TIME precision must be between 0 and 9.");
+            throw new ArgumentException("CURRENT_TIME precision must not be negative.");
         }
 
         _precision = precision?.ToInvariantString();
