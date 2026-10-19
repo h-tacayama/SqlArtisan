@@ -27,8 +27,8 @@ internal static class DatepartKeywords
         string paramName) =>
         s_lowerKeywords[IndexOf(datepart, construct, paramName)];
 
-    // A cast-in undefined value would otherwise index past the table (or hit
-    // a null slot) and surface as a bare IndexOutOfRangeException.
+    // A cast-in undefined value would otherwise index past the table and surface
+    // as a bare IndexOutOfRangeException.
     private static int IndexOf(DateTimePart datepart) =>
         (uint)datepart < (uint)s_keywords.Length
             ? (int)datepart

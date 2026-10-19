@@ -6,8 +6,7 @@ public sealed class CurrentTimeFunction : SqlExpression
 
     internal CurrentTimeFunction(int? precision)
     {
-        // The position takes an unsigned integer, so a negative one is valid nowhere
-        // (ADR 0012); an engine's own ceiling is left to it (PostgreSQL clamps one).
+        // The same domain as CurrentTimestampFunction's precision.
         if (precision < 0)
         {
             throw new ArgumentException("CURRENT_TIME precision must not be negative.");

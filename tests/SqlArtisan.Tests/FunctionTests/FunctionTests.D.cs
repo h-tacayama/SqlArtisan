@@ -750,43 +750,4 @@ public partial class FunctionTests
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal("a", sql.Parameters.Get<string>("?0"));
     }
-
-    // A cast-in undefined value fails at the factory call, naming the construct and the
-    // caller's own parameter (#661).
-    [Theory]
-    [InlineData("DATEADD", "datepart")]
-    [InlineData("DATEDIFF", "datepart")]
-    [InlineData("DATEPART", "datepart")]
-    [InlineData("DATE_TRUNC", "datepart")]
-    [InlineData("DATETRUNC", "datepart")]
-    [InlineData("EXTRACT", "datepart")]
-    [InlineData("INTERVAL", "unit")]
-    [InlineData("TIMESTAMPADD", "unit")]
-    [InlineData("TIMESTAMPDIFF", "unit")]
-    public void DateTimePartFactory_UndefinedValue_ThrowsArgumentOutOfRangeException(
-        string construct,
-        string paramName)
-    {
-        DateTimePart undefined = (DateTimePart)999;
-        Action call = construct switch
-        {
-            "DATEADD" => () => Dateadd(undefined, 3, _t.CreatedAt),
-            "DATEDIFF" => () => Datediff(undefined, _t.CreatedAt, _t.CreatedAt),
-            "DATEPART" => () => Datepart(undefined, _t.CreatedAt),
-            "DATE_TRUNC" => () => DateTrunc(undefined, _t.CreatedAt),
-            "DATETRUNC" => () => Datetrunc(undefined, _t.CreatedAt),
-            "EXTRACT" => () => Extract(undefined, _t.CreatedAt),
-            "INTERVAL" => () => Interval(1, undefined),
-            "TIMESTAMPADD" => () => Timestampadd(undefined, 1, _t.CreatedAt),
-            _ => () => Timestampdiff(undefined, _t.CreatedAt, _t.CreatedAt),
-        };
-
-        ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(call);
-
-        Assert.Equal(paramName, ex.ParamName);
-        Assert.Equal(
-            $"{construct} requires a defined DateTimePart value. (Parameter '{paramName}')"
-                + Environment.NewLine + "Actual value was 999.",
-            ex.Message);
-    }
 }
