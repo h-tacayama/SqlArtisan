@@ -942,7 +942,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         using IDbConnection connection = _fixture.OpenConnection();
         connection.Execute(
             "IF DB_ID('probe_cl150') IS NULL CREATE DATABASE probe_cl150; "
-            + "ALTER DATABASE probe_cl150 SET COMPATIBILITY_LEVEL = 150;");
+                + "ALTER DATABASE probe_cl150 SET COMPATIBILITY_LEVEL = 150;");
         connection.ChangeDatabase("probe_cl150");
 
         Assert.Equal("a", connection.QuerySingle<string>(Select(Trim("xxaxx", "x"))));

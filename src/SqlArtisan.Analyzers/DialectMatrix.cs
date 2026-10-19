@@ -952,8 +952,8 @@ internal static class DialectMatrix
         return false;
     }
 
-    /// <summary>Exposed for the version-bounds gate tests (orphan check, baseline invariant, docs
-    /// provenance).</summary>
+    /// <summary>The bounds table the resolver's version check reads, also exposed for the
+    /// version-bounds gate tests (orphan check, baseline invariant, docs provenance).</summary>
     internal static IReadOnlyDictionary<MatrixKey, VersionBounds> AllBounds => Bounds;
 
     public static bool TryGetEntry(
