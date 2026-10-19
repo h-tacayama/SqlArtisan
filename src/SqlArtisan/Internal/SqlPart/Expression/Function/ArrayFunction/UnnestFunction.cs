@@ -10,9 +10,9 @@ public sealed class UnnestFunction : SqlExpression
     }
 
     /// <summary>
-    /// Names this <c>UNNEST</c> call as a derived-table source for a <c>FROM</c>. A
-    /// single scalar array's result column is named <paramref name="alias"/> (read via
-    /// <c>Column(alias)</c>); otherwise the columns go unnamed (<c>Asterisk</c>).
+    /// Names this <c>UNNEST</c> call as a derived-table source for a <c>FROM</c>. One scalar
+    /// array's column is named <paramref name="alias"/>; a composite-typed array's take its
+    /// field names; with several arrays, read the scalar ones through <c>Asterisk</c>.
     /// </summary>
     /// <param name="alias">The derived-table alias.</param>
     /// <returns>An <see cref="UnnestDerivedTable"/> naming this call.</returns>

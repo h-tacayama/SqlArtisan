@@ -960,6 +960,21 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         transaction.Rollback();
     }
 
+    // #664: a small fraction renders in its invariant round-trip spelling, an exponent,
+    // where the grammar names numeric_literal.
+    [Fact]
+    public void PercentileCont_ExponentFraction_IsAcceptedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        ISqlBuilder query =
+            Select(PercentileCont(0.00001).WithinGroup(OrderBy(u.Age)).Over())
+            .From(u);
+
+        Assert.Contains("PERCENTILE_CONT(1E-05)", query.Build(Dbms.SqlServer).Text);
+        Assert.NotNull(connection.Query<double?>(query).First());
+    }
+
     // #661: Trim(s, c) emits TRIM(c FROM s), which runs below compatibility level 160,
     // where the BOTH keyword the node used to add is refused; 140 is SQL Server 2017's.
     [Theory]
