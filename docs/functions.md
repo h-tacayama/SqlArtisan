@@ -278,7 +278,7 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 > **`GroupConcat(expr, sep)` silently changes meaning on MySQL.** MySQL reads the second positional argument as another concatenated value per row, not a separator, so the call runs and returns each element with `sep` appended, joined by the default comma. On MySQL, spell the separator with `GroupConcat(expr, Separator(sep))`; the positional form is SQLite's.
 
 > [!WARNING]
-> **On SQL Server, a `StringAgg` separator character the database's code page lacks arrives as `?`.** The separator is a plain literal, which SQL Server converts to the code page; `N'...'` would keep the character but is rejected over a `varchar` input, so it is not emitted. Under the default `SQL_Latin1_General_CP1_CI_AS`, `StringAgg(name, "、")` joins `a` and `b` as `a?b`. Use a separator the code page holds.
+> **On SQL Server, a `StringAgg` separator character the database's code page lacks arrives as `?`.** The separator is a plain literal, which SQL Server converts to the code page; `N'...'` would keep the character but is rejected over a `varchar` input, so it is not emitted. Under `SQL_Latin1_General_CP1_CI_AS`, `StringAgg(name, "、")` joins `a` and `b` as `a?b`. Use a separator the code page holds.
 
 > [!NOTE]
 > MySQL silently truncates `GROUP_CONCAT` output at `group_concat_max_len` (1024 bytes by default). Raise that session/global variable for large groups.

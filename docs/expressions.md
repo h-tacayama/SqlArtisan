@@ -1063,7 +1063,8 @@ Select(StringAgg(u.Name, ", ").WithinGroup(OrderBy(u.Name)))
 
 The separator is emitted as an inline single-quote-escaped string literal rather
 than a bind parameter: over a `varchar` input SQL Server rejects a bound separator,
-and the literal runs over both `varchar` and `nvarchar` input.
+and the literal runs over both `varchar` and `nvarchar` input; there a character the
+database's code page lacks arrives as `?`.
 
 ### LISTAGG (Oracle)
 

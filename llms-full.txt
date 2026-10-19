@@ -3211,7 +3211,8 @@ Select(StringAgg(u.Name, ", ").WithinGroup(OrderBy(u.Name)))
 
 The separator is emitted as an inline single-quote-escaped string literal rather
 than a bind parameter: over a `varchar` input SQL Server rejects a bound separator,
-and the literal runs over both `varchar` and `nvarchar` input.
+and the literal runs over both `varchar` and `nvarchar` input; there a character the
+database's code page lacks arrives as `?`.
 
 ### LISTAGG (Oracle)
 
@@ -3573,7 +3574,7 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 > **`GroupConcat(expr, sep)` silently changes meaning on MySQL.** MySQL reads the second positional argument as another concatenated value per row, not a separator, so the call runs and returns each element with `sep` appended, joined by the default comma. On MySQL, spell the separator with `GroupConcat(expr, Separator(sep))`; the positional form is SQLite's.
 
 > [!WARNING]
-> **On SQL Server, a `StringAgg` separator character the database's code page lacks arrives as `?`.** The separator is a plain literal, which SQL Server converts to the code page; `N'...'` would keep the character but is rejected over a `varchar` input, so it is not emitted. Under the default `SQL_Latin1_General_CP1_CI_AS`, `StringAgg(name, "、")` joins `a` and `b` as `a?b`. Use a separator the code page holds.
+> **On SQL Server, a `StringAgg` separator character the database's code page lacks arrives as `?`.** The separator is a plain literal, which SQL Server converts to the code page; `N'...'` would keep the character but is rejected over a `varchar` input, so it is not emitted. Under `SQL_Latin1_General_CP1_CI_AS`, `StringAgg(name, "、")` joins `a` and `b` as `a?b`. Use a separator the code page holds.
 
 > [!NOTE]
 > MySQL silently truncates `GROUP_CONCAT` output at `group_concat_max_len` (1024 bytes by default). Raise that session/global variable for large groups.
