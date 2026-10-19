@@ -57,6 +57,32 @@ because every dialect's grammar rejects a marker (#557):
   `regconfig` constant; a string sent as a `text` parameter has no implicit
   cast to `regconfig`.
 
+**What bounds the planning reason (#661).** A measured plan difference moves a
+position onto the second row when the position is typed `string` from its
+introduction, as the JSON path and key were. It does not, on its own, move a
+position already typed `object`: that move narrows the parameter to `string`,
+so a column or `Bind(...)` there stops compiling, and it is weighed against the
+engines where the difference is measured. The format strings of `Strftime`,
+`DateFormat`, `ToChar`, `ToDate`, `ToNumber`, `ToTimestamp` and `Format`, and
+the modifiers of `Date`, `Datetime`, `Julianday` and `Strftime`, stay on the
+first row on that weighing:
+
+- No engine's grammar rejects a marker there: the matrix sweep runs every
+  format string bound, and `Date`'s and `Datetime`'s modifiers.
+- SQLite 3.45.1 plans `SEARCH … USING INDEX` over an index on
+  `strftime('%Y', d)` or `date(d, 'start of month')` only with the literal, and
+  `SCAN` with the bound format or modifier
+  (`SqliteTests.DateTimeArgument_ExpressionIndex_MatchesOnlyALiteral`).
+- PostgreSQL 16.15 holds no index over `to_char`, `to_date`, `to_number` or
+  `to_timestamp(text, text)`: each is `STABLE`, and `CREATE INDEX` refuses it
+  (`PostgreSqlTests.FormatFunction_ExpressionIndex_IsRejectedByTheEngine`), so
+  binding costs it nothing.
+- MySQL's, Oracle's and SQL Server's index matching over these functions is
+  not measured.
+
+The gain is one engine's, so the breaking narrowing is not taken. A measurement
+on another engine, or a caller whose query needs the index, reopens it.
+
 ## Decision
 
 **Only values and forced literals are protected. Identifier positions

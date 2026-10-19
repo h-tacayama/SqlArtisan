@@ -411,6 +411,40 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
+    // ADR 0016 (#661): the bound format and modifier miss an expression index, a cost
+    // weighed and accepted there; only the inline literal, written by hand, matches.
+    [Theory]
+    [InlineData("strftime('%Y', created_at)", false, "SEARCH")]
+    [InlineData("strftime('%Y', created_at)", true, "SCAN")]
+    [InlineData("date(created_at, 'start of month')", false, "SEARCH")]
+    [InlineData("date(created_at, 'start of month')", true, "SCAN")]
+    public void DateTimeArgument_ExpressionIndex_MatchesOnlyALiteral(
+        string indexed,
+        bool bound,
+        string access)
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        connection.Execute($"CREATE INDEX ix_users_dt ON users ({indexed})", null, transaction);
+
+        SqlExpression key = indexed.StartsWith("strftime", StringComparison.Ordinal)
+            ? Strftime("%Y", u.CreatedAt)
+            : Date(u.CreatedAt, "start of month");
+        SqlStatement statement = Select(u.Id).From(u).Where(key == "2024").Build(Dbms.Sqlite);
+        string text = bound
+            ? statement.Text
+            : "SELECT id FROM users \"u\" WHERE " + indexed + " = :1";
+        string plan = string.Join(" | ", connection.Query(
+                "EXPLAIN QUERY PLAN " + text,
+                statement.Parameters.ToDynamicParameters(),
+                transaction)
+            .Select(row => (string)row.detail));
+
+        Assert.StartsWith(access, plan);
+        transaction.Rollback();
+    }
+
     [Fact]
     public void JsonArrow_ReadsNestedObject()
     {
