@@ -28,7 +28,7 @@ the string names:
 | Position | Behavior | Mechanism |
 |----------|----------|-----------|
 | **Value** — anything the grammar accepts as a parameter | bound | `BindValue`; ADR 0004 |
-| **Forced literal** — a position that needs a literal: the dialect grammar rejects a bind marker there, or a bind marker would change how the engine resolves or plans the statement | emitted inline, single-quoted, `'` doubled (`\` doubled on MySQL; on PostgreSQL a literal holding `\` is an `E'...'` constant with `\` doubled) | `SqlBuildingBuffer.AppendStringLiteral` |
+| **Forced literal** — a position that needs a literal: the dialect grammar rejects a bind marker there, or a bind marker would change how the engine resolves or plans the statement | emitted inline, single-quoted, `'` doubled (`\` doubled on MySQL; on PostgreSQL a literal holding `\` is an `E'...'` constant with `\` doubled; on SQL Server a literal holding a non-ASCII character is `N'...'`, the `STRING_AGG` separator excepted) | `SqlBuildingBuffer.AppendStringLiteral`; `AppendCodePageStringLiteral` for the `STRING_AGG` separator |
 | **Identifier** — a name or type token in the statement's structure | emitted verbatim, between the dialect's alias quotes where the position is quoted at all | `SqlBuildingBuffer.EncloseInAliasQuotes`, or a bare append |
 
 `Nextval` / `Currval` are the case that looked like an exception and is not.
@@ -151,17 +151,19 @@ alongside the bind-parameter types.
   closed literal, since `'` stays doubled.
 - **A forced literal keeps its characters on SQL Server (#663).** SQL Server
   converts a literal without `N` to the database's code page and reports no
-  loss: under SQL Server 2022's `SQL_Latin1_General_CP1_CI_AS` a non-ASCII
-  `JSON_VALUE` / `JSON_QUERY` path names another key, which lax mode answers
-  with NULL, and a non-ASCII `ESCAPE` character escapes nothing. So there a
+  loss: under SQL Server 2022's `SQL_Latin1_General_CP1_CI_AS` a `JSON_VALUE` /
+  `JSON_QUERY` path holding a character the page lacks (`名前`) names another
+  key, which lax mode answers with NULL, and such an `ESCAPE` character (`＼`)
+  escapes nothing. So there a
   forced literal holding a non-ASCII character is written `N'...'`; an ASCII
-  one stays plain, as every code page reads it alike, and the `N` form changes
-  neither the rows nor which index serves a `JSON_VALUE` computed column. The
+  one stays plain, as every code page reads it alike. Where the page holds the
+  character, the `N` form returns the plain form's rows and keeps the index on
+  a `JSON_VALUE` computed column (`Japanese_CI_AS`). The
   `STRING_AGG` separator stays plain: SQL Server rejects an `nvarchar`
   separator over a `varchar` input even where the page holds the character, so
   `N'...'` would break a query that runs today (#664), and a non-ASCII
-  separator the page lacks arrives as `?`. Elsewhere a literal travels in the
-  connection's character set, UTF-8 on every lane, and takes no prefix. Twins:
+  separator the page lacks arrives as `?`. No other dialect takes the prefix.
+  Twins:
   `SqlServerTests.NonAsciiForcedLiteral_PlainForm_LosesTheCharacter`,
   `SqlServerTests.NonAsciiForcedLiteral_OnACodePageHoldingIt_KeepsWhatThePlainFormRan`.
 - **Not a Boundary-cluster ADR.** This records emission behavior; it adds no
