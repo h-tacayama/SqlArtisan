@@ -122,7 +122,7 @@ the dialect layer nor a plain matrix entry (the first two identified in the
   well-formed. A value no engine accepts is ADR 0012's eager guard instead
   only when its domain is closed (condition 3): a vendor's own accepted-value
   list keeps the cell even where no engine accepts the value today, as
-  `DATE_TRUNC('DAY_HOUR', ts)`, which PostgreSQL 16.15, the one engine with
+  `DATE_TRUNC('day_hour', ts)`, which PostgreSQL 16.15, the one engine with
   `DATE_TRUNC`, rejects (#661). An engine nobody has measured is left out,
   never assumed to reject.
 

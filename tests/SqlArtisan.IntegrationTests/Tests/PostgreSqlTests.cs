@@ -395,6 +395,19 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             "SELECT DATE_TRUNC('epoch', created_at) FROM users"));
     }
 
+    // ADR 0012 (#661): anchors the open-domain example; the field is rejected here, the
+    // one engine with DATE_TRUNC, yet stays unguarded because the list is the vendor's.
+    [Fact]
+    public void DateTrunc_CompoundField_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT DATE_TRUNC('day', created_at) FROM users");
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT DATE_TRUNC('day_hour', created_at) FROM users"));
+    }
+
     // #661: an expression index matches DATE_TRUNC's field as written, so the emitted
     // lower-case field reaches an index built from the manual's 'month'; 'MONTH' does not.
     [Theory]

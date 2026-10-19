@@ -171,7 +171,7 @@ the asymmetry is condition 1's, not the evidence's.
   `Extract`, `Datepart`, `Dateadd`, `Datediff`, `DateTrunc`, `Datetrunc`,
   `Interval`, `Timestampadd` and `Timestampdiff`.** Only an undefined value
   throws there, at the call. That holds even where no engine accepts
-  a value today: `DATE_TRUNC('DAY_HOUR', ts)` is rejected by PostgreSQL 16.15,
+  a value today: `DATE_TRUNC('day_hour', ts)` is rejected by PostgreSQL 16.15,
   the one engine with `DATE_TRUNC`, and stays unguarded, since condition 3
   reads the domain, not the engine count.
   `Numtoyminterval`'s `YEAR`/`MONTH` restriction is the function's own
