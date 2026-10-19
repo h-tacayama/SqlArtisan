@@ -214,8 +214,8 @@ internal static class ExpressionResolver
         return Resolve(item);
     }
 
-    // A comparison's right operand, the one slot an ANY / ALL / SOME operand completes;
-    // every other position leaves it to the IIncompleteExpression message (#666).
+    // The right operand an ANY / ALL / SOME completes, in the slots QuantifiedExpression's
+    // remarks list; every other position leaves it to the IIncompleteExpression message.
     internal static SqlExpression ResolveQuantifiable(
         object item,
         string paramName,

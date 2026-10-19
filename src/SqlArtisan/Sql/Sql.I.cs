@@ -175,8 +175,8 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>INTERVAL <paramref name="quantity"/> unit</c> operand (the quantity bound,
-    /// the unit a bare keyword), valid only beside a date in <c>+</c> / <c>-</c> or as
-    /// <see cref="DateAdd(object, IntervalExpression)"/>'s interval.
+    /// the unit a bare keyword), valid only beside a date in <c>+</c> / <c>-</c> or as the
+    /// interval of <see cref="DateAdd(object, IntervalExpression)"/> or <c>DateSub</c>.
     /// </summary>
     /// <param name="quantity">The number of units, bound as a parameter.</param>
     /// <param name="unit">The date/time unit.</param>

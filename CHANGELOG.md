@@ -103,7 +103,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `ArrayOverlaps`, or as `JsonbContains`' value, `JsonbExists`' key or
   `TsMatch`'s query, and `Interval(...)` only beside a date in `+` / `-` or by
   `DateAdd` / `DateSub`; anywhere else the call throws, naming the slot.
-  `SqlExpression e = All(x)` and `All(x) + 1` no longer compile, and
+  `SqlExpression e = All(x)`, `All(x) + 1` and a string beside one
+  (`"%" + Any(...)`) no longer compile, and
   `Count(All(x))`, which ran with `ALL` read as `COUNT`'s own quantifier,
   throws: write `Count(x)`. `Interval(...) + date` and `"date" + Interval(...)`
   each gain an operator of their own. (#666)

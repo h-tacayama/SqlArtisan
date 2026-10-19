@@ -120,6 +120,28 @@ public class QuantifiedOperandTests
             ex.Message);
     }
 
+    // Off SqlExpression, a string beside one would compile as C# concatenation and bind
+    // its type name, so both orders are compile errors.
+    [Theory]
+    [InlineData(typeof(SqlArtisan.Internal.QuantifiedExpression), true)]
+    [InlineData(typeof(SqlArtisan.Internal.QuantifiedExpression), false)]
+    [InlineData(typeof(SqlArtisan.Internal.QuantifiedSubquery), true)]
+    [InlineData(typeof(SqlArtisan.Internal.QuantifiedSubquery), false)]
+    public void Quantified_AdditionBesideAString_IsACompileError(Type type, bool stringFirst)
+    {
+        System.Reflection.MethodInfo op = type.GetMethod(
+            "op_Addition",
+            stringFirst ? [typeof(string), type] : [type, typeof(string)])!;
+        ObsoleteAttribute obsolete = Assert.Single(
+            op.GetCustomAttributes(typeof(ObsoleteAttribute), false).Cast<ObsoleteAttribute>());
+
+        Assert.True(obsolete.IsError);
+        Assert.Equal(
+            "ANY, ALL or SOME cannot be added to a string; use it as the right operand of a "
+                + "comparison, as in col == Any(...).",
+            obsolete.Message);
+    }
+
     [Fact]
     public void All_NotEqual_CorrectSql()
     {

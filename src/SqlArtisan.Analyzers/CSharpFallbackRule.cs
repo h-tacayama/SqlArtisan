@@ -52,8 +52,8 @@ internal static class CSharpFallbackRule
             binary.Syntax.GetLocation()));
     }
 
-    // SqlArtisan's `+` takes a SqlExpression or ExpressionAlias operand, so `"x" + p` over
-    // any other query object is C# concatenation through ToString().
+    // SqlArtisan's `+` takes a SqlExpression, ExpressionAlias, IntervalExpression or quantified
+    // operand, so `"x" + p` over any other query object is C# concatenation through ToString().
     public static void CheckConcatenation(OperationAnalysisContext context, IBinaryOperation binary)
     {
         if (binary.OperatorMethod is not null

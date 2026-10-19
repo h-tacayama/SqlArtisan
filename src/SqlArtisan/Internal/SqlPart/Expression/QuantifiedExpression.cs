@@ -21,6 +21,25 @@ public sealed class QuantifiedExpression : SqlPart, IIncompleteExpression
     string IIncompleteExpression.IncompleteMessage =>
         QuantifiedSubquery.IncompleteMessageFor(_keyword);
 
+    /// <summary>
+    /// Not supported: a string beside an <c>ANY</c> / <c>ALL</c> / <c>SOME</c> operand,
+    /// which no engine adds; it would otherwise compile as C# concatenation.
+    /// </summary>
+    /// <param name="leftSide">The string.</param>
+    /// <param name="rightSide">The quantified operand.</param>
+    /// <returns>Never returns; the call does not compile.</returns>
+    [Obsolete(QuantifiedSubquery.StringBesideQuantifiedMessage, error: true)]
+    public static AdditionOperator operator +(string leftSide, QuantifiedExpression rightSide) =>
+        throw new InvalidOperationException(QuantifiedSubquery.StringBesideQuantifiedMessage);
+
+    /// <inheritdoc cref="op_Addition(string, QuantifiedExpression)"/>
+    /// <param name="leftSide">The quantified operand.</param>
+    /// <param name="rightSide">The string.</param>
+    /// <returns>Never returns; the call does not compile.</returns>
+    [Obsolete(QuantifiedSubquery.StringBesideQuantifiedMessage, error: true)]
+    public static AdditionOperator operator +(QuantifiedExpression leftSide, string rightSide) =>
+        throw new InvalidOperationException(QuantifiedSubquery.StringBesideQuantifiedMessage);
+
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_keyword)
         .AppendSpace()
