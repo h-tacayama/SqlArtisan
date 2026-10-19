@@ -100,13 +100,12 @@ check the diff against each:
   `LISTAGG`→`Listagg`.
 - **`Keywords.cs`** stays alphabetical; reuse an existing constant if present.
 - **Mandatory trailing clause?** Enforce it with the two-type "pending" pattern,
-  like `PercentileContFunction` → `.WithinGroup(...)` → `PercentileFunction`
-  (and `ListaggFunction` → `ListaggWithinGroupFunction`). The pending type is
-  **not** a `SqlExpression`, so omitting the clause throws at `Select(...)`
-  instead of silently emitting invalid SQL. Use this when a DBMS *requires* the
-  clause (Oracle `LISTAGG` needs `WITHIN GROUP`); keep it optional when the
-  clause is genuinely optional (SQL Server `STRING_AGG`, MySQL `GROUP_CONCAT`
-  ordering).
+  like `PercentileContFunction` → `.WithinGroup(...)` → `PercentileFunction`.
+  The pending type is **not** a `SqlExpression`, so omitting the clause throws
+  at `Select(...)` instead of silently emitting invalid SQL. Use this when every
+  DBMS *requires* the clause (an ordered-set aggregate's `WITHIN GROUP`); keep
+  it optional when the clause is genuinely optional (SQL Server `STRING_AGG`,
+  MySQL `GROUP_CONCAT` ordering).
 - **A node's fluent member returns a new node**
   (`.claude/rules/public-api-design.md`, #668). Flag any member that sets a
   field on a node and returns `this`: a caller can hold the node and derive
@@ -156,7 +155,8 @@ per-overload claim (`ToNumber` arity-1 is Oracle-only, the member is
 Oracle+PostgreSQL). Known sharp edges:
 - MySQL `GROUP_CONCAT ... SEPARATOR` requires a **literal** (a `?` placeholder is
   a parse error) and silently truncates at `group_concat_max_len` (1024 B).
-- Oracle `LISTAGG` **requires** `WITHIN GROUP (ORDER BY ...)`.
+- Oracle XE 21c runs `LISTAGG` **without** `WITHIN GROUP`; the library still
+  requires the clause, on a same-rows ground (`OrderBy(Null)`, #664).
 - `STRING_AGG` ordering differs: PostgreSQL inline `ORDER BY`, SQL Server
   `WITHIN GROUP`.
 - MySQL's default `sql_mode` parses `||` as **logical OR**, not concatenation —

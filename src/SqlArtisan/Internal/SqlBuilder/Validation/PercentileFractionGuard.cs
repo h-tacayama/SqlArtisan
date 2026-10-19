@@ -4,20 +4,18 @@ namespace SqlArtisan.Internal;
 // within the SQL-standard 0..1 domain, universally invalid otherwise (ADR 0012).
 internal static class PercentileFractionGuard
 {
-    internal static double Validate(double fraction)
+    internal static double Validate(double fraction, string construct)
     {
         if (!double.IsFinite(fraction))
         {
             throw new ArgumentException(
-                "The percentile fraction must be a finite number.",
-                nameof(fraction));
+                $"{construct} requires a finite fraction.", nameof(fraction));
         }
 
         if (fraction is < 0 or > 1)
         {
             throw new ArgumentException(
-                "The percentile fraction must be in the range 0 to 1.",
-                nameof(fraction));
+                $"{construct} requires a fraction in the range 0 to 1.", nameof(fraction));
         }
 
         return fraction;

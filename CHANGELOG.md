@@ -75,6 +75,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   17, SQLite 3.50, and SQL Server 2022 and 2025. (#662)
 
 ### Changed
+- `Unnest(...).AsTable(alias, columns)` accepts more column names than there are
+  arrays: an array of a composite type yields a column per field, which
+  PostgreSQL names this way. A list naming more columns than a scalar array has
+  still fails, in PostgreSQL. (#664)
+- `PercentileCont` / `PercentileDisc` name the function in their fraction
+  messages (`PERCENTILE_CONT requires a fraction in the range 0 to 1.`, and
+  `… requires a finite fraction.`), and an unfinished `Match(...)` names
+  `.AgainstScore(...)` alone, the one completion a value position takes. (#664)
 - `CurrentTimestamp(precision)` and `CurrentTime(precision)` accept a precision
   above 9, which PostgreSQL runs; the ceiling is each engine's to enforce. A
   negative precision still throws, now with `CURRENT_TIMESTAMP precision must

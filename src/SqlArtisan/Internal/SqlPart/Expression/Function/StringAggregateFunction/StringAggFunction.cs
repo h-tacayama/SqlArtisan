@@ -39,8 +39,8 @@ public sealed class StringAggFunction : SqlExpression
         .Append(Keywords.StringAgg)
         .OpenParenthesis()
         .Append(expr)
-        // Inlined as a string literal, never bound: SQL Server requires
-        // STRING_AGG's separator to be a literal (ADR 0004, #168).
+        // Inlined, never bound: SQL Server rejects the nvarchar a bound string travels
+        // as over a varchar input, and a varchar literal runs over both (ADR 0016, #664).
         .Append(", ")
         .AppendStringLiteral(separator)
         .PrependSpaceIfNotNull(orderByClause)

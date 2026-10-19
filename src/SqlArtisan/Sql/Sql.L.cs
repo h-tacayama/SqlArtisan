@@ -169,8 +169,8 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>LISTAGG(expr, separator)</c> string aggregate. Complete
-    /// it with <c>.WithinGroup(OrderBy(...))</c> to supply Oracle's mandatory
-    /// ordering.
+    /// it with <c>.WithinGroup(OrderBy(...))</c> before it can be used as an
+    /// expression.
     /// </summary>
     /// <param name="expr">The value aggregated into the concatenated string.</param>
     /// <param name="separator">The separator placed between values.</param>

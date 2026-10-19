@@ -100,16 +100,21 @@ public class PercentileTests
     [Fact]
     public void PercentileCont_WithNaNFraction_ThrowsArgumentException()
     {
-        // Act & Assert
-        Assert.Throws<ArgumentException>(() => PercentileCont(double.NaN));
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => PercentileCont(double.NaN));
+
+        Assert.Equal(
+            "PERCENTILE_CONT requires a finite fraction. (Parameter 'fraction')", ex.Message);
     }
 
     [Fact]
     public void PercentileDisc_WithInfinityFraction_ThrowsArgumentException()
     {
-        // Act & Assert
-        Assert.Throws<ArgumentException>(() =>
-            PercentileDisc(double.PositiveInfinity));
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => PercentileDisc(double.PositiveInfinity));
+
+        Assert.Equal(
+            "PERCENTILE_DISC requires a finite fraction. (Parameter 'fraction')", ex.Message);
     }
 
     [Fact]
@@ -119,7 +124,7 @@ public class PercentileTests
         ArgumentException ex =
             Assert.Throws<ArgumentException>(() => PercentileCont(1.5));
         Assert.Equal(
-            "The percentile fraction must be in the range 0 to 1."
+            "PERCENTILE_CONT requires a fraction in the range 0 to 1."
                 + " (Parameter 'fraction')",
             ex.Message);
     }
@@ -131,7 +136,7 @@ public class PercentileTests
         ArgumentException ex =
             Assert.Throws<ArgumentException>(() => PercentileDisc(-0.1));
         Assert.Equal(
-            "The percentile fraction must be in the range 0 to 1."
+            "PERCENTILE_DISC requires a fraction in the range 0 to 1."
                 + " (Parameter 'fraction')",
             ex.Message);
     }

@@ -10,7 +10,7 @@ public sealed class PercentileDiscFunction : IIncompleteExpression
 
     internal PercentileDiscFunction(double fraction)
     {
-        _fraction = PercentileFractionGuard.Validate(fraction);
+        _fraction = PercentileFractionGuard.Validate(fraction, Keywords.PercentileDisc);
     }
 
     string IIncompleteExpression.IncompleteMessage =>

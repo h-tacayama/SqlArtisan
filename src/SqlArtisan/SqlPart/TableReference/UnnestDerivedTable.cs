@@ -23,9 +23,9 @@ public sealed class UnnestDerivedTable : DerivedTableBase, IColumnAccessor
 
     /// <inheritdoc/>
     /// <remarks>
-    /// Without a column list, the one column takes the alias's quoted name, and every
-    /// <c>Column</c> overload here renders it bare: on PostgreSQL an alias with an upper-case
-    /// letter no longer matches, so give it a lower-case one.
+    /// Without a column list, one scalar array's column takes the alias's quoted name, which
+    /// every <c>Column</c> overload here renders bare: on PostgreSQL an alias with an
+    /// upper-case letter then matches nothing, so give it a lower-case one.
     /// </remarks>
     public DbColumn Column(string name) => new(this, name);
 

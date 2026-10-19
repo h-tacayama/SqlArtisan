@@ -10,9 +10,9 @@ public sealed class UnnestFunction : SqlExpression
     }
 
     /// <summary>
-    /// Names this <c>UNNEST</c> call as a derived-table source for a <c>FROM</c>. A
-    /// single array's result column is named <paramref name="alias"/> (read via
-    /// <c>Column(alias)</c>); more than one leaves the columns unnamed (<c>Asterisk</c>).
+    /// Names this <c>UNNEST</c> call as a derived-table source for a <c>FROM</c>. One scalar
+    /// array's column is named <paramref name="alias"/>; a composite-typed array's take its
+    /// field names; with several arrays, read the scalar ones through <c>Asterisk</c>.
     /// </summary>
     /// <param name="alias">The derived-table alias.</param>
     /// <returns>An <see cref="UnnestDerivedTable"/> naming this call.</returns>
@@ -23,12 +23,12 @@ public sealed class UnnestFunction : SqlExpression
     }
 
     /// <summary>
-    /// Names this <c>UNNEST</c> call as a derived-table source with named
-    /// result columns — <c>UNNEST(arrays) "alias" (col1, col2)</c>, at most
-    /// one per unnested array. Read them with <c>Column(name)</c>.
+    /// Names this <c>UNNEST</c> call as a derived-table source with named result columns —
+    /// <c>UNNEST(arrays) "alias" (col1, col2)</c>, one per array, or per field of a
+    /// composite-typed array. Read them with <c>Column(name)</c>.
     /// </summary>
     /// <param name="alias">The derived-table alias.</param>
-    /// <param name="columns">The result column names, in array order; at least one, and no more than there are arrays.</param>
+    /// <param name="columns">The result column names, in array order; at least one.</param>
     /// <returns>An <see cref="UnnestDerivedTable"/> naming this call.</returns>
     public UnnestDerivedTable AsTable(string alias, params string[] columns)
     {
@@ -48,14 +48,8 @@ public sealed class UnnestFunction : SqlExpression
                 "An UNNEST column alias list requires a distinct name for every column.");
         }
 
-        if (columns.Length > _arrays.Length)
-        {
-            throw new ArgumentException(
-                "An UNNEST column alias list must not name more columns than there are "
-                    + $"unnested arrays; UNNEST has {_arrays.Length} array(s), but the column "
-                    + $"list has {columns.Length}.");
-        }
-
+        // No cap at the array count: a composite-typed array yields a column per
+        // field, which the list may name (PostgreSQL 16.15, #664).
         return new(this, alias, columns);
     }
 

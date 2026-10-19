@@ -63,7 +63,7 @@ all three of the following hold:
 The message follows the guard grammar (names the construct, states the
 requirement) and is exact-message tested:
 
-> `The percentile fraction must be in the range 0 to 1.`
+> `PERCENTILE_CONT requires a fraction in the range 0 to 1.`
 
 Enumerated instances: the percentile fraction guards on `PercentileCont` /
 `PercentileDisc` — finite (pre-existing) and 0..1 (#295); `Ntile(buckets)` and

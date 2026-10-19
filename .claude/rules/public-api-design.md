@@ -247,7 +247,9 @@ When a parameter's dialect grammar sometimes *requires* a literal there (SQL
 Server `STRING_AGG`'s separator, ADR 0004's literal-position exception), type
 it `string` and emit it inline; when the dialect accepts a bound expression,
 type it `object` and resolve it normally. Shipped instances: `StringAgg(object
-expr, string separator)` (inline — SQL Server requires a literal there) vs.
+expr, string separator)` (inline — over a `varchar` input SQL Server rejects the
+`nvarchar` a bound string travels as, and only a `varchar` literal runs over both
+input types, #664) vs.
 `Listagg`/`GroupConcat`'s `object separator` (bound — Oracle/SQLite accept a
 parameter marker, live-verified by the sweep). Don't add a second, `object`-
 typed `StringAgg` separator overload to reach PostgreSQL's bindable case: the
@@ -605,11 +607,14 @@ engine runs a window over those forms (SQLite 3.45.1, live) nor `FILTER` over
 `SEPARATOR`, so offering either by type needs those forms split into types of
 their own, a return-type change and so a major version after 1.0. #662 did not
 split them: `GroupConcat` emits no invalid text, and a split ahead of demand is
-the cost ADR 0010 declines. Two more look missing but have a same-rows spelling, so they are ergonomic, not holes: a
+the cost ADR 0010 declines. Three more look missing but have a same-rows spelling, so they are ergonomic, not holes: a
 window frame with no `ORDER BY` is `OrderBy(Null).Rows(...)` (or
 `PartitionBy(g).OrderBy(Null)` first; same rows on PostgreSQL 16 and
 SQLite 3.45, MySQL not verified), and `LISTAGG` with no delimiter is
-`Listagg(x, Null)`, NULL being its default delimiter (not verified on Oracle).
+`Listagg(x, Null)`, NULL being its default delimiter (Oracle XE 21.3.0,
+`OracleTests.Listagg_NullDelimiter_MatchesTheDefault`), and `LISTAGG` with no
+`WITHIN GROUP`, which Oracle XE 21.3.0 runs, is `WithinGroup(OrderBy(Null))`, the
+same values with the order left to Oracle (#664).
 
 **Several `ON CONFLICT` clauses in one `INSERT` are not offered (decided —
 do not re-file):** SQLite runs `ON CONFLICT (id) DO UPDATE ... ON CONFLICT

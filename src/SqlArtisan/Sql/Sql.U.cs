@@ -21,8 +21,8 @@ public static partial class Sql
     /// <summary>
     /// The <c>UNNEST(arrays)</c> table function: expands one or more arrays into
     /// rows (PostgreSQL). Name it as a <c>FROM</c> source with
-    /// <see cref="UnnestFunction.AsTable(string)"/>; in a <c>SELECT</c> list it
-    /// is a set-returning call.
+    /// <see cref="UnnestFunction.AsTable(string)"/>; with one array, a <c>SELECT</c>
+    /// list also takes it as a set-returning call, and with several only <c>FROM</c> does.
     /// </summary>
     /// <param name="arrays">The array expressions to expand — e.g.
     /// <see cref="BindArray{T}(T[])"/> values or <c>ARRAY[...]</c> constructors;

@@ -256,7 +256,7 @@ public static partial class Sql
     /// <paramref name="separator"/>.
     /// </summary>
     /// <param name="expr">The expression aggregated across the group.</param>
-    /// <param name="separator">The string placed between concatenated values. Emitted as an inline string literal, since SQL Server requires the separator to be a literal.</param>
+    /// <param name="separator">The string placed between concatenated values. Emitted as an inline string literal, which SQL Server takes over both <c>varchar</c> and <c>nvarchar</c> input.</param>
     /// <returns>A <c>STRING_AGG</c> aggregate expression.</returns>
     /// <remarks>
     /// PostgreSQL, SQLite (3.44+), and SQL Server. Order per dialect: pass

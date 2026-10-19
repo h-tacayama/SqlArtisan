@@ -2,10 +2,14 @@ namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The <c>LISTAGG(expr, separator)</c> string aggregate (Oracle), pending its
-/// mandatory <c>WITHIN GROUP (ORDER BY ...)</c> clause. Oracle requires the
-/// ordering, so complete the call with <see cref="WithinGroup(OrderByClause)"/>
-/// before it can be used as an expression.
+/// <c>WITHIN GROUP (ORDER BY ...)</c> clause: complete the call with
+/// <see cref="WithinGroup(OrderByClause)"/> before it can be used as an expression.
 /// </summary>
+/// <remarks>
+/// Oracle XE 21.3.0 runs the call without the clause, but <c>OrderBy(Null)</c>
+/// aggregates the same values with the order left to Oracle, so the pending type
+/// withholds no query (<c>public-api-design.md</c> § "Opinions…", #664).
+/// </remarks>
 public sealed class ListaggFunction : IIncompleteExpression
 {
     private readonly SqlExpression _expr;
@@ -21,7 +25,7 @@ public sealed class ListaggFunction : IIncompleteExpression
         "LISTAGG requires a WITHIN GROUP clause; complete it with .WithinGroup(OrderBy(...)).";
 
     /// <summary>
-    /// Supplies Oracle's mandatory <c>WITHIN GROUP (ORDER BY ...)</c> clause:
+    /// Supplies Oracle's <c>WITHIN GROUP (ORDER BY ...)</c> clause:
     /// <c>LISTAGG(expr, sep) WITHIN GROUP (ORDER BY ...)</c>.
     /// </summary>
     public ListaggWithinGroupFunction WithinGroup(OrderByClause orderByClause) =>

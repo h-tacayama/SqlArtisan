@@ -438,6 +438,47 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         transaction.Rollback();
     }
 
+    // #664: a window function in WHERE, and a multi-array UNNEST in a select list, are
+    // valid nowhere and left to the engine, which rejects both.
+    [Fact]
+    public void WindowFunctionInWhere_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.Id).From(u).Where(RowNumber().Over(OrderBy(u.Id)) == 1)));
+    }
+
+    [Fact]
+    public void Unnest_SeveralArraysInSelectList_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>(Select(Unnest(BindArray([1, 2]))));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(Unnest(BindArray([1, 2]), BindArray([3, 4])))));
+    }
+
+    // #664: a composite-typed array yields a column per field, which is why AsTable's
+    // column list is not capped at the array count.
+    [Fact]
+    public void Unnest_CompositeArray_NamesAColumnPerField()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        connection.Execute("CREATE TYPE pair_664 AS (x INTEGER, y TEXT)", null, transaction);
+
+        string? y = connection.QuerySingle<string>(
+            "SELECT \"u\".y FROM UNNEST(ARRAY[ROW(1, 'a')::pair_664]) \"u\" (x, y)",
+            null,
+            transaction);
+
+        Assert.Equal("a", y);
+        transaction.Rollback();
+    }
+
     // ADR 0016 (#661): the format functions are STABLE, so no expression index can hold
     // one and a bound format costs PostgreSQL no index match.
     [Theory]

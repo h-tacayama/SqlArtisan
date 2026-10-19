@@ -934,6 +934,49 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         transaction.Rollback();
     }
 
+    // ADR 0016 (#664): why StringAgg inlines its separator — a bound one travels as
+    // nvarchar, rejected over a varchar input, while the literal runs over both.
+    [Fact]
+    public void StringAgg_BoundSeparatorOverVarchar_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        connection.Execute(
+            "CREATE TABLE #agg_664 (v VARCHAR(10), n NVARCHAR(10)); "
+                + "INSERT INTO #agg_664 VALUES ('a', N'a'), ('b', N'b');",
+            null,
+            transaction);
+
+        Assert.Equal("a,b", connection.QuerySingle<string>(
+            "SELECT STRING_AGG(v, ',') WITHIN GROUP (ORDER BY v) FROM #agg_664",
+            null,
+            transaction));
+        Assert.Equal("a,b", connection.QuerySingle<string>(
+            "SELECT STRING_AGG(n, @sep) WITHIN GROUP (ORDER BY n) FROM #agg_664",
+            new { sep = "," },
+            transaction));
+        Assert.ThrowsAny<DbException>(() => connection.QuerySingle<string>(
+            "SELECT STRING_AGG(v, @sep) FROM #agg_664", new { sep = "," }, transaction));
+        transaction.Rollback();
+    }
+
+    // #664: a small fraction renders in its invariant round-trip spelling, an exponent,
+    // where the grammar names numeric_literal.
+    [Fact]
+    public void PercentileCont_ExponentFraction_IsAcceptedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        SqlStatement sql =
+            Select(PercentileCont(0.00001).WithinGroup(OrderBy(u.Age)).Over())
+            .From(u)
+            .Build(Dbms.SqlServer);
+
+        Assert.Contains("PERCENTILE_CONT(1E-05)", sql.Text);
+        Assert.Equal(0, sql.Parameters.Count);
+        Assert.NotNull(connection.Query<double?>(sql.Text).First());
+    }
+
     // #661: Trim(s, c) emits TRIM(c FROM s), which runs below compatibility level 160,
     // where the BOTH keyword the node used to add is refused; 140 is SQL Server 2017's.
     [Theory]

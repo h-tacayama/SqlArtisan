@@ -41,7 +41,9 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
 **Enumerated instances of each rejection category:**
 
 - *Incomplete*: window/analytic function without `.Over(...)` (#150); ordered-set
-  aggregate without `.WithinGroup(...)` (#190); any of `InnerJoin`/`LeftJoin`/
+  aggregate without `.WithinGroup(...)` (#190) — `Listagg`'s pending type rests on
+  a same-rows ground instead, since Oracle XE 21.3.0 runs the bare call (ADR 0007,
+  #664); any of `InnerJoin`/`LeftJoin`/
   `RightJoin`/`FullJoin`/`JoinLateral` with no `.On(...)`/`.Using(...)` —
   accepted on SQLite (all five) or MySQL (`InnerJoin`/`JoinLateral` only) as an
   unlabeled `CROSS JOIN` spelling, not a construct with independent meaning
@@ -84,9 +86,10 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   shape is final — a joined multi-table `UPDATE` with distinct correlation
   names stays legal — after rejecting at `Set(...)` the pairs that share one,
   or that are both unaliased, which render one token either way), a `WITH` clause's CTE names, a `Values(...)`
-  source's column names, an `ON CONFLICT` target, a join `USING` list, an
-  `OUTPUT ... INTO` list — and an `OUTPUT ... INTO` list whose width differs
-  from the `OUTPUT` list; a `SET` target another table owns, in an arm that
+  source's column names, an `UNNEST` column alias list (PostgreSQL 16.15 runs
+  `unnest(...) u (x, x)`; only a later `u.x` is ambiguous, #664), an
+  `ON CONFLICT` target, a join `USING` list, an `OUTPUT ... INTO` list — and
+  an `OUTPUT ... INTO` list whose width differs from the `OUTPUT` list; a `SET` target another table owns, in an arm that
   renders it bare, and a column list entry another table owns (the paragraph
   below, #674).
   These are call-site defects rejected whatever the engine does (ADR 0011
@@ -143,8 +146,7 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   the `NEXT VALUE FOR` sequence name, a `DbColumn` name — invalid on every
   dialect, while a quoted or literal position keeps accepting whitespace
   (the bare-token boundary below, gated by the factory sweep's whitespace injection;
-  release audit pass 2); an `UNNEST` column alias list naming one column
-  twice (release audit pass 4); a cast-in undefined `DateTimePart` value
+  release audit pass 2); a cast-in undefined `DateTimePart` value
   (`ArgumentOutOfRangeException` at the factory call, naming the construct
   and the caller's parameter, not an index error at `Build()`; #661) and a
   digit-only `OutputParameter` name, which is the positional bind markers'
@@ -209,6 +211,22 @@ rests on which engines carry a `date_sub`, an open list (PostgreSQL 16.15 has
 `date_add` and `date_subtract`, and no `date_sub`). The failure is loud, and `SQLA0100` already
 reports both shapes on MySQL through `IntervalLiteral`'s arity-1 and arity-3
 rows, so the database and the analyzer are the arbiters (#661).
+
+**A window function or a multi-array `UNNEST` in a position no engine allows
+stays unguarded (decided — do not re-file):** `Where(RowNumber().Over(...) == 1)`
+builds `WHERE ROW_NUMBER() OVER (...) = :0`, which PostgreSQL 16.15 rejects
+(`window functions are not allowed in WHERE`) and SQLite 3.45.1 too (`misuse of
+window function`), and so for `GROUP BY`, `HAVING`, `ON`, `SET` and a window
+function nested in another or in an aggregate; `Select(Unnest(a, b))` builds
+`SELECT UNNEST(a, b)`, which PostgreSQL, the one engine with `UNNEST`, takes only
+in `FROM` (`function unnest(integer[], integer[]) does not exist`). Valid nowhere,
+yet no `Build()` guard: these are complete constructs in a rejected position, the
+`SQLA0102` class, not ADR 0007's incomplete one, and every engine fails loudly. A
+check would walk the tree to each subquery boundary, where the same call is
+valid, and withholding the multi-array form by type would cost the run-time array
+shape § "Minimum-arity enforcement" keeps (`public-api-design.md`, #552). The
+database is the arbiter (#664; the twins `WindowFunctionInWhere_IsRejectedByTheEngine`
+on PostgreSQL and SQLite, `Unnest_SeveralArraysInSelectList_IsRejectedByTheEngine`).
 
 **A `GROUP BY` column ordinal stays permissive on the engines that refuse it
 (decided — do not re-file):** Oracle XE 21.3.0 and SQL Server 2022 reject a
