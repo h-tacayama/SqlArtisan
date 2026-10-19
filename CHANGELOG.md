@@ -174,8 +174,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   or an expression.` instead of naming `Sql.Null`. (#693)
 - **Breaking:** a `DateTimePart`, `RegexpOptions` or `SearchModifier` in a
   value position throws `ArgumentException` (`DateTimePart is a function
-  argument, not a value; pass it to a DateTimePart parameter, or bind it with
-  Sql.Bind(...).`) instead of binding. One reaches a value position by being
+  argument, not a value; pass it to a DateTimePart parameter, or, to store or
+  compare the enum itself, bind it with Sql.Bind(...).`) instead of binding. One reaches a value position by being
   passed at an arity with no slot of its type, and bound there as the value
   with no error: `RegexpCount(s, p, RegexpOptions.CaseInsensitive)` bound the
   options as the start position, `Match(c).Against(SearchModifier.InBooleanMode)`
