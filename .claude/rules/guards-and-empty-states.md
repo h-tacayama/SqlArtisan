@@ -128,7 +128,8 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   must not rank past it; the numeric offset itself is never compared, so two
   `PRECEDING`/`FOLLOWING` bounds of the same kind may still legally invert
   (`BETWEEN 3 PRECEDING AND 5 PRECEDING`) (#402); an `IntervalLiteral` field's
-  precision — 0..9 — and its field range — one of the seven pairings Oracle's
+  precision — 0..9 on `Year` to `Minute`, non-negative on `ToSecond`, which
+  PostgreSQL 16.15 runs above 9, clamped to 6 (#661) — and its field range — one of the seven pairings Oracle's
   grammar admits, with a trailing precision only on `SECOND`, that position
   being the fractional-seconds count. A *sole* field's precision stays
   unguarded even for `SECOND` (the digits read as Oracle's leading precision
@@ -197,6 +198,17 @@ open, so condition 3 fails as well (#523). An undefined bit is not a letter:
 it emits nothing today and would emit a new letter once a flag is appended at
 that bit, so it throws `ArgumentOutOfRangeException` like an undefined
 `DateTimePart` (#614).
+
+**A `DateSub` interval literal MySQL cannot spell stays unguarded (decided —
+do not re-file):** `DateSub(date, IntervalLiteral(...))` with no field or with
+a field range emits `DATE_SUB(d, INTERVAL '3')` or `INTERVAL '1 2' DAY TO HOUR`,
+which MySQL 8.0, the one engine with `DATE_SUB`, rejects as a syntax error
+(`MySqlTests.DateSub_IntervalLiteralWithoutAUnit_IsRejectedByTheEngine`). That
+is valid nowhere today, but ADR 0012 condition 3 fails: whether the text runs
+rests on which engines carry a `date_sub`, an open list (PostgreSQL 16.15 has
+`date_add` and `date_subtract`, and no `date_sub`). The failure is loud, and `SQLA0100` already
+reports both shapes on MySQL through `IntervalLiteral`'s arity-1 and arity-3
+rows, so the database and the analyzer are the arbiters (#661).
 
 **A `GROUP BY` column ordinal stays permissive on the engines that refuse it
 (decided — do not re-file):** Oracle XE 21.3.0 and SQL Server 2022 reject a

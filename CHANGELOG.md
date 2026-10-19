@@ -79,6 +79,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   above 9, which PostgreSQL runs; the ceiling is each engine's to enforce. A
   negative precision still throws, now with `CURRENT_TIMESTAMP precision must
   not be negative.` (or `CURRENT_TIME`). (#661)
+- `ToSecond(precision)` accepts a precision above 9, which PostgreSQL runs; the
+  ceiling is each engine's to enforce. A negative precision still throws, now
+  with `SECOND precision must not be negative.` `Year(p)` to `Minute(p)` keep
+  0-9. (#661)
 - A cast-in undefined `DateTimePart` throws `ArgumentOutOfRangeException` at
   the factory call instead of at `Build()`, naming the construct and the
   parameter (`EXTRACT requires a defined DateTimePart value.`). That covers

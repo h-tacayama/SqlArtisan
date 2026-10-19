@@ -2267,7 +2267,8 @@ SqlStatement sql =
 ```
 
 Each field has a precision overload — `Year(3)`, `Day(2)`, …, `ToSecond(4)` —
-taking 0-9; the no-argument form leaves the engine's own default. It is the
+taking 0-9 (`ToSecond` any count from 0); the no-argument form leaves the
+engine's own default. It is the
 leading-digit count on a sole or leading field (Oracle only), and the
 fractional-seconds count on `ToSecond` (Oracle and PostgreSQL). Only `ToSecond` may carry it as a *trailing* field;
 anywhere else on the trailing side it throws, as does a leading/trailing pair

@@ -460,6 +460,17 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         transaction.Rollback();
     }
 
+    // ADR 0012 (#661): SECOND's precision has no ceiling here, which is why only a
+    // negative one is guarded.
+    [Fact]
+    public void IntervalLiteral_SecondPrecisionAboveNine_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(Select(IntervalLiteral("1", ToSecond(10))));
+        connection.ExecuteScalar(Select(IntervalLiteral("1 2:3:4.5", Day(), ToSecond(10))));
+    }
+
     // ADR 0012 (#661): a negative precision is a syntax error, while one above 9 runs
     // with a warning, clamped to 6, so only the negative one is guarded.
     [Fact]

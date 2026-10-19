@@ -75,7 +75,9 @@ absolute, so a same-kind pair of either is rejected outright), and a single
 bound (implicitly paired with `CURRENT ROW`) must not rank past it; the
 numeric offset itself is never compared, so two `PRECEDING`/`FOLLOWING`
 bounds of the same kind may legally invert (#402); an `IntervalLiteral`
-field's precision — 0..9 — and its field range — one of the seven pairings
+field's precision — 0..9 on `Year` to `Minute`, non-negative on `ToSecond`, whose
+ceiling was lifted because PostgreSQL 16.15 runs `SECOND(10)`, clamping it to
+6 (#661) — and its field range — one of the seven pairings
 Oracle's grammar admits, with a trailing precision only on `SECOND`, that
 position being the fractional-seconds count (#436). A *sole* field's
 precision is deliberately unguarded even for `SECOND`, where the digits read

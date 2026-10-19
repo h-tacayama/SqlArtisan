@@ -310,11 +310,22 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void ToSecond_PrecisionAboveMaximum_ThrowsArgumentException()
+    public void ToSecond_NegativePrecision_ThrowsArgumentException()
     {
-        ArgumentException ex = Assert.Throws<ArgumentException>(() => ToSecond(10));
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => ToSecond(-1));
 
-        Assert.Equal("SECOND precision must be between 0 and 9.", ex.Message);
+        Assert.Equal("SECOND precision must not be negative.", ex.Message);
+    }
+
+    // PostgreSQL 16 runs a SECOND precision above 9, clamping it with a warning.
+    [Fact]
+    public void ToSecond_PrecisionAboveNine_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(IntervalLiteral("1 2:3:4.5", Day(), ToSecond(10)))
+            .Build();
+
+        Assert.Equal("SELECT INTERVAL '1 2:3:4.5' DAY TO SECOND(10)", sql.Text);
     }
 
     [Fact]

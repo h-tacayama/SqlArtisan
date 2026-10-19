@@ -370,6 +370,20 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             "SELECT PERCENTILE_CONT(1.5) WITHIN GROUP (ORDER BY age) FROM users"));
     }
 
+    // ADR 0012 (#661): Oracle's fractional-seconds ceiling is its own, so the library
+    // leaves a SECOND precision above 9 to it.
+    [Fact]
+    public void IntervalLiteral_SecondPrecisionAboveNine_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(
+            Select(IntervalLiteral("1 2:3:4.5", Day(), ToSecond(9))).From(Dual));
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(IntervalLiteral("1 2:3:4.5", Day(), ToSecond(10))).From(Dual)));
+    }
+
     [Fact] // ADR 0012 (#661): anchors the non-negative CURRENT_TIMESTAMP precision guard.
     public void CurrentTimestamp_NegativePrecision_IsRejectedByTheEngine()
     {
