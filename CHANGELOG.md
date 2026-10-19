@@ -176,8 +176,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   value position throws `ArgumentException` (`DateTimePart is a function
   argument, not a value; pass it to a DateTimePart parameter, or bind it with
   Sql.Bind(...).`) instead of binding. One reaches a value position by being
-  passed at an arity with no slot of its type, and bound its integer there with
-  no error: `RegexpCount(s, p, RegexpOptions.CaseInsensitive)` bound the
+  passed at an arity with no slot of its type, and bound there as the value
+  with no error: `RegexpCount(s, p, RegexpOptions.CaseInsensitive)` bound the
   options as the start position, `Match(c).Against(SearchModifier.InBooleanMode)`
   the modifier as the search text, and `Select(Sum(DateTimePart.Year))`
   returned 40 on SQLite through `SqlArtisan.Dapper`. To store or compare one,
