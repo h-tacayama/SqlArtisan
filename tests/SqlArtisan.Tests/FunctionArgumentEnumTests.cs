@@ -53,8 +53,8 @@ public class FunctionArgumentEnumTests
 
         string name = value.GetType().Name;
         Assert.Equal(
-            $"{name} is a function argument, not a value; pass it to a {name} parameter, "
-                + "or bind it with Sql.Bind(...).",
+            $"{name} is a function argument, not a value; pass it to a {name} parameter, or, to "
+                + "store or compare the enum itself, bind it with Sql.Bind(...).",
             ex.Message);
     }
 

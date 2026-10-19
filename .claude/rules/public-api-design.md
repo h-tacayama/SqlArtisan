@@ -273,16 +273,20 @@ would bind as a value (Dapper sends its integer):
 `Against(SearchModifier.InBooleanMode)` as the search text,
 `Sum(DateTimePart.Year)` as the summed value. So the implicit resolvers
 (`ExpressionResolver`, the select-item and insert-value resolvers) reject one
-in every `object` slot, naming `Sql.Bind(...)`; `Bind`, `new BindValue(...)`
-and `BindArray(...)` still take one, so storing it stays writable and
-`IsBindable` / `IsBindableType` stay one set (#667). `Dbms` and
-`DbTypeCategory` still bind implicitly: no factory takes either as an
-argument, so one in a value slot is meant, and `FunctionArgumentEnumTests`
-makes a new public enum take a side. A family that takes the enum at another
-arity (the `REGEXP_*` factories, `Against` / `AgainstScore`) may name that
-shape in its own message (#661, #664). An overload taking the enum cannot
-withhold it instead: a literal `0` converts to any enum and prefers the enum
-overload, so it would capture `RegexpReplace(s, p, r, 1, 0)`.
+in every `object` slot, naming `Sql.Bind(...)` only for one meant as the
+value; `Bind`, `new BindValue(...)` and `BindArray(...)` still take one, so
+storing it stays writable and `IsBindable` / `IsBindableType` stay one set
+(#667). `Dbms` and `DbTypeCategory` still bind implicitly: no factory takes
+either as an argument, so one in a value slot is meant, and
+`FunctionArgumentEnumTests` makes a new public enum take a side. A
+function-argument enum wrapped in `Bind` binds in any slot, a `REGEXP_*`
+position and `Against`'s search text included: it reaches the factory as a
+`BindValue`, the caller's stated value, so no family guard rejects it there.
+An unwrapped one there takes the resolvers' message too: its first remedy
+names that family's options or modifier overload, so a message of the
+family's own would add only the shape (#661, #664). An overload taking the
+enum cannot withhold it instead: a literal `0` converts to any enum and
+prefers the enum overload, so it would capture `RegexpReplace(s, p, r, 1, 0)`.
 
 ## Minimum-arity enforcement: compile-time when the shape allows it
 
