@@ -314,9 +314,9 @@ internal static class ExpressionResolver
     // this, so binding one stays writable; no factory takes Dbms or DbTypeCategory.
     internal static BindValue BindImplicitly(object value) =>
         value is DateTimePart or RegexpOptions or SearchModifier
-            ? throw new ArgumentException($"{value.GetType().Name} is a function argument, not "
-                + $"a value; pass it to a {value.GetType().Name} parameter, or, to store or "
-                + "compare the enum itself, bind it with Sql.Bind(...).")
+            ? throw new ArgumentException($"{value.GetType().Name} is a function argument, not a "
+                + $"value; pass it to a {value.GetType().Name} parameter, or, to store or compare "
+                + "the enum itself, bind it with Sql.Bind(...).")
             : new BindValue(value);
 
     internal static bool IsBindable(object value) =>
