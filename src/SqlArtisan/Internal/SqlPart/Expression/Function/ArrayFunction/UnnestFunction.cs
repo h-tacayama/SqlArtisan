@@ -11,8 +11,8 @@ public sealed class UnnestFunction : SqlExpression
 
     /// <summary>
     /// Names this <c>UNNEST</c> call as a derived-table source for a <c>FROM</c>. A
-    /// single array's result column is named <paramref name="alias"/> (read via
-    /// <c>Column(alias)</c>); more than one leaves the columns unnamed (<c>Asterisk</c>).
+    /// single scalar array's result column is named <paramref name="alias"/> (read via
+    /// <c>Column(alias)</c>); otherwise the columns go unnamed (<c>Asterisk</c>).
     /// </summary>
     /// <param name="alias">The derived-table alias.</param>
     /// <returns>An <see cref="UnnestDerivedTable"/> naming this call.</returns>

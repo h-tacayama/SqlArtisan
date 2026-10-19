@@ -25,7 +25,7 @@ public sealed class ListaggFunction : IIncompleteExpression
         "LISTAGG requires a WITHIN GROUP clause; complete it with .WithinGroup(OrderBy(...)).";
 
     /// <summary>
-    /// Supplies the <c>WITHIN GROUP (ORDER BY ...)</c> clause:
+    /// Supplies Oracle's <c>WITHIN GROUP (ORDER BY ...)</c> clause:
     /// <c>LISTAGG(expr, sep) WITHIN GROUP (ORDER BY ...)</c>.
     /// </summary>
     public ListaggWithinGroupFunction WithinGroup(OrderByClause orderByClause) =>

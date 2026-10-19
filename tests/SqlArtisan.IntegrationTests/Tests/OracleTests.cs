@@ -54,8 +54,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     {
     }
 
-    [Theory] // #521, #539: why the unordered Over overloads are declared on the value
-             // family alone (WindowOverShapeTests holds the API side).
+    [Theory] // #521, #539: Oracle's rejection of the ranking family's unordered window,
+             // dialect availability beside OrderBy(Null)'s same rows (#664).
     [InlineData("PARTITION BY department_id")]
     [InlineData("")]
     public void UnorderedWindow_RankingFamily_Rejected(string window)

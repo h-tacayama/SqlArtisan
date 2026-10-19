@@ -1061,8 +1061,8 @@ Select(StringAgg(u.Name, ", ").WithinGroup(OrderBy(u.Name)))
 ```
 
 The separator is emitted as an inline single-quote-escaped string literal rather
-than a bind parameter, because SQL Server requires `STRING_AGG`'s separator to be
-a literal (a bind parameter is rejected).
+than a bind parameter: over a `varchar` input SQL Server rejects a bound separator,
+and the literal runs over both `varchar` and `nvarchar` input.
 
 ### LISTAGG (Oracle)
 

@@ -607,7 +607,7 @@ engine runs a window over those forms (SQLite 3.45.1, live) nor `FILTER` over
 `SEPARATOR`, so offering either by type needs those forms split into types of
 their own, a return-type change and so a major version after 1.0. #662 did not
 split them: `GroupConcat` emits no invalid text, and a split ahead of demand is
-the cost ADR 0010 declines. Two more look missing but have a same-rows spelling, so they are ergonomic, not holes: a
+the cost ADR 0010 declines. Three more look missing but have a same-rows spelling, so they are ergonomic, not holes: a
 window frame with no `ORDER BY` is `OrderBy(Null).Rows(...)` (or
 `PartitionBy(g).OrderBy(Null)` first; same rows on PostgreSQL 16 and
 SQLite 3.45, MySQL not verified), and `LISTAGG` with no delimiter is

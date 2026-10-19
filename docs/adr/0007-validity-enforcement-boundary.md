@@ -53,6 +53,15 @@ The dividing test: **is there any supported dialect, in any configuration, where
 this exact text is valid SQL?** If no → incomplete → the library rejects it. If
 yes-somewhere → dialect availability → permissive.
 
+One pending type stands on another ground (#664). `Listagg` without
+`WithinGroup(...)` is valid on Oracle XE 21.3.0, so the test answers "yes", yet the
+type stays: `WithinGroup(OrderBy(Null))` aggregates the same values with the order
+left to Oracle, so withholding the bare call loses no query
+(`public-api-design.md` § "Opinions…"). Its run-time backstop in the `object`
+positions follows from the type, as for the other pending types: a
+`ListaggFunction` reaching one is a chain left unfinished, and the message names
+the completing call.
+
 ## Consequences
 
 - **Two safety mechanisms on orthogonal axes, not redundant ones.** Completeness is
@@ -77,7 +86,8 @@ yes-somewhere → dialect availability → permissive.
   exception — an aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server — admitted only
   because the analyzer structurally cannot see the construct *and* the resolved
   target has no valid spelling at all; any further exception must clear the same
-  bar. ADR 0011 also decides seven classes outside it, each rejected even where
+  bar, or, like `Listagg`'s pending type (the Decision, #664), lose no query to a
+  same-rows spelling. ADR 0011 also decides seven classes outside it, each rejected even where
   an engine runs the text: the once-per-block walk's rejections — a
   once-per-block clause or slot a held stage writes twice (#581, #582) — the
   call-site-defect guards (a list that repeats a name, or an `OUTPUT ... INTO`
