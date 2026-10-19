@@ -46,8 +46,9 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   #664); an `ANY` / `ALL` / `SOME` operand off a comparison's right side, and
   MySQL's `INTERVAL n unit` off a date's `+` / `-` and `DATE_ADD` / `DATE_SUB` —
   each half of a construct, which completes only that slot (`SELECT ANY (...)` is
-  rejected on every lane, `QuantifiedOperand_OutsideAComparison_IsRejectedByTheEngine`,
-  and a bare `INTERVAL` on MySQL 8.0,
+  rejected on all five baseline lanes,
+  `QuantifiedOperand_OutsideAComparison_IsRejectedByTheEngine`, and a bare
+  `INTERVAL` on MySQL 8.0,
   `MySqlTests.ContextRule_IntervalOutsideArithmetic_Rejected`); the three types are
   no `SqlExpression`, and only the slot each completes wraps one. On PostgreSQL 16.15
   `COUNT(ALL (x))`, `SELECT ALL (...)` and `GROUP BY ALL (...)` run with `ALL` read
