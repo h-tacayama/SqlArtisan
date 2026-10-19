@@ -165,9 +165,15 @@ the asymmetry is condition 1's, not the evidence's.
 
 ## Consequences
 
-- **`Interval`/`Timestampadd`/`Timestampdiff`'s `unit` deliberately stays
-  permissive (`SQLA0104`-only), unlike `Numtoyminterval`'s/`Numtodsinterval`'s
-  eager guard above, and this is not scheduled for unification (#454).**
+- **Every other `DateTimePart` consumer deliberately stays permissive for a
+  defined value (`SQLA0104`-only), unlike `Numtoyminterval`'s/`Numtodsinterval`'s
+  eager guard above, and this is not scheduled for unification (#454, #661):
+  `Extract`, `Datepart`, `Dateadd`, `Datediff`, `DateTrunc`, `Datetrunc`,
+  `Interval`, `Timestampadd` and `Timestampdiff`.** Only an undefined value
+  throws there, at the call. That holds even where no engine accepts
+  a value today: `DATE_TRUNC('day_hour', ts)` is rejected by PostgreSQL 16.15,
+  the one engine with `DATE_TRUNC`, and stays unguarded, since condition 3
+  reads the domain, not the engine count.
   `Numtoyminterval`'s `YEAR`/`MONTH` restriction is the function's own
   definition — no Oracle revision can widen it without changing what the
   function means. MySQL's unit sets in `DatepartValidity` are copied from a
@@ -179,9 +185,9 @@ the asymmetry is condition 1's, not the evidence's.
   and either over-reject a newer engine or under-reject an older one;
   `SQLA0104`'s per-(member, dialect) table is a plain data set an analyzer
   release can revise without touching the shipped throw behavior at all — the
-  reason this one stays a diagnostic rather than an exception. The two
-  functions' argument sets look identical in shape (a literal `DateTimePart`)
-  but differ in this one respect, which is why they take different routes.
+  reason these stay a diagnostic rather than an exception. The two groups'
+  argument sets look identical in shape (a literal `DateTimePart`) but differ
+  in this one respect, which is why they take different routes.
 - **ADR 0007's dividing test is unchanged; its rationale now covers both ways
   to land on "no".** A construct can be valid nowhere because a mandatory
   element is missing (incomplete — ADR 0007) or because an embedded value lies

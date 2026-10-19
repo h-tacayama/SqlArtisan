@@ -31,6 +31,13 @@ the full rationale.
 | **Bounded exception** — a complete construct valid on some dialect but structurally invisible to the analyzer *and* with no valid spelling on the resolved target | **Reject at Build(Dbms)** | `Validate(Dbms)` hook on `SqlBuilderBase`, run once per query block; dialect-scoped, position-scoped | The analyzer cannot see it (value-level, not construct-level) *and* the resolved target has no valid spelling — both conditions required |
 | **Dialect availability** — a complete construct that some engine does not support | **Emit faithfully** (ADR 0001); surfaced by the opt-in analyzer (ADR 0003) and ultimately the database | Permissive | Valid on at least one supported dialect |
 
+The dividing tests read the text as the construct the caller wrote. A
+same-named function of another engine that reads the text as a different
+function does not make the construct valid there: `Decode(x, [], d)` would
+emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
+`decode(text, format)`, so the empty-pairs guard below still rejects it
+(#396, #661).
+
 **Enumerated instances of each rejection category:**
 
 - *Incomplete*: window/analytic function without `.Over(...)` (#150); ordered-set
