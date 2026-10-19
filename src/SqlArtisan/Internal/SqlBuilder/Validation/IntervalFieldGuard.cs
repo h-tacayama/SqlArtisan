@@ -19,7 +19,7 @@ internal static class IntervalFieldGuard
     internal static void ValidatePrecision(int precision, DateTimePart field)
     {
         // PostgreSQL 16.15 runs SECOND(10), clamped to 6, so only a negative one is
-        // valid nowhere (#661); the leading fields' precision is Oracle's alone.
+        // valid nowhere (#661); the other fields' precision is Oracle's alone.
         if (field == DateTimePart.Second)
         {
             if (precision < 0)
