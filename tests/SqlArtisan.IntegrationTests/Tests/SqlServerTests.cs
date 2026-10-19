@@ -967,12 +967,14 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
     {
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
-        ISqlBuilder query =
+        SqlStatement sql =
             Select(PercentileCont(0.00001).WithinGroup(OrderBy(u.Age)).Over())
-            .From(u);
+            .From(u)
+            .Build(Dbms.SqlServer);
 
-        Assert.Contains("PERCENTILE_CONT(1E-05)", query.Build(Dbms.SqlServer).Text);
-        Assert.NotNull(connection.Query<double?>(query).First());
+        Assert.Contains("PERCENTILE_CONT(1E-05)", sql.Text);
+        Assert.Equal(0, sql.Parameters.Count);
+        Assert.NotNull(connection.Query<double?>(sql.Text).First());
     }
 
     // #661: Trim(s, c) emits TRIM(c FROM s), which runs below compatibility level 160,
