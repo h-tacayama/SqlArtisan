@@ -27,7 +27,8 @@ public sealed class QuantifiedSubquery : SqlPart, IIncompleteExpression
 
     /// <summary>
     /// Not supported: a string beside an <c>ANY</c> / <c>ALL</c> / <c>SOME</c> operand,
-    /// which no engine adds; it would otherwise compile as C# concatenation.
+    /// which completes only a predicate's right side; it would otherwise compile as C#
+    /// concatenation.
     /// </summary>
     /// <param name="leftSide">The string.</param>
     /// <param name="rightSide">The quantified operand.</param>

@@ -383,8 +383,8 @@ decided by compiling them against every neighbouring order, not by this file.
   (#613): `.As(...)` binds before `+`, so `"Dr. " + col.As("n")` adds the
   string to the alias, and no SqlArtisan operator takes an alias as an operand
   (`col + col.As("n")` throws). So is a string beside an `ANY` / `ALL` /
-  `SOME` operand (#666): no engine adds one, and once the operand left
-  `SqlExpression` the order fell to C# concatenation (`"%" + Any(...)`).
+  `SOME` operand (#666): it completes only a predicate's right side, and once
+  it left `SqlExpression` the order fell to C# concatenation (`"%" + Any(...)`).
 - Open today: each still compiles as below. The analyzer reports the subset it
   can prove binds a `bool` or a type name in a SqlArtisan argument or operator
   operand — `SQLA0301` for `==` / `!=`, `SQLA0302` for `+` and interpolation.
