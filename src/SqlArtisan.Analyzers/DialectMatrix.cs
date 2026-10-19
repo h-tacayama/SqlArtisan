@@ -595,10 +595,10 @@ internal static class DialectMatrix
         [new MatrixKey("Ltrim", 2)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: true),
         [new MatrixKey("Rtrim")] = DbmsSupport.All,
         [new MatrixKey("Rtrim", 2)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: true),
-        // Trim: 1-arg universal (T-SQL TRIM since 2017). The 2-arg overload emits the ANSI
-        // keyword form TRIM(BOTH ch FROM src) (TrimFunction.cs): SQLite only accepts its own
-        // positional trim(X, Y), not the FROM form; SQL Server accepts BOTH ... FROM on
-        // 2022/compat 160.
+        // Trim: 1-arg universal (T-SQL TRIM since 2017). The 2-arg overload emits
+        // TRIM(ch FROM src) (TrimFunction.cs): SQLite only accepts its own positional
+        // trim(X, Y), not the FROM form; T-SQL has taken it since 2017, and only the
+        // LEADING/TRAILING/BOTH keywords, never emitted, need 2022 at compatibility level 160.
         [new MatrixKey("Trim")] = DbmsSupport.All,
         [new MatrixKey("Trim", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         // Round: T-SQL ROUND requires 2-3 arguments — the 1-arg form is invalid on SQL Server.
@@ -896,7 +896,7 @@ internal static class DialectMatrix
         [new MatrixKey("Least")] = new VersionBounds(sqlServer: V("2022")),
         [new MatrixKey("Ltrim", 2)] = new VersionBounds(sqlServer: V("2022")),
         [new MatrixKey("Rtrim", 2)] = new VersionBounds(sqlServer: V("2022")),
-        [new MatrixKey("Trim", 2)] = new VersionBounds(sqlServer: V("2022")),
+        [new MatrixKey("Trim", 2)] = new VersionBounds(sqlServer: V("2017")),
         [new MatrixKey("Trim")] = new VersionBounds(sqlServer: V("2017")),
         // SQL Server 2025 added || (#614), proven by the SqlServer2025 lane's bound sweep.
         [new MatrixKey("DoublePipe")] = new VersionBounds(sqlServer: V("2025")),

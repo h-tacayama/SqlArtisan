@@ -227,7 +227,7 @@ public partial class FunctionTests
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("TRIM(BOTH :0 FROM \"t\".name)");
+        expected.Append("TRIM(:0 FROM \"t\".name)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

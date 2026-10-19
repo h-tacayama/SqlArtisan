@@ -214,16 +214,16 @@ public static partial class Sql
         new(Resolve(source));
 
     /// <summary>
-    /// The <c>TRIM(BOTH trimChar FROM source)</c> function: removes leading and
+    /// The <c>TRIM(trimChar FROM source)</c> function: removes leading and
     /// trailing occurrences of <paramref name="trimChar"/> from
     /// <paramref name="source"/>.
     /// </summary>
     /// <param name="source">The string to trim.</param>
     /// <param name="trimChar">The character to strip from both ends instead of spaces.</param>
     /// <returns>A <c>TRIM</c> function expression.</returns>
-    /// <remarks>The ANSI <c>TRIM(BOTH trimChar FROM source)</c> form; SQL Server (2022+)
-    /// accepts it only at compatibility level 160. Not supported by SQLite, whose positional
-    /// <c>trim(source, trimChar)</c> is a separate function this does not emit.</remarks>
+    /// <remarks>MySQL, Oracle, PostgreSQL, and SQL Server (2017+) syntax. Not supported by
+    /// SQLite, whose positional <c>trim(source, trimChar)</c> is a separate function this does
+    /// not emit.</remarks>
     public static TrimFunction Trim(object source, object trimChar) =>
         new(Resolve(source), Resolve(trimChar));
 

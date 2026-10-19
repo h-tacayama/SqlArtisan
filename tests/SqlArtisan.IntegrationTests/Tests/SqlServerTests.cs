@@ -934,6 +934,22 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         transaction.Rollback();
     }
 
+    // #661: Trim(s, c) emits TRIM(c FROM s), which runs below compatibility level 160,
+    // where the BOTH keyword the node used to add is refused.
+    [Fact]
+    public void Trim_TrimCharacters_RunBelowCompatibilityLevel160()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute(
+            "IF DB_ID('probe_cl150') IS NULL CREATE DATABASE probe_cl150; "
+            + "ALTER DATABASE probe_cl150 SET COMPATIBILITY_LEVEL = 150;");
+        connection.ChangeDatabase("probe_cl150");
+
+        Assert.Equal("a", connection.QuerySingle<string>(Select(Trim("xxaxx", "x"))));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT TRIM(BOTH 'x' FROM 'xxaxx')"));
+    }
+
     // #662: whether the engine runs a window on a DISTINCT aggregate decides
     // whether the library may reject the pairing as valid on no dialect (ADR 0007).
     [Theory]

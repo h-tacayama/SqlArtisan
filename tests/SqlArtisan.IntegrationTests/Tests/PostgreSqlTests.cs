@@ -395,6 +395,36 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             "SELECT DATE_TRUNC('epoch', created_at) FROM users"));
     }
 
+    // #661: an expression index matches DATE_TRUNC's field as written, so the emitted
+    // lower-case field reaches an index built from the manual's 'month'; 'MONTH' does not.
+    [Theory]
+    [InlineData(false, "Index")]
+    [InlineData(true, "Seq Scan")]
+    public void DateTrunc_ExpressionIndex_MatchesOnlyTheLowerCaseField(bool upper, string access)
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        connection.Execute(
+            "CREATE INDEX ix_users_month ON users (date_trunc('month', created_at)); "
+                + "SET LOCAL enable_seqscan = off",
+            null,
+            transaction);
+
+        SqlStatement statement = Select(u.Id)
+            .From(u)
+            .Where(DateTrunc(DateTimePart.Month, u.CreatedAt) == new DateTime(2024, 1, 1))
+            .Build(Dbms.PostgreSql);
+        string text = upper ? statement.Text.Replace("'month'", "'MONTH'") : statement.Text;
+        string plan = string.Join(" | ", connection.Query<string>(
+            "EXPLAIN " + text,
+            statement.Parameters.ToDynamicParameters(),
+            transaction));
+
+        Assert.Contains(access, plan);
+        transaction.Rollback();
+    }
+
     [Fact]
     public void JoinedUpdateFrom_Executes()
     {

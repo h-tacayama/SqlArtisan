@@ -357,8 +357,7 @@ public class XmlDocDialectParityTests
     }
 
     // A bound attaches to the exact key the entry lookup matched, never falling
-    // back from the arity key to the member key (Trim carries 2022 at the arity-2
-    // key and 2017 at the member key).
+    // back from the arity key to the member key.
     private static MatrixKey MatchedKey(string name, int? arity)
     {
         bool found = DialectMatrix.TryGetEntry(name, arity, out _, out bool wasArityMatch);
@@ -489,8 +488,8 @@ public class XmlDocDialectParityTests
     [Fact]
     public void EveryVersionBoundSqlFactory_CarriesARemarksDialectNote()
     {
-        // Keyed with the arity the bound carries: Trim's two overloads have
-        // different SQL Server floors, so one's note does not discharge the other.
+        // Keyed with the arity the bound carries: two overloads can have different
+        // floors, so one's note does not discharge the other.
         XDocument doc = LoadXmlDoc();
         List<(string Name, int? Arity, XElement Doc)> factories =
             [.. doc.Descendants("member")

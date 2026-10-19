@@ -65,6 +65,6 @@ Rules for `Format` implementations and `Keywords.cs` (#207 / #208):
    factory, an argument or a fluent member — as `Count(Distinct, x)` names
    `DISTINCT`. One the engine applies by default is left out when the caller
    did not name it: spelling it out unasked changes no rows and can only
-   narrow where the text runs. `Trim(s, c)`'s `TRIM(BOTH c FROM s)` is the
-   instance (#661): SQL Server accepts `BOTH` only at compatibility level 160
-   or higher, while `TRIM(c FROM s)` runs from 2017.
+   narrow where the text runs. `Trim(s, c)` emitted `TRIM(BOTH c FROM s)`
+   until #661: SQL Server accepts `BOTH` only at compatibility level 160 or
+   higher, while `TRIM(c FROM s)` runs from 2017.

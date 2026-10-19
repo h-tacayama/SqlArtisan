@@ -16,7 +16,6 @@ internal static class Keywords
     internal const string Avg = "AVG";
     internal const string Between = "BETWEEN";
     internal const string Boolean = "BOOLEAN";
-    internal const string Both = "BOTH";
     internal const string By = "BY";
     internal const string Case = "CASE";
     internal const string Cast = "CAST";

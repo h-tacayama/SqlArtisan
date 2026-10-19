@@ -17,9 +17,7 @@ public sealed class TrimFunction : SqlExpression
 
         if (_trimChar is not null)
         {
-            buffer.Append($"{Keywords.Both} ")
-                .Append(_trimChar)
-                .EncloseInSpaces(Keywords.From);
+            buffer.Append(_trimChar).EncloseInSpaces(Keywords.From);
         }
 
         buffer.Append(_source).CloseParenthesis();

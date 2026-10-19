@@ -497,8 +497,8 @@ verdict exactly; where the bound sits above the dialect's verified baseline
 | `Iif` | SQLite | 3.32 | `IIF(...)` landed in SQLite 3.32. |
 | `If` | SQLite | 3.48 | SQLite registered `IF` as a second name for `IIF` in 3.48; earlier versions have `IIF` only. MySQL's own `IF` predates its 8.0 baseline, so that dialect carries no bound. |
 | `Iif` | SQL Server | 2012 | `IIF(...)` has been available since SQL Server 2012. |
-| `Trim` (1-argument form), `ConcatWs` | SQL Server | 2017 | `TRIM(...)` and `CONCAT_WS(...)` both landed in SQL Server 2017. |
-| `Datetrunc`, `Greatest`, `Least`, the 2-argument `Ltrim`/`Rtrim`/`Trim` forms | SQL Server | 2022 | `DATETRUNC`, `GREATEST`/`LEAST`, and the trim-characters overloads all landed in SQL Server 2022. |
+| `Trim` (both forms), `ConcatWs` | SQL Server | 2017 | `TRIM(...)`, its `characters FROM` argument included, and `CONCAT_WS(...)` landed in SQL Server 2017. |
+| `Datetrunc`, `Greatest`, `Least`, the 2-argument `Ltrim`/`Rtrim` forms | SQL Server | 2022 | `DATETRUNC`, `GREATEST`/`LEAST`, and the `LTRIM`/`RTRIM` trim-characters overloads all landed in SQL Server 2022. |
 | `DoublePipe`, `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr`, `RegexpInstr` (every form) | SQL Server | 2025 | The `\|\|` concatenation operator and the `REGEXP_*` family landed in SQL Server 2025 — live-verified on the SQL Server 2025 lane. `REGEXP_LIKE` also needs the database at compatibility level 170: at 160, which an upgraded database can keep, SQL Server 2025 does not recognize it, and the declared version cannot tell the two apart. |
 
 Three `SQLA0102` DML rules carry the same kind of floor — a version from which
@@ -581,7 +581,7 @@ add `WHEN NOT MATCHED BY SOURCE` to `MERGE`.
 
 **SQL Server** — Microsoft Learn's "Applies to" notes:
 
-- [`TRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/trim-transact-sql) — 2017; its optional trim-characters argument — 2022.
+- [`TRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/trim-transact-sql) — 2017, its `characters FROM` argument included; the `LEADING` / `TRAILING` / `BOTH` keywords, which SqlArtisan does not emit, need 2022 at compatibility level 160.
 - [`CONCAT_WS`](https://learn.microsoft.com/en-us/sql/t-sql/functions/concat-ws-transact-sql) — 2017.
 - [`DATETRUNC`](https://learn.microsoft.com/en-us/sql/t-sql/functions/datetrunc-transact-sql), [`GREATEST`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-greatest-transact-sql), [`LEAST`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-least-transact-sql), and the [`LTRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/ltrim-transact-sql) / [`RTRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/rtrim-transact-sql) trim-characters argument — 2022 (16.x).
 - [`IIF`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-iif-transact-sql) — 2012 (11.x).

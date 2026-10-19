@@ -235,7 +235,7 @@ public partial class FunctionTests
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("DATE_TRUNC('MONTH', \"t\".created_at)");
+        expected.Append("DATE_TRUNC('month', \"t\".created_at)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

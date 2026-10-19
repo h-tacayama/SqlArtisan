@@ -187,14 +187,13 @@ public class DialectSupportResolverTests
         Assert.Equal("2022", verdict.RequiredVersion);
     }
 
-    // Trim has both a member-level bound (2017, the 1-arg form) and a narrower
-    // arity-2 bound (2022, the ANSI TRIM(BOTH ... FROM ...) form) — the matched
-    // key must pick the exact one the arity resolved to, not fall back.
+    // Trim carries a member-level bound and an arity-2 bound of its own (both 2017);
+    // each arity resolves through the key it matched.
     [Theory]
     [InlineData(1, "2019", true, null)]
     [InlineData(1, "2016", false, "2017")]
-    [InlineData(2, "2019", false, "2022")]
-    [InlineData(2, "2022", true, null)]
+    [InlineData(2, "2016", false, "2017")]
+    [InlineData(2, "2017", true, null)]
     public void Evaluate_ArityBoundAndMemberBound_PicksExactMatchedKey(
         int arity, string declared, bool expectedSupported, string? expectedRequired)
     {
