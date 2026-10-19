@@ -2,8 +2,8 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-// A function-argument enum binds only through Bind or new BindValue(...), which state
-// the intent (#667); every other public enum binds wherever a value does.
+// A function-argument enum binds only through Bind, new BindValue(...) or BindArray(...),
+// which state the intent (#667); every other public enum binds wherever a value does.
 public class FunctionArgumentEnumTests
 {
     private static readonly Type[] s_functionArguments =
