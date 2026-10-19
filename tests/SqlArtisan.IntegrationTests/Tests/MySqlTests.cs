@@ -132,6 +132,19 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.Equal(MySqlErrorCode.ParseError, ex.ErrorCode);
     }
 
+    // ADR 0016 (#661): a bound DATE_FORMAT format survives a server-side prepare, so
+    // MySQL's grammar gives no reason to inline it, as it did the ->> key above.
+    [Fact]
+    public void DateFormat_BoundFormat_RunsServerPrepared()
+    {
+        UsersTable u = new();
+
+        object? formatted = ExecuteServerPrepared(
+            Select(DateFormat(u.CreatedAt, "%Y-%m")).From(u).Where(u.Id == 1));
+
+        Assert.Equal("2020-03", formatted);
+    }
+
     private object? ExecuteServerPrepared(ISqlBuilder builder)
     {
         SqlStatement statement = builder.Build(Dbms.MySql);
