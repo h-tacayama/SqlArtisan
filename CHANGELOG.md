@@ -172,6 +172,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   deliberate constant; a query's own `.OrderBy(1)` stays a position. A C# null
   in any `ORDER BY` now says `An ORDER BY key cannot be a C# null; pass a column
   or an expression.` instead of naming `Sql.Null`. (#693)
+- **Breaking:** a `DateTimePart`, `RegexpOptions` or `SearchModifier` in a
+  value position throws `ArgumentException` (`DateTimePart is a function
+  argument, not a value; pass it to a DateTimePart parameter, or bind it with
+  Sql.Bind(...).`) instead of binding. One reaches a value position by being
+  passed at an arity with no slot of its type, and bound its integer there with
+  no error: `RegexpCount(s, p, RegexpOptions.CaseInsensitive)` bound the
+  options as the start position, `Match(c).Against(SearchModifier.InBooleanMode)`
+  the modifier as the search text, and `Select(Sum(DateTimePart.Year))`
+  returned 40 on SQLite through `SqlArtisan.Dapper`. To store or compare one,
+  pass `Bind(value)`; `new BindValue(...)` and `BindArray(...)` take one too.
+  `Dbms`, `DbTypeCategory` and your own enums bind as before. (#667)
 - A `sqlartisan_syntax_*` version is spelled as the matrix's bounds are: the
   release year on SQL Server, the engine's own version number elsewhere. A SQL
   Server value below 2000 (`16`, SQL Server 2022's product version, compared as

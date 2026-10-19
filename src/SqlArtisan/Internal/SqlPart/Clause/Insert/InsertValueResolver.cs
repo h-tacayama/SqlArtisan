@@ -41,7 +41,7 @@ internal static class InsertValueResolver
         }
         else if (IsBindable(value))
         {
-            return new BindValue(value);
+            return BindImplicitly(value);
         }
         else
         {

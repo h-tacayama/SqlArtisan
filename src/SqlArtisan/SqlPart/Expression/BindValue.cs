@@ -44,7 +44,7 @@ public class BindValue : SqlExpression
         }
 
         // The driver would get the object itself (`new BindValue(u.Id + 1)` bound an
-        // AdditionOperator); an enum binds as the resolver binds any enum.
+        // AdditionOperator); any enum binds, the explicit spelling #667's resolvers name.
         if (value is SqlPart or ISqlBuilder or ISubquery || IsSqlArtisanObject(value.GetType()))
         {
             throw new ArgumentException(

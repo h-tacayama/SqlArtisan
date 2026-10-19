@@ -266,14 +266,21 @@ a `char` converts to `int`, so `JsonArrow` carries a `char` overload that
 inlines it as a key rather than letting it become an array index.
 
 An enum beside an `object` slot overlaps the same way. A function-argument
-enum passed at an arity whose overload has no slot of its type boxes into an
-`object` slot and binds as a value (Dapper sends its integer):
-`RegexpCount(s, p, RegexpOptions.CaseInsensitive)` binds the options as the
-position, and `Against(SearchModifier.InBooleanMode)` binds the modifier as
-the search text. Where a family takes the enum at one arity and boxes it at
-another — the `REGEXP_*` factories and `Against` / `AgainstScore`'s
-search-text slot — it must reject the enum in those `object` slots at the
-call (#661 and #664 add the guards). An overload taking the enum cannot
+enum (`DateTimePart`, `RegexpOptions`, `SearchModifier`) passed at an arity
+whose overload has no slot of its type boxes into an `object` slot, where it
+would bind as a value (Dapper sends its integer):
+`RegexpCount(s, p, RegexpOptions.CaseInsensitive)` as the position,
+`Against(SearchModifier.InBooleanMode)` as the search text,
+`Sum(DateTimePart.Year)` as the summed value. So the implicit resolvers
+(`ExpressionResolver`, the select-item and insert-value resolvers) reject one
+in every `object` slot, naming `Sql.Bind(...)`; `Bind`, `new BindValue(...)`
+and `BindArray(...)` still take one, so storing it stays writable and
+`IsBindable` / `IsBindableType` stay one set (#667). `Dbms` and
+`DbTypeCategory` still bind implicitly: no factory takes either as an
+argument, so one in a value slot is meant, and `FunctionArgumentEnumTests`
+makes a new public enum take a side. A family that takes the enum at another
+arity (the `REGEXP_*` factories, `Against` / `AgainstScore`) may name that
+shape in its own message (#661, #664). An overload taking the enum cannot
 withhold it instead: a literal `0` converts to any enum and prefers the enum
 overload, so it would capture `RegexpReplace(s, p, r, 1, 0)`.
 

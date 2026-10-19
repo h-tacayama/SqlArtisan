@@ -52,7 +52,7 @@ internal static class SelectItemResolver
         }
         else if (IsBindable(selectItem))
         {
-            return new BindValue(selectItem);
+            return BindImplicitly(selectItem);
         }
         else
         {
