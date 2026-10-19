@@ -107,6 +107,7 @@ public class ForcedLiteralSweepTests
     {
         ["Cte..ctor(String) :: name"] = "identifier",
         ["Cte.Column(String) :: name"] = "identifier",
+        ["CteBase..ctor(String) :: name"] = "identifier",
         ["DbColumn..ctor(TableReference, String) :: name"] = "identifier",
         ["DbmsResolver.RegisterProvider(String, Dbms) :: typeFullName"] = "unrendered",
         ["DbTable..ctor(String, String) :: tableAlias"] = "identifier",
@@ -116,6 +117,7 @@ public class ForcedLiteralSweepTests
         ["DbTableBase..ctor(String, String) :: tableName"] = "identifier",
         ["DerivedTable..ctor(String) :: name"] = "identifier",
         ["DerivedTable.Column(String) :: name"] = "identifier",
+        ["DerivedTableBase..ctor(String) :: name"] = "identifier",
         ["ExpressionAlias.op_Addition(ExpressionAlias, String) :: rightSide"] = "rejected",
         ["ExpressionAlias.op_Addition(String, ExpressionAlias) :: leftSide"] = "rejected",
         ["ISubquery.As(String) :: alias"] = "identifier",
@@ -204,13 +206,15 @@ public class ForcedLiteralSweepTests
     private static IEnumerable<(string Key, Type Type)> TextParameters()
     {
         const BindingFlags Flags =
-            BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance
-            | BindingFlags.DeclaredOnly;
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static
+            | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         foreach (Type type in typeof(Sql).Assembly.GetExportedTypes())
         {
+            // A protected member is surface too: a user's subclass calls it.
             foreach (MethodBase member in type.GetMethods(Flags)
-                .Concat<MethodBase>(type.GetConstructors()))
+                .Concat<MethodBase>(type.GetConstructors(Flags))
+                .Where(m => m.IsPublic || m.IsFamily || m.IsFamilyOrAssembly))
             {
                 ParameterInfo[] parameters = member.GetParameters();
                 string signature = string.Join(", ", parameters.Select(p => p.ParameterType.Name));
