@@ -1008,4 +1008,85 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
 
         Assert.ThrowsAny<DbException>(() => connection.Execute(sql));
     }
+
+    // TEMPORARY #663 probe: reports observations through the failure message.
+    [Fact]
+    public void Probe663_Observations()
+    {
+        using IDbConnection c = _fixture.OpenConnection();
+        System.Text.StringBuilder o = new();
+        void Q(string label, string sql)
+        {
+            try
+            {
+                object? v = c.ExecuteScalar(sql);
+                o.Append(label).Append(" => [").Append(v ?? "NULL").Append("]\n");
+            }
+            catch (Exception e)
+            {
+                o.Append(label).Append(" => ERR ").Append(e.Message).Append('\n');
+            }
+        }
+
+        Q("collation", "SELECT CAST(DATABASEPROPERTYEX(DB_NAME(), 'Collation') AS nvarchar(200))");
+        Q("version", "SELECT CAST(SERVERPROPERTY('ProductVersion') AS nvarchar(200))");
+        Q("compat", "SELECT compatibility_level FROM sys.databases WHERE name = DB_NAME()");
+        Q("jv plain quoted", "SELECT JSON_VALUE(N'{\"名前\":\"x\"}', '$.\"名前\"')");
+        Q("jv N quoted", "SELECT JSON_VALUE(N'{\"名前\":\"x\"}', N'$.\"名前\"')");
+        Q("jv plain bare", "SELECT JSON_VALUE(N'{\"名前\":\"x\"}', '$.名前')");
+        Q("jv N bare", "SELECT JSON_VALUE(N'{\"名前\":\"x\"}', N'$.名前')");
+        Q("jv plain strict", "SELECT JSON_VALUE(N'{\"名前\":\"x\"}', 'strict $.\"名前\"')");
+        Q("jq plain", "SELECT JSON_QUERY(N'{\"名前\":{\"a\":1}}', '$.\"名前\"')");
+        Q("jq N", "SELECT JSON_QUERY(N'{\"名前\":{\"a\":1}}', N'$.\"名前\"')");
+        Q("jv plain latin1", "SELECT JSON_VALUE(N'{\"café\":\"x\"}', '$.\"café\"')");
+        Q("like esc plain", "SELECT CASE WHEN N'50%' LIKE N'50＼%' ESCAPE '＼' THEN 1 ELSE 0 END");
+        Q("like esc N", "SELECT CASE WHEN N'50%' LIKE N'50＼%' ESCAPE N'＼' THEN 1 ELSE 0 END");
+        Q("like esc N ascii", "SELECT CASE WHEN N'50%' LIKE N'50!%' ESCAPE N'!' THEN 1 ELSE 0 END");
+        Q("strict missing", "SELECT JSON_VALUE(N'{\"a\":1}', 'strict $.b')");
+
+        c.Execute(
+            "CREATE TABLE #j663 (id INT IDENTITY PRIMARY KEY, doc NVARCHAR(400), "
+                + "v AS JSON_VALUE(doc, '$.a'), w AS JSON_VALUE(doc, N'$.b'));");
+        c.Execute(
+            "INSERT INTO #j663 (doc) SELECT TOP (5000) CONCAT(N'{\"a\":\"k', n, N'\",\"b\":\"m', n, N'\"}') "
+                + "FROM (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n "
+                + "FROM sys.all_objects a CROSS JOIN sys.all_objects b) x;");
+        try
+        {
+            c.Execute("CREATE INDEX ix_j663_v ON #j663 (v); CREATE INDEX ix_j663_w ON #j663 (w);");
+            o.Append("index created\n");
+        }
+        catch (Exception e)
+        {
+            o.Append("index ERR ").Append(e.Message).Append('\n');
+        }
+
+        void Plan(string label, string sql)
+        {
+            try
+            {
+                c.Execute("SET SHOWPLAN_XML ON");
+                string plan = c.QuerySingle<string>(sql);
+                c.Execute("SET SHOWPLAN_XML OFF");
+                o.Append(label).Append(" => ix_v=").Append(plan.Contains("ix_j663_v"))
+                    .Append(" ix_w=").Append(plan.Contains("ix_j663_w"))
+                    .Append(" seek=").Append(plan.Contains("Index Seek"))
+                    .Append(" scan=").Append(plan.Contains("Clustered Index Scan")).Append('\n');
+            }
+            catch (Exception e)
+            {
+                try { c.Execute("SET SHOWPLAN_XML OFF"); } catch (Exception) { }
+                o.Append(label).Append(" => ERR ").Append(e.Message).Append('\n');
+            }
+        }
+
+        Plan("idx v, plain query", "SELECT id FROM #j663 WHERE JSON_VALUE(doc, '$.a') = N'k42'");
+        Plan("idx v, N query", "SELECT id FROM #j663 WHERE JSON_VALUE(doc, N'$.a') = N'k42'");
+        Plan("idx w(N), plain query", "SELECT id FROM #j663 WHERE JSON_VALUE(doc, '$.b') = N'm42'");
+        Plan("idx w(N), N query", "SELECT id FROM #j663 WHERE JSON_VALUE(doc, N'$.b') = N'm42'");
+        Q("computed def v", "SELECT definition FROM tempdb.sys.computed_columns WHERE object_id = OBJECT_ID('tempdb..#j663') AND name = 'v'");
+        Q("computed def w", "SELECT definition FROM tempdb.sys.computed_columns WHERE object_id = OBJECT_ID('tempdb..#j663') AND name = 'w'");
+
+        Assert.Fail("PROBE663\n" + o);
+    }
 }
