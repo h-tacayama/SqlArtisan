@@ -82,6 +82,29 @@ public class LikeTests
         Assert.Equal("100\\%", sql.Parameters.Get<object>("?0"));
     }
 
+    // SQL Server converts a plain literal to the code page, so a non-ASCII escape takes N.
+    [Fact]
+    public void Like_SqlServer_WithNonAsciiEscape_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Name)
+            .From(_t)
+            .Where(_t.Name.Like("100＼%").Escape('＼'))
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("WHERE ");
+        expected.Append("\"t\".name LIKE @0 ESCAPE N'＼'");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal("100＼%", sql.Parameters.Get<object>("@0"));
+    }
+
     [Fact]
     public void Like_NullPattern_ThrowsArgumentNullException()
     {

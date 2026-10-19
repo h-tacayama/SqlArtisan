@@ -2420,7 +2420,8 @@ SqlStatement sql =
 
 The escape character is emitted as an inline string literal rather than a bind
 parameter: `ESCAPE` takes a constant character fixed at the call site, and the
-literal spelling is valid identically on every dialect.
+literal spelling is valid identically on every dialect. On SQL Server a non-ASCII
+escape character is written `N'...'`, so the database's code page cannot replace it.
 
 ### BETWEEN Condition
 ```csharp
@@ -3210,7 +3211,8 @@ Select(StringAgg(u.Name, ", ").WithinGroup(OrderBy(u.Name)))
 
 The separator is emitted as an inline single-quote-escaped string literal rather
 than a bind parameter: over a `varchar` input SQL Server rejects a bound separator,
-and the literal runs over both `varchar` and `nvarchar` input.
+and the literal runs over both `varchar` and `nvarchar` input; there a character the
+database's code page lacks arrives as `?`.
 
 ### LISTAGG (Oracle)
 
@@ -3484,7 +3486,7 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 
 ## JSON Functions
 
-JSON paths are emitted as inline string literals: an expression index over a JSON field matches only the literal path, and Oracle requires a literal there in any case.
+JSON paths are emitted as inline string literals: an expression index over a JSON field matches only the literal path, and Oracle requires a literal there in any case. On SQL Server a path holding a non-ASCII character is written `N'...'`, which keeps the character whatever the database's code page.
 
 - `JsonExtract(jsonDoc, path)` for `JSON_EXTRACT(jsonDoc, 'path')` (MySQL, SQLite)
 - `JsonValue(jsonDoc, path)` for `JSON_VALUE(jsonDoc, 'path')` (MySQL, Oracle, SQL Server)
@@ -3571,6 +3573,9 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 > [!WARNING]
 > **`GroupConcat(expr, sep)` silently changes meaning on MySQL.** MySQL reads the second positional argument as another concatenated value per row, not a separator, so the call runs and returns each element with `sep` appended, joined by the default comma. On MySQL, spell the separator with `GroupConcat(expr, Separator(sep))`; the positional form is SQLite's.
 
+> [!WARNING]
+> **On SQL Server, a `StringAgg` separator character the database's code page lacks arrives as `?`.** The separator is a plain literal, which SQL Server converts to the code page; `N'...'` would keep the character but is rejected over a `varchar` input, so it is not emitted. Under `SQL_Latin1_General_CP1_CI_AS`, `StringAgg(name, "、")` joins `a` and `b` as `a?b`. Use a separator the code page holds.
+
 > [!NOTE]
 > MySQL silently truncates `GROUP_CONCAT` output at `group_concat_max_len` (1024 bytes by default). Raise that session/global variable for large groups.
 
@@ -3614,7 +3619,7 @@ SqlArtisan automatically converts C# literal values into bind parameters (to bin
 
 Two kinds of string never become a bind parameter, and they behave differently:
 
-- **Forced literals** — positions that need a literal, because the dialect rejects a bind marker there or because a marker would change how the engine resolves or plans the statement: the `LIKE ... ESCAPE` character, MySQL's `GROUP_CONCAT ... SEPARATOR` and the `STRING_AGG` separator (SQL Server rejects a bound one over a `varchar` input), `IntervalLiteral` text, a JSON path, a `JsonArrow` / `JsonArrowText` string key, a PostgreSQL text-search configuration, and the sequence name in `NEXTVAL('seq')` / `CURRVAL('seq')`. These are emitted inline as single-quoted literals with the quote character escaped (and the backslash too, on MySQL; on PostgreSQL a literal holding a backslash is written `E'...'` with it doubled, so it reads the same whatever the session's `standard_conforming_strings`).
+- **Forced literals** — positions that need a literal, because the dialect rejects a bind marker there or because a marker would change how the engine resolves or plans the statement: the `LIKE ... ESCAPE` character, MySQL's `GROUP_CONCAT ... SEPARATOR` and the `STRING_AGG` separator (SQL Server rejects a bound one over a `varchar` input), `IntervalLiteral` text, a JSON path, a `JsonArrow` / `JsonArrowText` string key, a PostgreSQL text-search configuration, and the sequence name in `NEXTVAL('seq')` / `CURRVAL('seq')`. These are emitted inline as single-quoted literals with the quote character escaped (and the backslash too, on MySQL; on PostgreSQL a literal holding a backslash is written `E'...'` with it doubled, so it reads the same whatever the session's `standard_conforming_strings`). On SQL Server a literal holding a non-ASCII character is written `N'...'`, so the database's code page cannot replace it; the `STRING_AGG` separator stays plain, since SQL Server rejects `N'...'` there over a `varchar` input, so a separator character the code page lacks arrives as `?`.
 - **Identifiers** — an alias, a table or column name, a `Cast(...)` target type, and the sequence name in the Oracle (`Sequence("s").Nextval`) and SQL Server (`NextValueFor("s")`) spellings. These are emitted **exactly as written**, with no escaping: a type name like `DECIMAL(10,2)` is not a name that could be quoted, and rewriting an alias you spelled would break the guarantee that the SQL you write is the SQL that runs. `Sql.Hints(...)` is not an identifier but behaves the same way — it is a raw-SQL escape hatch, emitted verbatim by definition.
 
 So automatic parameterization prevents injection **through values**. Build identifiers from constants or an allowlist you control — never straight from request input.

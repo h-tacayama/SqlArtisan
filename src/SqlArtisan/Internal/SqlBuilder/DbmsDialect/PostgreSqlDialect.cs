@@ -17,6 +17,8 @@ internal sealed class PostgreSqlDialect : IDbmsDialect
 
     public string MergeTerminator => "";
 
+    public bool NonAsciiLiteralsUseNationalPrefix => false;
+
     public char ParameterMarker => ':';
 
     public bool ReturningIgnoresTargetAlias => false;

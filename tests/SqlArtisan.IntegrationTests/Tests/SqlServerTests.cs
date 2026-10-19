@@ -1008,4 +1008,93 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
 
         Assert.ThrowsAny<DbException>(() => connection.Execute(sql));
     }
+
+    // ADR 0016 (#663): SQL Server 2022 turns a character the code page lacks into '?'
+    // in a plain literal (SQL_Latin1_General_CP1_CI_AS here): a JSON path or ESCAPE
+    // needs N'...', and a STRING_AGG separator, kept plain, loses it.
+    [Fact]
+    public void NonAsciiForcedLiteral_PlainForm_LosesTheCharacter()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        string doc = "{\"名前\":\"x\",\"住所\":{\"a\":1}}";
+
+        Assert.Null(connection.ExecuteScalar<string>(
+            "SELECT JSON_VALUE(@doc, '$.\"名前\"')", new { doc }));
+        Assert.Null(connection.ExecuteScalar<string>(
+            "SELECT JSON_QUERY(@doc, '$.\"住所\"')", new { doc }));
+        Assert.Equal(0, connection.ExecuteScalar<int>(
+            "SELECT CASE WHEN N'50%' LIKE N'50＼%' ESCAPE '＼' THEN 1 ELSE 0 END"));
+
+        Assert.Equal("x", connection.ExecuteScalar<string>(
+            Select(JsonValue(Bind(doc), "$.\"名前\""))));
+        Assert.Equal("{\"a\":1}", connection.ExecuteScalar<string>(
+            Select(JsonQuery(Bind(doc), "$.\"住所\""))));
+        Assert.Equal(1, connection.ExecuteScalar<int>(
+            Select(Case(When(Bind("50%").Like("50＼%").Escape('＼')).Then(1), Else(0)))));
+
+        using IDbTransaction transaction = connection.BeginTransaction();
+        connection.Execute(
+            "CREATE TABLE #agg_663 (n NVARCHAR(10)); INSERT INTO #agg_663 VALUES (N'a'), (N'b');",
+            null,
+            transaction);
+        DbTable agg = new("#agg_663", "g");
+        Assert.Equal("a?b", connection.ExecuteScalar<string>(
+            Select(StringAgg(agg.Column("n"), "、").WithinGroup(OrderBy(agg.Column("n"))))
+            .From(agg),
+            transaction));
+        transaction.Rollback();
+    }
+
+    // ADR 0016 (#663): where the code page holds the character (Japanese_CI_AS), the N
+    // form returns the rows the plain form returned and keeps the index on the plain
+    // path; STRING_AGG stays plain, as N is rejected over varchar even there.
+    [Fact]
+    public void NonAsciiForcedLiteral_OnACodePageHoldingIt_KeepsWhatThePlainFormRan()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute(
+            "IF DB_ID('probe_ja_663') IS NULL "
+                + "CREATE DATABASE probe_ja_663 COLLATE Japanese_CI_AS;");
+        connection.ChangeDatabase("probe_ja_663");
+        connection.Execute(
+            "IF OBJECT_ID('dbo.j663') IS NOT NULL DROP TABLE dbo.j663; "
+                + "CREATE TABLE dbo.j663 (id INT IDENTITY PRIMARY KEY, doc NVARCHAR(400), "
+                + "v AS JSON_VALUE(doc, '$.\"名前\"')); "
+                + "INSERT INTO dbo.j663 (doc) SELECT TOP (5000) "
+                + "CONCAT(N'{\"名前\":\"k', x.n, N'\"}') "
+                + "FROM (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n "
+                + "FROM sys.all_objects a CROSS JOIN sys.all_objects b) x; "
+                + "CREATE INDEX ix_j663_v ON dbo.j663 (v); "
+                + "IF OBJECT_ID('dbo.s663') IS NOT NULL DROP TABLE dbo.s663; "
+                + "CREATE TABLE dbo.s663 (s VARCHAR(10), k VARCHAR(10)); "
+                + "INSERT INTO dbo.s663 VALUES ('50%', 'a'), ('509', 'b');");
+        DbTable j = new("j663", "j");
+        DbTable v = new("s663", "s");
+
+        string national = Select(j.Column("id")).From(j)
+            .Where(JsonValue(j.Column("doc"), "$.\"名前\"") == "k42")
+            .Build(Dbms.SqlServer).Text
+            .Replace("@0", "N'k42'", StringComparison.Ordinal);
+        string plain = national.Replace("N'$.", "'$.", StringComparison.Ordinal);
+        Assert.Contains("N'$.\"名前\"'", national);
+        Assert.Equal(
+            connection.Query<int>(plain).Single(), connection.Query<int>(national).Single());
+        connection.Execute("SET SHOWPLAN_XML ON");
+        string plan = connection.QuerySingle<string>(national);
+        connection.Execute("SET SHOWPLAN_XML OFF");
+        Assert.Contains("ix_j663_v", plan);
+
+        int plainCount = connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM dbo.s663 WHERE s LIKE N'50＼%' ESCAPE '＼'");
+        Assert.Equal(1, plainCount);
+        Assert.Equal(
+            plainCount,
+            connection.ExecuteScalar<int>(
+                Select(Count(v.Column("s"))).From(v)
+                .Where(v.Column("s").Like("50＼%").Escape('＼'))));
+        Assert.Equal("a、b", connection.ExecuteScalar<string>(
+            Select(StringAgg(v.Column("k"), "、").WithinGroup(OrderBy(v.Column("k")))).From(v)));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<string>(
+            "SELECT STRING_AGG(k, N'、') FROM dbo.s663"));
+    }
 }

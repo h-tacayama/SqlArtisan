@@ -481,6 +481,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#654)
 
 ### Fixed
+- On SQL Server, a `JsonValue` / `JsonQuery` path or a `Like` / `NotLike`
+  `.Escape(...)` character holding a non-ASCII character is emitted as
+  `N'...'`. A plain literal is converted to the database's code page, so where
+  the page lacks the character the path named another key and returned NULL,
+  and the escape character escaped nothing. An ASCII literal keeps its plain
+  form. The `StringAgg` separator stays plain, since SQL Server rejects
+  `N'...'` there over a `varchar` input, so a separator character the page
+  lacks still arrives as `?`. (#663)
 - `ExecuteArrayBind` binds by name. A `BindValue` passed to several clauses
   emits its marker in each (`UPDATE t SET qty = :0 WHERE id = :0`), and bound by
   position the repeated marker had no parameter of its own; the same statement

@@ -42,7 +42,7 @@ public sealed class StringAggFunction : SqlExpression
         // Inlined, never bound: SQL Server rejects the nvarchar a bound string travels
         // as over a varchar input, and a varchar literal runs over both (ADR 0016, #664).
         .Append(", ")
-        .AppendStringLiteral(separator)
+        .AppendCodePageStringLiteral(separator)
         .PrependSpaceIfNotNull(orderByClause)
         .CloseParenthesis();
 }

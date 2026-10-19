@@ -272,7 +272,8 @@ SqlStatement sql =
 
 The escape character is emitted as an inline string literal rather than a bind
 parameter: `ESCAPE` takes a constant character fixed at the call site, and the
-literal spelling is valid identically on every dialect.
+literal spelling is valid identically on every dialect. On SQL Server a non-ASCII
+escape character is written `N'...'`, so the database's code page cannot replace it.
 
 ### BETWEEN Condition
 ```csharp
@@ -1062,7 +1063,8 @@ Select(StringAgg(u.Name, ", ").WithinGroup(OrderBy(u.Name)))
 
 The separator is emitted as an inline single-quote-escaped string literal rather
 than a bind parameter: over a `varchar` input SQL Server rejects a bound separator,
-and the literal runs over both `varchar` and `nvarchar` input.
+and the literal runs over both `varchar` and `nvarchar` input; there a character the
+database's code page lacks arrives as `?`.
 
 ### LISTAGG (Oracle)
 

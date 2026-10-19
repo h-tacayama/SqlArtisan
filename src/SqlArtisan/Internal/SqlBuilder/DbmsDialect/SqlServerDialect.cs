@@ -15,6 +15,8 @@ internal sealed class SqlServerDialect : IDbmsDialect
     // T-SQL requires MERGE to end with a semicolon; omitting it is a syntax error.
     public string MergeTerminator => ";";
 
+    public bool NonAsciiLiteralsUseNationalPrefix => true;
+
     public char ParameterMarker => '@';
 
     public bool ReturningIgnoresTargetAlias => false;

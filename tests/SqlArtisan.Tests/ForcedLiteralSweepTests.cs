@@ -3,15 +3,21 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-// Pins ADR 0016's forced-literal row: every text parameter of the public surface is
-// classified, and each forced literal is built with ' and \ on every dialect, so a
-// node rewritten to append its string raw fails here instead of shipping.
+// Pins ADR 0016's forced-literal row: every public text parameter is classified, and
+// each forced literal is built with ', \ and a non-ASCII character on every dialect, so
+// a node rewritten to append its string raw fails here instead of shipping.
 public class ForcedLiteralSweepTests
 {
     private const string StringInput = "a'b\\c";
 
-    // A char position cannot hold both hazards at once, so it takes them one by one.
-    private static readonly string[] CharInputs = ["'", "\\"];
+    private const string NonAsciiInput = "名";
+
+    // A char position cannot hold every hazard at once, so it takes them one by one.
+    private static readonly string[] CharInputs = ["'", "\\", NonAsciiInput];
+
+    private static readonly string[] StringInputs = [StringInput, NonAsciiInput];
+
+    private static readonly (string, Dbms) CodePageCase = (NonAsciiInput, Dbms.SqlServer);
 
     // Escaping is the dialect's, not the construct's, so every case builds on every
     // dialect, whether or not the construct runs there.
@@ -32,6 +38,11 @@ public class ForcedLiteralSweepTests
         [("\\", Dbms.PostgreSql)] = "E'\\\\'",
         [("\\", Dbms.Sqlite)] = "'\\'",
         [("\\", Dbms.SqlServer)] = "'\\'",
+        [(NonAsciiInput, Dbms.MySql)] = "'名'",
+        [(NonAsciiInput, Dbms.Oracle)] = "'名'",
+        [(NonAsciiInput, Dbms.PostgreSql)] = "'名'",
+        [(NonAsciiInput, Dbms.Sqlite)] = "'名'",
+        [(NonAsciiInput, Dbms.SqlServer)] = "N'名'",
     };
 
     // Key: "Type.Member(signature) :: parameter". Operands are NULL so the expected
@@ -88,10 +99,12 @@ public class ForcedLiteralSweepTests
             l => $"SELECT GROUP_CONCAT(NULL SEPARATOR {l})"),
         ["Sql.StringAgg(Object, String) :: separator"] = new(
             v => Select(StringAgg(Null, v)),
-            l => $"SELECT STRING_AGG(NULL, {l})"),
+            l => $"SELECT STRING_AGG(NULL, {l})",
+            CodePage: true),
         ["Sql.StringAgg(Object, String, OrderByClause) :: separator"] = new(
             v => Select(StringAgg(Null, v, OrderBy(Null))),
-            l => $"SELECT STRING_AGG(NULL, {l} ORDER BY NULL)"),
+            l => $"SELECT STRING_AGG(NULL, {l} ORDER BY NULL)",
+            CodePage: true),
         ["Sql.ToTsquery(String, Object) :: config"] = new(
             v => Select(ToTsquery(v, Null)),
             l => $"SELECT TO_TSQUERY({l}, NULL)"),
@@ -171,7 +184,7 @@ public class ForcedLiteralSweepTests
     }
 
     [Fact]
-    public void ForcedLiterals_QuoteAndBackslash_EscapesLiteral()
+    public void ForcedLiterals_QuoteBackslashAndNonAscii_EscapesLiteral()
     {
         Dictionary<string, Type> types = TextParameters().ToDictionary(p => p.Key, p => p.Type);
         Dbms[] dialects = [.. Enum.GetValues<Dbms>().Where(d => d != Dbms.Unknown)];
@@ -180,13 +193,16 @@ public class ForcedLiteralSweepTests
         foreach ((string key, LiteralCase literalCase) in ForcedLiterals)
         {
             string[] inputs =
-                types.GetValueOrDefault(key) == typeof(char) ? CharInputs : [StringInput];
+                types.GetValueOrDefault(key) == typeof(char) ? CharInputs : StringInputs;
             foreach (string input in inputs)
             {
                 foreach (Dbms dbms in dialects)
                 {
                     SqlStatement sql = literalCase.Build(input).Build(dbms);
-                    string expected = literalCase.Expected(ExpectedLiterals[(input, dbms)]);
+                    string literal = literalCase.CodePage && (input, dbms) == CodePageCase
+                        ? $"'{NonAsciiInput}'"
+                        : ExpectedLiterals[(input, dbms)];
+                    string expected = literalCase.Expected(literal);
                     if (sql.Text != expected || sql.Parameters.Count != 0)
                     {
                         violations.Add(
@@ -241,7 +257,9 @@ public class ForcedLiteralSweepTests
             && !typeof(Delegate).IsAssignableFrom(type)
             && type.GetGenericArguments().Any(IsText));
 
+    // CodePage: the position keeps a varchar literal on SQL Server (ADR 0016, #663).
     private sealed record LiteralCase(
         Func<string, ISqlBuilder> Build,
-        Func<string, string> Expected);
+        Func<string, string> Expected,
+        bool CodePage = false);
 }

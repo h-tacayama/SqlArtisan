@@ -28,7 +28,7 @@ the string names:
 | Position | Behavior | Mechanism |
 |----------|----------|-----------|
 | **Value** — anything the grammar accepts as a parameter | bound | `BindValue`; ADR 0004 |
-| **Forced literal** — a position that needs a literal: the dialect grammar rejects a bind marker there, or a bind marker would change how the engine resolves or plans the statement | emitted inline, single-quoted, `'` doubled (`\` doubled on MySQL; on PostgreSQL a literal holding `\` is an `E'...'` constant with `\` doubled) | `SqlBuildingBuffer.AppendStringLiteral` |
+| **Forced literal** — a position that needs a literal: the dialect grammar rejects a bind marker there, or a bind marker would change how the engine resolves or plans the statement | emitted inline, single-quoted, `'` doubled (`\` doubled on MySQL; on PostgreSQL a literal holding `\` is an `E'...'` constant with `\` doubled; on SQL Server a literal holding a non-ASCII character is `N'...'`, the `STRING_AGG` separator excepted) | `SqlBuildingBuffer.AppendStringLiteral`; `AppendCodePageStringLiteral` for the `STRING_AGG` separator |
 | **Identifier** — a name or type token in the statement's structure | emitted verbatim, between the dialect's alias quotes where the position is quoted at all | `SqlBuildingBuffer.EncloseInAliasQuotes`, or a bare append |
 
 `Nextval` / `Currval` are the case that looked like an exception and is not.
@@ -149,16 +149,23 @@ alongside the bind-parameter types.
   which reads the same under either setting. MySQL's `NO_BACKSLASH_ESCAPES` can
   still change a doubled `\` into two characters, a wrong value but never a
   closed literal, since `'` stays doubled.
-- **A forced literal is escaped, not transcoded.** The forced-literal row
-  keeps a caller string from reaching the text raw; it does not promise that
-  every character arrives. On SQL Server a literal without `N` is converted to
-  the database's code page, which may not hold every character, and the loss
-  is not reported. In the `JSON_VALUE` / `JSON_QUERY` path that can silently
-  name another key — lax mode, the default, returns NULL for a missing key
-  rather than failing — and whether to emit `N'...'` there is #663. The
-  `STRING_AGG` separator keeps the plain literal deliberately: SQL Server
-  rejects an `nvarchar` separator over a `varchar` input, so `N'...'` there
-  would break a query that runs today (#664).
+- **A forced literal keeps its characters on SQL Server (#663).** SQL Server
+  converts a literal without `N` to the database's code page and reports no
+  loss: under SQL Server 2022's `SQL_Latin1_General_CP1_CI_AS` a `JSON_VALUE` /
+  `JSON_QUERY` path holding a character the page lacks (`名前`) names another
+  key, which lax mode answers with NULL, and such an `ESCAPE` character (`＼`)
+  escapes nothing. So there a
+  forced literal holding a non-ASCII character is written `N'...'`; an ASCII
+  one stays plain, as every code page reads it alike. Where the page holds the
+  character, the `N` form returns the plain form's rows and keeps the index on
+  a `JSON_VALUE` computed column (`Japanese_CI_AS`). The
+  `STRING_AGG` separator stays plain: SQL Server rejects an `nvarchar`
+  separator over a `varchar` input even where the page holds the character, so
+  `N'...'` would break a query that runs today (#664), and a non-ASCII
+  separator the page lacks arrives as `?`. No other dialect takes the prefix.
+  Twins:
+  `SqlServerTests.NonAsciiForcedLiteral_PlainForm_LosesTheCharacter`,
+  `SqlServerTests.NonAsciiForcedLiteral_OnACodePageHoldingIt_KeepsWhatThePlainFormRan`.
 - **Not a Boundary-cluster ADR.** This records emission behavior; it adds no
   rejection category to ADR 0007 / 0011 / 0012 and does not count toward their
   consolidation trigger.
