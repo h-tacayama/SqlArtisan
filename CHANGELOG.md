@@ -97,8 +97,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   every `DateTimePart` factory but `Numtoyminterval` and `Numtodsinterval`,
   which already rejected a unit outside their set at the call. (#661)
 - **Breaking:** `Any` / `All` / `Some` and `Interval(n, unit)` return types that
-  are no longer `SqlExpression`s, since each is half of a construct no engine
-  runs alone. A quantified operand is taken only on the right of a comparison,
+  are no longer `SqlExpression`s, since each completes only one operand slot (a
+  predicate's right side, a date's `+` / `-`) and is no value on its own. A quantified operand is taken only on the right of a comparison,
   of `Like` / `NotLike`, of `ArrayContains` / `ArrayContainedBy` /
   `ArrayOverlaps`, or as `JsonbContains`' value, `JsonbExists`' key or
   `TsMatch`'s query, and `Interval(...)` only beside a date in `+` / `-` or by

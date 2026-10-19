@@ -45,8 +45,9 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   a same-rows ground instead, since Oracle XE 21.3.0 runs the bare call (ADR 0007,
   #664); an `ANY` / `ALL` / `SOME` operand off a comparison's right side, and
   MySQL's `INTERVAL n unit` off a date's `+` / `-` and `DATE_ADD` / `DATE_SUB` —
-  each half of a construct, rejected alone on every lane
-  (`QuantifiedOperand_OutsideAComparison_IsRejectedByTheEngine`,
+  each half of a construct, which completes only that slot (`SELECT ANY (...)` is
+  rejected on every lane, `QuantifiedOperand_OutsideAComparison_IsRejectedByTheEngine`,
+  and a bare `INTERVAL` on MySQL 8.0,
   `MySqlTests.ContextRule_IntervalOutsideArithmetic_Rejected`); the three types are
   no `SqlExpression`, and only the slot each completes wraps one. On PostgreSQL 16.15
   `COUNT(ALL (x))`, `SELECT ALL (...)` and `GROUP BY ALL (...)` run with `ALL` read

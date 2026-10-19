@@ -1038,7 +1038,7 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         connection.Execute(sql);
     }
 
-    // #666: SQLite has no quantified comparison at all (3.45.1), so the operand alone
+    // #666: SQLite has no quantified comparison at all (3.50.4), so the operand alone
     // is rejected too.
     [Fact]
     public void QuantifiedOperand_OutsideAComparison_IsRejectedByTheEngine()
