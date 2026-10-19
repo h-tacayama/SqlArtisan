@@ -309,9 +309,9 @@ internal static class ExpressionResolver
         }
     }
 
-    // A function-argument enum in a value slot is one passed at an arity with no slot
-    // of its type, and binds its integer (#667). Sql.Bind and new BindValue(...) skip
-    // this, so binding one stays writable; Dbms and DbTypeCategory fill no argument.
+    // A function-argument enum in a value slot was passed at an arity with no slot of
+    // its type and would bind as the value (#667). Sql.Bind and new BindValue(...) skip
+    // this, so binding one stays writable; no factory takes Dbms or DbTypeCategory.
     internal static BindValue BindImplicitly(object value) =>
         value is DateTimePart or RegexpOptions or SearchModifier
             ? throw new ArgumentException($"{value.GetType().Name} is a function argument, "
