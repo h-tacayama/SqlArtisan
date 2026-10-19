@@ -256,6 +256,12 @@ silently off the argument's static type, which is exactly the kind of trap
 this convention exists to avoid — if PostgreSQL's case is ever needed, name it
 distinctly instead of overloading.
 
+A new parameter may also be typed `string` and inlined where a bind marker
+would change the plan, as `JsonExtract`'s path is (an expression index matches
+only the literal path). An `object` parameter already shipped moves to `string`
+only under ADR 0016's bound on the planning reason, which keeps the format
+strings and SQLite's date/time modifiers bound (#661).
+
 The trap is an `object` overload beside the `string` one. Overloads whose types
 never overlap may split the emission: `JsonArrow(object, string)` and
 `(object, int)` inline the key, and `(object, SqlExpression)` emits the

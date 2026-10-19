@@ -69,9 +69,10 @@ arguments of `Strftime`, `DateFormat`, `ToChar`, `ToDate`, `ToNumber`,
 modifiers of `Date`, `Datetime`, `Julianday` and `Strftime`, stay on the first
 row on that weighing:
 
-- No lane rejects a marker there: the matrix sweep runs every format argument
-  bound but `Trunc`'s, which the matrix leaves out, and `Date`'s and
-  `Datetime`'s modifiers.
+- The matrix sweep runs the format arguments other than `Trunc`'s, and the
+  `Date` and `Datetime` modifiers, bound on their lanes, and no lane rejects
+  the marker. `Trunc`'s format, which the matrix leaves out, and the
+  `Julianday` and `Strftime` modifiers are run bound on no lane.
 - SQLite 3.50.4, the lane's engine, plans `SEARCH … USING … INDEX` over an
   index on `strftime('%Y', d)` or `date(d, 'start of month')` only with the
   literal, and `SCAN` with the bound format or modifier
@@ -129,8 +130,9 @@ alongside the bind-parameter types.
   removing their escaping would emit a broken PostgreSQL string literal.
 - **New API surface is classified before it is written.** A new function that
   takes a `string` decides which of the three rows it is on, and the answer
-  follows from the grammar of the position — not from whether the string
-  happens to name something.
+  follows from the grammar of the position, or from a measured plan difference
+  within the bound above — not from whether the string happens to name
+  something.
 - **The verbatim contract is now defended by tests**, which it was not: no test
   anywhere asserted identifier behavior with a quote character, so a future
   change could have silently started escaping one. `Cast_TypeWithQuote_…`,
