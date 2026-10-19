@@ -48,8 +48,8 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   each half of a construct, rejected alone on every lane
   (`QuantifiedOperand_OutsideAComparison_IsRejectedByTheEngine`,
   `MySqlTests.ContextRule_IntervalOutsideArithmetic_Rejected`); the three types are
-  no `SqlExpression`, and only the slot each completes wraps one. `COUNT(ALL (x))`,
-  `SELECT ALL (...)` and PostgreSQL's `GROUP BY ALL (...)` run only with `ALL` read
+  no `SqlExpression`, and only the slot each completes wraps one. On PostgreSQL 16.15
+  `COUNT(ALL (x))`, `SELECT ALL (...)` and `GROUP BY ALL (...)` run with `ALL` read
   as the set quantifier, another construct (the `Decode` line above), so they throw
   too (#666); any of `InnerJoin`/`LeftJoin`/
   `RightJoin`/`FullJoin`/`JoinLateral` with no `.On(...)`/`.Using(...)` —

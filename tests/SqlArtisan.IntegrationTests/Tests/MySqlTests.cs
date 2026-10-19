@@ -300,13 +300,25 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
     [Fact] // #436, #666: the live proof behind SQLA0102's Interval rule and the type that
            // keeps INTERVAL out of a value position — only the arithmetic wrapper differs.
+           // MySQL 8.0 also reads the interval-first and string-first + the library emits.
     public void ContextRule_IntervalOutsideArithmetic_Rejected()
     {
+        UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
 
         connection.Query<DateTime>("SELECT created_at + INTERVAL 30 DAY FROM users");
         Assert.ThrowsAny<DbException>(
             () => connection.Query<object>("SELECT INTERVAL 30 DAY FROM users"));
+
+        Assert.Equal(
+            connection.Query<DateTime>(
+                Select(u.CreatedAt + Interval(30, DateTimePart.Day)).From(u)),
+            connection.Query<DateTime>(
+                Select(Interval(30, DateTimePart.Day) + u.CreatedAt).From(u)));
+        Assert.Equal(
+            new DateTime(2024, 1, 31),
+            Convert.ToDateTime(connection.ExecuteScalar(
+                Select("2024-01-01" + Interval(30, DateTimePart.Day)))));
     }
 
     // #362: SQLA0205's live proof — MySQL compares a string to a number as floating

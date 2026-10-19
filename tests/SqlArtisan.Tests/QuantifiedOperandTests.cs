@@ -20,8 +20,8 @@ public class QuantifiedOperandTests
             ex.Message);
     }
 
-    // PostgreSQL reads COUNT(ALL (x)) as the aggregate's own ALL, so the text runs as
-    // another construct; Count(x) spells what it computes.
+    // PostgreSQL 16.15 reads COUNT(ALL (x)) as the aggregate's own ALL, so the text runs
+    // as another construct; Count(x) spells what it computes.
     [Fact]
     public void All_AggregateArgument_ThrowsArgumentException()
     {

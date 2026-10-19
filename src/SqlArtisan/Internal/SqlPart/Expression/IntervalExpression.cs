@@ -21,7 +21,7 @@ public sealed class IntervalExpression : SqlPart, IIncompleteExpression
             + "col + Interval(...), or pass it to DateAdd or DateSub.";
 
     /// <summary>
-    /// The interval-first date addition MySQL also reads:
+    /// The interval-first date addition, which MySQL 8.0 also reads:
     /// <c>INTERVAL n unit + <paramref name="rightSide"/></c>.
     /// </summary>
     /// <param name="this">The interval.</param>
