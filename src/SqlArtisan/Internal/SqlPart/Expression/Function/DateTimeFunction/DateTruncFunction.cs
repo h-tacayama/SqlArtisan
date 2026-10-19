@@ -14,7 +14,7 @@ public sealed class DateTruncFunction : SqlExpression
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.DateTrunc)
         .OpenParenthesis()
-        .AppendStringLiteral(DatepartKeywords.Of(_datepart))
+        .AppendStringLiteral(DatepartKeywords.LowerOf(_datepart))
         .PrependComma(_source)
         .CloseParenthesis();
 }

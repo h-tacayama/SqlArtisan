@@ -187,15 +187,14 @@ public class DialectSupportResolverTests
         Assert.Equal("2022", verdict.RequiredVersion);
     }
 
-    // Trim has both a member-level bound (2017, the 1-arg form) and a narrower
-    // arity-2 bound (2022, the ANSI TRIM(BOTH ... FROM ...) form) — the matched
-    // key must pick the exact one the arity resolved to, not fall back.
+    // A member-level bound is not inherited, so Trim's arity-2 key carries a 2017 row of
+    // its own: without it, a 2-argument call would pass on SQL Server 2016.
     [Theory]
     [InlineData(1, "2019", true, null)]
     [InlineData(1, "2016", false, "2017")]
-    [InlineData(2, "2019", false, "2022")]
-    [InlineData(2, "2022", true, null)]
-    public void Evaluate_ArityBoundAndMemberBound_PicksExactMatchedKey(
+    [InlineData(2, "2016", false, "2017")]
+    [InlineData(2, "2017", true, null)]
+    public void Evaluate_TrimArityKey_CarriesItsOwnBound(
         int arity, string declared, bool expectedSupported, string? expectedRequired)
     {
         DialectSupportResolver.MatrixMatch match =
@@ -205,6 +204,37 @@ public class DialectSupportResolverTests
             match,
             TargetDbms.SqlServer,
             EngineVersion.Parse(declared));
+
+        Assert.Equal(expectedSupported, verdict.IsSupported);
+        Assert.Equal(expectedRequired, verdict.RequiredVersion);
+    }
+
+    // No shipped dialect holds two different floors on a member and its arity key, so
+    // the exact-key lookup is pinned on a synthetic table: a member-first read gives 2017.
+    [Theory]
+    [InlineData(2, "2019", false, "2022")]
+    [InlineData(2, "2022", true, null)]
+    [InlineData(null, "2019", true, null)]
+    [InlineData(null, "2016", false, "2017")]
+    public void Evaluate_ArityBoundDiffersFromMemberBound_PicksExactMatchedKey(
+        int? arity, string declared, bool expectedSupported, string? expectedRequired)
+    {
+        Dictionary<MatrixKey, VersionBounds> bounds = new()
+        {
+            [new MatrixKey("Probe")] = new VersionBounds(sqlServer: DialectMatrix.V("2017")),
+            [new MatrixKey("Probe", 2)] = new VersionBounds(sqlServer: DialectMatrix.V("2022")),
+        };
+        DialectSupportResolver.MatrixMatch match = new(
+            DbmsSupport.All,
+            arity is not null,
+            "probe",
+            new MatrixKey("Probe", arity));
+
+        DialectSupportResolver.MatrixVerdict verdict = DialectSupportResolver.Evaluate(
+            match,
+            TargetDbms.SqlServer,
+            EngineVersion.Parse(declared),
+            bounds);
 
         Assert.Equal(expectedSupported, verdict.IsSupported);
         Assert.Equal(expectedRequired, verdict.RequiredVersion);

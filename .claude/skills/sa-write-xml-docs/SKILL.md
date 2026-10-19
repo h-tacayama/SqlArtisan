@@ -124,7 +124,7 @@ Copy from `Sql.C.cs`: `Ceil`/`Ceiling` (`<remarks>` cross-ref) and `Cast`
   all kept.)
 - Overloads that genuinely differ in behavior (not just arity) are **not** a
   family — document each in full (e.g. `Trim(object)` → `TRIM(x)` vs
-  `Trim(object, object)` → `TRIM(BOTH c FROM x)`).
+  `Trim(object, object)` → `TRIM(c FROM x)`).
 
 ## Enums
 

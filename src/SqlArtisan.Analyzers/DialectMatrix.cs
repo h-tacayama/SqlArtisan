@@ -595,10 +595,9 @@ internal static class DialectMatrix
         [new MatrixKey("Ltrim", 2)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: true),
         [new MatrixKey("Rtrim")] = DbmsSupport.All,
         [new MatrixKey("Rtrim", 2)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: true),
-        // Trim: 1-arg universal (T-SQL TRIM since 2017). The 2-arg overload emits the ANSI
-        // keyword form TRIM(BOTH ch FROM src) (TrimFunction.cs): SQLite only accepts its own
-        // positional trim(X, Y), not the FROM form; SQL Server accepts BOTH ... FROM on
-        // 2022/compat 160.
+        // Trim: T-SQL has TRIM and the 2-arg TRIM(ch FROM src) (TrimFunction.cs) from 2017; the
+        // unemitted LEADING/TRAILING/BOTH need 2022 at level 160 (learn.microsoft.com TRIM page;
+        // 150 refuses BOTH on 2022). SQLite has only its positional trim(X, Y), not the FROM form.
         [new MatrixKey("Trim")] = DbmsSupport.All,
         [new MatrixKey("Trim", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         // Round: T-SQL ROUND requires 2-3 arguments — the 1-arg form is invalid on SQL Server.
@@ -896,7 +895,7 @@ internal static class DialectMatrix
         [new MatrixKey("Least")] = new VersionBounds(sqlServer: V("2022")),
         [new MatrixKey("Ltrim", 2)] = new VersionBounds(sqlServer: V("2022")),
         [new MatrixKey("Rtrim", 2)] = new VersionBounds(sqlServer: V("2022")),
-        [new MatrixKey("Trim", 2)] = new VersionBounds(sqlServer: V("2022")),
+        [new MatrixKey("Trim", 2)] = new VersionBounds(sqlServer: V("2017")),
         [new MatrixKey("Trim")] = new VersionBounds(sqlServer: V("2017")),
         // SQL Server 2025 added || (#614), proven by the SqlServer2025 lane's bound sweep.
         [new MatrixKey("DoublePipe")] = new VersionBounds(sqlServer: V("2025")),
@@ -933,9 +932,16 @@ internal static class DialectMatrix
     public static bool TryGetMinVersion(
         MatrixKey matchedKey,
         TargetDbms target,
+        out EngineVersion min) =>
+        TryGetMinVersion(Bounds, matchedKey, target, out min);
+
+    internal static bool TryGetMinVersion(
+        IReadOnlyDictionary<MatrixKey, VersionBounds> table,
+        MatrixKey matchedKey,
+        TargetDbms target,
         out EngineVersion min)
     {
-        if (Bounds.TryGetValue(matchedKey, out VersionBounds bounds)
+        if (table.TryGetValue(matchedKey, out VersionBounds bounds)
             && bounds.MinFor(target) is { } bound)
         {
             min = bound;
@@ -946,8 +952,8 @@ internal static class DialectMatrix
         return false;
     }
 
-    /// <summary>Exposed for the version-bounds gate tests (orphan check, baseline invariant, docs
-    /// provenance).</summary>
+    /// <summary>The bounds table the resolver's version check reads, also exposed for the
+    /// version-bounds gate tests (orphan check, baseline invariant, docs provenance).</summary>
     internal static IReadOnlyDictionary<MatrixKey, VersionBounds> AllBounds => Bounds;
 
     public static bool TryGetEntry(

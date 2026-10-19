@@ -126,8 +126,7 @@ public class DialectMatrixVersionBoundsTests
                 + "missing SQLA0101 below the dialect's baseline, a false-positive "
                     + "SQLA0100 above it. "
                 + "Re-key the floor onto the arity key (its own value, where the overload's floor "
-                + $"differs — Trim's 2-arg form is SQL Server 2022 where the member is 2017): "
-                    + $"{string.Join("; ", dropped)}");
+                + $"differs): {string.Join("; ", dropped)}");
     }
 
     // Every seeded bound's version token must appear, digit-bounded, on a
