@@ -105,8 +105,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `DateAdd` / `DateSub`; anywhere else the call throws, naming the slot.
   `SqlExpression e = All(x)`, `All(x) + 1` and a string beside one
   (`"%" + Any(...)`) no longer compile, and
-  `Count(All(x))`, which ran with `ALL` read as `COUNT`'s own quantifier,
-  throws: write `Count(x)`. `Interval(...) + date` and `"date" + Interval(...)`
+  `Count(All(x))`, which ran on PostgreSQL 16 with `ALL` read as `COUNT`'s own
+  quantifier, throws: write `Count(x)`. `Interval(...) + date` and `"date" + Interval(...)`
   each gain an operator of their own. (#666)
 - **Breaking:** `TopClause.Percent()` and `WithTies()` return a new
   `TopClause` and leave the one they are called on unchanged. They used to set
