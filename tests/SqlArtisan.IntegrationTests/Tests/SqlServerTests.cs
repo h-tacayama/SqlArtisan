@@ -935,15 +935,18 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
     }
 
     // #661: Trim(s, c) emits TRIM(c FROM s), which runs below compatibility level 160,
-    // where the BOTH keyword the node used to add is refused.
-    [Fact]
-    public void Trim_TrimCharacters_RunBelowCompatibilityLevel160()
+    // where the BOTH keyword the node used to add is refused; 140 is SQL Server 2017's.
+    [Theory]
+    [InlineData(150)]
+    [InlineData(140)]
+    public void Trim_TrimCharacters_RunBelowCompatibilityLevel160(int level)
     {
         using IDbConnection connection = _fixture.OpenConnection();
+        string database = $"probe_cl{level}";
         connection.Execute(
-            "IF DB_ID('probe_cl150') IS NULL CREATE DATABASE probe_cl150; "
-                + "ALTER DATABASE probe_cl150 SET COMPATIBILITY_LEVEL = 150;");
-        connection.ChangeDatabase("probe_cl150");
+            $"IF DB_ID('{database}') IS NULL CREATE DATABASE {database}; "
+                + $"ALTER DATABASE {database} SET COMPATIBILITY_LEVEL = {level};");
+        connection.ChangeDatabase(database);
 
         Assert.Equal("a", connection.QuerySingle<string>(Select(Trim("xxaxx", "x"))));
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
