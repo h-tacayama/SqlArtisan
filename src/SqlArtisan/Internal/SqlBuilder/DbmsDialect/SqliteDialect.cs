@@ -14,6 +14,8 @@ internal sealed class SqliteDialect : IDbmsDialect
 
     public string MergeTerminator => "";
 
+    public bool NonAsciiLiteralsUseNationalPrefix => false;
+
     public char ParameterMarker => ':';
 
     public bool ReturningIgnoresTargetAlias => true;

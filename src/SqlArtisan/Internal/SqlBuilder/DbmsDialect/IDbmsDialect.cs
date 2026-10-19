@@ -39,6 +39,13 @@ internal interface IDbmsDialect
     /// </summary>
     string MergeTerminator { get; }
 
+    /// <summary>
+    /// Whether a literal holding a non-ASCII character is written as a national
+    /// constant (<c>N'...'</c>) — true only on SQL Server, which converts a plain
+    /// literal to the database's code page and loses a character the page lacks.
+    /// </summary>
+    bool NonAsciiLiteralsUseNationalPrefix { get; }
+
     char ParameterMarker { get; }
 
     /// <summary>

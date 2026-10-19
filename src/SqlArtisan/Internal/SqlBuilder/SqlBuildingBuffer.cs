@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Data;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace SqlArtisan.Internal;
 
@@ -277,16 +278,26 @@ internal sealed class SqlBuildingBuffer : IDisposable
     internal SqlBuildingBuffer AppendStringLiteral(char value)
     {
         bool escapeString = value == '\\' && _dialect.BackslashLiteralsUseEscapeString;
-        OpenStringLiteral(escapeString);
+        bool national = !char.IsAscii(value) && _dialect.NonAsciiLiteralsUseNationalPrefix;
+        OpenStringLiteral(escapeString, national);
         AppendEscaped(value, escapeString);
         Append('\'');
         return this;
     }
 
-    internal SqlBuildingBuffer AppendStringLiteral(string value)
+    internal SqlBuildingBuffer AppendStringLiteral(string value) =>
+        AppendStringLiteral(value, _dialect.NonAsciiLiteralsUseNationalPrefix);
+
+    // For a position that must stay varchar-typed: SQL Server's STRING_AGG rejects an
+    // N'...' separator over a varchar input (ADR 0016, #663).
+    internal SqlBuildingBuffer AppendCodePageStringLiteral(string value) =>
+        AppendStringLiteral(value, false);
+
+    private SqlBuildingBuffer AppendStringLiteral(string value, bool nationalIfNonAscii)
     {
         bool escapeString = _dialect.BackslashLiteralsUseEscapeString && value.Contains('\\');
-        OpenStringLiteral(escapeString);
+        bool national = nationalIfNonAscii && !Ascii.IsValid(value);
+        OpenStringLiteral(escapeString, national);
 
         foreach (char c in value)
         {
@@ -297,11 +308,15 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    private void OpenStringLiteral(bool escapeString)
+    private void OpenStringLiteral(bool escapeString, bool national)
     {
         if (escapeString)
         {
             Append('E');
+        }
+        else if (national)
+        {
+            Append('N');
         }
 
         Append('\'');

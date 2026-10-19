@@ -97,6 +97,40 @@ public partial class FunctionTests
         Assert.Equal(0, sql.Parameters.Count);
     }
 
+    // SQL Server converts a plain literal to the code page, so a non-ASCII path takes N.
+    [Fact]
+    public void JsonQuery_SqlServer_NonAsciiPath_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(JsonQuery(_t.Name, "$.\"住所\""))
+            .Build(Dbms.SqlServer);
+
+        Assert.Equal("SELECT JSON_QUERY(\"t\".name, N'$.\"住所\"')", sql.Text);
+        Assert.Equal(0, sql.Parameters.Count);
+    }
+
+    [Fact]
+    public void JsonValue_SqlServer_NonAsciiPath_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(JsonValue(_t.Name, "$.\"名前\""))
+            .Build(Dbms.SqlServer);
+
+        Assert.Equal("SELECT JSON_VALUE(\"t\".name, N'$.\"名前\"')", sql.Text);
+        Assert.Equal(0, sql.Parameters.Count);
+    }
+
+    [Fact]
+    public void JsonValue_Oracle_NonAsciiPath_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(JsonValue(_t.Name, "$.\"名前\""))
+            .Build(Dbms.Oracle);
+
+        Assert.Equal("SELECT JSON_VALUE(\"t\".name, '$.\"名前\"')", sql.Text);
+        Assert.Equal(0, sql.Parameters.Count);
+    }
+
     [Fact]
     public void JsonValue_SqlServer_InWhere_CorrectSql()
     {

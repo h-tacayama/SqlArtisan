@@ -1009,57 +1009,81 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.ThrowsAny<DbException>(() => connection.Execute(sql));
     }
 
-    // TEMPORARY #663 probe: reports observations through the failure message.
+    // ADR 0016 (#663): SQL Server 2022 converts a plain literal to the code page, so
+    // under the lane's SQL_Latin1_General_CP1_CI_AS a non-ASCII JSON path or ESCAPE
+    // character reads as '?' and matches nothing; N'...' keeps it.
     [Fact]
-    public void Probe663_Observations()
+    public void NonAsciiForcedLiteral_PlainForm_LosesTheCharacter()
     {
-        using IDbConnection c = _fixture.OpenConnection();
-        System.Text.StringBuilder o = new();
-        void Q(string label, string sql)
-        {
-            try
-            {
-                object? v = c.ExecuteScalar(sql);
-                o.Append(label).Append(" => [").Append(v ?? "NULL").Append("]\n");
-            }
-            catch (Exception e)
-            {
-                o.Append(label).Append(" => ERR ").Append(e.Message).Append('\n');
-            }
-        }
+        using IDbConnection connection = _fixture.OpenConnection();
+        string doc = "{\"名前\":\"x\",\"住所\":{\"a\":1}}";
 
-        c.Execute(
-            "IF OBJECT_ID('dbo.p663') IS NOT NULL DROP TABLE dbo.p663; "
-                + "CREATE TABLE dbo.p663 (v VARCHAR(20), n NVARCHAR(20)); "
-                + "INSERT INTO dbo.p663 VALUES ('50%', N'50%'), ('509', N'509');");
-        Q("latin db", "SELECT CAST(DATABASEPROPERTYEX(DB_NAME(), 'Collation') AS nvarchar(200))");
-        Q("esc N ascii over varchar", "SELECT COUNT(*) FROM dbo.p663 WHERE v LIKE '50!%' ESCAPE N'!'");
-        Q("esc plain ascii over varchar", "SELECT COUNT(*) FROM dbo.p663 WHERE v LIKE '50!%' ESCAPE '!'");
-        Q("esc N fullwidth over varchar", "SELECT COUNT(*) FROM dbo.p663 WHERE v LIKE '50＼%' ESCAPE N'＼'");
-        Q("esc N fullwidth over nvarchar", "SELECT COUNT(*) FROM dbo.p663 WHERE n LIKE N'50＼%' ESCAPE N'＼'");
-        Q("esc plain fullwidth over nvarchar", "SELECT COUNT(*) FROM dbo.p663 WHERE n LIKE N'50＼%' ESCAPE '＼'");
-        Q("agg plain sep over nvarchar", "SELECT STRING_AGG(n, '、') FROM dbo.p663");
-        Q("agg N sep over nvarchar", "SELECT STRING_AGG(n, N'、') FROM dbo.p663");
-        Q("agg plain sep over varchar", "SELECT STRING_AGG(v, '、') FROM dbo.p663");
-        Q("agg N sep over varchar", "SELECT STRING_AGG(v, N'、') FROM dbo.p663");
-        Q("agg N ascii sep over varchar", "SELECT STRING_AGG(v, N',') FROM dbo.p663");
-        c.Execute("DROP TABLE dbo.p663;");
+        Assert.Null(connection.ExecuteScalar<string>(
+            "SELECT JSON_VALUE(@doc, '$.\"名前\"')", new { doc }));
+        Assert.Null(connection.ExecuteScalar<string>(
+            "SELECT JSON_QUERY(@doc, '$.\"住所\"')", new { doc }));
+        Assert.Equal(0, connection.ExecuteScalar<int>(
+            "SELECT CASE WHEN N'50%' LIKE N'50＼%' ESCAPE '＼' THEN 1 ELSE 0 END"));
 
-        c.Execute("IF DB_ID('probe_ja') IS NULL CREATE DATABASE probe_ja COLLATE Japanese_CI_AS;");
-        c.ChangeDatabase("probe_ja");
-        c.Execute(
-            "IF OBJECT_ID('dbo.p663') IS NOT NULL DROP TABLE dbo.p663; "
-                + "CREATE TABLE dbo.p663 (v VARCHAR(20), n NVARCHAR(20)); "
-                + "INSERT INTO dbo.p663 VALUES ('a', N'a'), ('b', N'b');");
-        Q("ja db", "SELECT CAST(DATABASEPROPERTYEX(DB_NAME(), 'Collation') AS nvarchar(200))");
-        Q("ja jv plain", "SELECT JSON_VALUE(N'{\"名前\":\"x\"}', '$.\"名前\"')");
-        Q("ja jv plain hangul", "SELECT JSON_VALUE(N'{\"이름\":\"x\"}', '$.\"이름\"')");
-        Q("ja jv N hangul", "SELECT JSON_VALUE(N'{\"이름\":\"x\"}', N'$.\"이름\"')");
-        Q("ja agg plain sep over varchar", "SELECT STRING_AGG(v, '、') WITHIN GROUP (ORDER BY v) FROM dbo.p663");
-        Q("ja agg N sep over varchar", "SELECT STRING_AGG(v, N'、') WITHIN GROUP (ORDER BY v) FROM dbo.p663");
-        Q("ja agg plain sep over nvarchar", "SELECT STRING_AGG(n, '、') WITHIN GROUP (ORDER BY n) FROM dbo.p663");
-        Q("ja agg N sep over nvarchar", "SELECT STRING_AGG(n, N'、') WITHIN GROUP (ORDER BY n) FROM dbo.p663");
+        Assert.Equal("x", connection.ExecuteScalar<string>(
+            Select(JsonValue(Bind(doc), "$.\"名前\""))));
+        Assert.Equal("{\"a\":1}", connection.ExecuteScalar<string>(
+            Select(JsonQuery(Bind(doc), "$.\"住所\""))));
+        Assert.Equal(1, connection.ExecuteScalar<int>(
+            Select(Case(When(Bind("50%").Like("50＼%").Escape('＼')).Then(1), Else(0)))));
+    }
 
-        Assert.Fail("PROBE663\n" + o);
+    // ADR 0016 (#663): where the code page holds the character (Japanese_CI_AS) the N
+    // form keeps what the plain one ran; STRING_AGG stays plain, as N is rejected over
+    // varchar there too, so a separator the page lacks arrives as '?' (Latin1 lane).
+    [Fact]
+    public void NonAsciiForcedLiteral_OnACodePageHoldingIt_KeepsWhatThePlainFormRan()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute(
+            "IF OBJECT_ID('dbo.agg_663') IS NOT NULL DROP TABLE dbo.agg_663; "
+                + "CREATE TABLE dbo.agg_663 (n NVARCHAR(10)); "
+                + "INSERT INTO dbo.agg_663 VALUES (N'a'), (N'b');");
+        DbTable latin = new("agg_663", "g");
+        Assert.Equal("a?b", connection.ExecuteScalar<string>(
+            Select(StringAgg(latin.Column("n"), "、").WithinGroup(OrderBy(latin.Column("n"))))
+            .From(latin)));
+        connection.Execute("DROP TABLE dbo.agg_663;");
+
+        connection.Execute(
+            "IF DB_ID('probe_ja_663') IS NULL "
+                + "CREATE DATABASE probe_ja_663 COLLATE Japanese_CI_AS;");
+        connection.ChangeDatabase("probe_ja_663");
+        connection.Execute(
+            "IF OBJECT_ID('dbo.j663') IS NOT NULL DROP TABLE dbo.j663; "
+                + "CREATE TABLE dbo.j663 (id INT IDENTITY PRIMARY KEY, doc NVARCHAR(400), "
+                + "v AS JSON_VALUE(doc, '$.\"名前\"')); "
+                + "INSERT INTO dbo.j663 (doc) SELECT TOP (5000) "
+                + "CONCAT(N'{\"名前\":\"k', x.n, N'\"}') "
+                + "FROM (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n "
+                + "FROM sys.all_objects a CROSS JOIN sys.all_objects b) x; "
+                + "CREATE INDEX ix_j663_v ON dbo.j663 (v); "
+                + "IF OBJECT_ID('dbo.s663') IS NOT NULL DROP TABLE dbo.s663; "
+                + "CREATE TABLE dbo.s663 (s VARCHAR(10)); "
+                + "INSERT INTO dbo.s663 VALUES ('50%'), ('509');");
+        DbTable j = new("j663", "j");
+        DbTable v = new("s663", "s");
+
+        string where = Select(j.Column("id")).From(j)
+            .Where(JsonValue(j.Column("doc"), "$.\"名前\"") == "k42")
+            .Build(Dbms.SqlServer).Text;
+        Assert.Contains("N'$.\"名前\"'", where);
+        connection.Execute("SET SHOWPLAN_XML ON");
+        string plan = connection.QuerySingle<string>(
+            where.Replace("@0", "N'k42'", StringComparison.Ordinal));
+        connection.Execute("SET SHOWPLAN_XML OFF");
+        Assert.Contains("ix_j663_v", plan);
+
+        Assert.Equal(1, connection.ExecuteScalar<int>(
+            Select(Count(v.Column("s"))).From(v).Where(v.Column("s").Like("50＼%").Escape('＼'))));
+        Assert.Equal("50%、509", connection.ExecuteScalar<string>(
+            Select(StringAgg(v.Column("s"), "、").WithinGroup(OrderBy(v.Column("s")))).From(v)));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<string>(
+            "SELECT STRING_AGG(s, N'、') FROM dbo.s663"));
     }
 }

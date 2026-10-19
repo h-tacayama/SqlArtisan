@@ -54,6 +54,18 @@ public class StringAggregationTests
         Assert.Equal(expected, sql.Text);
     }
 
+    // The separator stays varchar-typed: SQL Server rejects N'...' over a varchar input.
+    [Fact]
+    public void StringAgg_SqlServer_NonAsciiSeparator_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(StringAgg(_t.Name, "、").WithinGroup(OrderBy(_t.Name)))
+            .Build(Dbms.SqlServer);
+
+        Assert.Equal("SELECT STRING_AGG(name, '、') WITHIN GROUP (ORDER BY name)", sql.Text);
+        Assert.Equal(0, sql.Parameters.Count);
+    }
+
     [Fact]
     public void StringAgg_EmptySeparator_CorrectSql()
     {

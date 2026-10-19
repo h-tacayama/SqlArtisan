@@ -149,16 +149,21 @@ alongside the bind-parameter types.
   which reads the same under either setting. MySQL's `NO_BACKSLASH_ESCAPES` can
   still change a doubled `\` into two characters, a wrong value but never a
   closed literal, since `'` stays doubled.
-- **A forced literal is escaped, not transcoded.** The forced-literal row
-  keeps a caller string from reaching the text raw; it does not promise that
-  every character arrives. On SQL Server a literal without `N` is converted to
-  the database's code page, which may not hold every character, and the loss
-  is not reported. In the `JSON_VALUE` / `JSON_QUERY` path that can silently
-  name another key — lax mode, the default, returns NULL for a missing key
-  rather than failing — and whether to emit `N'...'` there is #663. The
-  `STRING_AGG` separator keeps the plain literal deliberately: SQL Server
-  rejects an `nvarchar` separator over a `varchar` input, so `N'...'` there
-  would break a query that runs today (#664).
+- **A forced literal keeps its characters on SQL Server (#663).** SQL Server
+  converts a literal without `N` to the database's code page and reports no
+  loss: under SQL Server 2022's `SQL_Latin1_General_CP1_CI_AS` a non-ASCII
+  `JSON_VALUE` / `JSON_QUERY` path names another key, which lax mode answers
+  with NULL, and a non-ASCII `ESCAPE` character escapes nothing. So there a
+  forced literal holding a non-ASCII character is written `N'...'`; an ASCII
+  one stays plain, as every code page reads it alike, and the `N` form changes
+  neither the rows nor which index serves a `JSON_VALUE` computed column. The
+  `STRING_AGG` separator stays plain: SQL Server rejects an `nvarchar`
+  separator over a `varchar` input even where the page holds the character, so
+  `N'...'` would break a query that runs today (#664), and a non-ASCII
+  separator the page lacks arrives as `?`. Elsewhere a literal travels in the
+  connection's character set, UTF-8 on every lane, and takes no prefix. Twins:
+  `SqlServerTests.NonAsciiForcedLiteral_PlainForm_LosesTheCharacter`,
+  `SqlServerTests.NonAsciiForcedLiteral_OnACodePageHoldingIt_KeepsWhatThePlainFormRan`.
 - **Not a Boundary-cluster ADR.** This records emission behavior; it adds no
   rejection category to ADR 0007 / 0011 / 0012 and does not count toward their
   consolidation trigger.

@@ -272,7 +272,8 @@ SqlStatement sql =
 
 The escape character is emitted as an inline string literal rather than a bind
 parameter: `ESCAPE` takes a constant character fixed at the call site, and the
-literal spelling is valid identically on every dialect.
+literal spelling is valid identically on every dialect. On SQL Server a non-ASCII
+escape character is written `N'...'`, so the database's code page cannot replace it.
 
 ### BETWEEN Condition
 ```csharp
