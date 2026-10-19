@@ -285,8 +285,8 @@ position and `Against`'s search text included: it reaches the factory as a
 An unwrapped one there takes the resolvers' message too: its first remedy
 names that family's options or modifier overload, so a message of the
 family's own would add only the shape (#661, #664). An overload taking the
-enum cannot withhold it instead: a literal `0` converts to any enum and prefers the enum
-overload, so it would capture `RegexpReplace(s, p, r, 1, 0)`.
+enum cannot withhold it instead: a literal `0` converts to any enum and
+prefers the enum overload, so it would capture `RegexpReplace(s, p, r, 1, 0)`.
 
 ## Minimum-arity enforcement: compile-time when the shape allows it
 
