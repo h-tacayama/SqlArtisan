@@ -149,16 +149,18 @@ public partial class FunctionTests
         Assert.Equal("SELECT \"t\".x FROM UNNEST(:0, :1) \"t\" (x)", sql.Text);
     }
 
+    // A composite-typed array yields a column per field, so the list may name more
+    // columns than there are arrays (#664).
     [Fact]
-    public void Unnest_AsTable_MoreColumnsThanArrays_ThrowsArgumentException()
+    public void Unnest_AsTable_MoreColumnsThanArrays_CorrectSql()
     {
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Unnest(BindArray([1])).AsTable("t", "x", "y"));
+        SqlStatement sql =
+            Select(Asterisk)
+            .From(Unnest(BindArray([1])).AsTable("t", "x", "y"))
+            .Build(Dbms.PostgreSql);
 
-        Assert.Equal(
-            "An UNNEST column alias list must not name more columns than there are "
-                + "unnested arrays; UNNEST has 1 array(s), but the column list has 2.",
-            ex.Message);
+        Assert.Equal("SELECT * FROM UNNEST(:0) \"t\" (x, y)", sql.Text);
+        Assert.Equal([1], sql.Parameters.Get<int[]>(":0"));
     }
 
     [Fact]

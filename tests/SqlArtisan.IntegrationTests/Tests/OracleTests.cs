@@ -384,6 +384,32 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             Select(IntervalLiteral("1 2:3:4.5", Day(), ToSecond(10))).From(Dual)));
     }
 
+    // #664: LISTAGG's pending type rests on Oracle refusing the call without
+    // WITHIN GROUP.
+    [Fact]
+    public void Listagg_WithoutWithinGroup_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT LISTAGG(name, ',') FROM users"));
+    }
+
+    // #664: a NULL delimiter is LISTAGG's default, the spelling public-api-design.md
+    // records for a LISTAGG with no delimiter.
+    [Fact]
+    public void Listagg_NullDelimiter_MatchesTheDefault()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        string? byDefault = connection.QuerySingle<string>(
+            "SELECT LISTAGG(name) WITHIN GROUP (ORDER BY name) FROM users");
+        string? byNull = connection.QuerySingle<string>(
+            "SELECT LISTAGG(name, NULL) WITHIN GROUP (ORDER BY name) FROM users");
+
+        Assert.Equal(byDefault, byNull);
+    }
+
     [Fact] // ADR 0012 (#661): anchors the non-negative CURRENT_TIMESTAMP precision guard.
     public void CurrentTimestamp_NegativePrecision_IsRejectedByTheEngine()
     {

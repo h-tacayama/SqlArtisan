@@ -411,6 +411,17 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
+    // #664: a window function in WHERE is valid nowhere and left to the engine.
+    [Fact]
+    public void WindowFunctionInWhere_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.Id).From(u).Where(RowNumber().Over(OrderBy(u.Id)) == 1)));
+    }
+
     // ADR 0016 (#661): the bound format and modifier miss an expression index, a cost
     // weighed and accepted there; only the inline literal, written by hand, matches.
     [Theory]

@@ -10,7 +10,7 @@ public class IncompleteExpressionMessageTests
     private readonly TestTable _t = new("t");
 
     private const string MatchMessage =
-        "MATCH requires an AGAINST clause; complete it with .Against(...) or .AgainstScore(...).";
+        "MATCH requires an AGAINST clause; complete it with .AgainstScore(...).";
     private const string RankMessage = "RANK requires an OVER clause; complete it with .Over(...).";
     private const string ListaggMessage =
         "LISTAGG requires a WITHIN GROUP clause; complete it with .WithinGroup(OrderBy(...)).";

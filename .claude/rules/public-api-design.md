@@ -247,7 +247,9 @@ When a parameter's dialect grammar sometimes *requires* a literal there (SQL
 Server `STRING_AGG`'s separator, ADR 0004's literal-position exception), type
 it `string` and emit it inline; when the dialect accepts a bound expression,
 type it `object` and resolve it normally. Shipped instances: `StringAgg(object
-expr, string separator)` (inline — SQL Server requires a literal there) vs.
+expr, string separator)` (inline — over a `varchar` input SQL Server rejects the
+`nvarchar` a bound string travels as, and only a `varchar` literal runs over both
+input types, #664) vs.
 `Listagg`/`GroupConcat`'s `object separator` (bound — Oracle/SQLite accept a
 parameter marker, live-verified by the sweep). Don't add a second, `object`-
 typed `StringAgg` separator overload to reach PostgreSQL's bindable case: the
