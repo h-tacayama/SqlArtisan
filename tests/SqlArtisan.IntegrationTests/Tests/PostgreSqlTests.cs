@@ -1491,7 +1491,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(
             connection.ExecuteScalar<long>("SELECT COUNT(ARRAY[1, 2])"),
             connection.ExecuteScalar<long>("SELECT COUNT(ALL (ARRAY[1, 2]))"));
-        Assert.Equal(new[] { 1 }, connection.ExecuteScalar<int[]>("SELECT ALL (ARRAY[1])"));
+        Assert.Equal([1], connection.ExecuteScalar<int[]>("SELECT ALL (ARRAY[1])"));
         Assert.Equal(
             connection.Query<int>("SELECT id FROM users GROUP BY id").Count(),
             connection.Query<int>("SELECT id FROM users GROUP BY ALL (id)").Count());
