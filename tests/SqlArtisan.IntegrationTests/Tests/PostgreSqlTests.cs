@@ -445,7 +445,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     [InlineData("to_date(name, 'YYYY-MM-DD')")]
     [InlineData("to_number(name, '9999')")]
     [InlineData("to_timestamp(name, 'YYYY')")]
-    public void FormatFunction_ExpressionIndex_IsRejectedByTheEngine(string indexed)
+    public void ToCharFamily_ExpressionIndex_IsRejectedByTheEngine(string indexed)
     {
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
