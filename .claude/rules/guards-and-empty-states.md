@@ -300,6 +300,15 @@ live): `Sql.OrderBy(...)` and
 MySQL, Oracle and SQL Server read one there is not verified. The statement
 `ORDER BY` keeps its ordinals and its non-integer constants (ADR 0011).
 
+**A function-argument enum is no value (decided — do not re-file):** a
+`DateTimePart`, `RegexpOptions` or `SearchModifier` in an `object` slot is a
+slip, one passed at an arity with no slot of its type, so
+`ExpressionResolver.BindImplicitly` rejects one in every implicit value
+position, on every dialect, as a call-site defect (ADR 0011 decides the class
+outside its bar; #667). `Bind(value)` keeps a deliberate one writable; why
+`Dbms` and `DbTypeCategory` still bind is in `public-api-design.md` §
+"Separator/format-string parameters".
+
 **A held stage's out-of-order clause stays unguarded (decided — do not
 re-file):** a held builder can still append a clause after the one it must
 precede — `Output(...)` after an `INSERT`'s `Values(...)` (#542), or

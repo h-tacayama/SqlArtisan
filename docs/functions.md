@@ -314,7 +314,7 @@ SqlArtisan automatically converts C# literal values into bind parameters (to bin
 - **Character/String**: `char`, `string`
 - **Date/Time**: `DateTime`, `DateOnly`, `TimeOnly`
 - **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
-- **Enum**: Any `enum` type
+- **Enum**: Any `enum` type, except the function-argument enums `DateTimePart`, `RegexpOptions` and `SearchModifier`, which throw `ArgumentException` in a value position. Passed there, one is a slip — an argument given at an arity with no slot of its type, as `RegexpCount(s, p, RegexpOptions.CaseInsensitive)` gives the options as the position — and bound, it is the value — through `SqlArtisan.Dapper`, its integer. To store or compare one deliberately, bind it with `Sql.Bind(value)`.
 
 `Sql.Bind(value)` rejects `null`. For a bound `NULL`, use `Sql.BindNull()`: a bare `null` literal inlines the `NULL` keyword into the SQL text, while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
 

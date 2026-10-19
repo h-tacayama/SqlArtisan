@@ -2,7 +2,7 @@
 
 **Status:** Accepted — #672 adds a fourth class decided outside the bar (an alias sort
 key where no select alias is in scope), #677 a fifth (the correlated guards, the
-DML-target one included), #678, #673 and #693 a sixth (a bound value as a sort, group, partition or `DISTINCT ON` key, and a number as an expression-position sort key).
+DML-target one included), #678, #673 and #693 a sixth (a bound value as a sort, group, partition or `DISTINCT ON` key, and a number as an expression-position sort key), #667 a seventh (a function-argument enum in a value position).
 
 ## Context
 
@@ -87,7 +87,7 @@ override — so every build path (including `Returning()`, which funnels through
   structurally can't see it, *and* the resolved target has no valid spelling.
   Absent both, the answer stays ADR 0007's default — emit faithfully. Some
   rejections of valid-somewhere text do not follow that today: ADR 0017 is its
-  own exception, and six classes are decided outside the bar here. The
+  own exception, and seven classes are decided outside the bar here. The
   call-site-defect guards, enumerated in `guards-and-empty-states.md` — a
   fixed list that repeats a name, an `OUTPUT ... INTO` list whose width
   differs from its `OUTPUT` list, a bare `SET` target or column list entry
@@ -151,6 +151,15 @@ override — so every build path (including `Returning()`, which funnels through
   `ORDER BY` inside `OVER`, `WITHIN GROUP` or an aggregate, where a number is a
   constant key (PostgreSQL 16 and SQLite 3.45.1, live), so `Sql.OrderBy(...)` and
   `PartitionBy(...).OrderBy(...)` reject every number, as `PartitionBy` does.
+  The seventh is a `DateTimePart`, `RegexpOptions` or `SearchModifier` in a
+  value position (#667): one there is a slip, passed at an arity with no slot
+  of its type, and bound it is the value (`RegexpCount(s, p,
+  RegexpOptions.CaseInsensitive)` bound the options as the position;
+  `SELECT SUM(:0)` returned 40 on SQLite through `SqlArtisan.Dapper`), so the
+  implicit resolvers reject it on every dialect, even where an engine runs the
+  text. `Bind(value)` keeps a deliberate one, and `Dbms` and `DbTypeCategory`
+  still bind, since no factory takes either as an argument
+  (`public-api-design.md` § "Separator/format-string parameters").
 - **Revisit when joined DML lands (#237).** Once `UPDATE … FROM` / `DELETE … FROM`
   give SQL Server a real spelling for the aliased/correlated shape, this guard's
   premise ("no valid spelling exists") weakens; re-evaluate whether it should

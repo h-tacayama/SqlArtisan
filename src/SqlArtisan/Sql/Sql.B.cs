@@ -9,7 +9,7 @@ public static partial class Sql
     /// An explicit bind-parameter handle for <paramref name="value"/>, emitted as
     /// a marker (<c>:0</c>, <c>:1</c>, …) assigned at <c>Build()</c>.
     /// </summary>
-    /// <param name="value">The value to bind. Accepts the same types as an auto-bound literal.</param>
+    /// <param name="value">The value to bind. Accepts the same types as an auto-bound literal, and also a <see cref="DateTimePart"/>, <see cref="RegexpOptions"/> or <see cref="SearchModifier"/>, which a value position rejects.</param>
     /// <returns>A bind-parameter handle for <paramref name="value"/>.</returns>
     /// <remarks>
     /// Hold the result in a variable and reuse it across clauses to make each bind

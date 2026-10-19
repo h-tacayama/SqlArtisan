@@ -136,7 +136,7 @@ internal static class ExpressionResolver
         }
         else if (IsBindable(item))
         {
-            return new BindValue(item);
+            return BindImplicitly(item);
         }
         else
         {
@@ -308,6 +308,16 @@ internal static class ExpressionResolver
             target[i + offset] = Resolve(items[i]);
         }
     }
+
+    // A function-argument enum in a value slot was passed at an arity with no slot of
+    // its type and would bind as the value (#667). Sql.Bind and new BindValue(...) skip
+    // this, so binding one stays writable; no factory takes Dbms or DbTypeCategory.
+    internal static BindValue BindImplicitly(object value) =>
+        value is DateTimePart or RegexpOptions or SearchModifier
+            ? throw new ArgumentException($"{value.GetType().Name} is a function argument, "
+                + $"not a value; pass it to a {value.GetType().Name} parameter, "
+                + "or bind it with Sql.Bind(...).")
+            : new BindValue(value);
 
     internal static bool IsBindable(object value) =>
         IsBoolean(value)
