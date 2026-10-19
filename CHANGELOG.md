@@ -434,9 +434,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   period while others did not. (#645)
 - `Trim(source, trimChar)` emits `TRIM(trimChar FROM source)` instead of
   `TRIM(BOTH trimChar FROM source)`. `BOTH` is the default wherever the `FROM`
-  form exists, so the rows are the same (PostgreSQL 16), and SQL Server runs
-  the form from 2017 at any compatibility level, where `BOTH` needs 2022 at
-  level 160. The analyzer's SQL Server floor for the 2-argument form drops from
+  form exists, so the rows are the same (PostgreSQL 16). SQL Server 2022 runs
+  the form at compatibility level 150 and refuses `BOTH` there; Microsoft's
+  reference has the form from 2017 and `BOTH` from 2022 at compatibility level
+  160. The analyzer's SQL Server floor for the 2-argument form drops from
   2022 to 2017, so `SQLA0101` no longer reports it on 2017 and 2019. (#661)
 - `DateTrunc(part, x)` emits the field in lower case
   (`DATE_TRUNC('month', ts)`), as PostgreSQL's manual writes it. The rows are

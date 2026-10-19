@@ -933,9 +933,16 @@ internal static class DialectMatrix
     public static bool TryGetMinVersion(
         MatrixKey matchedKey,
         TargetDbms target,
+        out EngineVersion min) =>
+        TryGetMinVersion(Bounds, matchedKey, target, out min);
+
+    internal static bool TryGetMinVersion(
+        IReadOnlyDictionary<MatrixKey, VersionBounds> table,
+        MatrixKey matchedKey,
+        TargetDbms target,
         out EngineVersion min)
     {
-        if (Bounds.TryGetValue(matchedKey, out VersionBounds bounds)
+        if (table.TryGetValue(matchedKey, out VersionBounds bounds)
             && bounds.MinFor(target) is { } bound)
         {
             min = bound;

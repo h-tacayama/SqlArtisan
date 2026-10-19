@@ -66,5 +66,6 @@ Rules for `Format` implementations and `Keywords.cs` (#207 / #208):
    `DISTINCT`. One the engine applies by default is left out when the caller
    did not name it: spelling it out unasked changes no rows and can only
    narrow where the text runs. `Trim(s, c)` emitted `TRIM(BOTH c FROM s)`
-   until #661: SQL Server accepts `BOTH` only at compatibility level 160 or
-   higher, while `TRIM(c FROM s)` runs from 2017.
+   until #661: SQL Server 2022 refuses `BOTH` at compatibility level 150,
+   where `TRIM(c FROM s)` runs, and Microsoft's reference has the form from
+   2017.

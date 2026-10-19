@@ -152,10 +152,19 @@ internal static class DialectSupportResolver
     public static MatrixVerdict Evaluate(
         MatrixMatch match,
         TargetDbms target,
-        EngineVersion? targetVersion)
+        EngineVersion? targetVersion) =>
+        Evaluate(match, target, targetVersion, DialectMatrix.AllBounds);
+
+    // The bounds table is a parameter so a test can hold an arity floor that differs
+    // from its member floor, a pair the shipped table does not carry (#661).
+    internal static MatrixVerdict Evaluate(
+        MatrixMatch match,
+        TargetDbms target,
+        EngineVersion? targetVersion,
+        IReadOnlyDictionary<MatrixKey, VersionBounds> bounds)
     {
         if (targetVersion is { } declared
-            && DialectMatrix.TryGetMinVersion(match.Key, target, out EngineVersion min))
+            && DialectMatrix.TryGetMinVersion(bounds, match.Key, target, out EngineVersion min))
         {
             return declared >= min
                 ? new MatrixVerdict(isSupported: true, isVersionBound: false, requiredVersion: null)

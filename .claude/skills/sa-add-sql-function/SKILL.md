@@ -172,9 +172,8 @@ a floor on the arity key too, wherever the two rows' cells agree — a
 member-level bound is not inherited (ADR 0021), and
 `EveryArityEntry_ReKeysItsMemberLevelBound` fails the suite when it is
 missing, whether or not your own source names a version. Record the
-overload's own version, not a copy of the member's: `Trim`'s 2-arg form is
-SQL Server 2022 where the member is 2017, and the gate checks presence, not
-the value.
+overload's own version, not a copy of the member's: the two can differ, and
+the gate checks presence, not the value.
 
 **When support differs by argument count on a `params` method, split the
 overloads first.** The analyzer computes arity from the *declared* parameter

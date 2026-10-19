@@ -75,8 +75,8 @@ overloads genuinely differ in dialect support.** Arity is not made universal.
   agree, or that overload silently loses the floor's verdict: a missing
   `SQLA0101` below the dialect's baseline, a false-positive `SQLA0100` above
   it. Record the overload's own version rather than copying the member's —
-  `Trim`'s 2-arg form is SQL Server 2022 where the member is 2017, and the
-  gate checks that a row is there, not what it says. Where the cells disagree
+  the two can differ, and the gate checks that a row is there, not what it
+  says. Where the cells disagree
   the arity row carries a floor of its own or none — the member's value would
   contradict the bool at the baseline, which is the one story the two tables
   are required to tell. `RegexpSubstr`'s arity-6 row documents
