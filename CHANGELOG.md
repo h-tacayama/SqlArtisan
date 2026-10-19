@@ -99,12 +99,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** `Any` / `All` / `Some` and `Interval(n, unit)` return types that
   are no longer `SqlExpression`s, since each is half of a construct no engine
   runs alone. A quantified operand is taken only on the right of a comparison,
-  `Like` / `NotLike`, or a PostgreSQL array, `jsonb` or text-search predicate,
-  and `Interval(...)` only beside a date in `+` / `-` or by `DateAdd` /
-  `DateSub`; anywhere else the call throws, naming the slot. `SqlExpression e
-  = All(x)` and `All(x) + 1` no longer compile, and `Count(All(x))`, which ran
-  with `ALL` read as `COUNT`'s own quantifier, throws: write `Count(x)`.
-  `Interval(...) + date` gains an operator of its own. (#666)
+  of `Like` / `NotLike`, of `ArrayContains` / `ArrayContainedBy` /
+  `ArrayOverlaps`, or as `JsonbContains`' value, `JsonbExists`' key or
+  `TsMatch`'s query, and `Interval(...)` only beside a date in `+` / `-` or by
+  `DateAdd` / `DateSub`; anywhere else the call throws, naming the slot.
+  `SqlExpression e = All(x)` and `All(x) + 1` no longer compile, and
+  `Count(All(x))`, which ran with `ALL` read as `COUNT`'s own quantifier,
+  throws: write `Count(x)`. `Interval(...) + date` and `"date" + Interval(...)`
+  each gain an operator of their own. (#666)
 - **Breaking:** `TopClause.Percent()` and `WithTies()` return a new
   `TopClause` and leave the one they are called on unchanged. They used to set
   the flag on the receiver, so a `Top(n)` held in a variable and reused added

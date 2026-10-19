@@ -1,8 +1,8 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// An <c>ANY</c> / <c>ALL</c> / <c>SOME (SELECT ...)</c> operand, valid only as the
-/// right operand of a comparison, so it is no <see cref="SqlExpression"/> (#666).
+/// An <c>ANY</c> / <c>ALL</c> / <c>SOME (SELECT ...)</c> operand, valid in the slots
+/// <see cref="QuantifiedExpression"/> lists alone, so it is no <see cref="SqlExpression"/>.
 /// </summary>
 public sealed class QuantifiedSubquery : SqlPart, IIncompleteExpression
 {

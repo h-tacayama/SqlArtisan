@@ -35,9 +35,9 @@ public static partial class Sql
         new(Resolve(dateTime), Resolve(months));
 
     /// <summary>
-    /// The <c>ALL (subquery)</c> quantified comparison operator: the comparison must
-    /// hold for every row returned by the subquery.
-    /// Valid only as a comparison's right operand — e.g. <c>col &gt; All(subquery)</c>.
+    /// The <c>ALL (subquery)</c> quantified comparison operator: the comparison must hold for every
+    /// row returned by the subquery. Valid only in the slots <see cref="QuantifiedExpression"/>
+    /// lists, as in <c>col &gt; All(subquery)</c>.
     /// </summary>
     /// <param name="subquery">A <c>SELECT</c> builder returning a single column.</param>
     /// <returns>A quantified-subquery expression emitting <c>ALL (SELECT ...)</c>.</returns>
@@ -46,9 +46,9 @@ public static partial class Sql
         new(Keywords.All, subquery);
 
     /// <summary>
-    /// The <c>ALL (array)</c> quantified comparison operator: the comparison must
-    /// hold for every element of the array expression (PostgreSQL).
-    /// Valid only as a comparison's right operand — e.g. <c>col &lt; All(BindArray(values))</c>.
+    /// The <c>ALL (array)</c> quantified comparison operator: the comparison must hold for every
+    /// element of the array expression (PostgreSQL). Valid only in the slots
+    /// <see cref="QuantifiedExpression"/> lists, as in <c>col &lt; All(BindArray(values))</c>.
     /// </summary>
     /// <param name="array">The array expression — a <see cref="BindArrayValue"/>,
     /// an <c>ARRAY[...]</c> constructor, or an array-typed column.</param>
@@ -57,9 +57,9 @@ public static partial class Sql
         new(Keywords.All, array);
 
     /// <summary>
-    /// The <c>ANY (subquery)</c> quantified comparison operator: the comparison must
-    /// hold for at least one row returned by the subquery.
-    /// Valid only as a comparison's right operand — e.g. <c>col &gt; Any(subquery)</c>.
+    /// The <c>ANY (subquery)</c> quantified comparison operator: the comparison must hold for at
+    /// least one row returned by the subquery. Valid only in the slots
+    /// <see cref="QuantifiedExpression"/> lists, as in <c>col &gt; Any(subquery)</c>.
     /// </summary>
     /// <param name="subquery">A <c>SELECT</c> builder returning a single column.</param>
     /// <returns>A quantified-subquery expression emitting <c>ANY (SELECT ...)</c>.</returns>
@@ -68,9 +68,9 @@ public static partial class Sql
         new(Keywords.Any, subquery);
 
     /// <summary>
-    /// The <c>ANY (array)</c> quantified comparison operator: the comparison must
-    /// hold for at least one element of the array expression (PostgreSQL).
-    /// Valid only as a comparison's right operand — e.g. <c>col == Any(BindArray(values))</c>.
+    /// The <c>ANY (array)</c> quantified comparison operator: the comparison must hold for at least
+    /// one element of the array expression (PostgreSQL). Valid only in the slots
+    /// <see cref="QuantifiedExpression"/> lists, as in <c>col == Any(BindArray(values))</c>.
     /// </summary>
     /// <param name="array">The array expression — a <see cref="BindArrayValue"/>,
     /// an <c>ARRAY[...]</c> constructor, or an array-typed column.</param>

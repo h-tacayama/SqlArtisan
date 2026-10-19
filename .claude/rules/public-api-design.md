@@ -364,7 +364,8 @@ When no user-defined operator applies, C# falls back to its built-in ones.
 the call `"Dr. " + col` compiled as string concatenation through
 `ToString()`: the text `"Dr. SqlArtisan.DbColumn"` was auto-parameterized, and
 the query ran with wrong rows. `+` takes `(string, SqlExpression)` too for that
-reason (#613). For every overloaded operator, enumerate the operand orders a
+reason (#613), and `(string, IntervalExpression)` once the interval left
+`SqlExpression` (#666). For every overloaded operator, enumerate the operand orders a
 caller can write, and compile each one: a
 literal, a nullable variable, and an `object`-, interface- or
 type-parameter-typed operand on either side, compound assignment (`+=`), and

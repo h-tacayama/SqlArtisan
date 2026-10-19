@@ -135,6 +135,7 @@ public class ForcedLiteralSweepTests
         ["ExpressionAlias.op_Addition(String, ExpressionAlias) :: leftSide"] = "rejected",
         ["ISubquery.As(String) :: alias"] = "identifier",
         ["ISubquery.AsTable(String) :: alias"] = "identifier",
+        ["IntervalExpression.op_Addition(String, IntervalExpression) :: leftSide"] = "bound",
         ["OutputParameter..ctor(String, DbType, Nullable`1) :: variable"] = "identifier",
         ["Sql.Cast(Object, String) :: type"] = "identifier",
         ["Sql.Hints(String) :: hints"] = "raw",

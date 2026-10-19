@@ -89,8 +89,34 @@ public class QuantifiedOperandTests
             () => Update(_t).Set(_t.Code == Any(Select(_t.Code).From(_t))));
 
         Assert.Equal(
-            "A SET assignment cannot take ANY, ALL or SOME; assign a value or a scalar "
-                + "subquery.",
+            "The SET assignment list cannot take ANY, ALL or SOME; assign a value or a "
+                + "scalar subquery.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Any_OnDuplicateKeyUpdateAssignment_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => InsertInto(_t, _t.Code)
+                .Values(1)
+                .OnDuplicateKeyUpdate(_t.Code == Any(Select(_t.Code).From(_t))));
+
+        Assert.Equal(
+            "The ON DUPLICATE KEY UPDATE assignment list cannot take ANY, ALL or SOME; "
+                + "assign a value or a scalar subquery.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Any_JsonbExistsAnyKeys_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => JsonbExistsAny(_t.Name, Any(BindArray(["a"]))));
+
+        Assert.Equal(
+            "ANY requires a comparison; use it as the right operand of one, as in "
+                + "col == Any(...).",
             ex.Message);
     }
 

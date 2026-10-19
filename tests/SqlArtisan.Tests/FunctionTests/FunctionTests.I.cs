@@ -160,6 +160,23 @@ public partial class FunctionTests
         Assert.Equal(30, sql.Parameters.Get<int>("?0"));
     }
 
+    // Without its own string-first +, the order fell to C# string concatenation (#666).
+    [Fact]
+    public void Interval_MySql_StringFirstAddition_CorrectSql()
+    {
+        SqlStatement sql =
+            Select("2024-01-01" + Interval(30, DateTimePart.Day))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("(?0 + INTERVAL ?1 DAY)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("2024-01-01", sql.Parameters.Get<string>("?0"));
+        Assert.Equal(30, sql.Parameters.Get<int>("?1"));
+    }
+
     [Fact]
     public void Interval_NullLeftOperand_ThrowsArgumentNullException()
     {

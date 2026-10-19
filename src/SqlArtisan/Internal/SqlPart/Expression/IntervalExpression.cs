@@ -32,6 +32,18 @@ public sealed class IntervalExpression : SqlPart, IIncompleteExpression
             new PositionBoundOperand(OperandGuard.ThrowIfNull(@this, Operators.Plus)),
             ExpressionResolver.Resolve(rightSide));
 
+    /// <summary>
+    /// The string-first date addition:
+    /// <c><paramref name="leftSide"/> + INTERVAL n unit</c>, the string bound as a parameter.
+    /// </summary>
+    /// <param name="leftSide">The date, bound as a parameter.</param>
+    /// <param name="rightSide">The interval.</param>
+    /// <returns>The addition expression.</returns>
+    public static AdditionOperator operator +(string leftSide, IntervalExpression rightSide) =>
+        new(
+            ExpressionResolver.Resolve(OperandGuard.ThrowIfNull(leftSide, Operators.Plus)),
+            ExpressionResolver.ResolveIntervalOperand(rightSide));
+
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Interval)
         .PrependSpace(_quantity)

@@ -43,7 +43,7 @@ internal static class AssignmentResolver
                 if (assignment.RightSide is PositionBoundOperand)
                 {
                     throw new ArgumentException(
-                        $"A {clause} assignment cannot take ANY, ALL or SOME; "
+                        $"The {clause} assignment list cannot take ANY, ALL or SOME; "
                             + "assign a value or a scalar subquery.");
                 }
 
