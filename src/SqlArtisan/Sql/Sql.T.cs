@@ -139,7 +139,7 @@ public static partial class Sql
     public static IntervalField ToSecond() => new(DateTimePart.Second, null);
 
     /// <inheritdoc cref="ToSecond()"/>
-    /// <param name="precision">The fractional-second digit count (0-9); the no-argument
+    /// <param name="precision">The fractional-second digit count, zero or more; the no-argument
     /// overload leaves Oracle's own default of 6. As a sole field rather than a range's trailing
     /// one, Oracle reads the same digits as the leading precision instead.</param>
     /// <returns>An <see cref="IntervalField"/> emitting <c>SECOND(precision)</c>.</returns>

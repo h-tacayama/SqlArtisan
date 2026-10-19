@@ -394,6 +394,25 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             connection.Execute("SELECT id FROM users ORDER BY id OFFSET 1"));
     }
 
+    // #661: an interval literal with no unit, or with a field range, is a syntax error
+    // here, the one engine with DATE_SUB, and is left to SQLA0100 rather than guarded.
+    [Fact]
+    public void DateSub_IntervalLiteralWithoutAUnit_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(
+            Select(DateSub(u.CreatedAt, IntervalLiteral("3", Day()))).From(u).Where(u.Id == 1));
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(DateSub(u.CreatedAt, IntervalLiteral("3"))).From(u).Where(u.Id == 1)));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(DateSub(u.CreatedAt, IntervalLiteral("1 2", Day(), ToHour)))
+            .From(u)
+            .Where(u.Id == 1)));
+    }
+
     // ADR 0012 (#661): anchors the non-negative CURRENT_TIMESTAMP / CURRENT_TIME
     // precision guards.
     [Fact]
