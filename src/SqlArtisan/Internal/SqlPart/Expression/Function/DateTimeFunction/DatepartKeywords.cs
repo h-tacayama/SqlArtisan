@@ -14,7 +14,8 @@ internal static class DatepartKeywords
     private static readonly string[] s_lowerKeywords =
         [.. s_keywords.Select(keyword => keyword.ToLowerInvariant())];
 
-    internal static string Of(DateTimePart datepart) => s_keywords[IndexOf(datepart)];
+    // Its callers pass a constant or a value their factory already rejected if undefined.
+    internal static string Of(DateTimePart datepart) => s_keywords[(int)datepart];
 
     // A factory resolves its caller's value at the call (#661), so a cast-in
     // undefined one fails there, naming the construct and the caller's parameter.
@@ -29,12 +30,6 @@ internal static class DatepartKeywords
 
     // A cast-in undefined value would otherwise index past the table and surface
     // as a bare IndexOutOfRangeException.
-    private static int IndexOf(DateTimePart datepart) =>
-        (uint)datepart < (uint)s_keywords.Length
-            ? (int)datepart
-            : throw new ArgumentOutOfRangeException(
-                nameof(datepart), datepart, "The value is not a defined DateTimePart.");
-
     private static int IndexOf(DateTimePart datepart, string construct, string paramName) =>
         (uint)datepart < (uint)s_keywords.Length
             ? (int)datepart
