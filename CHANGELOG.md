@@ -76,14 +76,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - `CurrentTimestamp(precision)` and `CurrentTime(precision)` accept a precision
-  above 9, which PostgreSQL runs, reducing it to its maximum of 6 with a
-  warning; the ceiling is each engine's to enforce. A negative precision still
-  throws, now with `CURRENT_TIMESTAMP precision must not be negative.` (or
-  `CURRENT_TIME`). (#661)
+  above 9, which PostgreSQL runs; the ceiling is each engine's to enforce. A
+  negative precision still throws, now with `CURRENT_TIMESTAMP precision must
+  not be negative.` (or `CURRENT_TIME`). (#661)
 - A cast-in undefined `DateTimePart` throws `ArgumentOutOfRangeException` at
-  the factory call (`Extract`, `Dateadd`, `Interval` and the other
-  `DateTimePart` factories) instead of at `Build()`, naming the construct and
-  the parameter (`EXTRACT requires a defined DateTimePart value.`). (#661)
+  the factory call instead of at `Build()`, naming the construct and the
+  parameter (`EXTRACT requires a defined DateTimePart value.`). That covers
+  every `DateTimePart` factory but `Numtoyminterval` and `Numtodsinterval`,
+  which already rejected a unit outside their set at the call. (#661)
 - **Breaking:** `TopClause.Percent()` and `WithTies()` return a new
   `TopClause` and leave the one they are called on unchanged. They used to set
   the flag on the receiver, so a `Top(n)` held in a variable and reused added
