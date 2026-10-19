@@ -41,7 +41,9 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
 **Enumerated instances of each rejection category:**
 
 - *Incomplete*: window/analytic function without `.Over(...)` (#150); ordered-set
-  aggregate without `.WithinGroup(...)` (#190); any of `InnerJoin`/`LeftJoin`/
+  aggregate without `.WithinGroup(...)` (#190) — `Listagg`'s pending type rests on
+  a same-rows ground instead, since Oracle XE 21.3.0 runs the bare call (ADR 0007,
+  #664); any of `InnerJoin`/`LeftJoin`/
   `RightJoin`/`FullJoin`/`JoinLateral` with no `.On(...)`/`.Using(...)` —
   accepted on SQLite (all five) or MySQL (`InnerJoin`/`JoinLateral` only) as an
   unlabeled `CROSS JOIN` spelling, not a construct with independent meaning

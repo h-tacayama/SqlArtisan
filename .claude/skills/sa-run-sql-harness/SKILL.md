@@ -82,14 +82,14 @@ foreach (Dbms d in new[]{ Dbms.PostgreSql, Dbms.MySql, Dbms.Oracle, Dbms.Sqlite,
 ```
 
 **2. Negative / enforcement.** A misuse should fail loudly, not emit invalid SQL.
-A mandatory-clause "pending" type (e.g. `Listagg` before `.WithinGroup(...)`) is
+A mandatory-clause "pending" type (e.g. `PercentileCont` before `.WithinGroup(...)`) is
 not a `SqlExpression`, so `Select(...)` throws `ArgumentException` naming the
-completing call ("LISTAGG requires a WITHIN GROUP clause; complete it with
+completing call ("PERCENTILE_CONT requires a WITHIN GROUP clause; complete it with
 .WithinGroup(OrderBy(...))."); a genuinely foreign type takes the sibling
 "Invalid type for SelectItem" branch. Prove the guard fires:
 
 ```csharp
-try { var s = Select(Listagg(u.Name, ", ")).From(u).Build(Dbms.Oracle);
+try { var s = Select(PercentileCont(0.5)).From(u).Build(Dbms.Oracle);
       Console.WriteLine("LEAK: " + s.Text); }      // bad: invalid SQL escaped
 catch (Exception ex) { Console.WriteLine($"GUARD: {ex.GetType().Name}"); }
 ```

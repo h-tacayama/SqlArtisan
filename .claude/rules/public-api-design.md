@@ -611,7 +611,10 @@ the cost ADR 0010 declines. Two more look missing but have a same-rows spelling,
 window frame with no `ORDER BY` is `OrderBy(Null).Rows(...)` (or
 `PartitionBy(g).OrderBy(Null)` first; same rows on PostgreSQL 16 and
 SQLite 3.45, MySQL not verified), and `LISTAGG` with no delimiter is
-`Listagg(x, Null)`, NULL being its default delimiter (not verified on Oracle).
+`Listagg(x, Null)`, NULL being its default delimiter (Oracle XE 21.3.0,
+`OracleTests.Listagg_NullDelimiter_MatchesTheDefault`), and `LISTAGG` with no
+`WITHIN GROUP`, which Oracle XE 21.3.0 runs, is `WithinGroup(OrderBy(Null))`, the
+same values with the order left to Oracle (#664).
 
 **Several `ON CONFLICT` clauses in one `INSERT` are not offered (decided —
 do not re-file):** SQLite runs `ON CONFLICT (id) DO UPDATE ... ON CONFLICT

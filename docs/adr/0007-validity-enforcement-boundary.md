@@ -17,6 +17,11 @@ contradicts "emit faithfully; the analyzer is the safety net." It does not — b
 only because these sit on a different axis, and that boundary was never written
 down. This ADR records it.
 
+`Listagg` later left that ground (#664): Oracle XE 21.3.0 runs `LISTAGG(x, ',')`
+without `WITHIN GROUP`, so the text is valid there. Its pending type stays on a
+same-rows ground instead (`public-api-design.md` § "Opinions…"):
+`WithinGroup(OrderBy(Null))` aggregates the same values, the order left to Oracle.
+
 ## Decision
 
 The library rejects **only constructs that are incomplete — ungrammatical in every

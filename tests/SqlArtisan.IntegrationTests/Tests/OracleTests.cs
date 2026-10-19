@@ -384,15 +384,21 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             Select(IntervalLiteral("1 2:3:4.5", Day(), ToSecond(10))).From(Dual)));
     }
 
-    // #664: LISTAGG's pending type rests on Oracle refusing the call without
-    // WITHIN GROUP.
+    // #664: Oracle runs LISTAGG without WITHIN GROUP, so its pending type rests on
+    // WithinGroup(OrderBy(Null)) aggregating the same values, the order left to Oracle.
     [Fact]
-    public void Listagg_WithoutWithinGroup_IsRejectedByTheEngine()
+    public void Listagg_WithoutWithinGroup_IsAcceptedByTheEngine()
     {
+        UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
 
-        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
-            "SELECT LISTAGG(name, ',') FROM users"));
+        string bare = connection.QuerySingle<string>("SELECT LISTAGG(name, ',') FROM users");
+        string unordered = connection.QuerySingle<string>(
+            Select(Listagg(u.Name, ",").WithinGroup(OrderBy(Null))).From(u));
+
+        Assert.Equal(
+            bare.Split(',').Order(StringComparer.Ordinal),
+            unordered.Split(',').Order(StringComparer.Ordinal));
     }
 
     // #664: a NULL delimiter is LISTAGG's default, the spelling public-api-design.md

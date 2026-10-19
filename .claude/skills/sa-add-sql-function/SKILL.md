@@ -259,7 +259,7 @@ interface that omits the now-invalid methods:
   error while every valid continuation stays.
 - A **mandatory** trailing clause: use the two-type "pending" pattern — the
   pending type is **not** a `SqlExpression`, so omitting the clause fails at
-  `Select(...)` (e.g. `ListaggFunction` → `ListaggWithinGroupFunction`).
+  `Select(...)` (e.g. `PercentileContFunction` → `PercentileFunction`).
 
 When withholding a step takes five or more stage copies, a `Build()` guard
 rejects it instead (`guards-and-empty-states.md` § "Compile time or a guard").
