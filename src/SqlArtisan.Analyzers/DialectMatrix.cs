@@ -595,10 +595,9 @@ internal static class DialectMatrix
         [new MatrixKey("Ltrim", 2)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: true),
         [new MatrixKey("Rtrim")] = DbmsSupport.All,
         [new MatrixKey("Rtrim", 2)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: true),
-        // Trim: 1-arg universal (T-SQL TRIM since 2017). The 2-arg overload emits
-        // TRIM(ch FROM src) (TrimFunction.cs): SQLite only accepts its own positional
-        // trim(X, Y), not the FROM form. T-SQL has the form from 2017 and the never-emitted
-        // BOTH from 2022 at level 160 (learn.microsoft.com TRIM page); 2022 at 150 refuses BOTH.
+        // Trim: T-SQL has TRIM and the 2-arg TRIM(ch FROM src) (TrimFunction.cs) from 2017; only
+        // the unemitted BOTH needs 2022 at level 160 (learn.microsoft.com TRIM page; 150 refuses
+        // it on 2022). SQLite has only its positional trim(X, Y), not the FROM form.
         [new MatrixKey("Trim")] = DbmsSupport.All,
         [new MatrixKey("Trim", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         // Round: T-SQL ROUND requires 2-3 arguments — the 1-arg form is invalid on SQL Server.
