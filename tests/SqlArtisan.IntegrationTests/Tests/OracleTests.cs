@@ -1298,5 +1298,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             "SELECT CASE WHEN 1 = ANY (SELECT 1 FROM dual) THEN 1 END FROM dual"));
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             "SELECT ANY (SELECT 1 FROM dual) FROM dual"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT CASE WHEN 'a' LIKE ANY (SELECT 'a' FROM dual) ESCAPE '!' THEN 1 END "
+                + "FROM dual"));
     }
 }

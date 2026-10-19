@@ -12,7 +12,11 @@ public sealed class NotLikeCondition : SqlCondition
     }
 
     public NotLikeEscapeCondition Escape(char escapeChar) =>
-        new(_leftSide, _rightSide, escapeChar);
+        new(
+            _leftSide,
+            PositionBoundOperand.ThrowIfQuantifiedPattern(
+                _rightSide, $"{Keywords.Not} {Keywords.Like}"),
+            escapeChar);
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)

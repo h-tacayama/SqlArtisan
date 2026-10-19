@@ -98,16 +98,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   which already rejected a unit outside their set at the call. (#661)
 - **Breaking:** `Any` / `All` / `Some` and `Interval(n, unit)` return types that
   are no longer `SqlExpression`s, since each completes only one operand slot (a
-  predicate's right side, a date's `+` / `-`) and is no value on its own. A quantified operand is taken only on the right of a comparison,
-  of `Like` / `NotLike`, of `ArrayContains` / `ArrayContainedBy` /
-  `ArrayOverlaps`, or as `JsonbContains`' value, `JsonbExists`' key or
-  `TsMatch`'s query, and `Interval(...)` only beside a date in `+` / `-` or by
-  `DateAdd` / `DateSub`; anywhere else the call throws, naming the slot.
-  `SqlExpression e = All(x)`, `All(x) + 1` and a string beside one
-  (`"%" + Any(...)`) no longer compile, and
-  `Count(All(x))`, which ran on PostgreSQL 16 with `ALL` read as `COUNT`'s own
-  quantifier, throws: write `Count(x)`. `Interval(...) + date` and `"date" + Interval(...)`
-  each gain an operator of their own. (#666)
+  predicate's right side, a date's `+` / `-`) and is no value on its own. A
+  quantified operand is taken only on the right of a comparison, of `Like` /
+  `NotLike` without `.Escape(...)`, of `ArrayContains` / `ArrayContainedBy` /
+  `ArrayOverlaps`, or as `JsonbContains`' value, `JsonbExists`' key or `TsMatch`'s
+  query, and `Interval(...)` only beside a date in `+` / `-` or by `DateAdd` /
+  `DateSub`; anywhere else the call throws, naming the slot. `SqlExpression e =
+  All(x)`, `All(x) + 1` and a string beside one (`"%" + Any(...)`) no longer
+  compile, and `Count(All(x))`, which ran on PostgreSQL 16 with `ALL` read as
+  `COUNT`'s own quantifier, throws: write `Count(x)`. `Interval(...) + date` and
+  `"date" + Interval(...)` each gain an operator of their own. (#666)
 - **Breaking:** `TopClause.Percent()` and `WithTies()` return a new
   `TopClause` and leave the one they are called on unchanged. They used to set
   the flag on the receiver, so a `Top(n)` held in a variable and reused added

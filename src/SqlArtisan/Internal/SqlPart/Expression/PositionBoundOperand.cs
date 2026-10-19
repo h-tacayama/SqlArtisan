@@ -7,5 +7,13 @@ internal sealed class PositionBoundOperand(SqlPart operand) : SqlExpression
 {
     internal SqlPart Operand { get; } = operand;
 
+    // LIKE takes an ANY / ALL / SOME pattern and ESCAPE a plain one, never both (#666).
+    internal static SqlExpression ThrowIfQuantifiedPattern(SqlExpression pattern, string like) =>
+        pattern is PositionBoundOperand
+            ? throw new ArgumentException(
+                $"{like} ANY, ALL or SOME takes no ESCAPE; write one {like} ... ESCAPE per "
+                    + "pattern.")
+            : pattern;
+
     internal override void Format(SqlBuildingBuffer buffer) => buffer.Append(Operand);
 }

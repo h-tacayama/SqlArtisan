@@ -14,7 +14,10 @@ public sealed class LikeCondition : SqlCondition
     // Inlined as a string literal: ESCAPE takes a constant char fixed at the call
     // site (ADR 0004). NotLikeCondition.Escape is the same construct.
     public LikeEscapeCondition Escape(char escapeChar) =>
-        new(_leftSide, _rightSide, escapeChar);
+        new(
+            _leftSide,
+            PositionBoundOperand.ThrowIfQuantifiedPattern(_rightSide, Keywords.Like),
+            escapeChar);
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)

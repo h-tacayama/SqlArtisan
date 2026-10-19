@@ -143,6 +143,29 @@ public class QuantifiedOperandTests
     }
 
     [Fact]
+    public void Any_LikeEscape_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => _t.Name.Like(Any(BindArray(["a!%"]))).Escape('!'));
+
+        Assert.Equal(
+            "LIKE ANY, ALL or SOME takes no ESCAPE; write one LIKE ... ESCAPE per pattern.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void All_NotLikeEscape_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => _t.Name.NotLike(All(Select(_t.Name).From(_t))).Escape('!'));
+
+        Assert.Equal(
+            "NOT LIKE ANY, ALL or SOME takes no ESCAPE; write one NOT LIKE ... ESCAPE per "
+                + "pattern.",
+            ex.Message);
+    }
+
+    [Fact]
     public void All_NotEqual_CorrectSql()
     {
         SqlStatement sql =

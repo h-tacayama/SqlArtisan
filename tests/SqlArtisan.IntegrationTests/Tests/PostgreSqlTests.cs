@@ -1488,6 +1488,9 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
 
         Assert.True(connection.ExecuteScalar<bool>("SELECT 1 = ANY (ARRAY[1])"));
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar("SELECT ANY (ARRAY[1])"));
+        Assert.True(connection.ExecuteScalar<bool>("SELECT 'a' LIKE ANY (ARRAY['a'])"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT 'a' LIKE ANY (ARRAY['a']) ESCAPE '!'"));
         Assert.Equal(
             connection.ExecuteScalar<long>("SELECT COUNT(ARRAY[1, 2])"),
             connection.ExecuteScalar<long>("SELECT COUNT(ALL (ARRAY[1, 2]))"));

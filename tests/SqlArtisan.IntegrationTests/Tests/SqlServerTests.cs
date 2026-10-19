@@ -1107,5 +1107,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Equal(1, connection.ExecuteScalar<int>(
             "SELECT CASE WHEN 1 = ANY (SELECT 1) THEN 1 END"));
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar("SELECT ANY (SELECT 1)"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT CASE WHEN 'a' LIKE ANY (SELECT 'a') ESCAPE '!' THEN 1 END"));
     }
 }

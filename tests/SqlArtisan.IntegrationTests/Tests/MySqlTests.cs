@@ -969,5 +969,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         Assert.Equal(1, connection.ExecuteScalar<int>("SELECT 1 = ANY (SELECT 1)"));
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar("SELECT ANY (SELECT 1)"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT 'a' LIKE ANY (SELECT 'a') ESCAPE '!'"));
     }
 }

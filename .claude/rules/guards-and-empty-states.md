@@ -50,7 +50,9 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   `QuantifiedOperand_OutsideAComparison_IsRejectedByTheEngine`, and a bare
   `INTERVAL` on MySQL 8.0,
   `MySqlTests.ContextRule_IntervalOutsideArithmetic_Rejected`); the three types are
-  no `SqlExpression`, and only the slot each completes wraps one. On PostgreSQL 16.15
+  no `SqlExpression`, and only the slot each completes wraps one. A `LIKE` with
+  `ESCAPE` is no such slot (PostgreSQL 16.15: `LIKE ANY (...) ESCAPE` is a syntax
+  error; the same twins), so `.Escape(...)` rejects a quantified pattern. On PostgreSQL 16.15
   `COUNT(ALL (x))`, `SELECT ALL (...)` and `GROUP BY ALL (...)` run with `ALL` read
   as the set quantifier, another construct (the `Decode` line above), so they throw
   too (#666); any of `InnerJoin`/`LeftJoin`/

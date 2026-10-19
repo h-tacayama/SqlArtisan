@@ -1046,5 +1046,7 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         using IDbConnection connection = _fixture.OpenConnection();
 
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar("SELECT ANY (SELECT 1)"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT 'a' LIKE ANY (SELECT 'a') ESCAPE '!'"));
     }
 }
