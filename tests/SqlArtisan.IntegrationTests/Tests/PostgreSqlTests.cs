@@ -425,6 +425,21 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         transaction.Rollback();
     }
 
+    // ADR 0012 (#661): a negative precision is a syntax error, while one above 9 runs
+    // with a warning, clamped to 6, so only the negative one is guarded.
+    [Fact]
+    public void CurrentTimestamp_Precision_RejectsOnlyANegativeOne()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT CURRENT_TIMESTAMP(10), CURRENT_TIME(10)");
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT CURRENT_TIMESTAMP(-1)"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT CURRENT_TIME(-1)"));
+    }
+
     [Fact]
     public void JoinedUpdateFrom_Executes()
     {

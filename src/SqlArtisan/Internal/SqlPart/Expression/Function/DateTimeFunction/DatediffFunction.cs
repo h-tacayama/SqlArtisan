@@ -2,7 +2,7 @@ namespace SqlArtisan.Internal;
 
 public sealed class DatediffFunction : SqlExpression
 {
-    private readonly DateTimePart _datepart;
+    private readonly string _datepart;
     private readonly SqlExpression _startDate;
     private readonly SqlExpression _endDate;
 
@@ -11,7 +11,7 @@ public sealed class DatediffFunction : SqlExpression
         SqlExpression startDate,
         SqlExpression endDate)
     {
-        _datepart = datepart;
+        _datepart = DatepartKeywords.Resolve(datepart, Keywords.Datediff, nameof(datepart));
         _startDate = startDate;
         _endDate = endDate;
     }
@@ -19,7 +19,7 @@ public sealed class DatediffFunction : SqlExpression
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Datediff)
         .OpenParenthesis()
-        .Append(DatepartKeywords.Of(_datepart))
+        .Append(_datepart)
         .PrependComma(_startDate)
         .PrependComma(_endDate)
         .CloseParenthesis();

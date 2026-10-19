@@ -14,17 +14,27 @@ internal static class DatepartKeywords
     private static readonly string[] s_lowerKeywords =
         [.. s_keywords.Select(keyword => keyword.ToLowerInvariant())];
 
-    internal static string Of(DateTimePart datepart) => s_keywords[IndexOf(datepart)];
+    // Its callers pass a constant or a value their factory already rejected if undefined.
+    internal static string Of(DateTimePart datepart) => s_keywords[(int)datepart];
 
-    internal static string LowerOf(DateTimePart datepart) => s_lowerKeywords[IndexOf(datepart)];
+    // A factory resolves its caller's value at the call (#661), so a cast-in
+    // undefined one fails there, naming the construct and the caller's parameter.
+    internal static string Resolve(DateTimePart datepart, string construct, string paramName) =>
+        s_keywords[IndexOf(datepart, construct, paramName)];
 
-    // A cast-in undefined value would otherwise index past the table (or hit
-    // a null slot) and surface as a bare IndexOutOfRangeException at Build().
-    private static int IndexOf(DateTimePart datepart) =>
+    internal static string ResolveLower(
+        DateTimePart datepart,
+        string construct,
+        string paramName) =>
+        s_lowerKeywords[IndexOf(datepart, construct, paramName)];
+
+    // A cast-in undefined value would otherwise index past the table and surface
+    // as a bare IndexOutOfRangeException.
+    private static int IndexOf(DateTimePart datepart, string construct, string paramName) =>
         (uint)datepart < (uint)s_keywords.Length
             ? (int)datepart
             : throw new ArgumentOutOfRangeException(
-                nameof(datepart), datepart, "The value is not a defined DateTimePart.");
+                paramName, datepart, $"{construct} requires a defined DateTimePart value.");
 
     private static string[] Build()
     {

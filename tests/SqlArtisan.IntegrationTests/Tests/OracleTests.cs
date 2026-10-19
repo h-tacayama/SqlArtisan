@@ -370,6 +370,17 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             "SELECT PERCENTILE_CONT(1.5) WITHIN GROUP (ORDER BY age) FROM users"));
     }
 
+    [Fact] // ADR 0012 (#661): anchors the non-negative CURRENT_TIMESTAMP precision guard.
+    public void CurrentTimestamp_NegativePrecision_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT CURRENT_TIMESTAMP(3) FROM DUAL");
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT CURRENT_TIMESTAMP(-1) FROM DUAL"));
+    }
+
     [Fact] // ADR 0012 (#402): anchors WindowFrameGuard.
     public void WindowFrame_ValueDomainViolations_Rejected()
     {

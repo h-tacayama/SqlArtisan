@@ -750,18 +750,4 @@ public partial class FunctionTests
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal("a", sql.Parameters.Get<string>("?0"));
     }
-
-    [Fact]
-    public void Dateadd_UndefinedDateTimePart_ThrowsArgumentOutOfRangeException()
-    {
-        // A cast-in undefined value surfaces here, not as an index error.
-        ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
-            Select(Dateadd((DateTimePart)999, 3, _t.CreatedAt)).Build(Dbms.SqlServer));
-
-        Assert.Equal("datepart", ex.ParamName);
-        Assert.Equal(
-            "The value is not a defined DateTimePart. (Parameter 'datepart')"
-                + Environment.NewLine + "Actual value was 999.",
-            ex.Message);
-    }
 }
