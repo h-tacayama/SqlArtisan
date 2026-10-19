@@ -1287,4 +1287,16 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         connection.Execute(sql);
     }
+
+    // #666: ANY is half of a comparison, valid nowhere on its own (Oracle XE 21.3.0).
+    [Fact]
+    public void QuantifiedOperand_OutsideAComparison_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(1, connection.ExecuteScalar<int>(
+            "SELECT CASE WHEN 1 = ANY (SELECT 1 FROM dual) THEN 1 END FROM dual"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT ANY (SELECT 1 FROM dual) FROM dual"));
+    }
 }

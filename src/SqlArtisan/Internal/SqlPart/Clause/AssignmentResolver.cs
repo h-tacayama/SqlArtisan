@@ -39,6 +39,14 @@ internal static class AssignmentResolver
                         $"The left side of each {clause} assignment must be a column.");
                 }
 
+                // `==` takes ANY / ALL / SOME as a comparison; no dialect assigns one (#666).
+                if (assignment.RightSide is PositionBoundOperand)
+                {
+                    throw new ArgumentException(
+                        $"A {clause} assignment cannot take ANY, ALL or SOME; "
+                            + "assign a value or a scalar subquery.");
+                }
+
                 resolved[i] = assignment;
             }
         }

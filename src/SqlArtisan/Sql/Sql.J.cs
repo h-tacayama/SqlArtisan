@@ -112,7 +112,7 @@ public static partial class Sql
     public static JsonbContainsCondition JsonbContains(object jsonExpr, object jsonValue) =>
         new(
             ResolveCompared(jsonExpr, nameof(jsonExpr), Operators.JsonbContains),
-            ResolveCompared(jsonValue, nameof(jsonValue), Operators.JsonbContains));
+            ResolveQuantifiable(jsonValue, nameof(jsonValue), Operators.JsonbContains));
 
     /// <summary>
     /// The JSONB key-existence predicate <c>jsonExpr ? key</c>: whether
@@ -125,7 +125,7 @@ public static partial class Sql
     public static JsonbExistsCondition JsonbExists(object jsonExpr, object key) =>
         new(
             ResolveCompared(jsonExpr, nameof(jsonExpr), Operators.JsonbExists),
-            ResolveCompared(key, nameof(key), Operators.JsonbExists));
+            ResolveQuantifiable(key, nameof(key), Operators.JsonbExists));
 
     /// <summary>
     /// The JSONB all-keys-existence predicate <c>jsonExpr ?&amp; ARRAY[keys]</c>:

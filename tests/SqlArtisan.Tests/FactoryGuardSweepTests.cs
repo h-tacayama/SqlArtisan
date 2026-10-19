@@ -200,6 +200,9 @@ public class FactoryGuardSweepTests
         "SimpleCaseWhenExpression", "IInsertBuilderColumnsOutput", "IInsertBuilderTable",
         "IInsertIgnoreBuilderColumns", "IInsertIgnoreBuilderTable", "IMergeBuilderTarget",
         "IUpdateBuilderUpdate",
+        // Operands valid in one slot alone, which TryBuild has no SqlExpression to embed
+        // in (#666): ANY / ALL / SOME and MySQL's INTERVAL.
+        "IntervalExpression", "QuantifiedExpression", "QuantifiedSubquery",
         // Complete argument/clause objects TryBuild does not yet embed — a real
         // coverage gap, not a rejected category; extend TryBuild to shrink it.
         "DbSequence", "DistinctOnKeyword", "FrameBound", "IntervalField", "OrderByClause",

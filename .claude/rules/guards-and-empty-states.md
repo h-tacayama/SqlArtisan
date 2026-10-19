@@ -43,7 +43,15 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
 - *Incomplete*: window/analytic function without `.Over(...)` (#150); ordered-set
   aggregate without `.WithinGroup(...)` (#190) — `Listagg`'s pending type rests on
   a same-rows ground instead, since Oracle XE 21.3.0 runs the bare call (ADR 0007,
-  #664); any of `InnerJoin`/`LeftJoin`/
+  #664); an `ANY` / `ALL` / `SOME` operand off a comparison's right side, and
+  MySQL's `INTERVAL n unit` off a date's `+` / `-` and `DATE_ADD` / `DATE_SUB` —
+  each half of a construct, rejected alone on every lane
+  (`QuantifiedOperand_OutsideAComparison_IsRejectedByTheEngine`,
+  `MySqlTests.ContextRule_IntervalOutsideArithmetic_Rejected`); the three types are
+  no `SqlExpression`, and only the slot each completes wraps one. `COUNT(ALL (x))`,
+  `SELECT ALL (...)` and PostgreSQL's `GROUP BY ALL (...)` run only with `ALL` read
+  as the set quantifier, another construct (the `Decode` line above), so they throw
+  too (#666); any of `InnerJoin`/`LeftJoin`/
   `RightJoin`/`FullJoin`/`JoinLateral` with no `.On(...)`/`.Using(...)` —
   accepted on SQLite (all five) or MySQL (`InnerJoin`/`JoinLateral` only) as an
   unlabeled `CROSS JOIN` spelling, not a construct with independent meaning
@@ -728,7 +736,9 @@ position (its `I<Statement>Builder` name fits; the branch end a MERGE action
 returns to, say) is that stage; neither counts. A node type counts like a
 stage.
 
-- **Four or fewer copies: compile time.** `WithRecursive` (1, #521), the
+- **Four or fewer copies: compile time.** The quantified operands and MySQL's
+  `INTERVAL` (0: their three node types, re-based in place, #666),
+  `WithRecursive` (1, #521), the
   `WhenNotMatchedBySource` branch (1), the direct-join `UPDATE`'s `SET`,
   which leaves out `From` (1), `StringAgg`'s inline `ORDER BY` (1, #582),
   DISTINCT aggregate windows (2: the node the three DISTINCT factories share

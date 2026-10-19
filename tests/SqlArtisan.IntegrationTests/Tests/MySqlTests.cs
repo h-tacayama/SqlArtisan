@@ -298,15 +298,15 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             Select(Grouping(u.DepartmentId)).From(u).GroupBy(u.DepartmentId)));
     }
 
-    [Fact] // #436: SQLA0102's live proof for the Interval context rule — the dialect
-           // sweep proves the positioned form; only the arithmetic wrapper differs.
+    [Fact] // #436, #666: the live proof behind SQLA0102's Interval rule and the type that
+           // keeps INTERVAL out of a value position — only the arithmetic wrapper differs.
     public void ContextRule_IntervalOutsideArithmetic_Rejected()
     {
-        UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
 
-        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
-            Select(Interval(30, DateTimePart.Day)).From(u)));
+        connection.Query<DateTime>("SELECT created_at + INTERVAL 30 DAY FROM users");
+        Assert.ThrowsAny<DbException>(
+            () => connection.Query<object>("SELECT INTERVAL 30 DAY FROM users"));
     }
 
     // #362: SQLA0205's live proof — MySQL compares a string to a number as floating
@@ -947,5 +947,15 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         using IDbConnection connection = _fixture.OpenConnection();
 
         Assert.ThrowsAny<DbException>(() => connection.Execute(sql));
+    }
+
+    // #666: ANY is half of a comparison, valid nowhere on its own (MySQL 8.0).
+    [Fact]
+    public void QuantifiedOperand_OutsideAComparison_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(1, connection.ExecuteScalar<int>("SELECT 1 = ANY (SELECT 1)"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar("SELECT ANY (SELECT 1)"));
     }
 }
