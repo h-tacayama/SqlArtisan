@@ -57,6 +57,39 @@ because every dialect's grammar rejects a marker (#557):
   `regconfig` constant; a string sent as a `text` parameter has no implicit
   cast to `regconfig`.
 
+**What bounds the planning reason (#661).** A plan difference alone moves a
+position onto the second row when the position is typed `string` from its
+introduction, as the JSON path was. Moving a position already typed `object`
+breaks every caller passing an `object`-typed argument there, even with a
+`SqlExpression` overload kept for a column or `Bind(...)`, so it takes more
+than a difference measured on one engine: the `->` / `->>` key made that move
+because MySQL's grammar takes only a literal there too (#557). The format
+arguments of `Strftime`, `DateFormat`, `ToChar`, `ToDate`, `ToNumber`,
+`ToTimestamp`, `Format` and `Trunc` (Oracle's date-format unit), and the
+modifiers of `Date`, `Datetime`, `Julianday` and `Strftime`, stay on the first
+row on that weighing:
+
+- The matrix sweep runs the format arguments other than `Trunc`'s, and the
+  `Date` and `Datetime` modifiers, bound on their lanes, and no lane rejects
+  the marker. The MySQL lane fills a marker in on the client, so MySQL 8.0's
+  acceptance of `DATE_FORMAT(d, ?)` is shown by a server-side prepare instead
+  (`MySqlTests.DateFormat_BoundFormat_RunsServerPrepared`), the check that
+  rejects the bound `->>` key. `Trunc`'s format, which the matrix leaves out,
+  and the `Julianday` and `Strftime` modifiers are run bound on no lane.
+- SQLite 3.50.4, the lane's engine, plans `SEARCH … USING … INDEX` over an
+  index on `strftime('%Y', d)` or `date(d, 'start of month')` only with the
+  literal, and `SCAN` with the bound format or modifier
+  (`SqliteTests.DateTimeArgument_ExpressionIndex_MatchesOnlyALiteral`).
+- PostgreSQL 16.15 holds no index over `to_char`, `to_date`, `to_number` or
+  `to_timestamp(text, text)`: each is `STABLE`, and `CREATE INDEX` refuses it
+  (`PostgreSqlTests.ToCharFamily_ExpressionIndex_IsRejectedByTheEngine`), so
+  binding costs it nothing.
+- MySQL's, Oracle's and SQL Server's index matching over these functions is
+  not measured.
+
+The gain is one engine's, so the breaking change is not taken. A measurement
+on another engine, or a caller whose query needs the index, reopens it.
+
 ## Decision
 
 **Only values and forced literals are protected. Identifier positions
@@ -100,8 +133,9 @@ alongside the bind-parameter types.
   removing their escaping would emit a broken PostgreSQL string literal.
 - **New API surface is classified before it is written.** A new function that
   takes a `string` decides which of the three rows it is on, and the answer
-  follows from the grammar of the position — not from whether the string
-  happens to name something.
+  follows from the grammar of the position, or from a measured plan difference
+  within the bound above — not from whether the string happens to name
+  something.
 - **The verbatim contract is now defended by tests**, which it was not: no test
   anywhere asserted identifier behavior with a quote character, so a future
   change could have silently started escaping one. `Cast_TypeWithQuote_…`,

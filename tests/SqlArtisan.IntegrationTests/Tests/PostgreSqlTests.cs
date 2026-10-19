@@ -438,6 +438,28 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         transaction.Rollback();
     }
 
+    // ADR 0016 (#661): the format functions are STABLE, so no expression index can hold
+    // one and a bound format costs PostgreSQL no index match.
+    [Theory]
+    [InlineData("to_char(created_at, 'YYYY')")]
+    [InlineData("to_date(name, 'YYYY-MM-DD')")]
+    [InlineData("to_number(name, '9999')")]
+    [InlineData("to_timestamp(name, 'YYYY')")]
+    public void ToCharFamily_ExpressionIndex_IsRejectedByTheEngine(string indexed)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "CREATE INDEX ix_users_day ON users (date_trunc('day', created_at))",
+            null,
+            transaction);
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            $"CREATE INDEX ix_users_fmt ON users ({indexed})", null, transaction));
+        transaction.Rollback();
+    }
+
     // ADR 0012 (#661): a negative precision is a syntax error, while one above 9 runs
     // with a warning, clamped to 6, so only the negative one is guarded.
     [Fact]
