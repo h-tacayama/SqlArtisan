@@ -209,8 +209,8 @@ public class DialectSupportResolverTests
         Assert.Equal(expectedRequired, verdict.RequiredVersion);
     }
 
-    // No shipped arity row differs from its member row, so the exact-key lookup is
-    // pinned on a synthetic table: a member-first lookup would read 2017 for arity 2.
+    // No shipped dialect holds two different floors on a member and its arity key, so
+    // the exact-key lookup is pinned on a synthetic table: a member-first read gives 2017.
     [Theory]
     [InlineData(2, "2019", false, "2022")]
     [InlineData(2, "2022", true, null)]
@@ -225,7 +225,10 @@ public class DialectSupportResolverTests
             [new MatrixKey("Probe", 2)] = new VersionBounds(sqlServer: DialectMatrix.V("2022")),
         };
         DialectSupportResolver.MatrixMatch match = new(
-            DbmsSupport.All, arity is not null, "probe", new MatrixKey("Probe", arity));
+            DbmsSupport.All,
+            arity is not null,
+            "probe",
+            new MatrixKey("Probe", arity));
 
         DialectSupportResolver.MatrixVerdict verdict = DialectSupportResolver.Evaluate(
             match,
