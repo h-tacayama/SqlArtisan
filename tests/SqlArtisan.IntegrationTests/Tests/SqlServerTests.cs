@@ -1028,64 +1028,37 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             }
         }
 
-        Q("collation", "SELECT CAST(DATABASEPROPERTYEX(DB_NAME(), 'Collation') AS nvarchar(200))");
-        Q("version", "SELECT CAST(SERVERPROPERTY('ProductVersion') AS nvarchar(200))");
-        Q("compat", "SELECT compatibility_level FROM sys.databases WHERE name = DB_NAME()");
-        Q("jv plain quoted", "SELECT JSON_VALUE(N'{\"名前\":\"x\"}', '$.\"名前\"')");
-        Q("jv N quoted", "SELECT JSON_VALUE(N'{\"名前\":\"x\"}', N'$.\"名前\"')");
-        Q("jv plain bare", "SELECT JSON_VALUE(N'{\"名前\":\"x\"}', '$.名前')");
-        Q("jv N bare", "SELECT JSON_VALUE(N'{\"名前\":\"x\"}', N'$.名前')");
-        Q("jv plain strict", "SELECT JSON_VALUE(N'{\"名前\":\"x\"}', 'strict $.\"名前\"')");
-        Q("jq plain", "SELECT JSON_QUERY(N'{\"名前\":{\"a\":1}}', '$.\"名前\"')");
-        Q("jq N", "SELECT JSON_QUERY(N'{\"名前\":{\"a\":1}}', N'$.\"名前\"')");
-        Q("jv plain latin1", "SELECT JSON_VALUE(N'{\"café\":\"x\"}', '$.\"café\"')");
-        Q("like esc plain", "SELECT CASE WHEN N'50%' LIKE N'50＼%' ESCAPE '＼' THEN 1 ELSE 0 END");
-        Q("like esc N", "SELECT CASE WHEN N'50%' LIKE N'50＼%' ESCAPE N'＼' THEN 1 ELSE 0 END");
-        Q("like esc N ascii", "SELECT CASE WHEN N'50%' LIKE N'50!%' ESCAPE N'!' THEN 1 ELSE 0 END");
-        Q("strict missing", "SELECT JSON_VALUE(N'{\"a\":1}', 'strict $.b')");
-
         c.Execute(
-            "CREATE TABLE #j663 (id INT IDENTITY PRIMARY KEY, doc NVARCHAR(400), "
-                + "v AS JSON_VALUE(doc, '$.a'), w AS JSON_VALUE(doc, N'$.b'));");
+            "IF OBJECT_ID('dbo.p663') IS NOT NULL DROP TABLE dbo.p663; "
+                + "CREATE TABLE dbo.p663 (v VARCHAR(20), n NVARCHAR(20)); "
+                + "INSERT INTO dbo.p663 VALUES ('50%', N'50%'), ('509', N'509');");
+        Q("latin db", "SELECT CAST(DATABASEPROPERTYEX(DB_NAME(), 'Collation') AS nvarchar(200))");
+        Q("esc N ascii over varchar", "SELECT COUNT(*) FROM dbo.p663 WHERE v LIKE '50!%' ESCAPE N'!'");
+        Q("esc plain ascii over varchar", "SELECT COUNT(*) FROM dbo.p663 WHERE v LIKE '50!%' ESCAPE '!'");
+        Q("esc N fullwidth over varchar", "SELECT COUNT(*) FROM dbo.p663 WHERE v LIKE '50＼%' ESCAPE N'＼'");
+        Q("esc N fullwidth over nvarchar", "SELECT COUNT(*) FROM dbo.p663 WHERE n LIKE N'50＼%' ESCAPE N'＼'");
+        Q("esc plain fullwidth over nvarchar", "SELECT COUNT(*) FROM dbo.p663 WHERE n LIKE N'50＼%' ESCAPE '＼'");
+        Q("agg plain sep over nvarchar", "SELECT STRING_AGG(n, '、') FROM dbo.p663");
+        Q("agg N sep over nvarchar", "SELECT STRING_AGG(n, N'、') FROM dbo.p663");
+        Q("agg plain sep over varchar", "SELECT STRING_AGG(v, '、') FROM dbo.p663");
+        Q("agg N sep over varchar", "SELECT STRING_AGG(v, N'、') FROM dbo.p663");
+        Q("agg N ascii sep over varchar", "SELECT STRING_AGG(v, N',') FROM dbo.p663");
+        c.Execute("DROP TABLE dbo.p663;");
+
+        c.Execute("IF DB_ID('probe_ja') IS NULL CREATE DATABASE probe_ja COLLATE Japanese_CI_AS;");
+        c.ChangeDatabase("probe_ja");
         c.Execute(
-            "INSERT INTO #j663 (doc) SELECT TOP (5000) CONCAT(N'{\"a\":\"k', n, N'\",\"b\":\"m', n, N'\"}') "
-                + "FROM (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n "
-                + "FROM sys.all_objects a CROSS JOIN sys.all_objects b) x;");
-        try
-        {
-            c.Execute("CREATE INDEX ix_j663_v ON #j663 (v); CREATE INDEX ix_j663_w ON #j663 (w);");
-            o.Append("index created\n");
-        }
-        catch (Exception e)
-        {
-            o.Append("index ERR ").Append(e.Message).Append('\n');
-        }
-
-        void Plan(string label, string sql)
-        {
-            try
-            {
-                c.Execute("SET SHOWPLAN_XML ON");
-                string plan = c.QuerySingle<string>(sql);
-                c.Execute("SET SHOWPLAN_XML OFF");
-                o.Append(label).Append(" => ix_v=").Append(plan.Contains("ix_j663_v"))
-                    .Append(" ix_w=").Append(plan.Contains("ix_j663_w"))
-                    .Append(" seek=").Append(plan.Contains("Index Seek"))
-                    .Append(" scan=").Append(plan.Contains("Clustered Index Scan")).Append('\n');
-            }
-            catch (Exception e)
-            {
-                try { c.Execute("SET SHOWPLAN_XML OFF"); } catch (Exception) { }
-                o.Append(label).Append(" => ERR ").Append(e.Message).Append('\n');
-            }
-        }
-
-        Plan("idx v, plain query", "SELECT id FROM #j663 WHERE JSON_VALUE(doc, '$.a') = N'k42'");
-        Plan("idx v, N query", "SELECT id FROM #j663 WHERE JSON_VALUE(doc, N'$.a') = N'k42'");
-        Plan("idx w(N), plain query", "SELECT id FROM #j663 WHERE JSON_VALUE(doc, '$.b') = N'm42'");
-        Plan("idx w(N), N query", "SELECT id FROM #j663 WHERE JSON_VALUE(doc, N'$.b') = N'm42'");
-        Q("computed def v", "SELECT definition FROM tempdb.sys.computed_columns WHERE object_id = OBJECT_ID('tempdb..#j663') AND name = 'v'");
-        Q("computed def w", "SELECT definition FROM tempdb.sys.computed_columns WHERE object_id = OBJECT_ID('tempdb..#j663') AND name = 'w'");
+            "IF OBJECT_ID('dbo.p663') IS NOT NULL DROP TABLE dbo.p663; "
+                + "CREATE TABLE dbo.p663 (v VARCHAR(20), n NVARCHAR(20)); "
+                + "INSERT INTO dbo.p663 VALUES ('a', N'a'), ('b', N'b');");
+        Q("ja db", "SELECT CAST(DATABASEPROPERTYEX(DB_NAME(), 'Collation') AS nvarchar(200))");
+        Q("ja jv plain", "SELECT JSON_VALUE(N'{\"名前\":\"x\"}', '$.\"名前\"')");
+        Q("ja jv plain hangul", "SELECT JSON_VALUE(N'{\"이름\":\"x\"}', '$.\"이름\"')");
+        Q("ja jv N hangul", "SELECT JSON_VALUE(N'{\"이름\":\"x\"}', N'$.\"이름\"')");
+        Q("ja agg plain sep over varchar", "SELECT STRING_AGG(v, '、') WITHIN GROUP (ORDER BY v) FROM dbo.p663");
+        Q("ja agg N sep over varchar", "SELECT STRING_AGG(v, N'、') WITHIN GROUP (ORDER BY v) FROM dbo.p663");
+        Q("ja agg plain sep over nvarchar", "SELECT STRING_AGG(n, '、') WITHIN GROUP (ORDER BY n) FROM dbo.p663");
+        Q("ja agg N sep over nvarchar", "SELECT STRING_AGG(n, N'、') WITHIN GROUP (ORDER BY n) FROM dbo.p663");
 
         Assert.Fail("PROBE663\n" + o);
     }
