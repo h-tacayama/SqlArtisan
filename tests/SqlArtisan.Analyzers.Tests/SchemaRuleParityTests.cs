@@ -318,8 +318,8 @@ public class SchemaRuleParityTests
     }
 
     // Every object-argument Sql factory yielding a non-function, non-operator
-    // expression is classified here — carrier, wrapping, or never-a-column. One
-    // taking a typed SqlExpression (All/Any/Some) is outside this population.
+    // expression is classified here — carrier, wrapping, or never-a-column. All/Any/
+    // Some and Interval yield no expression (#666), so they are outside this population.
     [Fact]
     public void EveryCoreObjectArgumentExpressionFactory_IsClassified()
     {
@@ -335,9 +335,9 @@ public class SchemaRuleParityTests
             .OrderBy(name => name, System.StringComparer.Ordinal)];
 
         // A simple CASE operand and CAST transform the column exactly as a function
-        // does; Bind and Interval take a value, never a column reference.
+        // does; Bind takes a value, never a column reference.
         string[] wrappings = ["Case", "Cast"];
-        string[] nonColumn = ["Bind", "Interval"];
+        string[] nonColumn = ["Bind"];
 
         Assert.Equal(
             UnusableIndexPredicateRule.ExpressionCarriers

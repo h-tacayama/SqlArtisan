@@ -186,6 +186,10 @@ public class FactoryGuardSweepTests
         // both WITH states, while this check keys on the declared return type.
         typeof(IWithBuilderWithRecursive),
         typeof(OfClause),
+        // Each embedded in the one slot it completes (#666).
+        typeof(QuantifiedExpression),
+        typeof(QuantifiedSubquery),
+        typeof(IntervalExpression),
     ];
 
     private static readonly string[] UnembeddedReturnTypes =
@@ -643,6 +647,15 @@ public class FactoryGuardSweepTests
                         .From(new DbTable("e", "x"))
                         .ForUpdate(ofClause)
                         .Build(Dbms.Oracle).Text,
+                QuantifiedExpression or QuantifiedSubquery =>
+                    Select(new DbTable("e", "x").Column("c"))
+                        .From(new DbTable("e", "x"))
+                        .Where(new DbTable("e", "x").Column("c") == node)
+                        .Build(Dbms.PostgreSql).Text,
+                IntervalExpression interval =>
+                    Select(new DbTable("e", "x").Column("c") + interval)
+                        .From(new DbTable("e", "x"))
+                        .Build(Dbms.MySql).Text,
                 // Fall-throughs are ledgered in UnembeddedReturnTypes.
                 _ => null,
             };

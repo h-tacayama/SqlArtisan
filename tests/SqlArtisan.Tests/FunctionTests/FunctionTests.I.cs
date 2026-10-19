@@ -120,19 +120,75 @@ public partial class FunctionTests
         Assert.Equal(2, sql.Parameters.Get<int>(":2"));
     }
 
+    // INTERVAL is MySQL's only beside a date, so a value position rejects it (#666).
     [Fact]
-    public void Interval_MySql_CorrectSql()
+    public void Interval_SelectItem_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Select(Interval(30, DateTimePart.Day)));
+
+        Assert.Equal(
+            "INTERVAL requires a date; add it to or subtract it from one, as in "
+                + "col + Interval(...), or pass it to DateAdd or DateSub.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Interval_Multiplication_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => _t.Code * Interval(30, DateTimePart.Day));
+
+        Assert.Equal(
+            "INTERVAL requires a date; add it to or subtract it from one, as in "
+                + "col + Interval(...), or pass it to DateAdd or DateSub.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Interval_MySql_IntervalFirstAddition_CorrectSql()
     {
         SqlStatement sql =
-            Select(Interval(30, DateTimePart.Day))
+            Select(Interval(30, DateTimePart.Day) + _t.CreatedAt)
             .Build(Dbms.MySql);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("INTERVAL ?0 DAY");
+        expected.Append("(INTERVAL ?0 DAY + `t`.created_at)");
 
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal(30, sql.Parameters.Get<int>("?0"));
+    }
+
+    // Without its own string-first +, the order fell to C# string concatenation (#666).
+    [Fact]
+    public void Interval_MySql_StringFirstAddition_CorrectSql()
+    {
+        SqlStatement sql =
+            Select("2024-01-01" + Interval(30, DateTimePart.Day))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("(?0 + INTERVAL ?1 DAY)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("2024-01-01", sql.Parameters.Get<string>("?0"));
+        Assert.Equal(30, sql.Parameters.Get<int>("?1"));
+    }
+
+    [Fact]
+    public void Interval_NullLeftOperand_ThrowsArgumentNullException()
+    {
+        SqlArtisan.Internal.IntervalExpression? interval = null;
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => interval! + _t.CreatedAt);
+
+        Assert.Equal(
+            "The left operand of + cannot be null; write Sql.Null for a SQL NULL literal. "
+                + "(Parameter 'this')",
+            ex.Message);
     }
 
     [Fact]

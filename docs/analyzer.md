@@ -643,6 +643,9 @@ var q = Select(Interval(30, DateTimePart.Day)).From(u);
 // warning SQLA0102: 'Interval' is not supported outside a +/- date-arithmetic expression or a DATE_ADD/DATE_SUB call on MySQL
 ```
 
+`Interval(...)` there also throws at the call; the report reaches it first, in the
+editor, and is the only check on the `IntervalLiteral(...)` spelling.
+
 **`PERCENTILE_CONT` / `PERCENTILE_DISC` outside an `OVER` clause.** SQL Server
 exposes both percentiles only as window functions, so the plain
 `WithinGroup(...)` form Oracle and PostgreSQL accept has no spelling there —

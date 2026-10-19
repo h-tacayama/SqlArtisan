@@ -1097,4 +1097,17 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<string>(
             "SELECT STRING_AGG(k, N'、') FROM dbo.s663"));
     }
+
+    // #666: ANY is half of a comparison, valid nowhere on its own (SQL Server 2022).
+    [Fact]
+    public void QuantifiedOperand_OutsideAComparison_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(1, connection.ExecuteScalar<int>(
+            "SELECT CASE WHEN 1 = ANY (SELECT 1) THEN 1 END"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar("SELECT ANY (SELECT 1)"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT CASE WHEN 'a' LIKE ANY (SELECT 'a') ESCAPE '!' THEN 1 END"));
+    }
 }

@@ -143,8 +143,8 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>SOME (subquery)</c> quantified comparison operator: equivalent to
-    /// <see cref="Any(ISubquery)"/> — the comparison must hold for at least one row.
-    /// Use with a comparison operator — e.g. <c>col = Some(subquery)</c>.
+    /// <see cref="Any(ISubquery)"/> — the comparison must hold for at least one row. Valid only
+    /// in the slots <see cref="QuantifiedExpression"/> lists, as in <c>col == Some(subquery)</c>.
     /// </summary>
     /// <param name="subquery">A <c>SELECT</c> builder returning a single column.</param>
     /// <returns>A quantified-subquery expression emitting <c>SOME (SELECT ...)</c>.</returns>
@@ -154,9 +154,9 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>SOME (array)</c> quantified comparison operator: equivalent to
-    /// <see cref="Any(SqlExpression)"/> — the comparison must hold for at least
-    /// one element of the array expression (PostgreSQL).
-    /// Use with a comparison operator — e.g. <c>col == Some(BindArray(values))</c>.
+    /// <see cref="Any(SqlExpression)"/> — the comparison must hold for at least one element of the
+    /// array expression (PostgreSQL). Valid only in the slots <see cref="QuantifiedExpression"/>
+    /// lists, as in <c>col == Some(BindArray(values))</c>.
     /// </summary>
     /// <param name="array">The array expression — a <see cref="BindArrayValue"/>,
     /// an <c>ARRAY[...]</c> constructor, or an array-typed column.</param>

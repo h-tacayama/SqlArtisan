@@ -1477,4 +1477,26 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
 
         connection.Execute(sql);
     }
+
+    // #666: ANY is half of a comparison, valid nowhere on its own (PostgreSQL 16.15);
+    // COUNT(ALL (arr)), SELECT ALL (...) and GROUP BY ALL (...) run with ALL read as the
+    // set quantifier.
+    [Fact]
+    public void QuantifiedOperand_OutsideAComparison_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.True(connection.ExecuteScalar<bool>("SELECT 1 = ANY (ARRAY[1])"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar("SELECT ANY (ARRAY[1])"));
+        Assert.True(connection.ExecuteScalar<bool>("SELECT 'a' LIKE ANY (ARRAY['a'])"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT 'a' LIKE ANY (ARRAY['a']) ESCAPE '!'"));
+        Assert.Equal(
+            connection.ExecuteScalar<long>("SELECT COUNT(ARRAY[1, 2])"),
+            connection.ExecuteScalar<long>("SELECT COUNT(ALL (ARRAY[1, 2]))"));
+        Assert.Equal([1], connection.ExecuteScalar<int[]>("SELECT ALL (ARRAY[1])"));
+        Assert.Equal(
+            connection.Query<int>("SELECT id FROM users GROUP BY id").Count(),
+            connection.Query<int>("SELECT id FROM users GROUP BY ALL (id)").Count());
+    }
 }

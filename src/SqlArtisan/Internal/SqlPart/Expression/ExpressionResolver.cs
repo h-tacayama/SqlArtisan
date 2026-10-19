@@ -214,6 +214,22 @@ internal static class ExpressionResolver
         return Resolve(item);
     }
 
+    // The right operand an ANY / ALL / SOME completes, in the slots QuantifiedExpression's
+    // remarks list; every other position leaves it to the IIncompleteExpression message.
+    internal static SqlExpression ResolveQuantifiable(
+        object item,
+        string paramName,
+        string construct) =>
+        item is QuantifiedExpression or QuantifiedSubquery
+            ? new PositionBoundOperand((SqlPart)item)
+            : ResolveCompared(item, paramName, construct);
+
+    // The right operand of + / -, the arithmetic slot MySQL's INTERVAL completes (#666).
+    internal static SqlExpression ResolveIntervalOperand(object item) =>
+        item is IntervalExpression interval
+            ? new PositionBoundOperand(interval)
+            : Resolve(item);
+
     internal static SqlExpression[] ResolveCompared(
         object[] items,
         string paramName,

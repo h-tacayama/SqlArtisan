@@ -3,9 +3,9 @@ namespace SqlArtisan.Internal;
 public sealed class DateAddFunction : SqlExpression
 {
     private readonly SqlExpression _date;
-    private readonly SqlExpression _interval;
+    private readonly SqlPart _interval;
 
-    internal DateAddFunction(SqlExpression date, SqlExpression interval)
+    internal DateAddFunction(SqlExpression date, SqlPart interval)
     {
         _date = date;
         _interval = interval;

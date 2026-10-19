@@ -1037,4 +1037,16 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
 
         connection.Execute(sql);
     }
+
+    // #666: SQLite has no quantified comparison at all (3.50.4), so the operand alone
+    // is rejected too.
+    [Fact]
+    public void QuantifiedOperand_OutsideAComparison_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar("SELECT ANY (SELECT 1)"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT 'a' LIKE ANY (SELECT 'a') ESCAPE '!'"));
+    }
 }

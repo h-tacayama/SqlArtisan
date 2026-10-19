@@ -132,7 +132,8 @@ its *leading* precision, so use `ToSecond(n)` as a sole field for that form.
 - **MySQL** — `Interval(quantity, unit)` for a bound quantity. MySQL's own
   grammar also accepts `IntervalLiteral(value, field)`'s spelling, but has no
   standalone `INTERVAL` value either way, so it only composes as a `+`/`-`
-  operand or a `DATE_ADD`/`DATE_SUB` argument, never as a bare `SELECT` item.
+  operand or a `DATE_ADD`/`DATE_SUB` argument, never as a bare `SELECT` item;
+  `Interval(...)` anywhere else throws at the call.
 - **Oracle** — `IntervalLiteral(value, field)` (`INTERVAL '30' DAY`) or
   `IntervalLiteral(value, leadingField, trailingField)` for a range
   (`INTERVAL '1-2' YEAR TO MONTH`); the field is always required. An interval
@@ -698,6 +699,8 @@ SqlStatement sql =
 The quantified comparison operators `ALL`, `ANY`, and `SOME` compare a scalar value against every row returned by a subquery — or, on PostgreSQL, against every element of an array expression (below). `SOME` is a synonym for `ANY` — `Some(subquery)` emits `SOME (...)` exactly as `Any(subquery)` emits `ANY (...)`.
 
 The subquery form is supported on MySQL, Oracle, PostgreSQL, and SQL Server — SQLite's grammar has no quantified comparisons and rejects all three.
+
+A quantified operand is valid only on the right of a comparison (`==`, `!=`, `<`, `<=`, `>`, `>=`), of `Like` / `NotLike` without `.Escape(...)`, of `ArrayContains` / `ArrayContainedBy` / `ArrayOverlaps`, or as `JsonbContains`' value, `JsonbExists`' key or `TsMatch`'s query. Anywhere else — a select item, an aggregate argument, `In`, `Between`, a `SET` assignment — the call throws, and `SqlExpression e = Any(...)` does not compile.
 
 ```csharp
 UsersTable u = new("u");

@@ -258,5 +258,5 @@ public static partial class Sql
     public static TsMatchCondition TsMatch(object vector, object query) =>
         new(
             ResolveCompared(vector, nameof(vector), Operators.TsMatch),
-            ResolveCompared(query, nameof(query), Operators.TsMatch));
+            ResolveQuantifiable(query, nameof(query), Operators.TsMatch));
 }

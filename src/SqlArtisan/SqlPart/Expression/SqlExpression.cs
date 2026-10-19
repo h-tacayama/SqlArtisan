@@ -83,7 +83,7 @@ public abstract class SqlExpression : SqlPart
     public static EqualityCondition operator ==(SqlExpression @this, object rightSide) =>
         new EqualCondition(
             OperandGuard.ThrowIfNullCompared(@this, Operators.Equal),
-            ResolveCompared(rightSide, nameof(rightSide), Operators.Equal));
+            ResolveQuantifiable(rightSide, nameof(rightSide), Operators.Equal));
 
     /// <summary>
     /// The SQL inequality comparison: <c><paramref name="this"/> &lt;&gt;
@@ -95,7 +95,7 @@ public abstract class SqlExpression : SqlPart
     public static EqualityCondition operator !=(SqlExpression @this, object rightSide) =>
         new NotEqualCondition(
             OperandGuard.ThrowIfNullCompared(@this, Operators.NotEqual),
-            ResolveCompared(rightSide, nameof(rightSide), Operators.NotEqual));
+            ResolveQuantifiable(rightSide, nameof(rightSide), Operators.NotEqual));
 
     /// <summary>
     /// The SQL less-than comparison: <c><paramref name="this"/> &lt;
@@ -107,7 +107,7 @@ public abstract class SqlExpression : SqlPart
     public static SqlCondition operator <(SqlExpression @this, object rightSide) =>
         new LessThanCondition(
             OperandGuard.ThrowIfNullCompared(@this, Operators.LessThan),
-            ResolveCompared(rightSide, nameof(rightSide), Operators.LessThan));
+            ResolveQuantifiable(rightSide, nameof(rightSide), Operators.LessThan));
 
     /// <summary>
     /// The SQL greater-than comparison: <c><paramref name="this"/> &gt;
@@ -119,7 +119,7 @@ public abstract class SqlExpression : SqlPart
     public static SqlCondition operator >(SqlExpression @this, object rightSide) =>
         new GreaterThanCondition(
             OperandGuard.ThrowIfNullCompared(@this, Operators.GreaterThan),
-            ResolveCompared(rightSide, nameof(rightSide), Operators.GreaterThan));
+            ResolveQuantifiable(rightSide, nameof(rightSide), Operators.GreaterThan));
 
     /// <summary>
     /// The SQL less-than-or-equal comparison: <c><paramref name="this"/> &lt;=
@@ -131,7 +131,7 @@ public abstract class SqlExpression : SqlPart
     public static SqlCondition operator <=(SqlExpression @this, object rightSide) =>
         new LessThanOrEqualCondition(
             OperandGuard.ThrowIfNullCompared(@this, Operators.LessThanOrEqual),
-            ResolveCompared(rightSide, nameof(rightSide), Operators.LessThanOrEqual));
+            ResolveQuantifiable(rightSide, nameof(rightSide), Operators.LessThanOrEqual));
 
     /// <summary>
     /// The SQL greater-than-or-equal comparison: <c><paramref name="this"/> &gt;=
@@ -143,7 +143,7 @@ public abstract class SqlExpression : SqlPart
     public static SqlCondition operator >=(SqlExpression @this, object rightSide) =>
         new GreaterThanOrEqualCondition(
             OperandGuard.ThrowIfNullCompared(@this, Operators.GreaterThanOrEqual),
-            ResolveCompared(rightSide, nameof(rightSide), Operators.GreaterThanOrEqual));
+            ResolveQuantifiable(rightSide, nameof(rightSide), Operators.GreaterThanOrEqual));
 
     /// <summary>
     /// The SQL addition operator: <c><paramref name="this"/> + <paramref name="rightSide"/></c>.
@@ -152,7 +152,7 @@ public abstract class SqlExpression : SqlPart
     /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
     /// <returns>The addition expression.</returns>
     public static AdditionOperator operator +(SqlExpression @this, object rightSide) =>
-        new(OperandGuard.ThrowIfNull(@this, Operators.Plus), Resolve(rightSide));
+        new(OperandGuard.ThrowIfNull(@this, Operators.Plus), ResolveIntervalOperand(rightSide));
 
     /// <summary>
     /// The SQL addition operator with a string first:
@@ -172,7 +172,7 @@ public abstract class SqlExpression : SqlPart
     /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
     /// <returns>The subtraction expression.</returns>
     public static SubtractionOperator operator -(SqlExpression @this, object rightSide) =>
-        new(OperandGuard.ThrowIfNull(@this, Operators.Minus), Resolve(rightSide));
+        new(OperandGuard.ThrowIfNull(@this, Operators.Minus), ResolveIntervalOperand(rightSide));
 
     /// <summary>
     /// The SQL multiplication operator: <c><paramref name="this"/> *
@@ -365,7 +365,7 @@ public abstract class SqlExpression : SqlPart
     /// <param name="rightSide">The pattern, with <c>%</c> / <c>_</c> wildcards.</param>
     /// <returns>The <c>LIKE</c> condition.</returns>
     public LikeCondition Like(object rightSide) =>
-        new(this, ResolveCompared(rightSide, nameof(rightSide), Keywords.Like));
+        new(this, ResolveQuantifiable(rightSide, nameof(rightSide), Keywords.Like));
 
     /// <summary>
     /// The <c>expr NOT LIKE <paramref name="rightSide"/></c> pattern-match condition.
@@ -373,5 +373,5 @@ public abstract class SqlExpression : SqlPart
     /// <param name="rightSide">The pattern, with <c>%</c> / <c>_</c> wildcards.</param>
     /// <returns>The <c>NOT LIKE</c> condition.</returns>
     public NotLikeCondition NotLike(object rightSide) =>
-        new(this, ResolveCompared(rightSide, nameof(rightSide), NotLikeConstruct));
+        new(this, ResolveQuantifiable(rightSide, nameof(rightSide), NotLikeConstruct));
 }
