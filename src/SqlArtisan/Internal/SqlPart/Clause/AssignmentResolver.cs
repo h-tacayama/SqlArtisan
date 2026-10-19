@@ -39,7 +39,8 @@ internal static class AssignmentResolver
                         $"The left side of each {clause} assignment must be a column.");
                 }
 
-                // `==` takes ANY / ALL / SOME as a comparison; no dialect assigns one (#666).
+                // `==` takes ANY / ALL / SOME as a comparison's right side; a SET value is no
+                // comparison (#666).
                 if (assignment.RightSide is PositionBoundOperand)
                 {
                     throw new ArgumentException(
