@@ -71,6 +71,72 @@ public class PseudoRowOwnerTests
         Assert.Equal(ExcludedMessage, ex.Message);
     }
 
+    // The remedy the message names: another table's value read through a subquery.
+    [Fact]
+    public void Excluded_TargetColumnInUpdateClauseSubquery_CorrectSql()
+    {
+        SqlStatement sql =
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "x")
+            .OnConflict(_t.Code)
+            .DoUpdateSet(
+                _t.Name == Select(_a.Name).From(_a).Where(_a.Code == Excluded(_t.Code)))
+            .Build();
+
+        Assert.Equal(
+            "INSERT INTO test_table AS \"t\" (code, name) VALUES (:0, :1) "
+                + "ON CONFLICT (code) DO UPDATE SET name = (SELECT \"a\".name "
+                + "FROM archive_table \"a\" WHERE \"a\".code = EXCLUDED.code)",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal("x", sql.Parameters.Get<string>(":1"));
+    }
+
+    [Fact]
+    public void Excluded_MySql_TargetColumnInUpdateClauseSubquery_CorrectSql()
+    {
+        TestTable t = new();
+
+        SqlStatement sql =
+            InsertInto(t, t.Code, t.Name)
+            .Values(1, "x")
+            .OnDuplicateKeyUpdate(
+                t.Name == Select(_a.Name).From(_a).Where(_a.Code == Excluded(t.Code)))
+            .Build(Dbms.MySql);
+
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) VALUES (?0, ?1) AS new "
+                + "ON DUPLICATE KEY UPDATE name = (SELECT `a`.name "
+                + "FROM archive_table `a` WHERE `a`.code = new.code)",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("x", sql.Parameters.Get<string>("?1"));
+    }
+
+    // A data-modifying CTE reads its own target, and the outer statement's comes back.
+    [Fact]
+    public void Excluded_AfterDataModifyingCte_CorrectSql()
+    {
+        TestCte cte = new("c");
+
+        SqlStatement sql =
+            With(cte.As(InsertInto(_a, _a.Code).Select(_t.Code).From(_t)))
+            .InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "x")
+            .OnConflict(_t.Code)
+            .DoUpdateSet(_t.Name == Excluded(_t.Name))
+            .Build();
+
+        Assert.Equal(
+            "WITH \"c\" AS (INSERT INTO archive_table AS \"a\" (code) "
+                + "SELECT \"t\".code FROM test_table \"t\") "
+                + "INSERT INTO test_table AS \"t\" (code, name) VALUES (:0, :1) "
+                + "ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal("x", sql.Parameters.Get<string>(":1"));
+    }
+
     // The table name decides, as for a SET target (#674): another handle of the target
     // table reads the same EXCLUDED row.
     [Fact]
