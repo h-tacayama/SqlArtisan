@@ -5,53 +5,46 @@ namespace SqlArtisan.Tests;
 /// <summary>
 /// The inverse of the #244 boundary rule <see cref="PublicSurfaceNamingTests"/>
 /// exercises: that one says every type a user must NAME lives in the root
-/// namespace; these five say nothing else becomes public surface by accident —
+/// namespace; these say nothing else becomes public surface by accident —
 /// from 1.0 a slipped <c>public</c> is a SemVer promise nobody meant to make.
 /// </summary>
 public class PublicSurfaceBoundaryTests
 {
     private const string RootNamespace = "SqlArtisan";
-    private const string InternalNamespace = "SqlArtisan.Internal";
 
     /// <summary>
-    /// The other two gates key on <see cref="InternalNamespace"/> exactly, so a
-    /// type one namespace deeper would escape both while still being exported —
-    /// and a folder-derived namespace is exactly what an IDE's "add class" emits
-    /// in a tree this deep. Holding the set closed is what makes them total.
+    /// The library exports one namespace (ADR 0027): every type it hands back is
+    /// covered surface, so a type in a second namespace — what an IDE's "add class"
+    /// emits from a folder this deep — would be a promise the records never made.
     /// </summary>
     [Fact]
-    public void ExportedTypes_SpanOnlyTheRootAndInternalNamespaces()
+    public void ExportedTypes_AreAllInTheRootNamespace()
     {
         List<string> unexpected = [.. typeof(Sql).Assembly.GetExportedTypes()
-            .Select(t => t.Namespace ?? "<global namespace>")
-            .Distinct()
-            .Where(ns => ns != RootNamespace && ns != InternalNamespace)
-            .OrderBy(ns => ns, StringComparer.Ordinal)];
+            .Where(t => t.Namespace != RootNamespace)
+            .Select(t => t.FullName!)
+            .OrderBy(n => n, StringComparer.Ordinal)];
 
         Assert.True(
             unexpected.Count == 0,
-            $"{unexpected.Count} exported namespaces beyond {RootNamespace} and "
-                + $"{InternalNamespace} — declare the type internal, or move it under one of "
-                + "the two. A third namespace is a surface decision, so wanting one means "
-                + "naming it here and in docs/versioning.md:\n  "
-                + string.Join("\n  ", unexpected));
+            $"{unexpected.Count} exported types outside {RootNamespace} — declare the type "
+                + "internal, or move it to the root:\n  " + string.Join("\n  ", unexpected));
     }
 
     /// <summary>
-    /// A type here is legitimately public only because some root-namespace
-    /// signature hands it back. With no constructor reachable from outside the
-    /// assembly, one that no signature returns can be named but never held —
-    /// surface a caller cannot reach at all.
+    /// A type no caller can construct is public only because some signature hands
+    /// it back; one that none returns can be named but never held — surface a
+    /// caller cannot reach at all.
     /// </summary>
     [Fact]
-    public void ExportedType_InInternalNamespace_IsHandedBackByARootNamespaceSignature()
+    public void ExportedType_NoCallerConstructs_IsHandedBackBySomeSignature()
     {
         Type[] exported = typeof(Sql).Assembly.GetExportedTypes();
-        HashSet<Type> candidates = [.. exported.Where(t => t.Namespace == InternalNamespace)];
+        HashSet<Type> candidates = [.. exported.Where(IsHandedBackOnly)];
 
         HashSet<Type> reachable = [];
         Queue<Type> pending = new(exported
-            .Where(t => t.Namespace == RootNamespace)
+            .Where(t => !candidates.Contains(t))
             .SelectMany(HandedBackTypes)
             .Where(candidates.Contains));
 
@@ -81,52 +74,45 @@ public class PublicSurfaceBoundaryTests
 
         Assert.True(
             unreachable.Count == 0,
-            $"{unreachable.Count} public types in {InternalNamespace} are handed back by no "
-                + $"public signature — make them internal:\n  " + string.Join("\n  ", unreachable));
+            $"{unreachable.Count} public types are handed back by no public signature and "
+                + "constructed by no caller — make them internal:\n  "
+                + string.Join("\n  ", unreachable));
     }
 
     /// <summary>
-    /// These types are reached through the <c>Sql.*</c> call, operator, or chain
-    /// step that produces them, so none needs a constructor another assembly can
-    /// reach. Three spellings publish one silently — a primary constructor, whose
-    /// accessibility follows its class, a class declaring no constructor at all,
-    /// and either of those on an <c>abstract</c> class, where the constructor is
-    /// <c>protected</c> rather than public and so reachable by deriving (#492).
-    /// The root namespace cannot take the same blanket — deriving is the
-    /// documented use of three bases there (<see cref="DbTableBase"/>,
-    /// <see cref="CteBase"/>, <see cref="DerivedTableBase"/>) — so
-    /// <see cref="ExportedOpenType_InRootNamespace_IsDerivableOnlyWhenAllowlisted"/>
-    /// scans it against that allowlist rather than leaving it unchecked.
+    /// Nodes and stages come from the call or step that produces them, so only a handle a
+    /// caller creates offers a constructor; a primary constructor or none at all publishes
+    /// one silently (#487). An abstract base is the derivation gate's, below.
     /// </summary>
     [Fact]
-    public void ExportedType_InInternalNamespace_HasNoConstructorReachableFromOutside()
+    public void ExportedConcreteType_IsConstructibleOnlyWhenAllowlisted()
     {
+        // By type rather than by name: renaming or unexporting one of these
+        // fails to compile here instead of silently shrinking what is permitted.
+        HashSet<Type> constructibleByDesign =
+        [
+            typeof(BindValue), typeof(Cte), typeof(DbColumn), typeof(DbColumnMetadataAttribute),
+            typeof(DbTable), typeof(DerivedTable),
+        ];
+
         List<string> constructible = [.. typeof(Sql).Assembly.GetExportedTypes()
-            .Where(t => t.Namespace == InternalNamespace)
+            .Where(t => t.IsClass && !t.IsAbstract && !constructibleByDesign.Contains(t))
             .Where(HasConstructorReachableFromOutside)
             .Select(t => t.Name)
             .OrderBy(n => n, StringComparer.Ordinal)];
 
         Assert.True(
             constructible.Count == 0,
-            $"{constructible.Count} public types in {InternalNamespace} can be constructed or "
-                + "derived from outside the assembly — make each constructor internal, or "
-                + "private protected on an abstract base:\n  "
+            $"{constructible.Count} public types can be constructed from outside the "
+                + "assembly — make each constructor internal, or, where a caller creates "
+                + "the type, name it in this test's allowlist:\n  "
                 + string.Join("\n  ", constructible));
     }
 
     /// <summary>
-    /// Every unsealed public class here that is not on the allowlist is closed to
-    /// a foreign subclass only by accident of separate mechanisms — a <c>private
-    /// protected</c> constructor, or an <c>internal abstract</c> member such a
-    /// subclass cannot implement (CS0534) — and nothing asserted that. An ADR
-    /// 0005 promotion moves a base out of <see cref="InternalNamespace"/>, as
-    /// #488 did, and the #492 gate stops scanning it with no test failing; a
-    /// promoted base that implements every abstract member and keeps a protected
-    /// constructor taking a raw token reopens the hole #492 closed, silently.
-    /// Deriving here is a surface decision, so it is made once in the allowlist.
-    /// <see cref="BindValue"/> is listed only because <see cref="BindArrayValue"/>
-    /// derives from it; deriving from it is not covered (docs/versioning.md).
+    /// An unsealed class off the allowlist is closed to a foreign subclass only by a <c>private
+    /// protected</c> constructor or an <c>internal abstract</c> member (CS0534), so deriving is
+    /// decided here once (#492); <see cref="BindValue"/> is open for its array subclass alone.
     /// </summary>
     [Fact]
     public void ExportedOpenType_InRootNamespace_IsDerivableOnlyWhenAllowlisted()
@@ -185,6 +171,16 @@ public class PublicSurfaceBoundaryTests
                 + "and record it in docs/versioning.md:\n  "
                 + string.Join("\n  ", unexpected));
     }
+
+    /// <summary>
+    /// A caller reaches a class with no constructor of its own, or an interface,
+    /// only through a signature; static classes, enums and value types are named
+    /// directly.
+    /// </summary>
+    private static bool IsHandedBackOnly(Type type) =>
+        !type.IsValueType
+        && !(type.IsAbstract && type.IsSealed)
+        && !HasConstructorReachableFromOutside(type);
 
     /// <summary>
     /// Both derivation gates turn on one question — can another assembly reach a
