@@ -29,11 +29,12 @@ with different promises.
     deriving from `BindValue` is not covered. It is unsealed only so that
     `BindArrayValue` can derive from it; construct it, don't subclass it.
   - **The values the API hands back.** A `Sql.*` call, operator, or chain step
-    returns a node, clause, or builder stage typed by what it offers next:
-    `Sql.Sum(...)` returns an `UnfilteredAggregateFunction`, which offers
-    `.Over(...)` and `.Filter(...)`, and `Sql.Abs(...)` a plain
-    `SqlExpression`. You receive these values and call the members the
-    reference documents.
+    returns a node, clause, or builder stage typed by what it offers next or
+    by the parameter that takes it: `Sql.Sum(...)` returns an
+    `UnfilteredAggregateFunction`, which offers `.Over(...)` and
+    `.Filter(...)`, `Sql.Distinct` the `DistinctKeyword` that `Count` takes,
+    and `Sql.Abs(...)` a plain `SqlExpression`. You receive these values and
+    call the members the reference documents.
 
     **Covered**: each type's name, the members the reference documents, and
     which type each call returns — so code that receives one of these values
