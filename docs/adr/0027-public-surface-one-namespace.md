@@ -32,7 +32,9 @@ that can take surface back.
   public base (`LockBehaviorBase`, which `ForUpdate` takes, or `SqlPart`). A node
   keeps a type of its own only when it declares a member (`Over`, `Filter`,
   `WithinGroup`, `Escape`, `Then`, `AsTable`, `Percent`, …) or a parameter takes
-  it (`DistinctKeyword`, `FrameBound`, …).
+  it (`DistinctKeyword`, `FrameBound`, …). The one recorded exception is
+  `BindArrayValue`, which an execution layer type-tests to tell an array bind
+  from a scalar one (`public-api-design.md`).
 - **Every other concrete node is `internal`**, in `src/SqlArtisan/Internal/` and the
   `SqlArtisan.Internal` namespace, which exports nothing.
 - **Every public type lives in the root namespace `SqlArtisan`**, its file
@@ -41,7 +43,7 @@ that can take surface back.
   namespace, that a type no caller constructs is handed back by some
   signature, that only an allowlisted handle offers a constructor, and that a
   public class declares a member, is taken by a parameter, or is another public
-  type's base.
+  type's base, `BindArrayValue` aside.
 - **No type is kept for a modifier not yet offered.** Which modifiers a later
   release might add is not an input: a criterion keyed on it would rest on each
   reviewer's forecast. A modifier added later to one function of a shared return
