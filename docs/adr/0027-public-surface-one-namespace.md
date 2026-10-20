@@ -28,10 +28,11 @@ that can take surface back.
   that carries every member its result offers.** A node with none returns
   `SqlExpression` or `SqlCondition`; a family sharing members returns its base
   (`AggregateFunction`, `UnfilteredAggregateFunction`, `AnalyticFunction`,
-  `ValueAnalyticFunction`, `LockBehaviorBase`, `TableReference`, `SqlPart`). A node keeps a type of its own only when it
-  declares a member (`Over`, `Filter`, `WithinGroup`, `Escape`, `Then`,
-  `AsTable`, `Percent`, …) or a parameter takes it (`DistinctKeyword`,
-  `FrameBound`, …).
+  `ValueAnalyticFunction`, `TableReference`); any other returns its nearest
+  public base (`LockBehaviorBase`, which `ForUpdate` takes, or `SqlPart`). A node
+  keeps a type of its own only when it declares a member (`Over`, `Filter`,
+  `WithinGroup`, `Escape`, `Then`, `AsTable`, `Percent`, …) or a parameter takes
+  it (`DistinctKeyword`, `FrameBound`, …).
 - **The concrete nodes are `internal`**, in `src/SqlArtisan/Internal/` and the
   `SqlArtisan.Internal` namespace, which exports nothing.
 - **Every public type lives in the root namespace `SqlArtisan`**, its file

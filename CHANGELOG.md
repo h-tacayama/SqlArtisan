@@ -81,9 +81,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   returns `SqlExpression` or `SqlCondition` (`Sql.Abs`, `Sql.Coalesce`, a
   comparison); one whose members come from its family returns the family's base
   (`Sql.Sum` → `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`,
-  `Sql.FirstValue` → `ValueAnalyticFunction`, `Sql.Rollup` and `t.Asterisk` →
-  `SqlPart`); and the 192 node types that offered no member, four of them
-  abstract bases (`BinaryOperator`, `GroupingElement`, …), are `internal`. The
+  `Sql.FirstValue` → `ValueAnalyticFunction`), and any other its nearest public
+  base (`Sql.Rollup`, `t.Asterisk` → `SqlPart`); and the 192 node types that
+  offered no member, four of them abstract bases (`BinaryOperator`,
+  `GroupingElement`, …), are `internal`. The
   types that stay public — the builder-stage interfaces, the clause and branch
   types with members (`OrderByClause`, `PartitionByClause`, `LikeCondition`, …)
   and the markers (`DistinctKeyword`, `FrameBound`, …) — move from
