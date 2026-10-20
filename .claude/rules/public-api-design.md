@@ -589,12 +589,14 @@ reading applies: `Over` on `StringAgg` and on a completed `Listagg` (Oracle's
 `INTERVAL`, the `GROUPS` frame unit and `EXCLUDE`; `IGNORE NULLS` /
 `RESPECT NULLS` and `NTH_VALUE ... FROM LAST`; the hypothetical-set
 `RANK(x) WITHIN GROUP (...)`; and `NEXT VALUE FOR ... OVER (ORDER BY ...)`.
-Four of them share their result's type with other functions (ADR 0027), so each
+Five of them share their result's type with other functions (ADR 0027), so each
 comes as an overload or a marker argument, not a member on the result: `IGNORE
 NULLS` on `Lag` / `Lead`, `NTH_VALUE ... FROM LAST`, `Over` on a completed
-`Listagg`, and `NEXT VALUE FOR ... OVER`. A marker overload of `Lag` / `Lead` shares
-an arity with the existing ones, so its matrix cell needs a parameter-type case;
-`IGNORE NULLS` on the value functions is a member on their shared base.
+`Listagg`, `Filter` on `StringAgg`'s inline-`ORDER BY` form, and `NEXT VALUE FOR
+... OVER`. A marker overload of `Lag` / `Lead` shares an arity with the existing
+ones, so the marker carries the dialect verdict in its own matrix cell, as
+`Distinct` does; `IGNORE NULLS` on the value functions is a member on their
+shared base.
 `Over` and `Filter` on `GroupConcat` are the exception: `GroupConcat` returns
 `SqlExpression` across its DISTINCT, inline-`ORDER BY` and `SEPARATOR` forms, no
 engine runs a window over those forms (SQLite 3.45.1, live) nor `FILTER` over
