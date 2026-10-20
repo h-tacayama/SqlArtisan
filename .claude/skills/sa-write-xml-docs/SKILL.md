@@ -40,10 +40,10 @@ built.
   only for a non-obvious maintainer contract; a plain `//` is usually better.
   **Hygiene:** when editing a file, downgrade stray `///` on internal members to
   `//` (or delete if it only restates the signature).
-- **Node types are `internal`** (ADR 0027) unless they declare a member or a
-  parameter takes them, so most nodes need no `///`; the public types under
-  `SqlPart/**` and `SqlBuilder/**` (`OrderByClause`, `CaseElseExpression`, the
-  stage interfaces) are documented like any other public type.
+- **Most node types are `internal`** (ADR 0027), so they need no `///`; the
+  public types under `SqlPart/**` and `SqlBuilder/**` (`OrderByClause`,
+  `CaseElseExpression`, the stage interfaces) are documented like any other
+  public type.
 
 Apply these to new and edited docs; a repo-wide normalization of older docs is a
 separate, deliberate decision.

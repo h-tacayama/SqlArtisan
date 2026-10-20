@@ -83,10 +83,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`,
   `Sql.FirstValue` → `ValueAnalyticFunction`); one whose node declares a member or
   is taken by a parameter keeps its own type (`Sql.Unnest` → `UnnestFunction`,
-  `Sql.Else` → `CaseElseExpression`, `a == b` → `EqualityCondition`), as does
-  `Sql.BindArray`, whose `BindArrayValue` tells an array bind from a scalar one;
-  and any
-  other returns its nearest public base (`Sql.Rollup`, `t.Asterisk` → `SqlPart`).
+  `Sql.Else` → `CaseElseExpression`), as does `Sql.BindArray`, whose
+  `BindArrayValue` tells an array bind from a scalar one; and any other returns
+  its nearest public base (`a == b` → `EqualityCondition`, `Sql.Rollup` →
+  `SqlPart`).
   The 192 node types that declared no member and that no parameter took, four of
   them abstract bases (`BinaryOperator`, `GroupingElement`, …), are `internal`.
   The types that stay public — the builder-stage interfaces, the clause and
