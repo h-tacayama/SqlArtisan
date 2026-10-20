@@ -77,16 +77,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - **Breaking:** the `Sql.*` factories, operators and fluent members return the
   narrowest public type that carries their result's members, and every public
-  type lives in the `SqlArtisan` namespace. A call whose result offers no member
-  returns `SqlExpression` or `SqlCondition` (`Sql.Abs`, `Sql.Coalesce`, `a < b`);
-  one whose members come from its family returns the family's base (`Sql.Sum` →
-  `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`,
-  `Sql.FirstValue` → `ValueAnalyticFunction`); one whose node declares a member or
+  type lives in the `SqlArtisan` namespace. A call whose node declares a member or
   is taken by a parameter keeps its own type (`Sql.Unnest` → `UnnestFunction`,
   `Sql.Else` → `CaseElseExpression`), as does `Sql.BindArray`, whose
-  `BindArrayValue` tells an array bind from a scalar one; and any other returns
-  its nearest public base (`a == b` → `EqualityCondition`, `Sql.Rollup` →
-  `SqlPart`).
+  `BindArrayValue` tells an array bind from a scalar one. Any other returns its
+  node's nearest public base: the family base that declares its members (`Sql.Sum`
+  → `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`,
+  `Sql.FirstValue` → `ValueAnalyticFunction`), a base a parameter takes (`a == b`
+  → `EqualityCondition`, which `Set` takes), or else `SqlExpression`,
+  `SqlCondition` or `SqlPart` (`Sql.Abs`, `a < b`, `Sql.Rollup`, `t.Asterisk`).
   The 192 node types that declared no member and that no parameter took, four of
   them abstract bases (`BinaryOperator`, `GroupingElement`, …), are `internal`.
   The types that stay public — the builder-stage interfaces, the clause and

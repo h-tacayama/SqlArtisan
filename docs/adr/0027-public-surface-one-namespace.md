@@ -24,17 +24,18 @@ that can take surface back.
 
 ## Decision
 
-- **A factory, operator or fluent member returns the narrowest public type
-  that carries every member its result offers.** A node with none returns
-  `SqlExpression` or `SqlCondition`; a family sharing members returns its base
-  (`AggregateFunction`, `UnfilteredAggregateFunction`, `AnalyticFunction`,
-  `ValueAnalyticFunction`, `TableReference`); any other returns its nearest
-  public base (`LockBehaviorBase`, which `ForUpdate` takes, or `SqlPart`). A node
-  keeps a type of its own only when it declares a member (`Over`, `Filter`,
-  `WithinGroup`, `Escape`, `Then`, `AsTable`, `Percent`, …) or a parameter takes
-  it (`DistinctKeyword`, `FrameBound`, …). The one recorded exception is
-  `BindArrayValue`, which an execution layer type-tests to tell an array bind
-  from a scalar one (`public-api-design.md`).
+- **A factory, operator or fluent member returns the narrowest public type that
+  carries every member its result offers.** A node keeps a type of its own only
+  when it declares a member (`Over`, `Filter`, `WithinGroup`, `Escape`, `Then`,
+  `AsTable`, `Percent`, …) or a parameter takes it (`DistinctKeyword`,
+  `FrameBound`, …); the one recorded exception is `BindArrayValue`, which an
+  execution layer type-tests to tell an array bind from a scalar one
+  (`public-api-design.md`). Any other returns its nearest public base: the
+  family base that declares its members (`AggregateFunction`,
+  `UnfilteredAggregateFunction`, `AnalyticFunction`, `ValueAnalyticFunction`,
+  `TableReference`), a base a parameter takes (`LockBehaviorBase`, which
+  `ForUpdate` takes; `EqualityCondition`, which `Set` takes), or else
+  `SqlExpression`, `SqlCondition` or `SqlPart`.
 - **Every other concrete node is `internal`**, in `src/SqlArtisan/Internal/` and the
   `SqlArtisan.Internal` namespace, which exports nothing.
 - **Every public type lives in the root namespace `SqlArtisan`**, its file
