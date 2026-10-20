@@ -89,11 +89,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   from `SqlArtisan.Internal` to `SqlArtisan`, which no longer needs a second
   `using`. Every chain that compiled still compiles and emits the same SQL; code
   naming a concrete node type (`SumFunction s = Sum(x)`) no longer compiles, and an
-  assembly built against an earlier release must be rebuilt. A guard message
-  naming a moved type prints its new name (`SqlArtisan.AsteriskMarker`), and
-  `SQLA0302` no longer reports a factory result held in a variable before it is
-  interpolated, since a `SqlExpression` may be a `BindValue` subclass overriding
-  `ToString`. (#686)
+  assembly built against an earlier release must be rebuilt. The returned types
+  are no longer sealed, so a C# reference comparison that failed to compile —
+  an interface-typed value or `t.Asterisk` on the left of `==` / `!=` against a
+  factory result — now compiles and binds a `bool`, which `SQLA0301` reports. A
+  factory result held in a variable no longer gets `SQLA0102`'s ordered-window
+  report for `FirstValue` / `LastValue` on SQL Server, nor `SQLA0302` when it is
+  interpolated or concatenated, since its static type no longer names the
+  function or rules out a `ToString` override. A guard message naming a moved
+  type prints its new name (`SqlArtisan.AsteriskMarker`). (#686)
 - `Unnest(...).AsTable(alias, columns)` accepts more column names than there are
   arrays: an array of a composite type yields a column per field, which
   PostgreSQL names this way. A list naming more columns than a scalar array has

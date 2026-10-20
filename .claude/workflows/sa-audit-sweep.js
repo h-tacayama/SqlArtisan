@@ -243,8 +243,9 @@ GATES: ${gates.summary}
 
 Group by role:
 1. Public API (Sql.*.cs) -> naming, API design, documentation alignment
-2. Function implementations (Internal/SqlPart/Expression/Function/**) -> ADR
-   conformance, DBMS grammar safety, allocation
+2. Function implementations (Internal/SqlPart/Expression/Function/**,
+   SqlPart/Expression/Function/**) -> ADR conformance, DBMS grammar safety,
+   allocation
 3. Builders (Internal/SqlBuilder/**) -> SQL style, spacing, allocation budget
 4. Tests (tests/**) -> coverage, exact-SQL assertions, guard tests, hazard
    shapes
