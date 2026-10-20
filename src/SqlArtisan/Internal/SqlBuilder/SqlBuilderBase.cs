@@ -156,6 +156,7 @@ internal abstract class SqlBuilderBase
         buffer.SetCorrelatedDmlGuardTarget(
             CorrelatedDmlGuardTarget
                 ?? (ReturningTarget is { HasAlias: true } aliased ? aliased : null));
+        buffer.SwapPseudoRowTarget(ReturningTarget);
         buffer.AppendSpaceSeparated(CollectionsMarshal.AsSpan(_parts));
         AppendTrailing(buffer);
         // Set last so a throw above (Validate / empty-clause guard) leaves the
@@ -185,7 +186,16 @@ internal abstract class SqlBuilderBase
         ThrowIfContinued();
         ThrowIfDuplicateClauseInBlock();
         Validate(buffer.Dbms);
+        // A nested DML statement (a data-modifying CTE) reads its own target; a SELECT
+        // keeps the enclosing one, which a subquery's EXCLUDED still reads.
+        DbTableBase? outer = ReturningTarget is { } target
+            ? buffer.SwapPseudoRowTarget(target)
+            : null;
         AppendNestedParts(buffer, CollectionsMarshal.AsSpan(_parts));
+        if (ReturningTarget is not null)
+        {
+            buffer.SwapPseudoRowTarget(outer);
+        }
     }
 
     // Hook for a nested render that marks part of its clauses for the guard.

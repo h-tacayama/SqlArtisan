@@ -7,13 +7,19 @@ namespace SqlArtisan.Internal;
 public sealed class DeletedColumn : SqlExpression
 {
     private readonly string _columnName;
+    private readonly TableReference _owner;
 
     internal DeletedColumn(DbColumn column)
     {
         _columnName = column.Name;
+        _owner = column.Owner;
     }
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Deleted}.")
-        .Append(_columnName);
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        buffer.ThrowIfNotPseudoRowTarget(_owner, Keywords.Deleted);
+        buffer
+            .Append($"{Keywords.Deleted}.")
+            .Append(_columnName);
+    }
 }

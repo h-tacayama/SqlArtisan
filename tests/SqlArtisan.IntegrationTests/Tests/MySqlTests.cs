@@ -972,4 +972,26 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             "SELECT 'a' LIKE ANY (SELECT 'a') ESCAPE '!'"));
     }
+
+    // #675: the row alias holds the target's proposed row alone (MySQL 8.0), so
+    // Excluded(...) over another table's column would read the target's same-named one.
+    [Fact]
+    public void PseudoRowColumn_ReadsTheTargetRowOnly()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute(
+            "CREATE TEMPORARY TABLE pr_t (a INT PRIMARY KEY, b INT); "
+                + "INSERT INTO pr_t VALUES (1, 10);");
+
+        try
+        {
+            connection.Execute(
+                "INSERT INTO pr_t (a, b) VALUES (1, 5) AS new ON DUPLICATE KEY UPDATE b = new.b");
+            Assert.Equal(5, connection.ExecuteScalar<int>("SELECT b FROM pr_t"));
+        }
+        finally
+        {
+            connection.Execute("DROP TEMPORARY TABLE pr_t");
+        }
+    }
 }

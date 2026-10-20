@@ -9,14 +9,20 @@ namespace SqlArtisan.Internal;
 public sealed class ExcludedColumn : SqlExpression
 {
     private readonly string _columnName;
+    private readonly TableReference _owner;
 
     internal ExcludedColumn(DbColumn column)
     {
         _columnName = column.Name;
+        _owner = column.Owner;
     }
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .AppendExcludedName()
-        .Append('.')
-        .Append(_columnName);
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        buffer.ThrowIfNotPseudoRowTarget(_owner, "EXCLUDED");
+        buffer
+            .AppendExcludedName()
+            .Append('.')
+            .Append(_columnName);
+    }
 }

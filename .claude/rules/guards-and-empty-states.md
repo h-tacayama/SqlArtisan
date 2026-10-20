@@ -483,9 +483,14 @@ list renders its entries bare too, so `ColumnListGuard.IsColumnOf` holds the
 `INSERT` and MERGE `ThenInsert` lists and the `ON CONFLICT` target to the
 target, and an `OUTPUT ... INTO` list to its own table, at the call. The
 pseudo-row accessors `Excluded(...)`, `Inserted(...)` and `Deleted(...)` drop the
-owner too, but they sit in value positions and checking them needs the target at
-format time; they are left to the value-slot item for those accessors (#675's B3
-hand-off, #666's class), not this guard.
+owner too, and their pseudo-row holds the target's row alone, so another table's
+column read the target's same-named one (`PseudoRowColumn_ReadsTheTargetRowOnly` on
+PostgreSQL 16.15, MySQL 8.0 and SQL Server 2022): each checks its owner at `Build()`
+against the statement's target, by table name as above, whatever expression it sits
+in (#675). Where one sits stays the engine's (`SELECT EXCLUDED.a` is rejected on
+PostgreSQL 16.15, the same twin), the complete-construct class the window-function
+paragraph leaves unguarded, and `SQLA0102` reports `Inserted` / `Deleted` outside
+`OUTPUT`.
 
 **A builder is one chain (decided — do not re-file):** a stage on a statement
 builder appends to it (`Returning(...)` once the statement builds; `With(...)` is

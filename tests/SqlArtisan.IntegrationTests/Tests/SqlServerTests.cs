@@ -1110,4 +1110,25 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             "SELECT CASE WHEN 'a' LIKE ANY (SELECT 'a') ESCAPE '!' THEN 1 END"));
     }
+
+    // #675: INSERTED holds the target's post-image alone (SQL Server 2022), so
+    // Inserted(...) over a joined table's column would read the target's same-named one.
+    [Fact]
+    public void PseudoRowColumn_ReadsTheTargetRowOnly()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        connection.Execute(
+            "CREATE TABLE #pr_t (a INT, b INT); CREATE TABLE #pr_u (a INT, b INT); "
+                + "INSERT INTO #pr_t VALUES (1, 10); INSERT INTO #pr_u VALUES (1, 99);",
+            null,
+            transaction);
+
+        Assert.Equal(100, connection.QuerySingle<int>(
+            "UPDATE t SET b = u.b + 1 OUTPUT INSERTED.b FROM #pr_t t "
+                + "JOIN #pr_u u ON t.a = u.a",
+            null,
+            transaction));
+        transaction.Rollback();
+    }
 }

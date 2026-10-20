@@ -1499,4 +1499,26 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             connection.Query<int>("SELECT id FROM users GROUP BY id").Count(),
             connection.Query<int>("SELECT id FROM users GROUP BY ALL (id)").Count());
     }
+
+    // #675: EXCLUDED holds the target's proposed row alone (PostgreSQL 16.15), so
+    // Excluded(...) over another table's column would read the target's same-named one.
+    [Fact]
+    public void PseudoRowColumn_ReadsTheTargetRowOnly()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        connection.Execute(
+            "CREATE TEMP TABLE pr_t (a INT PRIMARY KEY, b INT); INSERT INTO pr_t VALUES (1, 10);",
+            null,
+            transaction);
+
+        connection.Execute(
+            "INSERT INTO pr_t AS t VALUES (1, 5) ON CONFLICT (a) DO UPDATE SET b = EXCLUDED.b",
+            null,
+            transaction);
+        Assert.Equal(5, connection.ExecuteScalar<int>("SELECT b FROM pr_t", null, transaction));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT EXCLUDED.a FROM pr_t", null, transaction));
+        transaction.Rollback();
+    }
 }

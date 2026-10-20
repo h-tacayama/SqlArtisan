@@ -1630,7 +1630,8 @@ SqlStatement sql =
 
 `Excluded(column)` references the row proposed for insertion. It is resolved by
 the dialect: `EXCLUDED` on PostgreSQL, lowercase `excluded` on SQLite, and the
-`new` row alias on MySQL. A conditional update is expressed with `Where(...)`,
+`new` row alias on MySQL. That row is the target's, so `column` must belong to the
+target table; another table's column throws at `Build()`. A conditional update is expressed with `Where(...)`,
 and `DoNothing()` skips conflicting rows:
 
 ```csharp
@@ -2103,7 +2104,7 @@ string deletedName = outputs.Get<string>("outName");
 
 SQL Server's `OUTPUT` is the counterpart to [`RETURNING`](#returning-clause): it reads back the rows an `INSERT`, `UPDATE`, or `DELETE` affects, from the `INSERTED` and `DELETED` pseudo-tables via `Inserted(col)` / `Deleted(col)`. Unlike `RETURNING`, `OUTPUT` sits mid-statement — after the column list on `INSERT`, after `SET` on `UPDATE`, after the target on `DELETE` — so it is a positioned `.Output(...)` step, chained before `VALUES` / `WHERE` / `FROM`.
 
-`INSERT` sees only `INSERTED`; `DELETE` only `DELETED`; `UPDATE` both — the row's pre-image (`DELETED`) and post-image (`INSERTED`). Column aliases are allowed (`Deleted(u.Age).As("old_age")`).
+`INSERT` sees only `INSERTED`; `DELETE` only `DELETED`; `UPDATE` both — the row's pre-image (`DELETED`) and post-image (`INSERTED`). Both hold the target's row, so `Inserted(col)` / `Deleted(col)` take a column of the target table; a joined table's column throws at `Build()` — output it directly instead. Column aliases are allowed (`Deleted(u.Age).As("old_age")`).
 
 ```csharp
 UsersTable u = new();

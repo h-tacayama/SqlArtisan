@@ -7,13 +7,19 @@ namespace SqlArtisan.Internal;
 public sealed class InsertedColumn : SqlExpression
 {
     private readonly string _columnName;
+    private readonly TableReference _owner;
 
     internal InsertedColumn(DbColumn column)
     {
         _columnName = column.Name;
+        _owner = column.Owner;
     }
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Inserted}.")
-        .Append(_columnName);
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        buffer.ThrowIfNotPseudoRowTarget(_owner, Keywords.Inserted);
+        buffer
+            .Append($"{Keywords.Inserted}.")
+            .Append(_columnName);
+    }
 }
