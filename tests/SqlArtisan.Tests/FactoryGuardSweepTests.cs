@@ -194,6 +194,8 @@ public class FactoryGuardSweepTests
         typeof(IntervalExpression),
     ];
 
+    private static readonly string[] GroupingFactories = ["Cube", "GroupingSets", "Rollup"];
+
     private static readonly string[] UnembeddedReturnTypes =
     [
         // Pending types awaiting a completing call (.Over/.WithinGroup/.Against/
@@ -215,10 +217,12 @@ public class FactoryGuardSweepTests
         HashSet<string> unembedded = [];
         foreach (MethodInfo method in SweepableMethods())
         {
-            // A bare SqlPart is the grouping extensions' return, which TryBuild's
-            // grouping arm embeds; every other SqlPart-derived type keys on its own.
-            if (method.ReturnType != typeof(SqlPart)
-                && !EmbeddableReturnTypes.Any(t => t.IsAssignableFrom(method.ReturnType)))
+            // A bare SqlPart is embeddable only as a grouping extension, which
+            // TryBuild's grouping arm reaches; any other one is an unrecorded gap.
+            bool embeddable = method.ReturnType == typeof(SqlPart)
+                ? GroupingFactories.Contains(method.Name)
+                : EmbeddableReturnTypes.Any(t => t.IsAssignableFrom(method.ReturnType));
+            if (!embeddable)
             {
                 unembedded.Add(method.ReturnType.Name);
             }

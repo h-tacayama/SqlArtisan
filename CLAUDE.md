@@ -216,8 +216,8 @@ which chunks it across single reviewers instead of tripling it.
 - Every public type lives in the root namespace `SqlArtisan`, its file under
   `src/SqlArtisan/Sql/`, `SqlBuilder/`, `SqlPart/` or `Metadata/`; everything under
   `Internal/` is `internal` (ADR 0027). A factory returns the narrowest public type
-  that carries the members its result offers — `SqlExpression` or `SqlCondition` for
-  a node with none — so a new node class is `internal sealed`.
+  that carries the members its result offers (`SqlExpression` for a memberless
+  expression), so a new node class is `internal sealed`.
 - Name public members after their SQL token — **underscores are the only word
   boundaries** (`ADD_MONTHS`→`AddMonths`, `DATEADD`→`Dateadd`).
 - Make invalid fluent chains uncompilable through the **return type** — the

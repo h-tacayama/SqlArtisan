@@ -417,8 +417,9 @@ A public `Sql.*` factory, operator or fluent member returns the narrowest public
 type that carries every member its result offers (ADR 0027): `SqlExpression` or
 `SqlCondition` for a node declaring none (`Sql.Abs`, `Sql.Null`, a comparison),
 the family's base where the members come from one (`Sql.Sum` →
-`UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`), and a type
-of its own only when the node declares a member (`Sql.Unnest` → `UnnestFunction`,
+`UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`), the
+nearest public base for any other (`Sql.Nowait` → `LockBehaviorBase`,
+`Sql.Rollup` → `SqlPart`), and a type of its own only when the node declares a member (`Sql.Unnest` → `UnnestFunction`,
 for `AsTable`) or a parameter takes it (`Sql.Distinct` → `DistinctKeyword`). The
 concrete node is `internal`. No type is kept for a modifier not yet offered — which
 ones a later release might add is a forecast, not a criterion. One added later to a
