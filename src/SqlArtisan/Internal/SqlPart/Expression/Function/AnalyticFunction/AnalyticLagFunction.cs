@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class AnalyticLagFunction : AnalyticFunction
+internal sealed class AnalyticLagFunction : AnalyticFunction
 {
     private readonly SqlExpression _expr;
 

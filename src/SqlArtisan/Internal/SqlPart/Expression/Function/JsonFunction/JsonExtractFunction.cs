@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// The <c>JSON_EXTRACT</c> function: extracts a value from a JSON document at
 /// the given path (MySQL, SQLite).
 /// </summary>
-public sealed class JsonExtractFunction : SqlExpression
+internal sealed class JsonExtractFunction : SqlExpression
 {
     private readonly SqlExpression _jsonDoc;
     private readonly string _path;

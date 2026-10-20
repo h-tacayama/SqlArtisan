@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class LtrimFunction : SqlExpression
+internal sealed class LtrimFunction : SqlExpression
 {
     private readonly SqlExpression _source;
     private readonly SqlExpression? _trimChars;

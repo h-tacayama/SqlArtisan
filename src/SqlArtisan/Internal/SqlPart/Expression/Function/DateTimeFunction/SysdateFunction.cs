@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class SysdateFunction : SqlExpression
+internal sealed class SysdateFunction : SqlExpression
 {
     internal SysdateFunction() { }
 

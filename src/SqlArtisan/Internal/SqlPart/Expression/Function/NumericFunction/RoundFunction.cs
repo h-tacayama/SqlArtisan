@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class RoundFunction : SqlExpression
+internal sealed class RoundFunction : SqlExpression
 {
     private readonly SqlExpression _expr;
     private readonly SqlExpression? _decimals;

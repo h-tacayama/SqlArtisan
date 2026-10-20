@@ -1,7 +1,6 @@
 using System.Data;
 using System.Reflection;
 using System.Text;
-using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -173,6 +172,9 @@ public class FactoryGuardSweepTests
                 + $"violation(s):\n\n{string.Join("\n\n", violations)}");
     }
 
+    private static readonly Type s_groupingElement = typeof(Sql).Assembly
+        .GetType("SqlArtisan.Internal.GroupingElement", throwOnError: true)!;
+
     // Mirrors TryBuild's switch: a return type assignable to one of these is
     // reached by the sweep. Everything else must sit in UnembeddedReturnTypes,
     // so the blind spot is a recorded list, not a silent fall-through.
@@ -180,7 +182,7 @@ public class FactoryGuardSweepTests
     [
         typeof(SqlStatement), typeof(ISqlBuilder), typeof(ExpressionAlias), typeof(SqlExpression),
         typeof(SqlCondition), typeof(TableReference), typeof(CommonTableExpression),
-        typeof(SortOrder), typeof(SqlHints), typeof(GroupingSet), typeof(GroupingElement),
+        typeof(SortOrder), typeof(SqlHints), typeof(GroupingSet),
         typeof(SeparatorClause), typeof(IWithBuilderWith),
         // No arm of its own in TryBuild: that switch sees one class implementing
         // both WITH states, while this check keys on the declared return type.
@@ -192,22 +194,21 @@ public class FactoryGuardSweepTests
         typeof(IntervalExpression),
     ];
 
+    private static readonly string[] GroupingFactories = ["Cube", "GroupingSets", "Rollup"];
+
     private static readonly string[] UnembeddedReturnTypes =
     [
         // Pending types awaiting a completing call (.Over/.WithinGroup/.Against/
         // .Then/.Values/.Set/.Using) — the incomplete-construct category.
-        "AnalyticCumeDistFunction", "AnalyticDenseRankFunction", "AnalyticFirstValueFunction",
-        "AnalyticLagFunction", "AnalyticLastValueFunction", "AnalyticLeadFunction",
-        "AnalyticNthValueFunction", "AnalyticNtileFunction", "AnalyticPercentRankFunction",
-        "AnalyticRankFunction", "AnalyticRowNumberFunction", "ListaggFunction", "MatchFunction",
-        "PercentileContFunction", "PercentileDiscFunction", "SearchedCaseWhenCondition",
-        "SimpleCaseWhenExpression", "IInsertBuilderColumnsOutput", "IInsertBuilderTable",
+        "AnalyticFunction", "ListaggFunction", "MatchFunction", "PercentileContFunction",
+        "PercentileDiscFunction", "SearchedCaseWhenCondition", "SimpleCaseWhenExpression",
+        "ValueAnalyticFunction", "IInsertBuilderColumnsOutput", "IInsertBuilderTable",
         "IInsertIgnoreBuilderColumns", "IInsertIgnoreBuilderTable", "IMergeBuilderTarget",
         "IUpdateBuilderUpdate",
         // Complete argument/clause objects TryBuild does not yet embed — a real
         // coverage gap, not a rejected category; extend TryBuild to shrink it.
         "DbSequence", "DistinctOnKeyword", "FrameBound", "IntervalField", "OrderByClause",
-        "PartitionByClause", "TopClause", "WaitBehavior",
+        "PartitionByClause", "TopClause", "LockBehaviorBase",
     ];
 
     [Fact]
@@ -216,7 +217,12 @@ public class FactoryGuardSweepTests
         HashSet<string> unembedded = [];
         foreach (MethodInfo method in SweepableMethods())
         {
-            if (!EmbeddableReturnTypes.Any(t => t.IsAssignableFrom(method.ReturnType)))
+            // A bare SqlPart is embeddable only as a grouping extension, which
+            // TryBuild's grouping arm reaches; any other one is an unrecorded gap.
+            bool embeddable = method.ReturnType == typeof(SqlPart)
+                ? GroupingFactories.Contains(method.Name)
+                : EmbeddableReturnTypes.Any(t => t.IsAssignableFrom(method.ReturnType));
+            if (!embeddable)
             {
                 unembedded.Add(method.ReturnType.Name);
             }
@@ -629,7 +635,7 @@ public class FactoryGuardSweepTests
                         .From(new DbTable("e", "x"))
                         .GroupBy(GroupingSets(set))
                         .Build(Dbms.PostgreSql).Text,
-                GroupingElement element =>
+                SqlPart element when s_groupingElement.IsInstanceOfType(element) =>
                     Select(new DbTable("e", "x").Column("c"))
                         .From(new DbTable("e", "x"))
                         .GroupBy(element)

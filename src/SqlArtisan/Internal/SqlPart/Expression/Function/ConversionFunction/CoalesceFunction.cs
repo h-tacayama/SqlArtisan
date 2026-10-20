@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class CoalesceFunction : SqlExpression
+internal sealed class CoalesceFunction : SqlExpression
 {
     private readonly VariadicFunctionCore _core;
 

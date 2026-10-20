@@ -125,8 +125,8 @@ internal static class CSharpFallbackRule
     }
 
     // Provable only when no ToString override can hide behind the static type: a sealed
-    // type, or an object a SqlArtisan member created. A DbTableBase- or SqlPart-typed
-    // value may hold a user table class that overrides it (ADR 0003).
+    // type, or an object a SqlArtisan member or operator created. A DbTableBase- or
+    // SqlPart-typed value may hold a user table class that overrides it (ADR 0003).
     private static bool FormatsAsTypeName(IOperation value)
     {
         IOperation operation = Unconverted(value);
@@ -145,6 +145,8 @@ internal static class CSharpFallbackRule
                 IsSqlArtisanFactory(property.Property.GetMethod),
             IObjectCreationOperation creation => creation.Constructor is { } constructor
                 && IsFromSqlArtisan(constructor.ContainingType),
+            IBinaryOperation binary => IsSqlArtisanFactory(binary.OperatorMethod),
+            IUnaryOperation unary => IsSqlArtisanFactory(unary.OperatorMethod),
             _ => false,
         };
     }

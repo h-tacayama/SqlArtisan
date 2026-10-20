@@ -8,7 +8,7 @@ namespace SqlArtisan.Internal;
 /// (<c>.GroupBy(...).WithRollup()</c>); an unsupported target is emitted as written
 /// for the database to reject.
 /// </summary>
-public sealed class RollupGrouping : GroupingElement
+internal sealed class RollupGrouping : GroupingElement
 {
     private readonly SqlPart[] _elements;
 

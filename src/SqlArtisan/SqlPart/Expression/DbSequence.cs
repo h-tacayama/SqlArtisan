@@ -23,11 +23,11 @@ public sealed class DbSequence
     /// Gets the sequence's current value: <c>name.CURRVAL</c> (Oracle syntax).
     /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public DbSequenceCurrval Currval => new(this);
+    public SqlExpression Currval => new DbSequenceCurrval(this);
 
     /// <summary>
     /// Gets the sequence's next value: <c>name.NEXTVAL</c> (Oracle syntax).
     /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public DbSequenceNextval Nextval => new(this);
+    public SqlExpression Nextval => new DbSequenceNextval(this);
 }

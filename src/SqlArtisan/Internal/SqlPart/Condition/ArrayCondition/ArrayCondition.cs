@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public abstract class ArrayCondition : SqlCondition
+internal abstract class ArrayCondition : SqlCondition
 {
     private readonly SqlExpression _leftSide;
     private readonly string _operator;

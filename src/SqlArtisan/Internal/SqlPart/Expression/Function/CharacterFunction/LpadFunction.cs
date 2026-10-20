@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class LpadFunction : SqlExpression
+internal sealed class LpadFunction : SqlExpression
 {
     private readonly SqlExpression _source;
     private readonly SqlExpression _length;

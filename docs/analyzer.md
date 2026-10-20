@@ -664,9 +664,9 @@ other four engines accept the window — partitioned or empty — and leave whic
 row is read to the engine; chain `OrderBy(...)` or
 `PartitionBy(...).OrderBy(...)` there. `NthValue(...)` is not in this rule: SQL
 Server has no `NTH_VALUE` at all, so no ordering rescues it and the
-whole-construct `SQLA0100` is the verdict. A receiver held in a
-`ValueAnalyticFunction` variable no longer names which of the three it is, so
-the rule stays silent there rather than risk the wrong advice.
+whole-construct `SQLA0100` is the verdict. The rule reads the `FirstValue(...)`
+or `LastValue(...)` call `.Over(...)` is chained onto, so a receiver held in a
+variable first stays silent rather than risk the wrong advice.
 
 ```csharp
 // sqlartisan_syntax_sqlserver = any
@@ -1181,11 +1181,11 @@ value by design.
 
 `SQLA0302` reports an object only where its text is provably a type name: its
 type is sealed (a column, a sequence, a generated table class), or a SqlArtisan
-method, property or constructor has just returned it (`Select(...).From(...)`,
-`Listagg(...)`). Any other static type stays silent — a subquery held in a
-variable, a value typed `SqlExpression`, a comparison an operator returns
-(`$"{u.Id == 1}"`), or a value typed `DbTableBase`, which may hold a table class
-of yours that overrides `ToString()`. A missing warning therefore never means the operand is safe.
+method, property, constructor or operator has just returned it
+(`Select(...).From(...)`, `Listagg(...)`, `u.Id == 1`). Any other static type
+stays silent — a subquery held in a variable, a value typed `SqlExpression`, or
+a value typed `DbTableBase`, which may hold a table class of yours that
+overrides `ToString()`. A missing warning therefore never means the operand is safe.
 
 Suppression is per rule ID, the standard Roslyn way
 (`#pragma warning disable SQLA0301`, a `[SuppressMessage]` attribute, or

@@ -4,7 +4,7 @@ paths:
   - "src/SqlArtisan/Internal/SqlBuilder/**/*.cs"
   - "src/SqlArtisan/Internal/SqlPart/**/*.cs"
   - "src/SqlArtisan/Sql/*.cs"
-  - "src/SqlArtisan/SqlBuilder/*.cs"
+  - "src/SqlArtisan/SqlBuilder/**/*.cs"
   - "src/SqlArtisan/SqlPart/**/*.cs"
   - "src/SqlArtisan.TableClassGen/**/*.cs"
   - "src/SqlArtisan.Dapper/**/*.cs"

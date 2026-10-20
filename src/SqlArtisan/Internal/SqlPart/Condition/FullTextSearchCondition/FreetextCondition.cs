@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// The SQL Server full-text <c>FREETEXT(column, freetext)</c> predicate, matching
 /// rows whose column matches the meaning — not the exact wording — of the text.
 /// </summary>
-public sealed class FreetextCondition : SqlCondition
+internal sealed class FreetextCondition : SqlCondition
 {
     private readonly SqlExpression _column;
     private readonly SqlExpression _freetext;

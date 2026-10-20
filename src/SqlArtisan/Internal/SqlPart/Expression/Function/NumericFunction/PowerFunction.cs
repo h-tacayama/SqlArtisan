@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class PowerFunction : SqlExpression
+internal sealed class PowerFunction : SqlExpression
 {
     private readonly SqlExpression _base;
     private readonly SqlExpression _exponent;

@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class RightFunction : SqlExpression
+internal sealed class RightFunction : SqlExpression
 {
     private readonly SqlExpression _source;
     private readonly SqlExpression _length;

@@ -223,7 +223,6 @@ public class MultiDialectSyntaxAnalyzerTests
     {
         const string source = """
             using SqlArtisan;
-            using SqlArtisan.Internal;
             using static SqlArtisan.Sql;
 
             class T : DbTableBase

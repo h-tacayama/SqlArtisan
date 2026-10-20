@@ -310,6 +310,9 @@ public partial class FunctionTests
     [Fact]
     public void StringAgg_InlineOrderBy_OffersNoWithinGroup()
     {
-        Assert.Null(typeof(SqlArtisan.Internal.StringAggOrderByFunction).GetMethod("WithinGroup"));
+        Type inline = typeof(Sql).Assembly
+            .GetType("SqlArtisan.Internal.StringAggOrderByFunction", throwOnError: true)!;
+
+        Assert.Null(inline.GetMethod("WithinGroup"));
     }
 }

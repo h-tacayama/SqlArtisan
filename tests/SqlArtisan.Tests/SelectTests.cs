@@ -1,5 +1,4 @@
 using System.Text;
-using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -195,7 +194,7 @@ public class SelectTests
         ArgumentException ex = Assert.Throws<ArgumentException>(() => Sum(Asterisk));
 
         Assert.Equal(
-            "Invalid type for SqlExpression: SqlArtisan.Internal.AsteriskMarker",
+            "Invalid type for SqlExpression: SqlArtisan.AsteriskMarker",
             ex.Message);
     }
 
@@ -206,7 +205,7 @@ public class SelectTests
             Select(_t.Code).From(_t).OrderBy(Asterisk).Build());
 
         Assert.Equal(
-            "Invalid type for OrderByItem: SqlArtisan.Internal.AsteriskMarker",
+            "Invalid type for OrderByItem: SqlArtisan.AsteriskMarker",
             ex.Message);
     }
 

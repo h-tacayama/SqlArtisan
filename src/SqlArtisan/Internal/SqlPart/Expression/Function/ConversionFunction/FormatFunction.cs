@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class FormatFunction : SqlExpression
+internal sealed class FormatFunction : SqlExpression
 {
     private readonly SqlExpression _value;
     private readonly SqlExpression _format;

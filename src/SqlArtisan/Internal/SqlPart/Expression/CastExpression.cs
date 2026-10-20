@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class CastExpression : SqlExpression
+internal sealed class CastExpression : SqlExpression
 {
     private readonly SqlExpression _expr;
     private readonly string _type;

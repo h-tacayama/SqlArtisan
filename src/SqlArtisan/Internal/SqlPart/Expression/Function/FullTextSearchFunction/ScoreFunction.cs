@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// The Oracle Text <c>SCORE(label)</c> function: the relevance score computed by
 /// the <c>CONTAINS</c> operator carrying the same label.
 /// </summary>
-public sealed class ScoreFunction : SqlExpression
+internal sealed class ScoreFunction : SqlExpression
 {
     private readonly string _label;
 

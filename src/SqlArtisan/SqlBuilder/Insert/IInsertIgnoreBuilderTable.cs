@@ -1,0 +1,28 @@
+namespace SqlArtisan;
+
+/// <summary>
+/// The state after <c>INSERT IGNORE INTO table</c> (no column list): supply the row by column
+/// assignments or positionally. Not buildable until a row source is supplied.
+/// </summary>
+public interface IInsertIgnoreBuilderTable
+{
+    /// <summary>
+    /// Builds the row from <c>column == value</c> assignments, emitting the column list and one
+    /// <c>VALUES</c> row from them (<c>INSERT IGNORE INTO t (code, name) VALUES (?0, ?1)</c>).
+    /// </summary>
+    /// <param name="assignments">The per-column assignments; each left side names a column and each right side its value (literals are auto-parameterized).</param>
+    /// <returns>The builder positioned to build.</returns>
+    IInsertIgnoreBuilderSet Set(params EqualityCondition[] assignments);
+
+    /// <inheritdoc cref="IInsertBuilderTable.Values(object[])" path="/*[not(self::returns)]"/>
+    /// <returns>The builder positioned to append more rows or build.</returns>
+    IInsertIgnoreBuilderValues Values(params object[] values);
+
+    /// <inheritdoc cref="IInsertBuilderTable.Values(IEnumerable{object[]})" path="/*[not(self::remarks or self::returns)]"/>
+    /// <returns>The builder positioned to append more rows or build.</returns>
+    IInsertIgnoreBuilderValues Values(IEnumerable<object[]> rows);
+
+    /// <inheritdoc cref="IInsertBuilderTable.Values(object[][])" path="/*[not(self::remarks or self::returns)]"/>
+    /// <returns>The builder positioned to append more rows or build.</returns>
+    IInsertIgnoreBuilderValues Values(object[][] rows);
+}

@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class IsNullCondition : SqlCondition
+internal sealed class IsNullCondition : SqlCondition
 {
     private readonly SqlExpression _leftSide;
 

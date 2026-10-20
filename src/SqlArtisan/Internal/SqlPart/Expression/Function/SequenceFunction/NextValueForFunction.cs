@@ -2,7 +2,7 @@ using static SqlArtisan.Internal.Keywords;
 
 namespace SqlArtisan.Internal;
 
-public sealed class NextValueForFunction : SqlExpression
+internal sealed class NextValueForFunction : SqlExpression
 {
     private readonly string _sequenceName;
 

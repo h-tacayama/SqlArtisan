@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class ModFunction : SqlExpression
+internal sealed class ModFunction : SqlExpression
 {
     private readonly SqlExpression _dividend;
     private readonly SqlExpression _divisor;

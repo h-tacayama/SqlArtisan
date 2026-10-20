@@ -33,7 +33,7 @@ const SCOPE_SCHEMA = {
 
 // `SqlBuilder/**` and `SqlPart/**` appear twice, deliberately: the
 // `Internal/`-prefixed path is implementation detail, the bare path is the
-// public surface (ADR 0005) — don't collapse them into one glob. Each pattern
+// public surface (ADR 0027) — don't collapse them into one glob. Each pattern
 // below must be non-overlapping with the others: the Scope agent globs them
 // independently and concatenates, so an overlap would hand the orchestrator
 // a file list with duplicates baked in before it ever partitions
@@ -243,8 +243,9 @@ GATES: ${gates.summary}
 
 Group by role:
 1. Public API (Sql.*.cs) -> naming, API design, documentation alignment
-2. Function implementations (Internal/SqlPart/Expression/Function/**) -> ADR
-   conformance, DBMS grammar safety, allocation
+2. Function implementations (Internal/SqlPart/Expression/Function/**,
+   SqlPart/Expression/Function/**) -> ADR conformance, DBMS grammar safety,
+   allocation
 3. Builders (Internal/SqlBuilder/**) -> SQL style, spacing, allocation budget
 4. Tests (tests/**) -> coverage, exact-SQL assertions, guard tests, hazard
    shapes

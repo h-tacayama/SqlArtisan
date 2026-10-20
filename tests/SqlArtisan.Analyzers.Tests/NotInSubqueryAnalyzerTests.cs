@@ -10,7 +10,6 @@ public class NotInSubqueryAnalyzerTests
     // appears: the outer column's own nullability is irrelevant here.
     private static string Usage(string statements, string members = "") => $$"""
         using SqlArtisan;
-        using SqlArtisan.Internal;
         using static SqlArtisan.Sql;
 
         class T : DbTableBase

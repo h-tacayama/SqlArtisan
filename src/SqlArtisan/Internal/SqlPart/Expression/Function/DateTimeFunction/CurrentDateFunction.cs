@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class CurrentDateFunction : SqlExpression
+internal sealed class CurrentDateFunction : SqlExpression
 {
     internal CurrentDateFunction() { }
 

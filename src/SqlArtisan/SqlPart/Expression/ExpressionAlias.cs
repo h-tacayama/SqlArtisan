@@ -75,7 +75,7 @@ public sealed class ExpressionAlias : SqlPart, ISortable
     /// <param name="rightSide">The alias.</param>
     /// <returns>Never returns; the call does not compile.</returns>
     [Obsolete(StringLeftOfAliasMessage, error: true)]
-    public static AdditionOperator operator +(string leftSide, ExpressionAlias rightSide) =>
+    public static SqlExpression operator +(string leftSide, ExpressionAlias rightSide) =>
         throw new InvalidOperationException(StringLeftOfAliasMessage);
 
     /// <summary>
@@ -87,7 +87,7 @@ public sealed class ExpressionAlias : SqlPart, ISortable
     /// <param name="rightSide">The string.</param>
     /// <returns>Never returns; the call does not compile.</returns>
     [Obsolete(StringRightOfAliasMessage, error: true)]
-    public static AdditionOperator operator +(ExpressionAlias leftSide, string rightSide) =>
+    public static SqlExpression operator +(ExpressionAlias leftSide, string rightSide) =>
         throw new InvalidOperationException(StringRightOfAliasMessage);
 
     internal override void Format(SqlBuildingBuffer buffer) => AppendAlias(buffer);

@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class DecodeFunction : SqlExpression
+internal sealed class DecodeFunction : SqlExpression
 {
     private readonly SqlExpression _expr;
     private readonly (SqlExpression, SqlExpression)[] _searchResultPairs;

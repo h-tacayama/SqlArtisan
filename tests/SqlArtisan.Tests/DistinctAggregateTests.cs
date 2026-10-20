@@ -1,5 +1,4 @@
 using System.Reflection;
-using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -95,7 +94,7 @@ public class DistinctAggregateTests
     [Fact]
     public void FilteredDistinctAggregate_OffersNoWindow()
     {
-        Type filtered = typeof(FilteredDistinctAggregateFunction);
+        Type filtered = typeof(DistinctAggregateFunction).GetMethod("Filter")!.ReturnType;
 
         Assert.DoesNotContain(
             filtered.GetMethods(BindingFlags.Public | BindingFlags.Instance),

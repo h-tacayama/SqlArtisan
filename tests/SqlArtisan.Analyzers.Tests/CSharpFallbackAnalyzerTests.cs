@@ -7,7 +7,6 @@ public class CSharpFallbackAnalyzerTests
 {
     private static string Usage(string statements) => $$"""
         using SqlArtisan;
-        using SqlArtisan.Internal;
         using static SqlArtisan.Sql;
 
         sealed class T : DbTableBase
@@ -194,6 +193,21 @@ public class CSharpFallbackAnalyzerTests
             """);
 
     [Fact]
+    public Task FactoryResultInterpolated_ReportsSqla0302() =>
+        RunReporting(
+            "var q = Select(t.Id).From(t).Where(t.Name.Like($\"{|#0:{Abs(t.Id)}|}\"));",
+            "SQLA0302");
+
+    // A factory result types as SqlExpression (ADR 0027), which may hold a user's
+    // BindValue subclass overriding ToString, so once held it is no longer provable.
+    [Fact]
+    public Task FactoryResultHeldInAVariable_StaysSilent() =>
+        RunSilent("""
+            var e = Abs(t.Id);
+            var q = Select(t.Id).From(t).Where(t.Name.Like($"{e}"));
+            """);
+
+    [Fact]
     public Task SubqueryConcatenatedIntoLike_ReportsSqla0302() =>
         RunReporting(
             "var q = Select(t.Id).From(t)"
@@ -221,10 +235,25 @@ public class CSharpFallbackAnalyzerTests
             var q = Select(t.Id).From(t).Where(t.Name.Like($"{f}"));
             """);
 
-    // An operator's comparison is typed as an abstract condition, which nothing proves.
+    // A SqlArtisan operator has just returned the node, as a factory call has.
     [Fact]
-    public Task OperatorComparisonInterpolated_StaysSilent() =>
-        RunSilent("var q = Select(t.Id).From(t).Where(t.Name.Like($\"{t.Id == 1}\"));");
+    public Task OperatorComparisonInterpolated_ReportsSqla0302() =>
+        RunReporting(
+            "var q = Select(t.Id).From(t).Where(t.Name.Like($\"{|#0:{t.Id == 1}|}\"));",
+            "SQLA0302");
+
+    [Fact]
+    public Task OperatorArithmeticInterpolated_ReportsSqla0302() =>
+        RunReporting(
+            "var q = Select(t.Id).From(t).Where(t.Name.Like($\"{|#0:{t.Id + 1}|}\"));",
+            "SQLA0302");
+
+    [Fact]
+    public Task OperatorConjunctionConcatenated_ReportsSqla0302() =>
+        RunReporting(
+            "var q = Select(t.Id).From(t)"
+                + ".Where(t.Name.Like(\"x\" + ({|#0:(t.Id == 1) & (t.Id == 2)|})));",
+            "SQLA0302");
 
     [Fact]
     public Task StringInterpolatedIntoLike_StaysSilent() =>

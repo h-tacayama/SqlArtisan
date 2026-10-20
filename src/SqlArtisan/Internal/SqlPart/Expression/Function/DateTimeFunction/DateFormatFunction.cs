@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class DateFormatFunction : SqlExpression
+internal sealed class DateFormatFunction : SqlExpression
 {
     private readonly SqlExpression _date;
     private readonly SqlExpression _format;

@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class NullifFunction : SqlExpression
+internal sealed class NullifFunction : SqlExpression
 {
     private readonly SqlExpression _expr1;
     private readonly SqlExpression _expr2;

@@ -40,9 +40,10 @@ built.
   only for a non-obvious maintainer contract; a plain `//` is usually better.
   **Hygiene:** when editing a file, downgrade stray `///` on internal members to
   `//` (or delete if it only restates the signature).
-- **`public`-in-`Internal` node types** (a `public` factory must return them): the
-  project treats these as implementation detail and suppresses CS1591 for
-  `Internal/SqlPart` via `.editorconfig` — **don't document them**.
+- **Most node types are `internal`** (ADR 0027), so they need no `///`; the
+  public types under `SqlPart/**` and `SqlBuilder/**` (`OrderByClause`,
+  `CaseElseExpression`, the stage interfaces) are documented like any other
+  public type.
 
 Apply these to new and edited docs; a repo-wide normalization of older docs is a
 separate, deliberate decision.

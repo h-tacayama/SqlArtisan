@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class ArrayConstructorExpression : SqlExpression
+internal sealed class ArrayConstructorExpression : SqlExpression
 {
     private readonly SqlExpression[] _elements;
 

@@ -1,0 +1,15 @@
+namespace SqlArtisan;
+
+/// <summary>
+/// The builder state after the select list: name the source tables with <c>FROM</c>,
+/// combine with a set operator, or build a <c>FROM</c>-less query.
+/// </summary>
+public interface ISelectBuilderSelect : ISqlBuilder, ISetOperator, ISubquery
+{
+    /// <summary>
+    /// Appends <c>FROM a, b, ...</c>.
+    /// </summary>
+    /// <param name="tables">The table references to read from — base tables, aliased tables, derived tables, or subqueries.</param>
+    /// <returns>The builder positioned after <c>FROM</c>.</returns>
+    ISelectBuilderFrom From(params TableReference[] tables);
+}

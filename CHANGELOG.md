@@ -23,8 +23,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (`$"{col}"`) or concatenated with a string where no SqlArtisan `+` takes it (a
   subquery, `RowNumber()` before `.Over(...)`), which binds the object's type
   name — reported only for a sealed type or an object a SqlArtisan method,
-  property or constructor has just returned, so a subquery held in a variable,
-  a `SqlExpression`-typed value or an operator's comparison stays silent. Both
+  property, constructor or operator has just returned, so a subquery held in a
+  variable or a `SqlExpression`-typed value stays silent. Both
   report only where the value goes straight into a SqlArtisan argument or
   operator operand; a log line, a reference check elsewhere, a null check, a
   comparison with a table on either side, or one passed as `ConditionIf`'s
@@ -75,6 +75,33 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   17, SQLite 3.50, and SQL Server 2022 and 2025. (#662)
 
 ### Changed
+- **Breaking:** the `Sql.*` factories, operators and fluent members return the
+  narrowest public type that carries their result's members, and every public
+  type lives in the `SqlArtisan` namespace. A call whose node declares a member or
+  is taken by a parameter keeps its own type (`Sql.Unnest` → `UnnestFunction`,
+  `Sql.Else` → `CaseElseExpression`), as does `Sql.BindArray`, whose
+  `BindArrayValue` tells an array bind from a scalar one. Any other returns its
+  node's nearest public base: the family base that declares its members (`Sql.Sum`
+  → `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`,
+  `Sql.FirstValue` → `ValueAnalyticFunction`), a base a parameter takes (`a == b`
+  → `EqualityCondition`, which `Set` takes), or else `SqlExpression`,
+  `SqlCondition` or `SqlPart` (`Sql.Abs`, `a < b`, `Sql.Rollup`, `t.Asterisk`).
+  The 192 node types that declared no member and that no parameter took, four of
+  them abstract bases (`BinaryOperator`, `GroupingElement`, …), are `internal`.
+  The types that stay public — the builder-stage interfaces, the clause and
+  branch types with members (`OrderByClause`, `PartitionByClause`,
+  `LikeCondition`, …) and the types a parameter takes (`DistinctKeyword`,
+  `FrameBound`, `CaseElseExpression`, …) — move from `SqlArtisan.Internal` to
+  `SqlArtisan`, which no longer needs a second `using`.
+  Every chain that compiled still compiles and emits the same SQL; code
+  naming a now-internal type (`SumFunction s = Sum(x)`) no longer compiles, and an
+  assembly built against an earlier release must be rebuilt. Most returned types
+  are no longer sealed, so a C# reference comparison between two SqlArtisan
+  values that failed to compile (CS0019) can now compile and bind a `bool`;
+  `SQLA0301` reports it only where both operands can hold an expression. A held
+  `FirstValue` / `LastValue` no longer gets `SQLA0102`'s ordered-window report on
+  SQL Server: its static type no longer names the function. A guard message
+  naming a moved type prints its new name (`SqlArtisan.OrderByClause`). (#686)
 - `Unnest(...).AsTable(alias, columns)` accepts more column names than there are
   arrays: an array of a composite type yields a column per field, which
   PostgreSQL names this way. A list naming more columns than a scalar array has
@@ -348,12 +375,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `UPDATE` that joins before `SET` and through `FROM` too. Code that writes the
   stage types out needs the new names, and an assembly compiled against an
   earlier version must be rebuilt. (#582)
-- **Breaking:** `StringAgg(expr, separator, OrderBy(...))` now returns
-  `StringAggOrderByFunction`, which has no `.WithinGroup(...)`: stacking SQL
-  Server's `WITHIN GROUP` on PostgreSQL's inline ordering, which no dialect
-  accepts, is a compile error rather than an `ArgumentException`. The emitted
-  SQL is unchanged. Code that writes the type out needs the new name, and an
-  assembly compiled against an earlier version must be rebuilt. (#582)
+- **Breaking:** `StringAgg(expr, separator, OrderBy(...))` now returns an
+  expression with no `.WithinGroup(...)`: stacking SQL Server's `WITHIN GROUP`
+  on PostgreSQL's inline ordering, which no dialect accepts, is a compile error
+  rather than an `ArgumentException`. The emitted SQL is unchanged. Code that
+  writes the type out needs `SqlExpression`, and an assembly compiled against an
+  earlier version must be rebuilt. (#582)
 - **Breaking:** `ForUpdate(...)` now returns its own stage,
   `ISelectBuilderForUpdate`, which is also an `ISubquery`: a locked query embeds
   as a subquery or CTE body without a cast, as in
@@ -370,7 +397,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** `Count(Distinct, x)`, `Sum(Distinct, x)` and `Avg(Distinct, x)`
   now return `DistinctAggregateFunction`, which offers only `.Over()`,
   `.Over(PartitionBy(...))` and `.Filter(...)`, and `.Filter(...)` on it returns
-  `FilteredDistinctAggregateFunction`, which offers no `.Over(...)`. An ordered
+  an expression that offers no `.Over(...)`. An ordered
   or framed window over a `DISTINCT` aggregate runs on none of the lanes the
   `SQLA0102` entry names, and a window after its `FILTER` runs on neither
   engine with `FILTER` (observed on PostgreSQL 16 and SQLite 3.50); both are

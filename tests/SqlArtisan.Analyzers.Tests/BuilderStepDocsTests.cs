@@ -1,5 +1,4 @@
 using System.Xml.Linq;
-using SqlArtisan.Internal;
 
 namespace SqlArtisan.Analyzers.Tests;
 

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using SqlArtisan.Internal;
 
 namespace SqlArtisan.Analyzers.Tests;
 
@@ -102,22 +101,21 @@ public class ContextRuleContractTests
     }
 
     [Fact]
-    public void ValueAnalyticNodes_AreEachClassifiedByTheUnorderedOverRule()
+    public void ValueAnalyticFactories_AreEachClassifiedByTheUnorderedOverRule()
     {
-        // A node the family gains must be added to the rule's set or deliberately
+        // A factory the family gains must be added to the rule's set or deliberately
         // left out of it; NthValue is the one exclusion, and SQLA0100 covers it.
-        List<string> nodes = [.. Core.GetExportedTypes()
-            .Where(t => t.BaseType == typeof(ValueAnalyticFunction))
-            .Select(t => t.Name)
+        List<string> factories = [.. typeof(Sql)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Where(m => m.ReturnType == typeof(ValueAnalyticFunction))
+            .Select(m => m.Name)
+            .Distinct()
             .OrderBy(n => n, StringComparer.Ordinal)];
 
+        Assert.Equal(["FirstValue", "LastValue", "NthValue"], factories);
         Assert.Equal(
-            ["AnalyticFirstValueFunction", "AnalyticLastValueFunction",
-                "AnalyticNthValueFunction"],
-            nodes);
-        Assert.Equal(
-            ["AnalyticFirstValueFunction", "AnalyticLastValueFunction"],
-            nodes.Where(ContextRules.OrderRequiringValueFunctions.Contains));
+            ["FirstValue", "LastValue"],
+            factories.Where(ContextRules.OrderRequiringValueFunctions.Contains));
     }
 
     [Fact]

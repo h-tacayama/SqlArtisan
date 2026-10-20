@@ -78,9 +78,10 @@ check the diff against each:
   `GROUP_CONCAT ... SEPARATOR`) — those emit an escaped inline literal *by
   design*. Verify any new literal-emitting path is actually such a case, and
   that it escapes (`'`→`''`, and for MySQL `\`→`\\`).
-- **0005 — public API location.** Public surface only in `src/SqlArtisan/Sql/Sql.*.cs`
-  and `src/SqlArtisan/SqlBuilder/`. Types under `Internal/` are implementation
-  detail even when `public`.
+- **0005 / 0027 — public API location.** Every public type in the root namespace,
+  its file under `Sql/`, `SqlBuilder/`, `SqlPart/` or `Metadata/`; everything under
+  `Internal/` is `internal`. A factory's return type, and which nodes keep a public
+  type of their own, follow `public-api-design.md` § Factory return types.
 - **0006 — allocation-light.** Build-path allocation is a first-class constraint.
   Complexity in the hot path (`Format`) is justified **only by a measured**
   allocation win; otherwise prefer simplicity. Back any perf claim with a number
@@ -244,9 +245,8 @@ correct and accurately described.
 **Docs & comments** — reportable wherever a reader is left **misinformed**,
 regardless of severity or fix cost (a cheap fix that misinforms is exactly the
 case worth flagging). Scope: `README.md`, `docs/**`, `CHANGELOG.md`, XML `///`
-and inline `//` comments — public **and** internal (`Internal/`'s `CS1591`
-suppression exempts it from doc-*generation*, not from being read by the next
-contributor) — plus `CLAUDE.md`, `docs/adr/**`, `.claude/skills/**`,
+and inline `//` comments — public **and** internal (an internal type needs no
+`///`, but its comments are still read by the next contributor) — plus `CLAUDE.md`, `docs/adr/**`, `.claude/skills/**`,
 `.claude/rules/**`. Three shapes:
 - **Omission** — new/changed behavior with no doc/comment coverage where its
   siblings have it (a `Sql.*` factory missing the XML summary every sibling

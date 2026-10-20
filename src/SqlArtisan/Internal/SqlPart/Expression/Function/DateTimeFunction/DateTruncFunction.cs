@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class DateTruncFunction : SqlExpression
+internal sealed class DateTruncFunction : SqlExpression
 {
     private readonly string _datepart;
     private readonly SqlExpression _source;

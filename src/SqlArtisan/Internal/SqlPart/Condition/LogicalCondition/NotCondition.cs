@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class NotCondition : SqlCondition
+internal sealed class NotCondition : SqlCondition
 {
     private readonly SqlCondition _condition;
 

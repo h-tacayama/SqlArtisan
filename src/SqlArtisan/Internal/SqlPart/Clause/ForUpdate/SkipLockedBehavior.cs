@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class SkipLockedBehavior : LockBehaviorBase
+internal sealed class SkipLockedBehavior : LockBehaviorBase
 {
     internal SkipLockedBehavior() { }
 

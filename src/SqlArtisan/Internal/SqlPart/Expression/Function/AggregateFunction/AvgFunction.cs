@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class AvgFunction : UnfilteredAggregateFunction
+internal sealed class AvgFunction : UnfilteredAggregateFunction
 {
     private readonly SqlPart _expr;
 

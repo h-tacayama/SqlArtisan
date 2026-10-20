@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class CeilingFunction : SqlExpression
+internal sealed class CeilingFunction : SqlExpression
 {
     private readonly SqlExpression _expr;
 

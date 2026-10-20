@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class NullExpression : SqlExpression
+internal sealed class NullExpression : SqlExpression
 {
     internal NullExpression() { }
 

@@ -30,7 +30,6 @@ public class SchemaRuleParityTests
 
     private static string Usage(string statements, string members = "") => $$"""
         using SqlArtisan;
-        using SqlArtisan.Internal;
         using static SqlArtisan.Sql;
 
         class T : DbTableBase
@@ -283,7 +282,10 @@ public class SchemaRuleParityTests
     public void EveryCorePseudoRowFactory_IsClassified()
     {
         string[] factories = [.. typeof(Sql).GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.ReturnType.Name.EndsWith("Column") && m.ReturnType != typeof(DbColumn))
+            .Where(m => typeof(SqlExpression).IsAssignableFrom(m.ReturnType)
+                && m.GetParameters().Length == 1
+                && m.GetParameters()[0].ParameterType == typeof(DbColumn)
+                && BuiltNode(m).Name.EndsWith("Column", System.StringComparison.Ordinal))
             .Select(m => m.Name)
             .Distinct()
             .OrderBy(name => name, System.StringComparer.Ordinal)];
@@ -327,9 +329,9 @@ public class SchemaRuleParityTests
             BindingFlags.Public | BindingFlags.Static)
             .Where(m => typeof(SqlExpression).IsAssignableFrom(m.ReturnType)
                 && !typeof(SqlCondition).IsAssignableFrom(m.ReturnType)
-                && !m.ReturnType.Name.EndsWith("Function", System.StringComparison.Ordinal)
-                && !m.ReturnType.Name.EndsWith("Operator", System.StringComparison.Ordinal)
-                && m.GetParameters().Any(p => p.ParameterType == typeof(object)))
+                && m.GetParameters().Any(p => p.ParameterType == typeof(object))
+                && !BuiltNode(m).Name.EndsWith("Function", System.StringComparison.Ordinal)
+                && !BuiltNode(m).Name.EndsWith("Operator", System.StringComparison.Ordinal))
             .Select(m => m.Name)
             .Distinct()
             .OrderBy(name => name, System.StringComparer.Ordinal)];
@@ -452,4 +454,36 @@ public class SchemaRuleParityTests
         sqlartisan_syntax_{dbms} = any
         dotnet_diagnostic.SQLA0203.severity = suggestion
         """;
+
+    // The factories share a few return types, so the node a call builds is what names
+    // its kind: the last constructor the factory's IL calls that yields its return type.
+    private static System.Type BuiltNode(MethodInfo factory)
+    {
+        byte[] il = factory.GetMethodBody()!.GetILAsByteArray()!;
+        System.Type? node = null;
+        for (int i = 0; i + 4 < il.Length; i++)
+        {
+            if (il[i] == 0x73 // newobj
+                && Resolve(factory.Module, System.BitConverter.ToInt32(il, i + 1)) is { } ctor
+                && factory.ReturnType.IsAssignableFrom(ctor.DeclaringType))
+            {
+                node = ctor.DeclaringType;
+            }
+        }
+
+        return node ?? throw new System.InvalidOperationException(
+            $"{factory.Name} constructs no {factory.ReturnType.Name}.");
+    }
+
+    private static ConstructorInfo? Resolve(Module module, int token)
+    {
+        try
+        {
+            return module.ResolveMethod(token) as ConstructorInfo;
+        }
+        catch (System.ArgumentException)
+        {
+            return null;
+        }
+    }
 }

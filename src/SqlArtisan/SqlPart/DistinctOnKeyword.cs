@@ -1,0 +1,32 @@
+using SqlArtisan.Internal;
+
+namespace SqlArtisan;
+
+/// <summary>
+/// PostgreSQL's <c>DISTINCT ON (expr, ...)</c> select prefix: keeps one row per distinct
+/// combination of the expressions (the first per the <c>ORDER BY</c>); passed to
+/// <c>Select(DistinctOn(...), ...)</c>.
+/// </summary>
+/// <remarks>
+/// PostgreSQL-only syntax; emitted as written on every dialect. Unlike
+/// <see cref="DistinctKeyword"/> it is valid only as a select prefix, never inside
+/// an aggregate, so it is a separate type.
+/// </remarks>
+public sealed class DistinctOnKeyword : SqlPart
+{
+    private readonly SqlExpression[] _expressions;
+
+    internal DistinctOnKeyword(SqlExpression[] expressions)
+    {
+        CollectionGuard.ThrowIfEmpty(
+            expressions, nameof(expressions), "DISTINCT ON requires at least one expression.");
+
+        _expressions = expressions;
+    }
+
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
+        .Append($"{Keywords.Distinct} {Keywords.On} ")
+        .OpenParenthesis()
+        .AppendCsv(_expressions)
+        .CloseParenthesis();
+}

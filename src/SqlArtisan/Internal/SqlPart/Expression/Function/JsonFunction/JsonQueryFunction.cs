@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// The <c>JSON_QUERY</c> function: extracts a JSON object or array from a JSON
 /// document at the given path (Oracle, SQL Server).
 /// </summary>
-public sealed class JsonQueryFunction : SqlExpression
+internal sealed class JsonQueryFunction : SqlExpression
 {
     private readonly SqlExpression _jsonDoc;
     private readonly string _path;

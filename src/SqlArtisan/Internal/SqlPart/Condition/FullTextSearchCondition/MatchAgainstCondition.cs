@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// The MySQL full-text <c>MATCH (columns) AGAINST (searchExpr [modifier])</c>
 /// predicate, matching rows whose relevance score is non-zero.
 /// </summary>
-public sealed class MatchAgainstCondition : SqlCondition
+internal sealed class MatchAgainstCondition : SqlCondition
 {
     private readonly SqlExpression[] _columns;
     private readonly SqlExpression _searchExpr;

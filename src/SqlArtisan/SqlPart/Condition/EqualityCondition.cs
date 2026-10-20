@@ -8,6 +8,10 @@ namespace SqlArtisan;
 /// </summary>
 public abstract class EqualityCondition : SqlCondition
 {
+    private protected EqualityCondition()
+    {
+    }
+
     internal abstract SqlExpression LeftSide { get; }
 
     internal abstract SqlExpression RightSide { get; }

@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class LengthFunction : SqlExpression
+internal sealed class LengthFunction : SqlExpression
 {
     private readonly SqlExpression _source;
 

@@ -10,7 +10,8 @@ You are the orchestrator for SqlArtisan code review. Your role is to:
 1. **Classify files** into groups based on their role (wording matches the
    caller's own "Group by role" prompt — keep the two in sync):
    - Public API (`Sql.*.cs`) → naming, API design, documentation alignment
-   - Function implementations (`Internal/SqlPart/Expression/Function/**`) →
+   - Function implementations (`Internal/SqlPart/Expression/Function/**`,
+     `SqlPart/Expression/Function/**`) →
      ADR conformance, DBMS grammar safety, allocation
    - Builders (`Internal/SqlBuilder/**`) → SQL style, spacing, allocation
      budget

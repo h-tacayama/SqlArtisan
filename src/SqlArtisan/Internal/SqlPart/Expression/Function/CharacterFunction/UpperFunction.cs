@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class UpperFunction : SqlExpression
+internal sealed class UpperFunction : SqlExpression
 {
     private readonly SqlExpression _source;
 

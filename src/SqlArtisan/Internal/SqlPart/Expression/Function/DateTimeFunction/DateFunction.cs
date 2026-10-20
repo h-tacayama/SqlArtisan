@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class DateFunction : SqlExpression
+internal sealed class DateFunction : SqlExpression
 {
     private readonly VariadicFunctionCore _core;
 

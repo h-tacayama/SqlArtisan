@@ -17,8 +17,8 @@ public static partial class Sql
     /// The <c>ABS(<paramref name="expr"/>)</c> function (absolute value of the argument).
     /// </summary>
     /// <param name="expr">The numeric expression to take the absolute value of.</param>
-    /// <returns>An <see cref="AbsFunction"/> emitting <c>ABS(expr)</c>.</returns>
-    public static AbsFunction Abs(object expr) => new(Resolve(expr));
+    /// <returns>An expression emitting <c>ABS(expr)</c>.</returns>
+    public static SqlExpression Abs(object expr) => new AbsFunction(Resolve(expr));
 
     /// <summary>
     /// The <c>ADD_MONTHS(<paramref name="dateTime"/>, <paramref name="months"/>)</c>
@@ -29,10 +29,10 @@ public static partial class Sql
     /// <see cref="IntervalLiteral(string, IntervalField)"/> with <c>+</c>.</remarks>
     /// <param name="dateTime">The date/time expression to shift.</param>
     /// <param name="months">The number of months to add.</param>
-    /// <returns>An <see cref="AddMonthsFunction"/> emitting
+    /// <returns>An expression emitting
     /// <c>ADD_MONTHS(dateTime, months)</c>.</returns>
-    public static AddMonthsFunction AddMonths(object dateTime, object months) =>
-        new(Resolve(dateTime), Resolve(months));
+    public static SqlExpression AddMonths(object dateTime, object months) =>
+        new AddMonthsFunction(Resolve(dateTime), Resolve(months));
 
     /// <summary>
     /// The <c>ALL (subquery)</c> quantified comparison operator: the comparison must hold for every
@@ -83,12 +83,12 @@ public static partial class Sql
     /// listed elements (PostgreSQL).
     /// </summary>
     /// <param name="elements">The array elements; at least one.</param>
-    /// <returns>An <see cref="ArrayConstructorExpression"/> emitting <c>ARRAY[elements]</c>.</returns>
-    public static ArrayConstructorExpression Array(params object[] elements)
+    /// <returns>An expression emitting <c>ARRAY[elements]</c>.</returns>
+    public static SqlExpression Array(params object[] elements)
     {
         CollectionGuard.ThrowIfEmpty(
             elements, nameof(elements), "ARRAY[...] requires at least one element.");
-        return new(Resolve(elements));
+        return new ArrayConstructorExpression(Resolve(elements));
     }
 
     /// <summary>
@@ -98,9 +98,9 @@ public static partial class Sql
     /// </summary>
     /// <param name="leftArray">The array that must be contained.</param>
     /// <param name="rightArray">The array to search.</param>
-    /// <returns>An <see cref="ArrayContainedByCondition"/> emitting <c>leftArray &lt;@ rightArray</c>.</returns>
-    public static ArrayContainedByCondition ArrayContainedBy(object leftArray, object rightArray) =>
-        new(
+    /// <returns>A condition emitting <c>leftArray &lt;@ rightArray</c>.</returns>
+    public static SqlCondition ArrayContainedBy(object leftArray, object rightArray) =>
+        new ArrayContainedByCondition(
             ResolveCompared(leftArray, nameof(leftArray), Operators.ArrayContainedBy),
             ResolveQuantifiable(rightArray, nameof(rightArray), Operators.ArrayContainedBy));
 
@@ -111,9 +111,9 @@ public static partial class Sql
     /// </summary>
     /// <param name="leftArray">The array to search.</param>
     /// <param name="rightArray">The array that must be contained.</param>
-    /// <returns>An <see cref="ArrayContainsCondition"/> emitting <c>leftArray @&gt; rightArray</c>.</returns>
-    public static ArrayContainsCondition ArrayContains(object leftArray, object rightArray) =>
-        new(
+    /// <returns>A condition emitting <c>leftArray @&gt; rightArray</c>.</returns>
+    public static SqlCondition ArrayContains(object leftArray, object rightArray) =>
+        new ArrayContainsCondition(
             ResolveCompared(leftArray, nameof(leftArray), Operators.ArrayContains),
             ResolveQuantifiable(rightArray, nameof(rightArray), Operators.ArrayContains));
 
@@ -123,9 +123,9 @@ public static partial class Sql
     /// </summary>
     /// <param name="leftArray">The first array.</param>
     /// <param name="rightArray">The second array.</param>
-    /// <returns>An <see cref="ArrayOverlapsCondition"/> emitting <c>leftArray &amp;&amp; rightArray</c>.</returns>
-    public static ArrayOverlapsCondition ArrayOverlaps(object leftArray, object rightArray) =>
-        new(
+    /// <returns>A condition emitting <c>leftArray &amp;&amp; rightArray</c>.</returns>
+    public static SqlCondition ArrayOverlaps(object leftArray, object rightArray) =>
+        new ArrayOverlapsCondition(
             ResolveCompared(leftArray, nameof(leftArray), Operators.ArrayOverlaps),
             ResolveQuantifiable(rightArray, nameof(rightArray), Operators.ArrayOverlaps));
 
@@ -144,9 +144,9 @@ public static partial class Sql
     /// across the group).
     /// </summary>
     /// <param name="expr">The numeric expression to average.</param>
-    /// <returns>An <see cref="AvgFunction"/> emitting <c>AVG(expr)</c>.</returns>
-    public static AvgFunction Avg(object expr) =>
-        new(Resolve(expr));
+    /// <returns>An aggregate emitting <c>AVG(expr)</c>.</returns>
+    public static UnfilteredAggregateFunction Avg(object expr) =>
+        new AvgFunction(Resolve(expr));
 
     /// <inheritdoc cref="Avg(object)"/>
     /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Sql.Distinct"/>),

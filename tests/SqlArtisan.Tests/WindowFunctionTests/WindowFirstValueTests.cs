@@ -86,7 +86,7 @@ public class WindowFirstValueTests
     public void FirstValue_OverNullPartitionBy_ThrowsArgumentNullException()
     {
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
-            FirstValue(_t.Code).Over((SqlArtisan.Internal.PartitionByClause)null!));
+            FirstValue(_t.Code).Over((SqlArtisan.PartitionByClause)null!));
 
         Assert.Equal("partitionByClause", ex.ParamName);
     }

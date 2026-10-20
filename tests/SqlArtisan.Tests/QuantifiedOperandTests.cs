@@ -123,10 +123,10 @@ public class QuantifiedOperandTests
     // Off SqlExpression, a string beside one would compile as C# concatenation and bind
     // its type name, so both orders are compile errors.
     [Theory]
-    [InlineData(typeof(SqlArtisan.Internal.QuantifiedExpression), true)]
-    [InlineData(typeof(SqlArtisan.Internal.QuantifiedExpression), false)]
-    [InlineData(typeof(SqlArtisan.Internal.QuantifiedSubquery), true)]
-    [InlineData(typeof(SqlArtisan.Internal.QuantifiedSubquery), false)]
+    [InlineData(typeof(SqlArtisan.QuantifiedExpression), true)]
+    [InlineData(typeof(SqlArtisan.QuantifiedExpression), false)]
+    [InlineData(typeof(SqlArtisan.QuantifiedSubquery), true)]
+    [InlineData(typeof(SqlArtisan.QuantifiedSubquery), false)]
     public void Quantified_AdditionBesideAString_IsACompileError(Type type, bool stringFirst)
     {
         System.Reflection.MethodInfo op = type.GetMethod(

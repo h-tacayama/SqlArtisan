@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class StrposFunction : SqlExpression
+internal sealed class StrposFunction : SqlExpression
 {
     private readonly SqlExpression _source;
     private readonly SqlExpression _substring;

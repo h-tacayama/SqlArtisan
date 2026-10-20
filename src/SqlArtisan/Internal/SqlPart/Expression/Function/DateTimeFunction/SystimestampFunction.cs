@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class SystimestampFunction : SqlExpression
+internal sealed class SystimestampFunction : SqlExpression
 {
     internal SystimestampFunction() { }
 

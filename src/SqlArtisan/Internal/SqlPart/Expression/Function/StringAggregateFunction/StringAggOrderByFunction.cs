@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// The <c>STRING_AGG(expr, separator ORDER BY ...)</c> string aggregate with an inline
 /// ordering (PostgreSQL, SQLite 3.44+).
 /// </summary>
-public sealed class StringAggOrderByFunction : SqlExpression
+internal sealed class StringAggOrderByFunction : SqlExpression
 {
     private readonly SqlExpression _expr;
     private readonly string _separator;

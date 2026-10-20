@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public abstract class BinaryOperator : SqlExpression
+internal abstract class BinaryOperator : SqlExpression
 {
     private readonly SqlExpression _leftSide;
     private readonly string _operator;

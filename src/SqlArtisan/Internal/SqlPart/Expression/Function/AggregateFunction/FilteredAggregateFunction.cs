@@ -9,7 +9,7 @@ namespace SqlArtisan.Internal;
 /// Native on PostgreSQL and SQLite; emitted as written on every dialect (engines
 /// without it reject it).
 /// </remarks>
-public sealed class FilteredAggregateFunction : AggregateFunction
+internal sealed class FilteredAggregateFunction : AggregateFunction
 {
     private readonly UnfilteredAggregateFunction _aggregate;
     private readonly SqlCondition _condition;

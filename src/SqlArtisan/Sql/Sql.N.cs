@@ -15,10 +15,10 @@ public static partial class Sql
     /// <param name="rightVector">The second vector.</param>
     /// <returns>A <c>&lt;#&gt;</c> operator expression.</returns>
     /// <remarks>Oracle (23ai+) and PostgreSQL syntax.</remarks>
-    public static NegativeInnerProductOperator NegativeInnerProduct(
+    public static SqlExpression NegativeInnerProduct(
         object leftVector,
         object rightVector) =>
-        new(Resolve(leftVector), Resolve(rightVector));
+        new NegativeInnerProductOperator(Resolve(leftVector), Resolve(rightVector));
 
     /// <summary>
     /// The <c>NEXTVAL('sequenceName')</c> function: the next value of the named
@@ -30,8 +30,8 @@ public static partial class Sql
     /// Dialect-specific (PostgreSQL). For Oracle use <see cref="Sequence(string)"/>
     /// with <c>.Nextval</c>; for SQL Server use <see cref="NextValueFor(string)"/>.
     /// </remarks>
-    public static NextvalFunction Nextval(string sequenceName) =>
-        new(sequenceName);
+    public static SqlExpression Nextval(string sequenceName) =>
+        new NextvalFunction(sequenceName);
 
     /// <summary>
     /// The <c>NEXT VALUE FOR sequenceName</c> expression: the next value of the
@@ -43,15 +43,15 @@ public static partial class Sql
     /// Dialect-specific (SQL Server). For Oracle use <see cref="Sequence(string)"/>
     /// with <c>.Nextval</c>; for PostgreSQL use <see cref="Nextval(string)"/>.
     /// </remarks>
-    public static NextValueForFunction NextValueFor(string sequenceName) =>
-        new(sequenceName);
+    public static SqlExpression NextValueFor(string sequenceName) =>
+        new NextValueForFunction(sequenceName);
 
     /// <summary>
     /// The <c>NOT (condition)</c> predicate: negates <paramref name="condition"/>.
     /// </summary>
     /// <param name="condition">The condition to negate.</param>
     /// <returns>A negated condition.</returns>
-    public static NotCondition Not(SqlCondition condition) => new(condition);
+    public static SqlCondition Not(SqlCondition condition) => new NotCondition(condition);
 
     /// <summary>
     /// The <c>NOT EXISTS (subquery)</c> predicate: true when
@@ -59,8 +59,8 @@ public static partial class Sql
     /// </summary>
     /// <param name="subquery">The subquery to test for emptiness.</param>
     /// <returns>A <c>NOT EXISTS</c> condition.</returns>
-    public static NotExistsCondition NotExists(ISubquery subquery) =>
-        new(subquery);
+    public static SqlCondition NotExists(ISubquery subquery) =>
+        new NotExistsCondition(subquery);
 
     /// <summary>
     /// The <c>NOWAIT</c> lock behavior for a <c>FOR UPDATE</c> clause: fail
@@ -68,7 +68,7 @@ public static partial class Sql
     /// </summary>
     /// <remarks>MySQL (8.0+), Oracle, and PostgreSQL syntax.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static NowaitBehavior Nowait => new();
+    public static LockBehaviorBase Nowait => new NowaitBehavior();
 
     /// <summary>
     /// The <c>NTH_VALUE(expr, n)</c> analytic function: the value of
@@ -79,8 +79,8 @@ public static partial class Sql
     /// <param name="n">The 1-based position within the window frame; positive.</param>
     /// <returns>An <c>NTH_VALUE</c> analytic function expression.</returns>
     /// <remarks>Not supported by SQL Server.</remarks>
-    public static AnalyticNthValueFunction NthValue(object expr, int n) =>
-        new(Resolve(expr), n);
+    public static ValueAnalyticFunction NthValue(object expr, int n) =>
+        new AnalyticNthValueFunction(Resolve(expr), n);
 
     /// <summary>
     /// The <c>NTILE(buckets)</c> analytic function: distributes the ordered rows
@@ -88,13 +88,13 @@ public static partial class Sql
     /// </summary>
     /// <param name="buckets">The number of ranked groups to distribute rows into; positive.</param>
     /// <returns>An <c>NTILE</c> analytic function expression.</returns>
-    public static AnalyticNtileFunction Ntile(int buckets) => new(buckets);
+    public static AnalyticFunction Ntile(int buckets) => new AnalyticNtileFunction(buckets);
 
     /// <summary>
     /// The SQL <c>NULL</c> literal.
     /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static NullExpression Null => new();
+    public static SqlExpression Null => new NullExpression();
 
     /// <summary>
     /// The <c>NULLIF(expr1, expr2)</c> function: returns <c>NULL</c> when the two
@@ -103,8 +103,8 @@ public static partial class Sql
     /// <param name="expr1">The expression returned when the two differ.</param>
     /// <param name="expr2">The expression compared against <paramref name="expr1"/>.</param>
     /// <returns>A <c>NULLIF</c> function expression.</returns>
-    public static NullifFunction Nullif(object expr1, object expr2) =>
-        new(Resolve(expr1), Resolve(expr2));
+    public static SqlExpression Nullif(object expr1, object expr2) =>
+        new NullifFunction(Resolve(expr1), Resolve(expr2));
 
     /// <summary>
     /// The <c>NUMTODSINTERVAL(<paramref name="n"/>, 'unit')</c> function:
@@ -121,8 +121,8 @@ public static partial class Sql
     /// <remarks>Oracle syntax — the bindable-quantity counterpart to
     /// <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>'s
     /// <c>DAY TO SECOND</c> literal.</remarks>
-    public static NumtodsintervalFunction Numtodsinterval(object n, DateTimePart unit) =>
-        new(Resolve(n), unit);
+    public static SqlExpression Numtodsinterval(object n, DateTimePart unit) =>
+        new NumtodsintervalFunction(Resolve(n), unit);
 
     /// <summary>
     /// The <c>NUMTOYMINTERVAL(<paramref name="n"/>, 'unit')</c> function:
@@ -138,8 +138,8 @@ public static partial class Sql
     /// <remarks>Oracle syntax — the bindable-quantity counterpart to
     /// <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>'s
     /// <c>YEAR TO MONTH</c> literal.</remarks>
-    public static NumtoymintervalFunction Numtoyminterval(object n, DateTimePart unit) =>
-        new(Resolve(n), unit);
+    public static SqlExpression Numtoyminterval(object n, DateTimePart unit) =>
+        new NumtoymintervalFunction(Resolve(n), unit);
 
     /// <summary>
     /// The <c>NVL(expr1, expr2)</c> function: returns <paramref name="expr1"/> when
@@ -150,6 +150,6 @@ public static partial class Sql
     /// <returns>An <c>NVL</c> function expression.</returns>
     /// <remarks>Oracle syntax. For the standard equivalent use
     /// <see cref="Coalesce(object, object, object[])"/>.</remarks>
-    public static NvlFunction Nvl(object expr1, object expr2) =>
-        new(Resolve(expr1), Resolve(expr2));
+    public static SqlExpression Nvl(object expr1, object expr2) =>
+        new NvlFunction(Resolve(expr1), Resolve(expr2));
 }

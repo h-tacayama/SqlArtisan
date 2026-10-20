@@ -83,7 +83,7 @@ public class WindowNthValueTests
     public void NthValue_OverNullPartitionBy_ThrowsArgumentNullException()
     {
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
-            NthValue(_t.Code, 2).Over((SqlArtisan.Internal.PartitionByClause)null!));
+            NthValue(_t.Code, 2).Over((SqlArtisan.PartitionByClause)null!));
 
         Assert.Equal("partitionByClause", ex.ParamName);
     }

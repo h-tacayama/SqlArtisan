@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class RegexpLikeCondition : SqlCondition
+internal sealed class RegexpLikeCondition : SqlCondition
 {
     private readonly SqlExpression _source;
     private readonly SqlExpression _pattern;

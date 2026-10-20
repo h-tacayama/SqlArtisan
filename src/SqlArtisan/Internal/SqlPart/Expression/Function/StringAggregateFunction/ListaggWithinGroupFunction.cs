@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// The Oracle <c>LISTAGG(expr, separator) WITHIN GROUP (ORDER BY ...)</c> string
 /// aggregate, with its mandatory ordering supplied.
 /// </summary>
-public sealed class ListaggWithinGroupFunction : SqlExpression
+internal sealed class ListaggWithinGroupFunction : SqlExpression
 {
     private readonly SqlExpression _expr;
     private readonly SqlExpression _separator;

@@ -1,0 +1,38 @@
+namespace SqlArtisan;
+
+/// <summary>
+/// The builder state after <c>FROM</c>: join more tables, filter, group, order, paginate, lock with
+/// <c>FOR UPDATE</c>, combine with a set operator, or build.
+/// </summary>
+public interface ISelectBuilderFrom :
+    ISqlBuilder,
+    IForUpdate,
+    IJoinOperator,
+    IPagination,
+    ISetOperator,
+    ISubquery
+{
+    /// <summary>
+    /// Appends <c>GROUP BY a, b, ...</c>.
+    /// </summary>
+    /// <param name="groupByItems">The grouping expressions, a select-list position (<c>1</c> groups by the first item — MySQL, PostgreSQL, and SQLite), or grouping constructs such as <c>Sql.Rollup(...)</c>, <c>Sql.Cube(...)</c>, and <c>Sql.GroupingSets(...)</c>, whose own arguments stay expressions rather than positions.</param>
+    /// <returns>The builder positioned after <c>GROUP BY</c>.</returns>
+    ISelectBuilderGroupBy GroupBy(params object[] groupByItems);
+
+    /// <summary>
+    /// Appends <c>ORDER BY a, b, ...</c>.
+    /// </summary>
+    /// <param name="orderByItems">The sort keys — columns or expressions, optionally wrapped with <c>Sql.Asc(...)</c> / <c>Sql.Desc(...)</c> or a null-ordering modifier.</param>
+    /// <returns>The builder positioned after <c>ORDER BY</c>.</returns>
+    /// <exception cref="ArgumentException">An element of <paramref name="orderByItems"/> is the
+    /// ordinal <c>0</c>, or a string, char, bool, date/time or enum value, which binds as a
+    /// constant that sorts nothing.</exception>
+    ISelectBuilderOrderBy OrderBy(params object[] orderByItems);
+
+    /// <summary>
+    /// Appends <c>WHERE condition</c>.
+    /// </summary>
+    /// <param name="condition">The row filter; literals it contains are auto-parameterized.</param>
+    /// <returns>The builder positioned after <c>WHERE</c>.</returns>
+    ISelectBuilderWhere Where(SqlCondition condition);
+}

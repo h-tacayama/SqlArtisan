@@ -67,55 +67,55 @@ public static partial class Sql
     /// variance of <paramref name="expr"/> across the group.
     /// </summary>
     /// <param name="expr">The numeric expression to aggregate.</param>
-    /// <returns>A <see cref="VarFunction"/> emitting <c>VAR(expr)</c>.</returns>
+    /// <returns>An aggregate emitting <c>VAR(expr)</c>.</returns>
     /// <remarks>SQL Server syntax. MySQL, Oracle, and PostgreSQL spell this
     /// <see cref="VarSamp(object)"/>.</remarks>
-    public static VarFunction Var(object expr) =>
-        new(Resolve(expr));
+    public static UnfilteredAggregateFunction Var(object expr) =>
+        new VarFunction(Resolve(expr));
 
     /// <summary>
     /// The <c>VARIANCE(<paramref name="expr"/>)</c> aggregate function.
     /// </summary>
     /// <param name="expr">The numeric expression to aggregate.</param>
-    /// <returns>A <see cref="VarianceFunction"/> emitting <c>VARIANCE(expr)</c>.</returns>
+    /// <returns>An aggregate emitting <c>VARIANCE(expr)</c>.</returns>
     /// <remarks>
     /// MySQL, Oracle, and PostgreSQL syntax; MySQL computes the population statistic,
     /// the other two the sample. <see cref="VarPop(object)"/> and
     /// <see cref="VarSamp(object)"/> name the statistic on every dialect.
     /// </remarks>
-    public static VarianceFunction Variance(object expr) =>
-        new(Resolve(expr));
+    public static UnfilteredAggregateFunction Variance(object expr) =>
+        new VarianceFunction(Resolve(expr));
 
     /// <summary>
     /// The <c>VARP(<paramref name="expr"/>)</c> aggregate function: the
     /// population variance of <paramref name="expr"/> across the group.
     /// </summary>
     /// <param name="expr">The numeric expression to aggregate.</param>
-    /// <returns>A <see cref="VarpFunction"/> emitting <c>VARP(expr)</c>.</returns>
+    /// <returns>An aggregate emitting <c>VARP(expr)</c>.</returns>
     /// <remarks>SQL Server syntax. MySQL, Oracle, and PostgreSQL spell this
     /// <see cref="VarPop(object)"/>.</remarks>
-    public static VarpFunction Varp(object expr) =>
-        new(Resolve(expr));
+    public static UnfilteredAggregateFunction Varp(object expr) =>
+        new VarpFunction(Resolve(expr));
 
     /// <summary>
     /// The <c>VAR_POP(<paramref name="expr"/>)</c> aggregate function: the
     /// population variance of <paramref name="expr"/> across the group.
     /// </summary>
     /// <param name="expr">The numeric expression to aggregate.</param>
-    /// <returns>A <see cref="VarPopFunction"/> emitting <c>VAR_POP(expr)</c>.</returns>
+    /// <returns>An aggregate emitting <c>VAR_POP(expr)</c>.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL. SQL Server spells this
     /// <see cref="Varp(object)"/>.</remarks>
-    public static VarPopFunction VarPop(object expr) =>
-        new(Resolve(expr));
+    public static UnfilteredAggregateFunction VarPop(object expr) =>
+        new VarPopFunction(Resolve(expr));
 
     /// <summary>
     /// The <c>VAR_SAMP(<paramref name="expr"/>)</c> aggregate function: the
     /// sample variance of <paramref name="expr"/> across the group.
     /// </summary>
     /// <param name="expr">The numeric expression to aggregate.</param>
-    /// <returns>A <see cref="VarSampFunction"/> emitting <c>VAR_SAMP(expr)</c>.</returns>
+    /// <returns>An aggregate emitting <c>VAR_SAMP(expr)</c>.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL. SQL Server spells this
     /// <see cref="Var(object)"/>.</remarks>
-    public static VarSampFunction VarSamp(object expr) =>
-        new(Resolve(expr));
+    public static UnfilteredAggregateFunction VarSamp(object expr) =>
+        new VarSampFunction(Resolve(expr));
 }

@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class ExtractFunction : SqlExpression
+internal sealed class ExtractFunction : SqlExpression
 {
     private readonly string _datepart;
     private readonly SqlExpression _source;

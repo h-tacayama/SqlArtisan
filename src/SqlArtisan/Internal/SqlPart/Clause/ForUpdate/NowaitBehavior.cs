@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class NowaitBehavior : LockBehaviorBase
+internal sealed class NowaitBehavior : LockBehaviorBase
 {
     internal NowaitBehavior() { }
 

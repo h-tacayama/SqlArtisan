@@ -73,7 +73,7 @@ public class WindowLastValueTests
     public void LastValue_OverNullPartitionBy_ThrowsArgumentNullException()
     {
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
-            LastValue(_t.Code).Over((SqlArtisan.Internal.PartitionByClause)null!));
+            LastValue(_t.Code).Over((SqlArtisan.PartitionByClause)null!));
 
         Assert.Equal("partitionByClause", ex.ParamName);
     }

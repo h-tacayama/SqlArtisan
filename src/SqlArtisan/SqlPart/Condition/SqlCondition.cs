@@ -11,6 +11,10 @@ namespace SqlArtisan;
 /// </summary>
 public abstract class SqlCondition : SqlPart
 {
+    private protected SqlCondition()
+    {
+    }
+
     /// <summary>
     /// Combines two conditions with <c>AND</c>: <c>(<paramref name="leftSide"/>)
     /// AND (<paramref name="rightSide"/>)</c>. Chaining three or more with
@@ -19,15 +23,15 @@ public abstract class SqlCondition : SqlPart
     /// <param name="leftSide">The left operand.</param>
     /// <param name="rightSide">The right operand.</param>
     /// <returns>The combined <c>AND</c> condition.</returns>
-    public static AndCondition operator &(SqlCondition leftSide, SqlCondition rightSide)
+    public static SqlCondition operator &(SqlCondition leftSide, SqlCondition rightSide)
     {
         if (leftSide is AndCondition andCondition)
         {
-            return new(andCondition, rightSide);
+            return new AndCondition(andCondition, rightSide);
         }
         else
         {
-            return new(leftSide, rightSide);
+            return new AndCondition(leftSide, rightSide);
         }
     }
 
@@ -39,15 +43,15 @@ public abstract class SqlCondition : SqlPart
     /// <param name="leftSide">The left operand.</param>
     /// <param name="rightSide">The right operand.</param>
     /// <returns>The combined <c>OR</c> condition.</returns>
-    public static OrCondition operator |(SqlCondition leftSide, SqlCondition rightSide)
+    public static SqlCondition operator |(SqlCondition leftSide, SqlCondition rightSide)
     {
         if (leftSide is OrCondition orCondition)
         {
-            return new(orCondition, rightSide);
+            return new OrCondition(orCondition, rightSide);
         }
         else
         {
-            return new(leftSide, rightSide);
+            return new OrCondition(leftSide, rightSide);
         }
     }
 }

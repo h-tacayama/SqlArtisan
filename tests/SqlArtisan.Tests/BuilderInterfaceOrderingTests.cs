@@ -13,7 +13,7 @@ public class BuilderInterfaceOrderingTests
 
     public static IEnumerable<object[]> InterfaceFiles() =>
         Directory.GetFiles(
-                Path.Combine(FindRepoRoot(), "src", "SqlArtisan", "Internal", "SqlBuilder"),
+                Path.Combine(FindRepoRoot(), "src", "SqlArtisan", "SqlBuilder"),
                 "I*.cs",
                 SearchOption.AllDirectories)
             .Where(path => s_interfacePattern.IsMatch(File.ReadAllText(path)))

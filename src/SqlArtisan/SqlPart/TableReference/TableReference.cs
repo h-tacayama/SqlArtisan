@@ -4,9 +4,9 @@ namespace SqlArtisan;
 
 /// <summary>
 /// A named relation usable in <c>FROM</c>, a <c>JOIN</c>, or MERGE's
-/// <c>USING</c> — the base type of <see cref="DbTableBase"/>, <see cref="CteBase"/>,
-/// <see cref="DerivedTableBase"/>, and <see cref="DualTable"/>. Type a collection or
-/// helper as this to work across all four.
+/// <c>USING</c> — the base type of <see cref="DbTableBase"/>, <see cref="CteBase"/> and
+/// <see cref="DerivedTableBase"/>, and the type of <see cref="Sql.Dual"/>. Type a
+/// collection or helper as this to work across all of them.
 /// </summary>
 public abstract class TableReference : SqlPart
 {
@@ -24,10 +24,10 @@ public abstract class TableReference : SqlPart
     /// is always quoted), or <c>table.*</c> for an unaliased <see cref="DbTableBase"/>.
     /// Valid only in a <c>SELECT</c>, <c>RETURNING</c>, or <c>OUTPUT</c> list.
     /// </summary>
-    public QualifiedAsteriskMarker Asterisk =>
+    public SqlPart Asterisk =>
         string.IsNullOrEmpty(CorrelationName)
-            ? new(_name, quoteQualifier: false)
-            : new(CorrelationName, quoteQualifier: true);
+            ? new QualifiedAsteriskMarker(_name, quoteQualifier: false)
+            : new QualifiedAsteriskMarker(CorrelationName, quoteQualifier: true);
 
     internal abstract string CorrelationName { get; }
 

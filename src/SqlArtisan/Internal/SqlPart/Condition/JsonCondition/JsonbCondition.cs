@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public abstract class JsonbCondition : SqlCondition
+internal abstract class JsonbCondition : SqlCondition
 {
     private readonly SqlExpression _leftSide;
     private readonly string _operator;

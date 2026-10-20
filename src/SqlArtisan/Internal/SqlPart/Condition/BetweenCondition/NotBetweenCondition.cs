@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class NotBetweenCondition : SqlCondition
+internal sealed class NotBetweenCondition : SqlCondition
 {
     private readonly SqlExpression _leftSide;
     private readonly SqlExpression _rightSide1;
