@@ -2,7 +2,8 @@
 
 **Status:** Accepted — the root-namespace criteria and the `Internal/` clause are
 superseded by [ADR 0027](0027-public-surface-one-namespace.md): every public type
-lives in the root namespace, and the concrete nodes are `internal`.
+lives in the root namespace, and a concrete node is `internal` unless it declares
+a member or a parameter takes it.
 
 ## Context
 

@@ -415,19 +415,20 @@ decided by compiling them against every neighbouring order, not by this file.
 
 A public `Sql.*` factory, operator or fluent member returns the narrowest public
 type that carries every member its result offers (ADR 0027): `SqlExpression` or
-`SqlCondition` for a node offering none (`Sql.Abs`, `Sql.Null`, a comparison),
-the family's base where the members come from one (`Sql.Sum` →
+`SqlCondition` for a node offering none (`Sql.Abs`, `Sql.Null`, `a < b`), the
+family's base where the members come from one (`Sql.Sum` →
 `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`), the
 nearest public base for any other (`Sql.Nowait` → `LockBehaviorBase`,
 `Sql.Rollup` → `SqlPart`), and a type of its own only when the node declares a
 member (`Sql.Unnest` → `UnnestFunction`, for `AsTable`) or a parameter takes it
-(`Sql.Distinct` → `DistinctKeyword`). The concrete node is `internal`. No type is kept for a modifier not yet offered — which
-ones a later release might add is a forecast, not a criterion. One added later to a
-function of a shared return type comes as an overload or a marker argument, placed
-ahead of the existing `object` slots; at an arity an existing overload shares,
-compile the neighbouring orders first, as § Operator overloads asks, since a `null`
-literal there can turn a call ambiguous (CS0121). As a member on the result it needs
-a new return type, a binary break after 1.0.
+(`Sql.Distinct` → `DistinctKeyword`, `a == b` → `EqualityCondition`). Every
+other concrete node is `internal`. No type is kept for a modifier not yet
+offered — which ones a later release might add is a forecast, not a criterion. One
+added later to a function of a shared return type comes as an overload or a marker
+argument, placed ahead of the existing `object` slots; at an arity an existing
+overload shares, compile the neighbouring orders first, as § Operator overloads
+asks, since a `null` literal there can turn a call ambiguous (CS0121). As a member
+on the result it needs a new return type, a binary break after 1.0.
 
 > Worked example (#282): `Sql.Bind(value)` returns `BindValue`, not
 > `SqlExpression`: holding the result across clauses (`BindValue p10 = Bind(10);`)

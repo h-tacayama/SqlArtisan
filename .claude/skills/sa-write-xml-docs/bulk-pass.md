@@ -11,8 +11,9 @@ wrapper around it.
 **enforces** "document every public/protected member" via **CS1591** (one
 warning per undocumented publicly-visible member). Never turn it off, even
 for a partial batch: switching it off drops the shipped XML and silences the
-CS1591/CS1574 gate. Every public type is in scope: the nodes are `internal` (ADR
-0027), so no layer is exempt.
+CS1591/CS1574 gate. Every public type is in scope, wherever its file lives: a
+node stays public only when it declares a member or a parameter takes it (ADR
+0027), and no layer is exempt.
 
 ## The CS1591 detector = work-list and exit condition
 

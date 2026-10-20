@@ -33,7 +33,7 @@ that can take surface back.
   keeps a type of its own only when it declares a member (`Over`, `Filter`,
   `WithinGroup`, `Escape`, `Then`, `AsTable`, `Percent`, …) or a parameter takes
   it (`DistinctKeyword`, `FrameBound`, …).
-- **The concrete nodes are `internal`**, in `src/SqlArtisan/Internal/` and the
+- **Every other concrete node is `internal`**, in `src/SqlArtisan/Internal/` and the
   `SqlArtisan.Internal` namespace, which exports nothing.
 - **Every public type lives in the root namespace `SqlArtisan`**, its file
   under `src/SqlArtisan/Sql/`, `SqlBuilder/`, `SqlPart/` or `Metadata/`; the

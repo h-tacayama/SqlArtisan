@@ -78,18 +78,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** the `Sql.*` factories, operators and fluent members return the
   narrowest public type that carries their result's members, and every public
   type lives in the `SqlArtisan` namespace. A call whose result offers no member
-  returns `SqlExpression` or `SqlCondition` (`Sql.Abs`, `Sql.Coalesce`, a
-  comparison); one whose members come from its family returns the family's base
-  (`Sql.Sum` → `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`,
-  `Sql.FirstValue` → `ValueAnalyticFunction`), and any other its nearest public
-  base (`Sql.Rollup`, `t.Asterisk` → `SqlPart`); and the 192 node types that
-  declared no member and that no parameter took, four of them abstract bases
-  (`BinaryOperator`, `GroupingElement`, …), are `internal`. The
-  types that stay public — the builder-stage interfaces, the clause and branch
-  types with members (`OrderByClause`, `PartitionByClause`, `LikeCondition`, …)
-  and the types a parameter takes (`DistinctKeyword`, `FrameBound`,
-  `CaseElseExpression`, …) — move from
-  `SqlArtisan.Internal` to `SqlArtisan`, which no longer needs a second `using`.
+  returns `SqlExpression` or `SqlCondition` (`Sql.Abs`, `Sql.Coalesce`, `a < b`);
+  one whose members come from its family returns the family's base (`Sql.Sum` →
+  `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`,
+  `Sql.FirstValue` → `ValueAnalyticFunction`); one whose node declares a member or
+  is taken by a parameter keeps its own type (`Sql.Unnest` → `UnnestFunction`,
+  `Sql.Else` → `CaseElseExpression`, `a == b` → `EqualityCondition`); and any
+  other returns its nearest public base (`Sql.Rollup`, `t.Asterisk` → `SqlPart`).
+  The 192 node types that declared no member and that no parameter took, four of
+  them abstract bases (`BinaryOperator`, `GroupingElement`, …), are `internal`.
+  The types that stay public — the builder-stage interfaces, the clause and
+  branch types with members (`OrderByClause`, `PartitionByClause`,
+  `LikeCondition`, …) and the types a parameter takes (`DistinctKeyword`,
+  `FrameBound`, `CaseElseExpression`, …) — move from `SqlArtisan.Internal` to
+  `SqlArtisan`, which no longer needs a second `using`.
   Every chain that compiled still compiles and emits the same SQL; code
   naming a now-internal type (`SumFunction s = Sum(x)`) no longer compiles, and an
   assembly built against an earlier release must be rebuilt. Most returned types
