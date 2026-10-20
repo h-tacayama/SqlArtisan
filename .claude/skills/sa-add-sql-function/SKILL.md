@@ -46,7 +46,7 @@ Create `src/SqlArtisan/Internal/SqlPart/Expression/Function/<Category>/<Name>Fun
 ```csharp
 namespace SqlArtisan.Internal;
 
-public sealed class <Name>Function : SqlExpression
+internal sealed class <Name>Function : SqlExpression
 {
     private readonly SqlExpression _expr;
 
@@ -64,7 +64,12 @@ public sealed class <Name>Function : SqlExpression
 ```
 
 Rules:
-- `public sealed class`, derives from `SqlExpression`, constructor is `internal`.
+- `internal sealed class`, derives from `SqlExpression`, constructor is `internal`.
+  A node that declares a public member (a fluent `.Over(...)`, `.WithinGroup(...)`)
+  is a public type instead, in the root namespace under
+  `src/SqlArtisan/SqlPart/Expression/Function/<Category>/` with XML docs, or derives
+  from the family's public base that already declares it (`UnfilteredAggregateFunction`
+  for `.Over` / `.Filter`) — ADR 0027.
 - Take `SqlExpression` (or `SqlExpression?` for optional) args — never raw
   `object`; resolution happens in the factory (step 3).
 - Emit through the fluent `SqlBuildingBuffer` only. **Never** branch on `Dbms`
@@ -112,11 +117,11 @@ file if no function starts with that letter yet — mirror the header of an
 existing `Sql.*.cs`). Insert in alphabetical order within the file.
 
 ```csharp
-public static <Name>Function <Name>(object expr) => new(Resolve(expr));
+public static SqlExpression <Name>(object expr) => new <Name>Function(Resolve(expr));
 
 // multiple args:
-public static <Name>Function <Name>(object a, object b) =>
-    new(Resolve(a), Resolve(b));
+public static SqlExpression <Name>(object a, object b) =>
+    new <Name>Function(Resolve(a), Resolve(b));
 
 // DISTINCT overload (aggregates), see Avg in Sql.A.cs. It returns the shared
 // DistinctAggregateFunction, which withholds the windows no engine runs on a
@@ -131,7 +136,11 @@ Rules:
   expressions); wrap **every** value arg with `Resolve(...)`
   (`using static SqlArtisan.Internal.ExpressionResolver;` is at the top of each
   `Sql.*.cs`).
-- Return the concrete `<Name>Function` type, not `SqlExpression`.
+- Return the narrowest public type carrying the result's members: `SqlExpression`
+  for a plain function, the family's base (`UnfilteredAggregateFunction`,
+  `AnalyticFunction`, …) where the node derives from one, its own type only when it
+  declares a member (`.claude/rules/public-api-design.md` § Factory return types).
+  The target-typed `new(...)` no longer fits; name the node type.
 - Keep the signature on one line when it fits within **100 columns**; wrap
   one parameter per line only when it would not (#209). Where the expression
   body breaks after `=>` is the author's call

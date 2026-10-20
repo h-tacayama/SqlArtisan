@@ -22,12 +22,12 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | Path | Purpose |
 |------|---------|
 | `src/SqlArtisan/Sql/Sql.{A..Y}.cs` | Public API. `static partial class Sql`, one file per **leading letter** of the function name (gaps at K, Q, X, Z). |
-| `src/SqlArtisan/Internal/SqlPart/Expression/Function/**` | Internal function node classes (`*Function : SqlExpression`), organized into categories (see below). |
+| `src/SqlArtisan/Internal/SqlPart/Expression/Function/**` | Function node classes (`internal sealed *Function`), organized into categories (see below). |
 | `src/SqlArtisan/Internal/SqlBuilder/**` | Statement builders (Select/Insert/Update/Delete/Merge/With), `SqlBuildingBuffer`, validation guards. |
 | `src/SqlArtisan/Internal/SqlBuilder/DbmsDialect/**` | Per-DBMS syntax (`IDbmsDialect`: `AliasQuote`, `ParameterMarker`, `BackslashEscapesStringLiterals`, `BackslashLiteralsUseEscapeString`, `DmlTableAliasSeparator`, `ExcludedName`, `MergeTerminator`, `NonAsciiLiteralsUseNationalPrefix`, `ReturningIgnoresTargetAlias`). |
 | `src/SqlArtisan/Internal/SqlPart/Keywords.cs` | All SQL keyword string constants. |
-| `src/SqlArtisan/SqlBuilder/` | Public surface: `Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`, `ISqlBuilder`, `ISubquery`, `OutputParameter`. |
-| `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. Everything here renders SQL or is consumed while rendering it. |
+| `src/SqlArtisan/SqlBuilder/` | Public surface: `Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`, `ISqlBuilder`, `ISubquery`, `OutputParameter`, and the builder-stage interfaces (`I<Statement>Builder*`, one folder per statement). |
+| `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`, including the capability types the factories return (`AggregateFunction`, `OrderByClause`, …). Everything here renders SQL or is consumed while rendering it. |
 | `src/SqlArtisan/Metadata/` | Schema-metadata attributes on generated table classes (`DbColumnMetadataAttribute`, `DbTypeCategory`). Compile-time data, never rendered and never read at run time. |
 | `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0302). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
 | `src/SqlArtisan.ArrayBind/` | Oracle array-bind execution (one round trip per batch, not per row). |
@@ -95,7 +95,9 @@ Most function node classes sit in a category folder under
 `ComparisonFunction`, `ConversionFunction`, `DateTimeFunction`,
 `FullTextSearchFunction`, `GroupingFunction`, `JsonFunction`, `NumericFunction`,
 `OrderedSetAggregateFunction`, `SequenceFunction`, `StringAggregateFunction`.
-Shared bases and one uncategorized node sit at that folder's root.
+Internal shared bases and one uncategorized node sit at that folder's root; the
+public capability bases (`AggregateFunction`, `AnalyticFunction`, …) mirror the
+categories under `src/SqlArtisan/SqlPart/Expression/Function/`.
 
 ## Analyzer
 
@@ -211,15 +213,11 @@ which chunks it across single reviewers instead of tripling it.
   convention in `.claude/rules/csharp-formatting.md`.
 - Keep DBMS-specific syntax inside `DbmsDialect`; never branch on `Dbms` inside
   function nodes.
-- Public API lives in `Sql.*.cs`, `src/SqlArtisan/SqlBuilder/`, the
-  table-reference types under `src/SqlArtisan/SqlPart/TableReference/`,
-  `DbColumn`/`BindValue`/`BindArrayValue` under `src/SqlArtisan/SqlPart/Expression/`, the
-  function-argument enums under `src/SqlArtisan/SqlPart/FunctionArgument/`, and
-  the schema-metadata attributes under `src/SqlArtisan/Metadata/`. Types users must
-  **name** in a declaration position (`SqlExpression`, `SqlCondition`,
-  `EqualityCondition`, `TableReference`, `ISubquery`, `SortOrder`, `ExpressionAlias`,
-  `CommonTableExpression`, `DbSequence`) live in the root namespace. Everything under `Internal/` is
-  implementation detail.
+- Every public type lives in the root namespace `SqlArtisan`, its file under
+  `src/SqlArtisan/Sql/`, `SqlBuilder/`, `SqlPart/` or `Metadata/`; everything under
+  `Internal/` is `internal` (ADR 0027). A factory returns the narrowest public type
+  that carries the members its result offers — `SqlExpression` or `SqlCondition` for
+  a node with none — so a new node class is `internal sealed`.
 - Name public members after their SQL token — **underscores are the only word
   boundaries** (`ADD_MONTHS`→`AddMonths`, `DATEADD`→`Dateadd`).
 - Make invalid fluent chains uncompilable through the **return type** — the

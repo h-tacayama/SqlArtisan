@@ -3,7 +3,7 @@ description: Public API design decisions — naming categories, overload split f
 paths:
   - "src/SqlArtisan/Sql/*.cs"
   - "src/SqlArtisan/SqlPart/**/*.cs"
-  - "src/SqlArtisan/Internal/SqlBuilder/**/I*.cs"
+  - "src/SqlArtisan/SqlBuilder/**/I*.cs"
   - "src/SqlArtisan.Analyzers/DialectMatrix.cs"
   - "src/SqlArtisan.Analyzers/DiagnosticDescriptors.cs"
   - "src/SqlArtisan.Analyzers/AnalyzerConfigResolver.cs"
@@ -411,19 +411,22 @@ decided by compiling them against every neighbouring order, not by this file.
 - A `dynamic` operand is outside the requirement: it binds at run time to
   whatever order its runtime type forms, so an `object` compares references.
 
-## Factory return types: the concrete node type, not `SqlExpression`
+## Factory return types: the narrowest type carrying the result's members
 
-A public `Sql.*` factory returns its own concrete node type (`Sql.Null` →
-`NullExpression`, `Sql.Abs` → `AbsFunction`) — never the general
-`SqlExpression` supertype, even for a factory whose whole point is that
-callers hold the result in a variable. Upcasting there discards the
-type-level self-documentation the factory exists to provide; a caller who
-wants the generic supertype can still declare one locally.
+A public `Sql.*` factory, operator or fluent member returns the narrowest public
+type that carries every member its result offers (ADR 0027): `SqlExpression` or
+`SqlCondition` for a node declaring none (`Sql.Abs`, `Sql.Null`, a comparison),
+the family's base where the members come from one (`Sql.Sum` →
+`UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`), and a type
+of its own only when the node declares a member (`Sql.Unnest` → `UnnestFunction`,
+for `AsTable`) or a parameter takes it (`Sql.Distinct` → `DistinctKeyword`). The
+concrete node is `internal`. A function whose modifier is foreseeable gets its own
+type when it is added: a member added later to a function sharing a return type
+needs a new return type, a binary break after 1.0.
 
-> Worked example (#282): the issue text that specified `Sql.Bind(value)`
-> proposed `SqlExpression Bind(object value)` as its return type — an
-> inconsistency with this rule caught in review and corrected to return the
-> pre-existing `BindValue` node directly.
+> Worked example (#282): `Sql.Bind(value)` returns `BindValue`, not
+> `SqlExpression`: holding the result across clauses (`BindValue p10 = Bind(10);`)
+> is the type's whole feature, so it is a handle a caller names, not a node.
 
 ## A node's fluent member returns a new node
 
@@ -450,36 +453,21 @@ compose and set-operator freezes, and the duplicate-clause guard
 chain") reject the reuse shapes that would rewrite a statement already holding
 the builder; two statements cut from one held prefix still share it.
 
-## Root namespace vs `Internal` (ADR 0005)
+## One namespace (ADR 0027)
 
-A type belongs in the root `SqlArtisan` namespace only when **all three** hold:
+Every public type lives in the root namespace `SqlArtisan`, its file under
+`src/SqlArtisan/Sql/`, `SqlBuilder/`, `SqlPart/` or `Metadata/`. `Internal/` holds
+`internal` types only, and the package exports no other namespace. Moving a public
+type after 1.0 breaks callers; moving the `Metadata/` pair also breaks
+TableClassGen's emitted code and the analyzer's attribute lookup (#614).
 
-1. It is a query's **content** — a relation, value, predicate, sort item, or
-   handle — not clause syntax, statement decoration, or a pending intermediate.
-2. A mainstream flow must **write its name** in a declaration position.
-3. No root type already names it.
-
-Everything else — concrete nodes, clause types, builder internals — belongs in
-`Internal/` and is held only through the root types.
-
-**The three criteria govern query content; argument and metadata types sit in
-the root on a separate ground.** `DateTimePart`, `RegexpOptions` and
-`SearchModifier` (`FunctionArgument/`), and `DbColumnMetadataAttribute` and
-`DbTypeCategory` (`Metadata/`), fail criterion 1, yet callers and
-TableClassGen's emitted code write their names, and the root is the only
-namespace that is not `Internal`; ADR 0005 likewise places `SqlBuilder/` in the
-public surface without the three criteria. Moving any of them after 1.0 breaks
-callers; moving the `Metadata/` pair also breaks TableClassGen's emitted code
-and the analyzer's attribute lookup (#614).
-
-**Recorded placement — `BindArrayValue` stays in the root.** It adds no member
+**Recorded placement — `BindArrayValue` is a type of its own.** It adds no member
 to `BindValue`, but it is the only way to tell an array bind from a scalar one:
-`SqlParameters.ForEach` hands every binding over as `BindValue`, and an
-execution layer must type-test for the array case — Dapper would otherwise
-expand the array into an `IN` list, so `SqlArtisan.Dapper` does exactly this
+`SqlParameters.ForEach` hands every binding over as `BindValue`, and an execution
+layer must type-test for the array case — Dapper would otherwise expand the array
+into an `IN` list, so `SqlArtisan.Dapper` does exactly this
 (`SqlParametersExtensions.cs`). Any other execution layer written against
-`SqlParameters` needs the same test, so criterion 3 fails for it: no root type
-names the distinction (#556).
+`SqlParameters` needs the same test (#556).
 
 An execution layer also **binds by name**. One `BindValue` passed to several
 clauses emits the same marker in each (`BindValue`'s own summary documents
@@ -488,15 +476,16 @@ position, the repeated marker has no parameter of its own. Dapper sets
 `BindByName` on Oracle commands itself; a layer that builds its own
 `OracleCommand`, as `SqlArtisan.ArrayBind` does, must set it (#640).
 
-A **public** type in `Internal/` is public only because a signature hands it
-back, so it exposes **no public constructor**, and it is declared `internal`
-when no signature names it. Both are gated (`PublicSurfaceBoundaryTests`), along
-with the namespace set the two of them key on. Two spellings publish a
-constructor without anyone writing `public`, which is how 30 nodes became
-`new`-able (#487) — 28 by a **primary constructor** on a concrete class, whose
-accessibility follows the class, and 2 by declaring **no constructor at all**.
-On an abstract class either spelling is `protected` instead — reachable by
-deriving from another assembly, which is how three bases could be subclassed to
+A public type a caller does not create is public only because a signature hands
+it back, so it exposes **no constructor another assembly can reach**, and it is
+declared `internal` when no signature names it. Both are gated
+(`PublicSurfaceBoundaryTests`), with the single exported namespace; the handles a
+caller creates (`DbTable`, `DbColumn`, `BindValue`, …) are that test's allowlist.
+Two spellings publish a constructor without anyone writing `public`, which is how
+30 nodes became `new`-able (#487) — 28 by a **primary constructor** on a concrete
+class, whose accessibility follows the class, and 2 by declaring **no constructor
+at all**. On an abstract class either spelling is `protected` instead — reachable
+by deriving from another assembly, which is how three bases could be subclassed to
 emit an arbitrary operator token (#492). So write the constructor out: `internal`
 on a public concrete node, `private protected` on a public abstract base. An
 internal node can keep its primary constructor.
@@ -507,14 +496,6 @@ package's `.Internal` namespace, but the rule there is plainer: no signature
 hands a helper back, so a type is `internal` unless it is a static entry point a
 caller names. `PublicSurfaceBoundaryTests` holds each companion's exported set
 to its listed entry points (#640).
-
-> Worked example (#282): fixing `Sql.Bind` to return `BindValue` (above) put
-> that type through criterion 2 — its entire feature is a caller holding the
-> result across clauses (`BindValue p10 = Bind(10);`) — so `BindValue` moved
-> from `Internal/` to `src/SqlArtisan/SqlPart/Expression/`, beside `DbColumn`,
-> and gained full XML docs once it left the `Internal/SqlPart/**` CS1591
-> suppression. A factory's return-type fix can surface a namespace question
-> for the type it returns; check both together.
 
 ## Opinions live in docs and the analyzer, not in API holes
 
@@ -605,8 +586,8 @@ reading applies: `Over` on `StringAgg` and on a completed `Listagg` (Oracle's
 `INTERVAL`, the `GROUPS` frame unit and `EXCLUDE`; `IGNORE NULLS` /
 `RESPECT NULLS` and `NTH_VALUE ... FROM LAST`; the hypothetical-set
 `RANK(x) WITHIN GROUP (...)`; and `NEXT VALUE FOR ... OVER (ORDER BY ...)`.
-`Over` and `Filter` on `GroupConcat` are the exception: `GroupConcatFunction`
-is one type across its DISTINCT, inline-`ORDER BY` and `SEPARATOR` forms, no
+`Over` and `Filter` on `GroupConcat` are the exception: `GroupConcat` returns
+`SqlExpression` across its DISTINCT, inline-`ORDER BY` and `SEPARATOR` forms, no
 engine runs a window over those forms (SQLite 3.45.1, live) nor `FILTER` over
 `SEPARATOR`, so offering either by type needs those forms split into types of
 their own, a return-type change and so a major version after 1.0. #662 did not

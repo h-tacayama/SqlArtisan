@@ -6485,39 +6485,46 @@ treated as a bug — please open an
 
 ## What the public API is
 
-The packages expose these namespaces, and they carry different promises.
+Each package exports one namespace, and the core's carries two kinds of type
+with different promises.
 
-- **`SqlArtisan`** — the API. Every type here is yours to name in a
-  declaration, and everything on this page applies to it in full. One
-  exception: deriving from `BindValue` is not covered. It is unsealed only so
-  that `BindArrayValue` can derive from it; construct it, don't subclass it.
-- **`SqlArtisan.Internal`** — the values the API hands back. A `Sql.*` call
-  returns a type from here because the chain is typed: `Sql.Sum(...)` has to
-  return something that offers `.Over(...)` where `Sql.Abs(...)` does not.
-  You receive these values and call the members the reference documents.
+- **`SqlArtisan`** — the API.
+  - **The types you name and create** — tables and columns, CTEs and derived
+    tables, bind values, the `Sql` factories, the configuration and statement
+    types: everything on this page applies to them in full. One exception:
+    deriving from `BindValue` is not covered. It is unsealed only so that
+    `BindArrayValue` can derive from it; construct it, don't subclass it.
+  - **The values the API hands back.** A `Sql.*` call, operator, or chain step
+    returns a node, clause, or builder stage typed by what it offers next:
+    `Sql.Sum(...)` returns an `UnfilteredAggregateFunction`, which offers
+    `.Over(...)` and `.Filter(...)`, and `Sql.Abs(...)` a plain
+    `SqlExpression`. You receive these values and call the members the
+    reference documents.
 
-  **Covered**: each type's name, and the members the reference documents — so
-  code that receives one of these values keeps compiling, and an assembly
-  compiled against one release keeps binding.
+    **Covered**: each type's name, the members the reference documents, and
+    which type each call returns — so code that receives one of these values
+    keeps compiling, and an assembly compiled against one release keeps
+    binding.
 
-  **Not covered**: deriving from one, and any member the reference does not
-  document. For the classes here, deriving is not merely uncovered but
-  impossible: none has a constructor your assembly can reach — you get each one
-  from the `Sql.*` call, operator, or chain step that produces it. The
-  interfaces are the half no constructor can close. A stage composing
-  `ISubquery` is closed anyway, since that interface declares an internal
-  member; the rest are implementable, which is what "builder-stage interfaces
-  are not for user implementation" below is about.
+    **Not covered**: deriving from one, and any member the reference does not
+    document. For the classes, deriving is not merely uncovered but
+    impossible: none has a constructor your assembly can reach — you get each
+    one from the call that produces it. The builder-stage interfaces are the
+    half no constructor can close. A stage composing `ISubquery` is closed
+    anyway, since that interface declares an internal member; the rest are
+    implementable, which is what "builder-stage interfaces are not for user
+    implementation" below is about.
 - **`SqlArtisan.Dapper`** and **`SqlArtisan.ArrayBind`** — the integration
   packages' own API, covered exactly like `SqlArtisan`.
 - **`SqlArtisan.TableClassGen`** ships as a command-line tool and exposes no
   public API at all; what it commits to is its
   [command-line surface](#tableclassgens-command-line-surface).
 
-The split is gated, not merely stated. A public type in `SqlArtisan.Internal`
-that no public signature hands back fails the test suite, as does one that
-offers a constructor another assembly can reach — so the namespace cannot
-quietly accumulate surface the commitment above was never meant to cover.
+The split is gated, not merely stated. A type exported outside `SqlArtisan`, a
+type no caller constructs that no public signature hands back, and a handed-back
+type offering a constructor another assembly can reach each fail the test suite
+— so the namespace cannot quietly accumulate surface the commitment above was
+never meant to cover.
 
 ## What counts as breaking
 

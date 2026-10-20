@@ -75,6 +75,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   17, SQLite 3.50, and SQL Server 2022 and 2025. (#662)
 
 ### Changed
+- **Breaking:** the `Sql.*` factories, operators and fluent members return the
+  narrowest public type that carries their result's members, and every public
+  type lives in the `SqlArtisan` namespace. A call with no member of its own
+  returns `SqlExpression` or `SqlCondition` (`Sql.Abs`, `Sql.Coalesce`, a
+  comparison); one whose members come from its family returns the family's base
+  (`Sql.Sum` → `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`,
+  `Sql.FirstValue` → `ValueAnalyticFunction`, `Sql.Rollup` → `GroupingElement`,
+  `t.Asterisk` → `SqlPart`); and the 188 node types that offered no member are
+  `internal`. The types that stay public — the builder-stage interfaces, the
+  clause and branch types with members (`OrderByClause`, `PartitionByClause`,
+  `LikeCondition`, …) and the markers (`DistinctKeyword`, `FrameBound`, …) — move
+  from `SqlArtisan.Internal` to `SqlArtisan`, which no longer needs a second
+  `using`. Every chain that compiled still compiles and emits the same SQL; code
+  naming a concrete node type (`SumFunction s = Sum(x)`) no longer compiles, and an
+  assembly built against an earlier release must be rebuilt. A guard message
+  naming a moved type prints its new name (`SqlArtisan.AsteriskMarker`), and
+  `SQLA0302` no longer reports a factory result held in a variable before it is
+  interpolated, since a `SqlExpression` may be a `BindValue` subclass overriding
+  `ToString`. (#686)
 - `Unnest(...).AsTable(alias, columns)` accepts more column names than there are
   arrays: an array of a composite type yields a column per field, which
   PostgreSQL names this way. A list naming more columns than a scalar array has

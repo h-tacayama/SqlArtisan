@@ -193,6 +193,21 @@ public class CSharpFallbackAnalyzerTests
             """);
 
     [Fact]
+    public Task FactoryResultInterpolated_ReportsSqla0302() =>
+        RunReporting(
+            "var q = Select(t.Id).From(t).Where(t.Name.Like($\"{|#0:{Abs(t.Id)}|}\"));",
+            "SQLA0302");
+
+    // A factory result types as SqlExpression (ADR 0027), which may hold a user's
+    // BindValue subclass overriding ToString, so once held it is no longer provable.
+    [Fact]
+    public Task FactoryResultHeldInAVariable_StaysSilent() =>
+        RunSilent("""
+            var e = Abs(t.Id);
+            var q = Select(t.Id).From(t).Where(t.Name.Like($"{e}"));
+            """);
+
+    [Fact]
     public Task SubqueryConcatenatedIntoLike_ReportsSqla0302() =>
         RunReporting(
             "var q = Select(t.Id).From(t)"

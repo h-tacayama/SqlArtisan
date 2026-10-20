@@ -1,6 +1,8 @@
 # ADR 0005 — Public API location
 
-**Status:** Accepted
+**Status:** Accepted — the root-namespace criteria and the `Internal/` clause are
+superseded by [ADR 0027](0027-public-surface-one-namespace.md): every public type
+lives in the root namespace, and the concrete nodes are `internal`.
 
 ## Context
 

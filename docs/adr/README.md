@@ -29,7 +29,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 | [0002](0002-dbms-differences-in-dialect-layer.md) | Handling DBMS differences: tokens in the dialect layer, constructs as per-dialect APIs | | Accepted |
 | [0003](0003-dbms-difference-safety.md) | DBMS-difference safety: permissive API + opt-in analyzer | Analyzer | Accepted |
 | [0004](0004-automatic-parameterization.md) | Values are automatically parameterized | | Accepted |
-| [0005](0005-public-api-in-sql-partial-class.md) | Public API location | | Accepted |
+| [0005](0005-public-api-in-sql-partial-class.md) | Public API location | | Accepted (criteria superseded by 0027) |
 | [0006](0006-performance-allocation-light.md) | Performance is a feature: allocation-light building | | Accepted |
 | [0007](0007-validity-enforcement-boundary.md) | What the library rejects: grammatical completeness vs dialect availability | Boundary | Accepted |
 | [0008](0008-analyzer-override-configuration.md) | Analyzer override configuration: keys, precedence, and what's out of scope | Analyzer | Accepted |
@@ -51,6 +51,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 | [0024](0024-analyzer-legacy-target-pair-removal.md) | Removing the legacy target pair: a removed key is reported, never ignored | Analyzer | Accepted |
 | [0025](0025-analyzer-configuration-validation.md) | Analyzer configuration validation: a line that configures nothing is reported | Analyzer | Accepted |
 | [0026](0026-analyzer-contract-stability.md) | The analyzer's contract: what a release may change in its IDs and configuration | Analyzer | Accepted |
+| [0027](0027-public-surface-one-namespace.md) | The public surface: one namespace, and capability return types | | Accepted |
 
 ### Clusters
 
