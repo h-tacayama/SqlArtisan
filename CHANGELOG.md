@@ -82,17 +82,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   comparison); one whose members come from its family returns the family's base
   (`Sql.Sum` → `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`,
   `Sql.FirstValue` → `ValueAnalyticFunction`, `Sql.Rollup` → `GroupingElement`,
-  `t.Asterisk` → `SqlPart`); and the 188 node types that offered no member are
-  `internal`. The types that stay public — the builder-stage interfaces, the
-  clause and branch types with members (`OrderByClause`, `PartitionByClause`,
-  `LikeCondition`, …) and the markers (`DistinctKeyword`, `FrameBound`, …) — move
-  from `SqlArtisan.Internal` to `SqlArtisan`, which no longer needs a second
-  `using`. Every chain that compiled still compiles and emits the same SQL; code
-  naming a concrete node type (`SumFunction s = Sum(x)`) no longer compiles, and an
+  `t.Asterisk` → `SqlPart`); and the 191 node types that offered no member,
+  three of them abstract bases (`BinaryOperator`, …), are `internal`. The types
+  that stay public — the builder-stage interfaces, the clause and branch types
+  with members (`OrderByClause`, `PartitionByClause`, `LikeCondition`, …) and the
+  markers (`DistinctKeyword`, `FrameBound`, …) — move from `SqlArtisan.Internal`
+  to `SqlArtisan`, which no longer needs a second `using`. Every chain that compiled still compiles and emits the same SQL; code
+  naming a now-internal type (`SumFunction s = Sum(x)`) no longer compiles, and an
   assembly built against an earlier release must be rebuilt. Most returned types
   are no longer sealed, so a C# reference comparison between two SqlArtisan
   values that failed to compile (CS0019) can now compile and bind a `bool`;
-  `SQLA0301` reports it only where one operand can hold an expression. A held
+  `SQLA0301` reports it only where both operands can hold an expression. A held
   `FirstValue` / `LastValue` no longer gets `SQLA0102`'s ordered-window report on
   SQL Server, and a held result whose return type is no longer sealed no longer
   gets `SQLA0302` when interpolated or concatenated (a sealed one such as

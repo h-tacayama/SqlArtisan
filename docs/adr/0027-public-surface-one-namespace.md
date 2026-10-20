@@ -57,8 +57,8 @@ that can take surface back.
 - Most returned types are no longer sealed, so a C# reference comparison between
   two SqlArtisan values that failed with CS0019 can compile and bind a `bool`.
   Those orders sit in `public-api-design.md`'s open list, and `SQLA0301` reports
-  one only where an operand can hold an expression (ADR 0023); keeping one sealed
-  type per node to hold them shut is the cost this decision declines. A held
+  one only where neither operand rules out an expression (ADR 0023); keeping one
+  sealed type per node to hold them shut is the cost this decision declines. A held
   result whose return type is no longer sealed no longer gets `SQLA0302`, which
   proves a non-sealed value only where a SqlArtisan member has just returned it.
 - An analyzer rule cannot tell nodes apart by a receiver's static type: the
