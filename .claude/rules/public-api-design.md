@@ -415,7 +415,7 @@ decided by compiling them against every neighbouring order, not by this file.
 
 A public `Sql.*` factory, operator or fluent member returns the narrowest public
 type that carries every member its result offers (ADR 0027): `SqlExpression` or
-`SqlCondition` for a node declaring none (`Sql.Abs`, `Sql.Null`, a comparison),
+`SqlCondition` for a node offering none (`Sql.Abs`, `Sql.Null`, a comparison),
 the family's base where the members come from one (`Sql.Sum` →
 `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`), the
 nearest public base for any other (`Sql.Nowait` → `LockBehaviorBase`,
