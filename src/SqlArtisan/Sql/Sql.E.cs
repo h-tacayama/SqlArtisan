@@ -18,7 +18,8 @@ public static partial class Sql
     /// References a column of the row proposed for insertion inside an UPSERT
     /// update clause (PostgreSQL/SQLite <c>EXCLUDED</c>, MySQL row alias).
     /// </summary>
-    /// <param name="column">The conflicting-insert column to reference.</param>
+    /// <param name="column">The conflicting-insert column to reference, a column of the
+    /// <c>INSERT</c> target table.</param>
     /// <returns>An <see cref="ExcludedColumn"/> referencing the proposed row's
     /// value of <paramref name="column"/>.</returns>
     /// <remarks>MySQL (8.0.19+), PostgreSQL, and SQLite syntax — SqlArtisan

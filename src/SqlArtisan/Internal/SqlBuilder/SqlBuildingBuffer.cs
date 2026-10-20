@@ -35,6 +35,10 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // The innermost nested query block, whose FROM a bare column is checked against
     // (#677); this one field costs every build 8 bytes.
     private SelectBuilder? _block;
+    // The INSERT / UPDATE / DELETE target EXCLUDED / INSERTED / DELETED read, which drop
+    // their column's owner, so another table's column would read the target's (ADR 0006:
+    // 8 bytes a build).
+    private DbTableBase? _pseudoRowTarget;
 
     internal SqlBuildingBuffer(Dbms dbms)
     {
@@ -388,6 +392,20 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
     internal void SetCorrelatedDmlGuardTarget(DbTableBase? target) =>
         _correlatedDmlTarget = target;
+
+    internal DbTableBase? SwapPseudoRowTarget(DbTableBase? target)
+    {
+        DbTableBase? outer = _pseudoRowTarget;
+        _pseudoRowTarget = target;
+        return outer;
+    }
+
+    // With no INSERT / UPDATE / DELETE target (a SELECT, a MERGE) where the pseudo-row
+    // sits is the engine's to reject, as for any complete construct (#675).
+    internal bool ReadsPseudoRowTarget(DbColumn column) =>
+        _pseudoRowTarget is not { } target || ColumnListGuard.IsColumnOf(column, target);
+
+    internal string ExcludedName => _dialect.ExcludedName;
 
     internal SqlBuildingBuffer AppendReturningItems(SqlPart[] items)
     {

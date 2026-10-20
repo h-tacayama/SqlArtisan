@@ -1049,4 +1049,20 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             "SELECT 'a' LIKE ANY (SELECT 'a') ESCAPE '!'"));
     }
+
+    // #675: excluded holds the target's proposed row alone (3.50.4), so another table's
+    // value is read through a subquery.
+    [Fact]
+    public void PseudoRowColumn_ReadsAnotherTableThroughASubquery()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute(
+            "CREATE TEMP TABLE pr_t (a INT PRIMARY KEY, b INT); INSERT INTO pr_t VALUES (1, 10); "
+                + "CREATE TEMP TABLE pr_u (a INT, b INT); INSERT INTO pr_u VALUES (1, 99);");
+
+        connection.Execute(
+            "INSERT INTO pr_t AS t VALUES (1, 5) ON CONFLICT (a) DO UPDATE SET b = "
+                + "(SELECT u.b FROM pr_u u WHERE u.a = excluded.a)");
+        Assert.Equal(99, connection.ExecuteScalar<int>("SELECT b FROM pr_t"));
+    }
 }

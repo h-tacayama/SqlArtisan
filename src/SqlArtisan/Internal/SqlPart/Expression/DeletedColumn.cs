@@ -6,14 +6,23 @@ namespace SqlArtisan.Internal;
 /// </summary>
 public sealed class DeletedColumn : SqlExpression
 {
-    private readonly string _columnName;
+    private readonly DbColumn _column;
 
     internal DeletedColumn(DbColumn column)
     {
-        _columnName = column.Name;
+        _column = column;
     }
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Deleted}.")
-        .Append(_columnName);
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        if (!buffer.ReadsPseudoRowTarget(_column))
+        {
+            throw new ArgumentException(
+                $"{Keywords.Deleted} must name a column of the statement's target table.");
+        }
+
+        buffer
+            .Append($"{Keywords.Deleted}.")
+            .Append(_column.Name);
+    }
 }

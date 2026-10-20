@@ -8,15 +8,25 @@ namespace SqlArtisan.Internal;
 /// </summary>
 public sealed class ExcludedColumn : SqlExpression
 {
-    private readonly string _columnName;
+    private readonly DbColumn _column;
 
     internal ExcludedColumn(DbColumn column)
     {
-        _columnName = column.Name;
+        _column = column;
     }
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .AppendExcludedName()
-        .Append('.')
-        .Append(_columnName);
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        if (!buffer.ReadsPseudoRowTarget(_column))
+        {
+            throw new ArgumentException(
+                $"{buffer.ExcludedName} must name a column of the INSERT target table; read "
+                    + "another table's value through a subquery.");
+        }
+
+        buffer
+            .AppendExcludedName()
+            .Append('.')
+            .Append(_column.Name);
+    }
 }
