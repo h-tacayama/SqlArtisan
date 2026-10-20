@@ -7,8 +7,8 @@ namespace SqlArtisan.Tests;
 public class PseudoRowOwnerTests
 {
     private const string ExcludedMessage =
-        "EXCLUDED reads only the target table's row; pass one of its columns, or read "
-            + "another table's column directly.";
+        "EXCLUDED must name a column of the INSERT target table; read another table's "
+            + "value through a subquery.";
 
     private readonly TestTable _t = new("t");
     private readonly ArchiveTable _a = new("a");
@@ -51,7 +51,10 @@ public class PseudoRowOwnerTests
                 .OnDuplicateKeyUpdate(t.Name == Excluded(_a.Name))
                 .Build(Dbms.MySql));
 
-        Assert.Equal(ExcludedMessage, ex.Message);
+        Assert.Equal(
+            "new must name a column of the INSERT target table; read another table's value "
+                + "through a subquery.",
+            ex.Message);
     }
 
     // A subquery inside the update clause still reads the statement's EXCLUDED row.
@@ -102,8 +105,7 @@ public class PseudoRowOwnerTests
                 .Build(Dbms.SqlServer));
 
         Assert.Equal(
-            "INSERTED reads only the target table's row; pass one of its columns, or read "
-                + "another table's column directly.",
+            "INSERTED must name a column of the statement's target table.",
             ex.Message);
     }
 
@@ -119,8 +121,7 @@ public class PseudoRowOwnerTests
                 .Build(Dbms.SqlServer));
 
         Assert.Equal(
-            "INSERTED reads only the target table's row; pass one of its columns, or read "
-                + "another table's column directly.",
+            "INSERTED must name a column of the statement's target table.",
             ex.Message);
     }
 
@@ -135,8 +136,7 @@ public class PseudoRowOwnerTests
                 .Build(Dbms.SqlServer));
 
         Assert.Equal(
-            "DELETED reads only the target table's row; pass one of its columns, or read "
-                + "another table's column directly.",
+            "DELETED must name a column of the statement's target table.",
             ex.Message);
     }
 }

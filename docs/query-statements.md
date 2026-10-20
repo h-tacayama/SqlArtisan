@@ -1194,7 +1194,8 @@ SqlStatement sql =
 `Excluded(column)` references the row proposed for insertion. It is resolved by
 the dialect: `EXCLUDED` on PostgreSQL, lowercase `excluded` on SQLite, and the
 `new` row alias on MySQL. That row is the target's, so `column` must belong to the
-target table; another table's column throws at `Build()`. A conditional update is expressed with `Where(...)`,
+target table; another table's column throws at `Build()`, and another table's value
+is read through a subquery. A conditional update is expressed with `Where(...)`,
 and `DoNothing()` skips conflicting rows:
 
 ```csharp

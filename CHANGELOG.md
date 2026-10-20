@@ -97,11 +97,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   every `DateTimePart` factory but `Numtoyminterval` and `Numtodsinterval`,
   which already rejected a unit outside their set at the call. (#661)
 - **Breaking:** `Excluded(col)`, `Inserted(col)` and `Deleted(col)` throw at
-  `Build()` when `col` belongs to a table other than the statement's target. They
-  rendered the column's name alone, so `DoUpdateSet(t.B == Excluded(u.B))` or an
-  `UPDATE ... FROM` with `Output(Inserted(u.B))` read the target's `b` with no
-  error. Another handle of the target table still passes; output a joined table's
-  column directly. (#675)
+  `Build()` when `col` belongs to a table other than the `INSERT`, `UPDATE` or
+  `DELETE` target. They rendered the column's name alone, so
+  `DoUpdateSet(t.B == Excluded(u.B))` or an `UPDATE ... FROM` with
+  `Output(Inserted(u.B))` read the target's `b` with no error. Another handle of
+  the target table still passes; read another table's value in an upsert through
+  a subquery, and output a joined table's column directly. (#675)
 - **Breaking:** `Any` / `All` / `Some` and `Interval(n, unit)` return types that
   are no longer `SqlExpression`s, since each completes only one operand slot (a
   predicate's right side, a date's `+` / `-`) and is no value on its own. A

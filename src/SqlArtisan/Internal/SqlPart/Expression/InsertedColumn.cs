@@ -6,20 +6,23 @@ namespace SqlArtisan.Internal;
 /// </summary>
 public sealed class InsertedColumn : SqlExpression
 {
-    private readonly string _columnName;
-    private readonly TableReference _owner;
+    private readonly DbColumn _column;
 
     internal InsertedColumn(DbColumn column)
     {
-        _columnName = column.Name;
-        _owner = column.Owner;
+        _column = column;
     }
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        buffer.ThrowIfNotPseudoRowTarget(_owner, Keywords.Inserted);
+        if (!buffer.ReadsPseudoRowTarget(_column))
+        {
+            throw new ArgumentException(
+                $"{Keywords.Inserted} must name a column of the statement's target table.");
+        }
+
         buffer
             .Append($"{Keywords.Inserted}.")
-            .Append(_columnName);
+            .Append(_column.Name);
     }
 }

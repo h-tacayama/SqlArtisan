@@ -1112,7 +1112,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
     }
 
     // #675: INSERTED holds the target's post-image alone (SQL Server 2022), so
-    // Inserted(...) over a joined table's column would read the target's same-named one.
+    // Inserted(...) over a joined table's column would read the target's same-named one;
+    // the joined column is output directly.
     [Fact]
     public void PseudoRowColumn_ReadsTheTargetRowOnly()
     {
@@ -1124,11 +1125,12 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             null,
             transaction);
 
-        Assert.Equal(100, connection.QuerySingle<int>(
-            "UPDATE t SET b = u.b + 1 OUTPUT INSERTED.b FROM #pr_t t "
+        (int inserted, int joined) = connection.QuerySingle<(int, int)>(
+            "UPDATE t SET b = u.b + 1 OUTPUT INSERTED.b, u.b FROM #pr_t t "
                 + "JOIN #pr_u u ON t.a = u.a",
             null,
-            transaction));
+            transaction);
+        Assert.Equal((100, 99), (inserted, joined));
         transaction.Rollback();
     }
 }
