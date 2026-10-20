@@ -311,9 +311,9 @@ public class PublicSurfaceBoundaryTests
         return type;
     }
 
-    // The node is the last constructor the IL calls that yields the return type, or, for a
-    // member that delegates, what the last same-assembly call yielding it builds; a member
-    // that only passes an argument through builds none and is not judged here.
+    // The node comes from the last IL producer of the return type: a constructor, or a
+    // same-assembly call whose own node is read in turn, so an inline argument built before
+    // a delegating call is not taken for the result; a pass-through builds none.
     private static Type? BuiltNode(MethodInfo method, int depth)
     {
         byte[]? il = method.GetMethodBody()?.GetILAsByteArray();
@@ -333,12 +333,14 @@ public class PublicSurfaceBoundaryTests
                 && method.ReturnType.IsAssignableFrom(ctor.DeclaringType))
             {
                 node = ctor.DeclaringType;
+                delegated = null;
             }
             else if (il[i] != 0x73 && target is MethodInfo callee
                 && callee.Module == method.Module && callee != method
                 && method.ReturnType.IsAssignableFrom(callee.ReturnType))
             {
                 delegated = callee;
+                node = null;
             }
         }
 
