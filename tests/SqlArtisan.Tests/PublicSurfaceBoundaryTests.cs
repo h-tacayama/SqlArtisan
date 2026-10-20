@@ -82,7 +82,7 @@ public class PublicSurfaceBoundaryTests
     /// <summary>
     /// A factory returns its node's own type only for what that type carries (ADR 0027): a
     /// class here declares a member, is taken by a parameter, or is another public type's
-    /// base, so any other node stays internal behind its nearest public base.
+    /// base, so any other node stays internal.
     /// </summary>
     [Fact]
     public void ExportedClass_CarriesAMemberAParameterOrADerivedType()
@@ -109,6 +109,51 @@ public class PublicSurfaceBoundaryTests
             $"{hollow.Count} public classes declare no member, are taken by no parameter and "
                 + "are no public type's base — make each internal and return its nearest "
                 + "public base:\n  " + string.Join("\n  ", hollow));
+    }
+
+    /// <summary>
+    /// The other half of the return-type rule (ADR 0027): a declared return wider than the
+    /// node's nearest public type hides the members that type offers, and narrowing it back
+    /// after 1.0 is a binary break, so each SqlPart-returning member is held to its node.
+    /// </summary>
+    [Fact]
+    public void SqlPartReturn_IsItsNodesNearestPublicType()
+    {
+        // Each only throws, rejecting `string + x`, so it builds no node to judge it by.
+        string[] buildNoNode =
+        [
+            "ExpressionAlias.op_Addition", "QuantifiedExpression.op_Addition",
+            "QuantifiedSubquery.op_Addition",
+        ];
+
+        List<string> widened = [];
+        HashSet<string> unjudged = [];
+        foreach (MethodInfo method in typeof(Sql).Assembly.GetExportedTypes()
+            .Where(t => !t.IsInterface)
+            .SelectMany(t => t.GetMethods(Declared))
+            .Where(m => !m.IsAbstract && typeof(SqlPart).IsAssignableFrom(m.ReturnType)))
+        {
+            string name = $"{method.DeclaringType!.Name}.{method.Name}";
+            if (BuiltNode(method, depth: 0) is not { } node)
+            {
+                unjudged.Add(name);
+            }
+            else if (NearestPublicType(node) != method.ReturnType)
+            {
+                widened.Add($"{name} -> {method.ReturnType.Name}, builds {node.Name} "
+                    + $"(nearest public {NearestPublicType(node).Name})");
+            }
+        }
+
+        string[] unrecorded = [.. unjudged.Except(buildNoNode).OrderBy(n => n)];
+        string[] stale = [.. buildNoNode.Except(unjudged).OrderBy(n => n)];
+
+        Assert.True(
+            widened.Count == 0 && unrecorded.Length == 0 && stale.Length == 0,
+            $"Return types other than the node's nearest public type (return that type): "
+                + $"[{string.Join(", ", widened.Distinct().OrderBy(n => n))}]; members whose "
+                + $"node the IL scan cannot find (record them): [{string.Join(", ", unrecorded)}]; "
+                + $"stale records: [{string.Join(", ", stale)}]");
     }
 
     /// <summary>
@@ -255,6 +300,62 @@ public class PublicSurfaceBoundaryTests
         || type.GetProperties(Declared).Any(p => p.GetMethod?.GetBaseDefinition() == p.GetMethod)
         || type.GetFields(Declared).Length > 0
         || type.GetEvents(Declared).Length > 0;
+
+    private static Type NearestPublicType(Type type)
+    {
+        while (!type.IsVisible)
+        {
+            type = type.BaseType!;
+        }
+
+        return type;
+    }
+
+    // The node is the last constructor the IL calls that yields the return type, or, for a
+    // member that delegates, what the last same-assembly call yielding it builds; a member
+    // that only passes an argument through builds none and is not judged here.
+    private static Type? BuiltNode(MethodInfo method, int depth)
+    {
+        byte[]? il = method.GetMethodBody()?.GetILAsByteArray();
+        if (il is null || depth > 4)
+        {
+            return null;
+        }
+
+        Type? node = null;
+        MethodInfo? delegated = null;
+        for (int i = 0; i + 4 < il.Length; i++)
+        {
+            MethodBase? target = il[i] is 0x73 or 0x28 or 0x6F
+                ? ResolveMethod(method.Module, BitConverter.ToInt32(il, i + 1))
+                : null;
+            if (il[i] == 0x73 && target is ConstructorInfo ctor
+                && method.ReturnType.IsAssignableFrom(ctor.DeclaringType))
+            {
+                node = ctor.DeclaringType;
+            }
+            else if (il[i] != 0x73 && target is MethodInfo callee
+                && callee.Module == method.Module && callee != method
+                && method.ReturnType.IsAssignableFrom(callee.ReturnType))
+            {
+                delegated = callee;
+            }
+        }
+
+        return node ?? (delegated is null ? null : BuiltNode(delegated, depth + 1));
+    }
+
+    private static MethodBase? ResolveMethod(Module module, int token)
+    {
+        try
+        {
+            return module.ResolveMethod(token);
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
+    }
 
     /// <summary>
     /// A signature's type is the payload, not the wrapper: an array element or a

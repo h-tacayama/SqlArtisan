@@ -44,7 +44,8 @@ that can take surface back.
   namespace, that a type no caller constructs is handed back by some
   signature, that only an allowlisted handle offers a constructor, and that a
   public class declares a member, is taken by a parameter, or is another public
-  type's base, `BindArrayValue` aside.
+  type's base, `BindArrayValue` aside, and that a member returning a `SqlPart`
+  declares its node's nearest public type.
 - **No type is kept for a modifier not yet offered.** Which modifiers a later
   release might add is not an input: a criterion keyed on it would rest on each
   reviewer's forecast. A modifier added later to one function of a shared return

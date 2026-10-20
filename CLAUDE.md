@@ -95,8 +95,9 @@ Most function node classes sit in a category folder under
 `ComparisonFunction`, `ConversionFunction`, `DateTimeFunction`,
 `FullTextSearchFunction`, `GroupingFunction`, `JsonFunction`, `NumericFunction`,
 `OrderedSetAggregateFunction`, `SequenceFunction`, `StringAggregateFunction`.
-Internal shared bases and one uncategorized node sit at that folder's root; the
-public capability bases (`AggregateFunction`, `AnalyticFunction`, …) mirror the
+Internal composition helpers (`*FunctionCore`) and one uncategorized node sit at
+that folder's root. The public capability bases (`AggregateFunction`,
+`AnalyticFunction`, …) and the nodes ADR 0027 keeps public sit in the matching
 categories under `src/SqlArtisan/SqlPart/Expression/Function/`.
 
 ## Analyzer
