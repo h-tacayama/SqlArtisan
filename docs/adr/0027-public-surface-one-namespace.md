@@ -40,9 +40,13 @@ that can take surface back.
   library exports no other namespace. `PublicSurfaceBoundaryTests` gates the
   namespace, that a type no caller constructs is handed back by some
   signature, and that only an allowlisted handle offers a constructor.
-- **A function whose modifier is foreseeable gets its own capability type
-  when it is added.** After 1.0, a member added to an existing function
-  sharing a return type needs a new return type, which is a binary break.
+- **No type is kept for a modifier not yet offered.** Which modifiers a later
+  release might add is not an input: a criterion keyed on it would rest on each
+  reviewer's forecast. A modifier added later to one function of a shared return
+  type comes as an overload or a marker argument (`Count(Distinct, x)`'s shape),
+  ahead of the existing `object` slots so a `null` literal keeps its overload;
+  offering it as a member on the result needs a new return type, a binary break
+  after 1.0.
 
 ## Consequences
 

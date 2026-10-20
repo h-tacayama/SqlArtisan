@@ -420,9 +420,11 @@ the family's base where the members come from one (`Sql.Sum` →
 `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`), and a type
 of its own only when the node declares a member (`Sql.Unnest` → `UnnestFunction`,
 for `AsTable`) or a parameter takes it (`Sql.Distinct` → `DistinctKeyword`). The
-concrete node is `internal`. A function whose modifier is foreseeable gets its own
-type when it is added: a member added later to a function sharing a return type
-needs a new return type, a binary break after 1.0.
+concrete node is `internal`. No type is kept for a modifier not yet offered — which
+ones a later release might add is a forecast, not a criterion. One added later to a
+function of a shared return type comes as an overload or a marker argument, placed
+ahead of the existing `object` slots so a `null` literal keeps its overload; as a
+member on the result it needs a new return type, a binary break after 1.0.
 
 > Worked example (#282): `Sql.Bind(value)` returns `BindValue`, not
 > `SqlExpression`: holding the result across clauses (`BindValue p10 = Bind(10);`)
@@ -587,6 +589,12 @@ reading applies: `Over` on `StringAgg` and on a completed `Listagg` (Oracle's
 `INTERVAL`, the `GROUPS` frame unit and `EXCLUDE`; `IGNORE NULLS` /
 `RESPECT NULLS` and `NTH_VALUE ... FROM LAST`; the hypothetical-set
 `RANK(x) WITHIN GROUP (...)`; and `NEXT VALUE FOR ... OVER (ORDER BY ...)`.
+Four of them share their result's type with other functions (ADR 0027), so each
+comes as an overload or a marker argument, not a member on the result: `IGNORE
+NULLS` on `Lag` / `Lead`, `NTH_VALUE ... FROM LAST`, `Over` on a completed
+`Listagg`, and `NEXT VALUE FOR ... OVER`. A marker overload of `Lag` / `Lead` shares
+an arity with the existing ones, so its matrix cell needs a parameter-type case;
+`IGNORE NULLS` on the value functions is a member on their shared base.
 `Over` and `Filter` on `GroupConcat` are the exception: `GroupConcat` returns
 `SqlExpression` across its DISTINCT, inline-`ORDER BY` and `SEPARATOR` forms, no
 engine runs a window over those forms (SQLite 3.45.1, live) nor `FILTER` over
