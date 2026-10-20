@@ -1181,11 +1181,11 @@ value by design.
 
 `SQLA0302` reports an object only where its text is provably a type name: its
 type is sealed (a column, a sequence, a generated table class), or a SqlArtisan
-method, property or constructor has just returned it (`Select(...).From(...)`,
-`Listagg(...)`). Any other static type stays silent — a subquery held in a
-variable, a value typed `SqlExpression`, a comparison an operator returns
-(`$"{u.Id == 1}"`), or a value typed `DbTableBase`, which may hold a table class
-of yours that overrides `ToString()`. A missing warning therefore never means the operand is safe.
+method, property, constructor or operator has just returned it
+(`Select(...).From(...)`, `Listagg(...)`, `u.Id == 1`). Any other static type
+stays silent — a subquery held in a variable, a value typed `SqlExpression`, or
+a value typed `DbTableBase`, which may hold a table class of yours that
+overrides `ToString()`. A missing warning therefore never means the operand is safe.
 
 Suppression is per rule ID, the standard Roslyn way
 (`#pragma warning disable SQLA0301`, a `[SuppressMessage]` attribute, or

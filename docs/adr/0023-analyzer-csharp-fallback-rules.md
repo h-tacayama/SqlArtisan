@@ -1,6 +1,9 @@
 # ADR 0023 — C# fallbacks: a query object C# resolves without SqlArtisan
 
-**Status:** Accepted
+**Status:** Accepted — `SQLA0302`'s proof refined by
+[ADR 0027](0027-public-surface-one-namespace.md): an object a SqlArtisan operator
+has just returned counts as one a SqlArtisan member returned, so an operator's
+comparison reports too.
 
 ## Context
 

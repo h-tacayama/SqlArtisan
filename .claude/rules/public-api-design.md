@@ -423,8 +423,10 @@ for `AsTable`) or a parameter takes it (`Sql.Distinct` → `DistinctKeyword`). T
 concrete node is `internal`. No type is kept for a modifier not yet offered — which
 ones a later release might add is a forecast, not a criterion. One added later to a
 function of a shared return type comes as an overload or a marker argument, placed
-ahead of the existing `object` slots so a `null` literal keeps its overload; as a
-member on the result it needs a new return type, a binary break after 1.0.
+ahead of the existing `object` slots; at an arity an existing overload shares,
+compile the neighbouring orders first, as § Operator overloads asks, since a `null`
+literal there can turn a call ambiguous (CS0121). As a member on the result it needs
+a new return type, a binary break after 1.0.
 
 > Worked example (#282): `Sql.Bind(value)` returns `BindValue`, not
 > `SqlExpression`: holding the result across clauses (`BindValue p10 = Bind(10);`)

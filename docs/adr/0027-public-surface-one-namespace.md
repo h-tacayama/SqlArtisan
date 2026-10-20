@@ -28,8 +28,7 @@ that can take surface back.
   that carries every member its result offers.** A node with none returns
   `SqlExpression` or `SqlCondition`; a family sharing members returns its base
   (`AggregateFunction`, `UnfilteredAggregateFunction`, `AnalyticFunction`,
-  `ValueAnalyticFunction`, `GroupingElement`, `LockBehaviorBase`,
-  `TableReference`, `SqlPart`). A node keeps a type of its own only when it
+  `ValueAnalyticFunction`, `LockBehaviorBase`, `TableReference`, `SqlPart`). A node keeps a type of its own only when it
   declares a member (`Over`, `Filter`, `WithinGroup`, `Escape`, `Then`,
   `AsTable`, `Percent`, …) or a parameter takes it (`DistinctKeyword`,
   `FrameBound`, …).
@@ -39,18 +38,21 @@ that can take surface back.
   under `src/SqlArtisan/Sql/`, `SqlBuilder/`, `SqlPart/` or `Metadata/`; the
   library exports no other namespace. `PublicSurfaceBoundaryTests` gates the
   namespace, that a type no caller constructs is handed back by some
-  signature, and that only an allowlisted handle offers a constructor.
+  signature, that only an allowlisted handle offers a constructor, and that a
+  public class declares a member, is taken by a parameter, or is another public
+  type's base.
 - **No type is kept for a modifier not yet offered.** Which modifiers a later
   release might add is not an input: a criterion keyed on it would rest on each
   reviewer's forecast. A modifier added later to one function of a shared return
   type comes as an overload or a marker argument (`Count(Distinct, x)`'s shape),
-  ahead of the existing `object` slots so a `null` literal keeps its overload;
-  offering it as a member on the result needs a new return type, a binary break
-  after 1.0.
+  ahead of the existing `object` slots; where it shares an arity with an existing
+  overload, the neighbouring argument orders are compiled first, since a `null`
+  literal there can turn a call ambiguous (CS0121). Offering it as a member on
+  the result needs a new return type, a binary break after 1.0.
 
 ## Consequences
 
-- The library exports 148 types, down from 339, and a node can be renamed,
+- The library exports 147 types, down from 339, and a node can be renamed,
   split or merged after 1.0 without a major version.
 - Every compiled caller must rebuild against this release, and code that named
   a concrete node type (`SumFunction s = Sum(x)`) no longer compiles; no docs
@@ -62,9 +64,10 @@ that can take surface back.
   two SqlArtisan values that failed with CS0019 can compile and bind a `bool`.
   Those orders sit in `public-api-design.md`'s open list, and `SQLA0301` reports
   one only where neither operand rules out an expression (ADR 0023); keeping one
-  sealed type per node to hold them shut is the cost this decision declines. A held
-  result whose return type is no longer sealed no longer gets `SQLA0302`, which
-  proves a non-sealed value only where a SqlArtisan member has just returned it.
+  sealed type per node to hold them shut is the cost this decision declines.
+  `SQLA0302` proves a non-sealed value only where a SqlArtisan member or operator
+  has just returned it, so an operator's result reports where its sealed node type
+  once carried the proof, and a held result does not.
 - An analyzer rule cannot tell nodes apart by a receiver's static type: the
   `FirstValue` / `LastValue` window rule reads the factory call `.Over(...)` is
   chained onto, and stays silent on a value held in a variable (ADR 0003). The

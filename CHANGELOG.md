@@ -23,8 +23,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (`$"{col}"`) or concatenated with a string where no SqlArtisan `+` takes it (a
   subquery, `RowNumber()` before `.Over(...)`), which binds the object's type
   name — reported only for a sealed type or an object a SqlArtisan method,
-  property or constructor has just returned, so a subquery held in a variable,
-  a `SqlExpression`-typed value or an operator's comparison stays silent. Both
+  property, constructor or operator has just returned, so a subquery held in a
+  variable or a `SqlExpression`-typed value stays silent. Both
   report only where the value goes straight into a SqlArtisan argument or
   operator operand; a log line, a reference check elsewhere, a null check, a
   comparison with a table on either side, or one passed as `ConditionIf`'s
@@ -81,24 +81,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   returns `SqlExpression` or `SqlCondition` (`Sql.Abs`, `Sql.Coalesce`, a
   comparison); one whose members come from its family returns the family's base
   (`Sql.Sum` → `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`,
-  `Sql.FirstValue` → `ValueAnalyticFunction`, `Sql.Rollup` → `GroupingElement`,
-  `t.Asterisk` → `SqlPart`); and the 191 node types that offered no member,
-  three of them abstract bases (`BinaryOperator`, …), are `internal`. The types
-  that stay public — the builder-stage interfaces, the clause and branch types
-  with members (`OrderByClause`, `PartitionByClause`, `LikeCondition`, …) and the
-  markers (`DistinctKeyword`, `FrameBound`, …) — move from `SqlArtisan.Internal`
-  to `SqlArtisan`, which no longer needs a second `using`. Every chain that compiled still compiles and emits the same SQL; code
+  `Sql.FirstValue` → `ValueAnalyticFunction`, `Sql.Rollup` and `t.Asterisk` →
+  `SqlPart`); and the 192 node types that offered no member, four of them
+  abstract bases (`BinaryOperator`, `GroupingElement`, …), are `internal`. The
+  types that stay public — the builder-stage interfaces, the clause and branch
+  types with members (`OrderByClause`, `PartitionByClause`, `LikeCondition`, …)
+  and the markers (`DistinctKeyword`, `FrameBound`, …) — move from
+  `SqlArtisan.Internal` to `SqlArtisan`, which no longer needs a second `using`.
+  Every chain that compiled still compiles and emits the same SQL; code
   naming a now-internal type (`SumFunction s = Sum(x)`) no longer compiles, and an
   assembly built against an earlier release must be rebuilt. Most returned types
   are no longer sealed, so a C# reference comparison between two SqlArtisan
   values that failed to compile (CS0019) can now compile and bind a `bool`;
   `SQLA0301` reports it only where both operands can hold an expression. A held
   `FirstValue` / `LastValue` no longer gets `SQLA0102`'s ordered-window report on
-  SQL Server, and a held result whose return type is no longer sealed no longer
-  gets `SQLA0302` when interpolated or concatenated (a sealed one such as
-  `Listagg`'s still does): its static type no longer names the function or rules
-  out a `ToString` override. A guard message naming a moved type prints its new
-  name (`SqlArtisan.AsteriskMarker`). (#686)
+  SQL Server: its static type no longer names the function. A guard message
+  naming a moved type prints its new name (`SqlArtisan.OrderByClause`). (#686)
 - `Unnest(...).AsTable(alias, columns)` accepts more column names than there are
   arrays: an array of a composite type yields a column per field, which
   PostgreSQL names this way. A list naming more columns than a scalar array has
