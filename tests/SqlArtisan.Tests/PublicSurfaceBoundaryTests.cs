@@ -113,9 +113,9 @@ public class PublicSurfaceBoundaryTests
     }
 
     /// <summary>
-    /// An unsealed class off the allowlist is closed to a foreign subclass only by a <c>private
-    /// protected</c> constructor or an <c>internal abstract</c> member (CS0534), so deriving is
-    /// decided here once (#492); <see cref="BindValue"/> is open for its array subclass alone.
+    /// The constructor gate closes every class off its allowlist; this one keeps the handles on
+    /// it a caller only constructs sealed, so deriving stays the four bases' alone (#492) and
+    /// <see cref="BindValue"/> is open for its array subclass alone.
     /// </summary>
     [Fact]
     public void ExportedOpenType_InRootNamespace_IsDerivableOnlyWhenAllowlisted()
@@ -129,7 +129,7 @@ public class PublicSurfaceBoundaryTests
             // A static class is abstract and sealed; only an unsealed class is derivable.
             .Where(t => t.Namespace == RootNamespace && t.IsClass && !t.IsSealed)
             .Where(t => !derivableByDesign.Contains(t))
-            .Where(IsExternallyDerivable)
+            .Where(HasConstructorReachableFromOutside)
             .Select(t => t.Name)
             .OrderBy(n => n, StringComparer.Ordinal)];
 
@@ -186,25 +186,13 @@ public class PublicSurfaceBoundaryTests
         && !HasConstructorReachableFromOutside(type);
 
     /// <summary>
-    /// Both derivation gates turn on one question — can another assembly reach a
-    /// constructor? — so they read the answer from here rather than each
+    /// The constructor and derivation gates turn on one question — can another assembly
+    /// reach a constructor? — so they read the answer from here rather than each
     /// spelling out the three accessibilities that give it.
     /// </summary>
     private static bool HasConstructorReachableFromOutside(Type type) =>
         type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
             .Any(c => c.IsPublic || c.IsFamily || c.IsFamilyOrAssembly);
-
-    /// <summary>
-    /// A reachable constructor alone does not make a base derivable: an abstract
-    /// member this assembly keeps to itself leaves a foreign subclass unable to
-    /// compile (CS0534), closing the type whatever its constructor says.
-    /// Reflection resolves each virtual slot to its most derived declaration, so
-    /// a member still abstract here is one no base along the chain implemented.
-    /// </summary>
-    private static bool IsExternallyDerivable(Type type) =>
-        HasConstructorReachableFromOutside(type)
-        && !type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-            .Any(m => m.IsAbstract && (m.IsAssembly || m.IsFamilyAndAssembly));
 
     /// <summary>
     /// Output positions only — what a caller can end up holding. A parameter type
