@@ -82,7 +82,7 @@ public class PublicSurfaceBoundaryTests
     /// <summary>
     /// A factory returns its node's own type only for what that type carries (ADR 0027): a
     /// class here declares a member, is taken by a parameter, or is another public type's
-    /// base, so a memberless node stays internal behind <see cref="SqlExpression"/>.
+    /// base, so any other node stays internal behind its nearest public base.
     /// </summary>
     [Fact]
     public void ExportedClass_CarriesAMemberAParameterOrADerivedType()

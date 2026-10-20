@@ -80,8 +80,9 @@ check the diff against each:
   that it escapes (`'`→`''`, and for MySQL `\`→`\\`).
 - **0005 / 0027 — public API location.** Every public type in the root namespace,
   its file under `Sql/`, `SqlBuilder/`, `SqlPart/` or `Metadata/`; everything under
-  `Internal/` is `internal`. A factory returns the narrowest public type carrying
-  its result's members, never a concrete node.
+  `Internal/` is `internal`. A factory's return type follows `public-api-design.md`
+  § Factory return types: a node keeps a public type of its own only when it
+  declares a member or a parameter takes it.
 - **0006 — allocation-light.** Build-path allocation is a first-class constraint.
   Complexity in the hot path (`Format`) is justified **only by a measured**
   allocation win; otherwise prefer simplicity. Back any perf claim with a number

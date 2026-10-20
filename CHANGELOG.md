@@ -77,9 +77,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - **Breaking:** the `Sql.*` factories, operators and fluent members return the
   narrowest public type that carries their result's members, and every public
-  type lives in the `SqlArtisan` namespace. A call with no member of its own
-  returns `SqlExpression` or `SqlCondition` (`Sql.Abs`, `Sql.Coalesce`, a
-  comparison); one whose members come from its family returns the family's base
+  type lives in the `SqlArtisan` namespace. A call whose node declares no member
+  and is taken by no parameter returns `SqlExpression` or `SqlCondition`
+  (`Sql.Abs`, `Sql.Coalesce`, a comparison); one whose members come from its family returns the family's base
   (`Sql.Sum` → `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`,
   `Sql.FirstValue` → `ValueAnalyticFunction`), and any other its nearest public
   base (`Sql.Rollup`, `t.Asterisk` → `SqlPart`); and the 192 node types that
@@ -87,7 +87,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `GroupingElement`, …), are `internal`. The
   types that stay public — the builder-stage interfaces, the clause and branch
   types with members (`OrderByClause`, `PartitionByClause`, `LikeCondition`, …)
-  and the markers (`DistinctKeyword`, `FrameBound`, …) — move from
+  and the types a parameter takes (`DistinctKeyword`, `FrameBound`,
+  `CaseElseExpression`, …) — move from
   `SqlArtisan.Internal` to `SqlArtisan`, which no longer needs a second `using`.
   Every chain that compiled still compiles and emits the same SQL; code
   naming a now-internal type (`SumFunction s = Sum(x)`) no longer compiles, and an
