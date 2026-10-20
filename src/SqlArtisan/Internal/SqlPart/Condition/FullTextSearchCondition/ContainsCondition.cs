@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// The SQL Server full-text <c>CONTAINS(column, searchCondition)</c> predicate,
 /// matching rows whose column satisfies the full-text search condition.
 /// </summary>
-public sealed class ContainsCondition : SqlCondition
+internal sealed class ContainsCondition : SqlCondition
 {
     private readonly SqlExpression _column;
     private readonly SqlExpression _searchCondition;

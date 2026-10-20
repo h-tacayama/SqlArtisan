@@ -1,0 +1,15 @@
+namespace SqlArtisan;
+
+/// <summary>
+/// The state after a <c>VALUES</c> row on an <c>INSERT IGNORE</c>: append more rows or build.
+/// </summary>
+public interface IInsertIgnoreBuilderValues : ISqlBuilder
+{
+    /// <summary>
+    /// Appends another row to the <c>VALUES</c> clause, producing a multi-row
+    /// insert (<c>VALUES (...), (...)</c>).
+    /// </summary>
+    /// <param name="values">The row values, one per column; must be non-empty, and literals are auto-parameterized.</param>
+    /// <returns>The builder positioned to append more rows or build.</returns>
+    IInsertIgnoreBuilderValues Values(params object[] values);
+}

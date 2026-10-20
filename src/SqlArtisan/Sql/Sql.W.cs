@@ -13,7 +13,7 @@ public static partial class Sql
     /// <returns>A <c>WAIT</c> lock behavior.</returns>
     /// <remarks>Oracle syntax; MySQL and PostgreSQL accept only
     /// <see cref="Nowait"/> or <see cref="SkipLocked"/>.</remarks>
-    public static WaitBehavior Wait(int seconds) => new(seconds);
+    public static LockBehaviorBase Wait(int seconds) => new WaitBehavior(seconds);
 
     /// <summary>
     /// A <c>WHEN condition THEN ...</c> arm of a searched <c>CASE</c> expression.

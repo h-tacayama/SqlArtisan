@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class FloorFunction : SqlExpression
+internal sealed class FloorFunction : SqlExpression
 {
     private readonly SqlExpression _expr;
 

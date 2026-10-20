@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class DatediffFunction : SqlExpression
+internal sealed class DatediffFunction : SqlExpression
 {
     private readonly string _datepart;
     private readonly SqlExpression _startDate;

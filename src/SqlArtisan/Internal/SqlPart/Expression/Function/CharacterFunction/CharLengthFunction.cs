@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class CharLengthFunction : SqlExpression
+internal sealed class CharLengthFunction : SqlExpression
 {
     private readonly SqlExpression _source;
 

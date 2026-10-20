@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class IifFunction : SqlExpression
+internal sealed class IifFunction : SqlExpression
 {
     private readonly SqlCondition _condition;
     private readonly SqlExpression _then;

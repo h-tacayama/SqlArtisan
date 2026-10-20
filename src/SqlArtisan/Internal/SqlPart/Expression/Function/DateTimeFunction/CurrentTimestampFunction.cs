@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class CurrentTimestampFunction : SqlExpression
+internal sealed class CurrentTimestampFunction : SqlExpression
 {
     private readonly string? _precision;
 

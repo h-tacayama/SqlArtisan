@@ -20,12 +20,12 @@ public static partial class Sql
     /// </summary>
     /// <param name="column">The conflicting-insert column to reference, a column of the
     /// <c>INSERT</c> target table.</param>
-    /// <returns>An <see cref="ExcludedColumn"/> referencing the proposed row's
+    /// <returns>An expression referencing the proposed row's
     /// value of <paramref name="column"/>.</returns>
     /// <remarks>MySQL (8.0.19+), PostgreSQL, and SQLite syntax — SqlArtisan
     /// always emits the row-alias form on MySQL. Oracle and SQL Server have no
     /// UPSERT excluded row — use <c>MERGE</c> there.</remarks>
-    public static ExcludedColumn Excluded(DbColumn column) => new(column);
+    public static SqlExpression Excluded(DbColumn column) => new ExcludedColumn(column);
 
     /// <summary>
     /// The <c>EXISTS (<paramref name="subquery"/>)</c> predicate, true when
@@ -33,7 +33,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="subquery">The subquery whose emptiness is tested.</param>
     /// <returns>The <c>EXISTS</c> condition.</returns>
-    public static ExistsCondition Exists(ISubquery subquery) => new(subquery);
+    public static SqlCondition Exists(ISubquery subquery) => new ExistsCondition(subquery);
 
     /// <summary>
     /// The <c>EXP(<paramref name="expr"/>)</c> function: e raised to the power of
@@ -42,8 +42,8 @@ public static partial class Sql
     /// <param name="expr">The exponent.</param>
     /// <returns>An <c>EXP</c> function expression.</returns>
     /// <remarks>Supported on every dialect (SQLite 3.35+).</remarks>
-    public static ExpFunction Exp(object expr) =>
-        new(Resolve(expr));
+    public static SqlExpression Exp(object expr) =>
+        new ExpFunction(Resolve(expr));
 
     /// <summary>
     /// The <c>EXTRACT(<paramref name="datepart"/> FROM <paramref name="source"/>)</c>
@@ -54,6 +54,6 @@ public static partial class Sql
     /// <returns>The <c>EXTRACT</c> function expression.</returns>
     /// <remarks>MySQL, Oracle, and PostgreSQL syntax; SQL Server's equivalent is
     /// <see cref="Datepart(DateTimePart, object)"/>.</remarks>
-    public static ExtractFunction Extract(DateTimePart datepart, object source) =>
-        new(datepart, Resolve(source));
+    public static SqlExpression Extract(DateTimePart datepart, object source) =>
+        new ExtractFunction(datepart, Resolve(source));
 }

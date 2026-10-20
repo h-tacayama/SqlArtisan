@@ -5,7 +5,7 @@ namespace SqlArtisan.Internal;
 /// unformatted text into a text-search query (terms ANDed). The optional
 /// configuration is emitted as an inline string literal.
 /// </summary>
-public sealed class PlaintoTsqueryFunction : SqlExpression
+internal sealed class PlaintoTsqueryFunction : SqlExpression
 {
     private readonly string? _config;
     private readonly SqlExpression _text;

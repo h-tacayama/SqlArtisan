@@ -9,7 +9,6 @@ public class TypeCategoryMismatchAnalyzerTests
     private static string Usage(string statements) => $$"""
         using System;
         using SqlArtisan;
-        using SqlArtisan.Internal;
         using static SqlArtisan.Sql;
 
         class T : DbTableBase

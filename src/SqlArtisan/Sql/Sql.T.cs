@@ -21,11 +21,11 @@ public static partial class Sql
     /// <see cref="Interval(object, DateTimePart)"/>; the unit is a bare keyword,
     /// not an <c>INTERVAL</c> expression.
     /// </remarks>
-    public static TimestampaddFunction Timestampadd(
+    public static SqlExpression Timestampadd(
         DateTimePart unit,
         object number,
         object dateTime) =>
-        new(unit, Resolve(number), Resolve(dateTime));
+        new TimestampaddFunction(unit, Resolve(number), Resolve(dateTime));
 
     /// <summary>
     /// The <c>TIMESTAMPDIFF(<paramref name="unit"/>, <paramref name="startDate"/>,
@@ -41,10 +41,10 @@ public static partial class Sql
     /// <paramref name="endDate"/> — the reverse of MySQL's own two-argument
     /// <c>DATEDIFF(expr1, expr2)</c> (<c>expr1 - expr2</c>).
     /// </remarks>
-    public static TimestampdiffFunction Timestampdiff(
+    public static SqlExpression Timestampdiff(
         DateTimePart unit,
         object startDate,
-        object endDate) => new(
+        object endDate) => new TimestampdiffFunction(
             unit,
             Resolve(startDate),
             Resolve(endDate));
@@ -56,16 +56,16 @@ public static partial class Sql
     /// <param name="expr">The value to convert to text.</param>
     /// <returns>A <c>TO_CHAR</c> function expression.</returns>
     /// <remarks>Oracle syntax.</remarks>
-    public static ToCharFunction ToChar(object expr) =>
-        new(Resolve(expr));
+    public static SqlExpression ToChar(object expr) =>
+        new ToCharFunction(Resolve(expr));
 
     /// <inheritdoc cref="ToChar(object)"/>
     /// <param name="expr">The value to convert to text.</param>
     /// <param name="format">The format model (Oracle-style) controlling the output.</param>
     /// <remarks>Oracle and PostgreSQL syntax. PostgreSQL's <c>to_char</c> requires
     /// the format argument, so only this two-argument form runs there.</remarks>
-    public static ToCharFunction ToChar(object expr, object format) =>
-        new(Resolve(expr), Resolve(format));
+    public static SqlExpression ToChar(object expr, object format) =>
+        new ToCharFunction(Resolve(expr), Resolve(format));
 
     /// <summary>
     /// The <c>TO_DATE(text, format)</c> function: parses <paramref name="text"/> into
@@ -75,8 +75,8 @@ public static partial class Sql
     /// <param name="format">The format model (Oracle-style) describing <paramref name="text"/>.</param>
     /// <returns>A <c>TO_DATE</c> function expression.</returns>
     /// <remarks>Oracle and PostgreSQL syntax.</remarks>
-    public static ToDateFunction ToDate(object text, object format) =>
-        new(Resolve(text), Resolve(format));
+    public static SqlExpression ToDate(object text, object format) =>
+        new ToDateFunction(Resolve(text), Resolve(format));
 
     /// <summary>
     /// The <c>HOUR</c> trailing interval field, for the trailing argument of
@@ -109,16 +109,16 @@ public static partial class Sql
     /// <param name="expr">The value to convert.</param>
     /// <returns>A <c>TO_NUMBER</c> function expression.</returns>
     /// <remarks>Oracle syntax.</remarks>
-    public static ToNumberFunction ToNumber(object expr) =>
-        new(Resolve(expr));
+    public static SqlExpression ToNumber(object expr) =>
+        new ToNumberFunction(Resolve(expr));
 
     /// <inheritdoc cref="ToNumber(object)"/>
     /// <param name="expr">The value to convert.</param>
     /// <param name="numericFormat">The numeric format model (Oracle-style) describing <paramref name="expr"/>.</param>
     /// <remarks>Oracle and PostgreSQL syntax. PostgreSQL's <c>to_number</c> requires
     /// the format argument, so only this two-argument form runs there.</remarks>
-    public static ToNumberFunction ToNumber(object expr, object numericFormat) =>
-        new(Resolve(expr), Resolve(numericFormat));
+    public static SqlExpression ToNumber(object expr, object numericFormat) =>
+        new ToNumberFunction(Resolve(expr), Resolve(numericFormat));
 
     /// <summary>
     /// SQL Server's <c>TOP (n)</c> select prefix, <c>Select(Top(n), ...)</c>: the first
@@ -155,8 +155,8 @@ public static partial class Sql
     /// <param name="format">The format model (Oracle-style) describing <paramref name="text"/>.</param>
     /// <returns>A <c>TO_TIMESTAMP</c> function expression.</returns>
     /// <remarks>Oracle and PostgreSQL syntax.</remarks>
-    public static ToTimestampFunction ToTimestamp(object text, object format) =>
-        new(Resolve(text), Resolve(format));
+    public static SqlExpression ToTimestamp(object text, object format) =>
+        new ToTimestampFunction(Resolve(text), Resolve(format));
 
     /// <summary>
     /// The PostgreSQL <c>TO_TSQUERY(text)</c> function: parses <paramref name="text"/>
@@ -165,20 +165,20 @@ public static partial class Sql
     /// <see cref="TsMatch(object, object)"/>.
     /// </summary>
     /// <param name="text">The tsquery-syntax text to parse.</param>
-    /// <returns>A <see cref="ToTsqueryFunction"/> emitting <c>TO_TSQUERY(text)</c>.</returns>
+    /// <returns>An expression emitting <c>TO_TSQUERY(text)</c>.</returns>
     /// <remarks>PostgreSQL syntax. For plain, unformatted text use
     /// <see cref="PlaintoTsquery(object)"/>.</remarks>
-    public static ToTsqueryFunction ToTsquery(object text) =>
-        new(null, Resolve(text));
+    public static SqlExpression ToTsquery(object text) =>
+        new ToTsqueryFunction(null, Resolve(text));
 
     /// <inheritdoc cref="ToTsquery(object)"/>
     /// <param name="config">The text-search configuration (e.g. <c>"english"</c>),
     /// emitted as an inline string literal.</param>
     /// <param name="text">The tsquery-syntax text to parse.</param>
-    public static ToTsqueryFunction ToTsquery(string config, object text)
+    public static SqlExpression ToTsquery(string config, object text)
     {
         StringGuard.ThrowIfNullOrEmpty(config, "TO_TSQUERY requires a configuration name.");
-        return new(config, Resolve(text));
+        return new ToTsqueryFunction(config, Resolve(text));
     }
 
     /// <summary>
@@ -187,20 +187,20 @@ public static partial class Sql
     /// <see cref="TsMatch(object, object)"/>.
     /// </summary>
     /// <param name="document">The document expression to reduce.</param>
-    /// <returns>A <see cref="ToTsvectorFunction"/> emitting
+    /// <returns>An expression emitting
     /// <c>TO_TSVECTOR(document)</c>.</returns>
     /// <remarks>PostgreSQL syntax.</remarks>
-    public static ToTsvectorFunction ToTsvector(object document) =>
-        new(null, Resolve(document));
+    public static SqlExpression ToTsvector(object document) =>
+        new ToTsvectorFunction(null, Resolve(document));
 
     /// <inheritdoc cref="ToTsvector(object)"/>
     /// <param name="config">The text-search configuration (e.g. <c>"english"</c>),
     /// emitted as an inline string literal.</param>
     /// <param name="document">The document expression to reduce.</param>
-    public static ToTsvectorFunction ToTsvector(string config, object document)
+    public static SqlExpression ToTsvector(string config, object document)
     {
         StringGuard.ThrowIfNullOrEmpty(config, "TO_TSVECTOR requires a configuration name.");
-        return new(config, Resolve(document));
+        return new ToTsvectorFunction(config, Resolve(document));
     }
 
     /// <summary>
@@ -210,8 +210,8 @@ public static partial class Sql
     /// <param name="source">The string to trim.</param>
     /// <returns>A <c>TRIM</c> function expression.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, SQLite, and SQL Server (2017+) syntax.</remarks>
-    public static TrimFunction Trim(object source) =>
-        new(Resolve(source));
+    public static SqlExpression Trim(object source) =>
+        new TrimFunction(Resolve(source));
 
     /// <summary>
     /// The <c>TRIM(trimChar FROM source)</c> function: removes leading and
@@ -224,8 +224,8 @@ public static partial class Sql
     /// <remarks>MySQL, Oracle, PostgreSQL, and SQL Server (2017+) syntax. Not supported by
     /// SQLite, whose positional <c>trim(source, trimChar)</c> is a separate function this does
     /// not emit.</remarks>
-    public static TrimFunction Trim(object source, object trimChar) =>
-        new(Resolve(source), Resolve(trimChar));
+    public static SqlExpression Trim(object source, object trimChar) =>
+        new TrimFunction(Resolve(source), Resolve(trimChar));
 
     /// <summary>
     /// The <c>TRUNC(expr)</c> function: truncates <paramref name="expr"/> — a number
@@ -236,14 +236,14 @@ public static partial class Sql
     /// <remarks>Oracle syntax; PostgreSQL supports the numeric form, SQLite (3.35+)
     /// its single-argument form. To truncate a timestamp to a date/time field on
     /// PostgreSQL use <see cref="DateTrunc(DateTimePart, object)"/>.</remarks>
-    public static TruncFunction Trunc(object expr) =>
-        new(Resolve(expr));
+    public static SqlExpression Trunc(object expr) =>
+        new TruncFunction(Resolve(expr));
 
     /// <inheritdoc cref="Trunc(object)"/>
     /// <param name="expr">The numeric or date value to truncate.</param>
     /// <param name="format">The number of decimal places, or the Oracle date format unit (e.g. <c>'MM'</c>).</param>
-    public static TruncFunction Trunc(object expr, object format) =>
-        new(Resolve(expr), Resolve(format));
+    public static SqlExpression Trunc(object expr, object format) =>
+        new TruncFunction(Resolve(expr), Resolve(format));
 
     /// <summary>
     /// The PostgreSQL text-search match predicate <c>vector @@ query</c>: whether
@@ -253,10 +253,10 @@ public static partial class Sql
     /// </summary>
     /// <param name="vector">The tsvector expression to search.</param>
     /// <param name="query">The tsquery expression to match.</param>
-    /// <returns>A <see cref="TsMatchCondition"/> emitting <c>vector @@ query</c>.</returns>
+    /// <returns>A condition emitting <c>vector @@ query</c>.</returns>
     /// <remarks>PostgreSQL syntax.</remarks>
-    public static TsMatchCondition TsMatch(object vector, object query) =>
-        new(
+    public static SqlCondition TsMatch(object vector, object query) =>
+        new TsMatchCondition(
             ResolveCompared(vector, nameof(vector), Operators.TsMatch),
             ResolveQuantifiable(query, nameof(query), Operators.TsMatch));
 }

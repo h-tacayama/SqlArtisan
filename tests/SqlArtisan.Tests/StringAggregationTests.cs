@@ -1,4 +1,3 @@
-using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -249,7 +248,7 @@ public class StringAggregationTests
         // Completion returns a new node, so a held call handle stays the plain
         // call and a completed one cannot be re-completed.
         StringAggFunction call = StringAgg(_t.Name, ", ");
-        StringAggWithinGroupFunction completed = call.WithinGroup(OrderBy(_t.Name.Desc));
+        SqlExpression completed = call.WithinGroup(OrderBy(_t.Name.Desc));
 
         Assert.Equal(
             "SELECT STRING_AGG(name, ', ')",

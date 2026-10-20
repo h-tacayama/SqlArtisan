@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class SimpleCaseExpression : SqlExpression
+internal sealed class SimpleCaseExpression : SqlExpression
 {
     private readonly SqlExpression _expr;
     private readonly SimpleCaseWhenClause[] _whenClauses;

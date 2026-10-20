@@ -54,7 +54,7 @@ public static partial class Sql
     /// row (0..1). Complete it with <c>.Over(...)</c>.
     /// </summary>
     /// <returns>A <c>PERCENT_RANK</c> analytic function expression.</returns>
-    public static AnalyticPercentRankFunction PercentRank() => new();
+    public static AnalyticFunction PercentRank() => new AnalyticPercentRankFunction();
 
     /// <summary>
     /// The PostgreSQL <c>PLAINTO_TSQUERY(text)</c> function: parses plain,
@@ -62,21 +62,21 @@ public static partial class Sql
     /// Pair with a tsvector via <see cref="TsMatch(object, object)"/>.
     /// </summary>
     /// <param name="text">The plain text to parse.</param>
-    /// <returns>A <see cref="PlaintoTsqueryFunction"/> emitting
+    /// <returns>An expression emitting
     /// <c>PLAINTO_TSQUERY(text)</c>.</returns>
     /// <remarks>PostgreSQL syntax. For text already in tsquery syntax use
     /// <see cref="ToTsquery(object)"/>.</remarks>
-    public static PlaintoTsqueryFunction PlaintoTsquery(object text) =>
-        new(null, Resolve(text));
+    public static SqlExpression PlaintoTsquery(object text) =>
+        new PlaintoTsqueryFunction(null, Resolve(text));
 
     /// <inheritdoc cref="PlaintoTsquery(object)"/>
     /// <param name="config">The text-search configuration (e.g. <c>"english"</c>),
     /// emitted as an inline string literal.</param>
     /// <param name="text">The plain text to parse.</param>
-    public static PlaintoTsqueryFunction PlaintoTsquery(string config, object text)
+    public static SqlExpression PlaintoTsquery(string config, object text)
     {
         StringGuard.ThrowIfNullOrEmpty(config, "PLAINTO_TSQUERY requires a configuration name.");
-        return new(config, Resolve(text));
+        return new PlaintoTsqueryFunction(config, Resolve(text));
     }
 
     /// <summary>
@@ -86,11 +86,11 @@ public static partial class Sql
     /// </summary>
     /// <param name="substring">The substring to search for.</param>
     /// <param name="source">The string searched.</param>
-    /// <returns>A <see cref="PositionFunction"/> emitting <c>POSITION(substring IN source)</c>.</returns>
+    /// <returns>An expression emitting <c>POSITION(substring IN source)</c>.</returns>
     /// <remarks>MySQL, PostgreSQL. For PostgreSQL's function-call form with the
     /// reverse argument order, see <see cref="Strpos(object, object)"/>.</remarks>
-    public static PositionFunction Position(object substring, object source) =>
-        new(Resolve(substring), Resolve(source));
+    public static SqlExpression Position(object substring, object source) =>
+        new PositionFunction(Resolve(substring), Resolve(source));
 
     /// <summary>
     /// The <c>POWER(base, exponent)</c> function: <paramref name="base"/> raised
@@ -100,8 +100,8 @@ public static partial class Sql
     /// <param name="exponent">The exponent to raise <paramref name="base"/> to.</param>
     /// <returns>A <c>POWER</c> function expression.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+), and SQL Server syntax.</remarks>
-    public static PowerFunction Power(object @base, object exponent) =>
-        new(Resolve(@base), Resolve(exponent));
+    public static SqlExpression Power(object @base, object exponent) =>
+        new PowerFunction(Resolve(@base), Resolve(exponent));
 
     /// <summary>
     /// A <c>n PRECEDING</c> window-frame bound (offset rows/range before the

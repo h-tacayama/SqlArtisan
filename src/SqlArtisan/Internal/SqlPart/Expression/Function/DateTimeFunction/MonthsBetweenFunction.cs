@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class MonthsBetweenFunction : SqlExpression
+internal sealed class MonthsBetweenFunction : SqlExpression
 {
     private readonly SqlExpression _date1;
     private readonly SqlExpression _date2;

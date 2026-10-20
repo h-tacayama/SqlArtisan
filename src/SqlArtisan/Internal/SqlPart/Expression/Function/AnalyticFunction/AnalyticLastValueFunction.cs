@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class AnalyticLastValueFunction : ValueAnalyticFunction
+internal sealed class AnalyticLastValueFunction : ValueAnalyticFunction
 {
     private readonly SqlExpression _expr;
 

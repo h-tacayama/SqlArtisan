@@ -8,7 +8,7 @@ namespace SqlArtisan.Internal;
 // A separate node rather than a mutable field on StringAggFunction: a held
 // call handle then stays reusable, and the completed shape cannot be
 // re-completed (the same immutability the other completing calls keep).
-public sealed class StringAggWithinGroupFunction : SqlExpression
+internal sealed class StringAggWithinGroupFunction : SqlExpression
 {
     private readonly StringAggFunction _call;
     private readonly WithinGroupClause _withinGroupClause;

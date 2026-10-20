@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class TruncFunction : SqlExpression
+internal sealed class TruncFunction : SqlExpression
 {
     private readonly SqlExpression _expr;
     private readonly SqlExpression? _format;

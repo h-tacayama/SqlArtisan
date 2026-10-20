@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class AnalyticCumeDistFunction : AnalyticFunction
+internal sealed class AnalyticCumeDistFunction : AnalyticFunction
 {
     internal AnalyticCumeDistFunction() { }
 

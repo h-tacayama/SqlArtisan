@@ -29,11 +29,11 @@ public static partial class Sql
     /// <param name="table">The FTS5 table to search.</param>
     /// <param name="pattern">The FTS5 query (e.g. <c>"database"</c>,
     /// <c>"data* AND query"</c>).</param>
-    /// <returns>A <see cref="MatchCondition"/> emitting <c>table MATCH pattern</c>.</returns>
+    /// <returns>A condition emitting <c>table MATCH pattern</c>.</returns>
     /// <remarks>SQLite syntax. For the MySQL <c>MATCH ... AGAINST</c> construct use
     /// <see cref="Match(object, object[])"/>.</remarks>
-    public static MatchCondition Match(DbTableBase table, object pattern) =>
-        new(table, Resolve(pattern));
+    public static SqlCondition Match(DbTableBase table, object pattern) =>
+        new MatchCondition(table, Resolve(pattern));
 
     /// <summary>
     /// The <c>MAX(<paramref name="expr"/>)</c> aggregate: the largest value of
@@ -41,7 +41,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The value to aggregate.</param>
     /// <returns>The MAX construct.</returns>
-    public static MaxFunction Max(object expr) => new(Resolve(expr));
+    public static UnfilteredAggregateFunction Max(object expr) => new MaxFunction(Resolve(expr));
 
     /// <summary>
     /// Starts a <c>MERGE INTO target</c> statement (Oracle, PostgreSQL, SQL Server).
@@ -61,7 +61,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The value to aggregate.</param>
     /// <returns>The MIN construct.</returns>
-    public static MinFunction Min(object expr) => new(Resolve(expr));
+    public static UnfilteredAggregateFunction Min(object expr) => new MinFunction(Resolve(expr));
 
     /// <summary>
     /// The <c>MINUTE</c> interval field, for the sole-field overload of
@@ -90,8 +90,8 @@ public static partial class Sql
     /// <returns>The MOD construct.</returns>
     /// <remarks>Not supported by SQL Server — use the <c>%</c> operator there;
     /// SQLite (3.35+).</remarks>
-    public static ModFunction Mod(object dividend, object divisor) =>
-        new(Resolve(dividend), Resolve(divisor));
+    public static SqlExpression Mod(object dividend, object divisor) =>
+        new ModFunction(Resolve(dividend), Resolve(divisor));
 
     /// <summary>
     /// The <c>MONTH</c> interval field, for the sole-field overload of
@@ -119,6 +119,6 @@ public static partial class Sql
     /// <param name="date2">The earlier date.</param>
     /// <returns>The MONTHS_BETWEEN construct.</returns>
     /// <remarks>Oracle syntax.</remarks>
-    public static MonthsBetweenFunction MonthsBetween(object date1, object date2) =>
-        new(Resolve(date1), Resolve(date2));
+    public static SqlExpression MonthsBetween(object date1, object date2) =>
+        new MonthsBetweenFunction(Resolve(date1), Resolve(date2));
 }

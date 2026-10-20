@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// A column of SQL Server's <c>DELETED</c> pseudo-table in an <c>OUTPUT</c> clause
 /// (the pre-image of a deleted or updated row); renders as <c>DELETED.col</c>.
 /// </summary>
-public sealed class DeletedColumn : SqlExpression
+internal sealed class DeletedColumn : SqlExpression
 {
     private readonly DbColumn _column;
 

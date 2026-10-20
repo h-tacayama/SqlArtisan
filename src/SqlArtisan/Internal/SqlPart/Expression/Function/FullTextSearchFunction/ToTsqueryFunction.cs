@@ -6,7 +6,7 @@ namespace SqlArtisan.Internal;
 /// text-search query. The optional configuration is emitted as an inline string
 /// literal.
 /// </summary>
-public sealed class ToTsqueryFunction : SqlExpression
+internal sealed class ToTsqueryFunction : SqlExpression
 {
     private readonly string? _config;
     private readonly SqlExpression _text;

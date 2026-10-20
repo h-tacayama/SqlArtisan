@@ -7,7 +7,6 @@ public class ArgumentValueValidityAnalyzerTests
 {
     private static string Usage(string statements) => $$"""
         using SqlArtisan;
-        using SqlArtisan.Internal;
         using static SqlArtisan.Sql;
 
         class T : DbTableBase

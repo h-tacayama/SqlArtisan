@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class NumtodsintervalFunction : SqlExpression
+internal sealed class NumtodsintervalFunction : SqlExpression
 {
     private readonly SqlExpression _n;
     private readonly DateTimePart _unit;

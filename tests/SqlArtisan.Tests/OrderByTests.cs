@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text;
-using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;

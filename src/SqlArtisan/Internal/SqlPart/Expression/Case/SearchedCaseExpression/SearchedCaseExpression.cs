@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class SearchedCaseExpression : SqlExpression
+internal sealed class SearchedCaseExpression : SqlExpression
 {
     private readonly SearchedCaseWhenClause[] _whenClauses;
     private readonly CaseElseExpression? _elseClause;

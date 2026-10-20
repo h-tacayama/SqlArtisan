@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class WaitBehavior : LockBehaviorBase
+internal sealed class WaitBehavior : LockBehaviorBase
 {
     private readonly string _seconds;
 

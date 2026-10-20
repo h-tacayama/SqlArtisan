@@ -5,7 +5,7 @@ namespace SqlArtisan.Internal;
 /// document to a text-search vector. The optional configuration is emitted as an
 /// inline string literal.
 /// </summary>
-public sealed class ToTsvectorFunction : SqlExpression
+internal sealed class ToTsvectorFunction : SqlExpression
 {
     private readonly string? _config;
     private readonly SqlExpression _document;

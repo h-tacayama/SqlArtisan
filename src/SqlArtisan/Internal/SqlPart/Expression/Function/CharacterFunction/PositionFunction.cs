@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class PositionFunction : SqlExpression
+internal sealed class PositionFunction : SqlExpression
 {
     private readonly SqlExpression _substring;
     private readonly SqlExpression _source;

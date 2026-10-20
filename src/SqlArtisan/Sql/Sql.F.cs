@@ -10,20 +10,20 @@ public static partial class Sql
     /// <paramref name="expr"/> from the first row of the window frame.
     /// </summary>
     /// <param name="expr">The expression to read from the first row of the frame.</param>
-    /// <returns>An <see cref="AnalyticFirstValueFunction"/> emitting
+    /// <returns>A window function emitting
     /// <c>FIRST_VALUE(expr)</c>.</returns>
-    public static AnalyticFirstValueFunction FirstValue(object expr) =>
-        new(Resolve(expr));
+    public static ValueAnalyticFunction FirstValue(object expr) =>
+        new AnalyticFirstValueFunction(Resolve(expr));
 
     /// <summary>
     /// The <c>FLOOR(expr)</c> function (largest integer not greater than
     /// <paramref name="expr"/>).
     /// </summary>
     /// <param name="expr">The numeric expression to round down.</param>
-    /// <returns>A <see cref="FloorFunction"/> emitting <c>FLOOR(expr)</c>.</returns>
+    /// <returns>An expression emitting <c>FLOOR(expr)</c>.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+), and SQL Server syntax.</remarks>
-    public static FloorFunction Floor(object expr) =>
-        new(Resolve(expr));
+    public static SqlExpression Floor(object expr) =>
+        new FloorFunction(Resolve(expr));
 
     /// <summary>
     /// A <c>n FOLLOWING</c> window-frame bound (offset rows/range after the
@@ -49,16 +49,16 @@ public static partial class Sql
     /// substitution. PostgreSQL errors unless the first argument is text; where
     /// the call does run, it does not carry these semantics.
     /// </remarks>
-    public static FormatFunction Format(object value, object format) =>
-        new(Resolve(value), Resolve(format));
+    public static SqlExpression Format(object value, object format) =>
+        new FormatFunction(Resolve(value), Resolve(format));
 
     /// <inheritdoc cref="Format(object, object)"/>
     /// <param name="value">The value to format.</param>
     /// <param name="format">The .NET-style format string (e.g. <c>"yyyy-MM-dd"</c>).</param>
     /// <param name="culture">The culture name (e.g. <c>"en-US"</c>) the format is
     /// interpreted under.</param>
-    public static FormatFunction Format(object value, object format, object culture) =>
-        new(Resolve(value), Resolve(format), Resolve(culture));
+    public static SqlExpression Format(object value, object format, object culture) =>
+        new FormatFunction(Resolve(value), Resolve(format), Resolve(culture));
 
     /// <summary>
     /// The SQL Server full-text <c>FREETEXT(column, freetext)</c> predicate:
@@ -68,10 +68,10 @@ public static partial class Sql
     /// </summary>
     /// <param name="column">The full-text indexed column to search.</param>
     /// <param name="freetext">The free-form text to match by meaning.</param>
-    /// <returns>A <see cref="FreetextCondition"/> emitting
+    /// <returns>A condition emitting
     /// <c>FREETEXT(column, freetext)</c>.</returns>
     /// <remarks>SQL Server syntax. For exact words, prefixes, and boolean
     /// combinations use <see cref="Contains(object, object)"/>.</remarks>
-    public static FreetextCondition Freetext(object column, object freetext) =>
-        new(Resolve(column), Resolve(freetext));
+    public static SqlCondition Freetext(object column, object freetext) =>
+        new FreetextCondition(Resolve(column), Resolve(freetext));
 }

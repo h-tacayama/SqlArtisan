@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class IsnullFunction : SqlExpression
+internal sealed class IsnullFunction : SqlExpression
 {
     private readonly SqlExpression _expr1;
     private readonly SqlExpression _expr2;

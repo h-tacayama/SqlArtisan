@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class RegexpInstrFunction : SqlExpression
+internal sealed class RegexpInstrFunction : SqlExpression
 {
     private readonly VariadicFunctionCore _core;
 

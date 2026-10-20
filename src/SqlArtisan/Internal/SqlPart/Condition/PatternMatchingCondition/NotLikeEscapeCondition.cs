@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class NotLikeEscapeCondition : SqlCondition
+internal sealed class NotLikeEscapeCondition : SqlCondition
 {
     private readonly SqlExpression _leftSide;
     private readonly SqlExpression _rightSide;

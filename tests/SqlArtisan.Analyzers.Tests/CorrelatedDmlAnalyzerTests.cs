@@ -9,7 +9,6 @@ public class CorrelatedDmlAnalyzerTests
     // statement is correlated; one diagnostic per chain.
     private static string Usage(string statements) => $$"""
         using SqlArtisan;
-        using SqlArtisan.Internal;
         using static SqlArtisan.Sql;
 
         class T : DbTableBase
@@ -70,7 +69,6 @@ public class CorrelatedDmlAnalyzerTests
     public Task Update_ReadonlyFieldUnaliasedTarget_ReportsSqla0300() =>
         RunAsync("""
             using SqlArtisan;
-            using SqlArtisan.Internal;
             using static SqlArtisan.Sql;
 
             class T : DbTableBase
@@ -96,7 +94,6 @@ public class CorrelatedDmlAnalyzerTests
     public Task Update_StaticReadonlyFieldUnaliasedTarget_ReportsSqla0300() =>
         RunAsync("""
             using SqlArtisan;
-            using SqlArtisan.Internal;
             using static SqlArtisan.Sql;
 
             class T : DbTableBase
@@ -280,7 +277,6 @@ public class CorrelatedDmlAnalyzerTests
     public Task Update_NonReadonlyFieldTarget_StaysSilent() =>
         RunAsync("""
             using SqlArtisan;
-            using SqlArtisan.Internal;
             using static SqlArtisan.Sql;
 
             class T : DbTableBase
@@ -306,7 +302,6 @@ public class CorrelatedDmlAnalyzerTests
     public Task Update_ReadonlyFieldAssignedInConstructor_StaysSilent() =>
         RunAsync("""
             using SqlArtisan;
-            using SqlArtisan.Internal;
             using static SqlArtisan.Sql;
 
             class T : DbTableBase
@@ -340,7 +335,6 @@ public class CorrelatedDmlAnalyzerTests
     public Task DeleteFrom_TargetCtorHardcodesAlias_StaysSilent() =>
         RunAsync("""
             using SqlArtisan;
-            using SqlArtisan.Internal;
             using static SqlArtisan.Sql;
 
             class T : DbTableBase
@@ -370,7 +364,6 @@ public class CorrelatedDmlAnalyzerTests
     public Task DeleteFrom_TargetCtorAliasNotConstant_StaysSilent() =>
         RunAsync("""
             using SqlArtisan;
-            using SqlArtisan.Internal;
             using static SqlArtisan.Sql;
 
             class T : DbTableBase
@@ -408,7 +401,6 @@ public class CorrelatedDmlAnalyzerTests
     public Task DeleteFrom_TargetFromParameter_StaysSilent() =>
         RunAsync("""
             using SqlArtisan;
-            using SqlArtisan.Internal;
             using static SqlArtisan.Sql;
 
             class T : DbTableBase
@@ -431,7 +423,6 @@ public class CorrelatedDmlAnalyzerTests
     public Task Update_FieldOnOtherInstanceInSubquery_StaysSilent() =>
         RunAsync("""
             using SqlArtisan;
-            using SqlArtisan.Internal;
             using static SqlArtisan.Sql;
 
             class T : DbTableBase
@@ -486,7 +477,6 @@ public class CorrelatedDmlAnalyzerTests
     // sibling reassignment and false-positive on a statement Build() accepts.
     private static string TopLevelUsage(string statements) => $$"""
         using SqlArtisan;
-        using SqlArtisan.Internal;
         using static SqlArtisan.Sql;
 
         T r = new T("r");

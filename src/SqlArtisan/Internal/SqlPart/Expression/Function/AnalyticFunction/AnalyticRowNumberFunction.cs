@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class AnalyticRowNumberFunction : AnalyticFunction
+internal sealed class AnalyticRowNumberFunction : AnalyticFunction
 {
     internal AnalyticRowNumberFunction() { }
 

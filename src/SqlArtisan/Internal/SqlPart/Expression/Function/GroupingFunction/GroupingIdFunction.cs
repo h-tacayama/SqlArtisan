@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class GroupingIdFunction : SqlExpression
+internal sealed class GroupingIdFunction : SqlExpression
 {
     private readonly VariadicFunctionCore _core;
 

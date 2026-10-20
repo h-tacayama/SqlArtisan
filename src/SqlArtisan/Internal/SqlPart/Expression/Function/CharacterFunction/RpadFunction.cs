@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class RpadFunction : SqlExpression
+internal sealed class RpadFunction : SqlExpression
 {
     private readonly SqlExpression _source;
     private readonly SqlExpression _length;

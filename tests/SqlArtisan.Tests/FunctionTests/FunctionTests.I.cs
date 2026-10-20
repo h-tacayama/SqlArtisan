@@ -180,7 +180,7 @@ public partial class FunctionTests
     [Fact]
     public void Interval_NullLeftOperand_ThrowsArgumentNullException()
     {
-        SqlArtisan.Internal.IntervalExpression? interval = null;
+        SqlArtisan.IntervalExpression? interval = null;
 
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
             () => interval! + _t.CreatedAt);

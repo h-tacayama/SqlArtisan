@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class WindowFunction : SqlExpression
+internal sealed class WindowFunction : SqlExpression
 {
     private readonly SqlPart _function;
     private readonly OverClause _overClause;

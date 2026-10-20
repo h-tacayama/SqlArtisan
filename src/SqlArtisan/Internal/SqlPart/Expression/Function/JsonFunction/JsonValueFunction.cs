@@ -5,7 +5,7 @@ namespace SqlArtisan.Internal;
 /// at the given path (MySQL 8.0.21+, Oracle, SQL Server). The path is emitted as
 /// an inline string literal.
 /// </summary>
-public sealed class JsonValueFunction : SqlExpression
+internal sealed class JsonValueFunction : SqlExpression
 {
     private readonly SqlExpression _jsonDoc;
     private readonly string _path;

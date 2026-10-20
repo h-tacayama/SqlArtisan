@@ -9,7 +9,7 @@ namespace SqlArtisan.Internal;
 /// MySQL silently truncates the result at <c>group_concat_max_len</c> (1024
 /// bytes by default); raise that session/global variable for large groups.
 /// </remarks>
-public sealed class GroupConcatFunction : SqlExpression
+internal sealed class GroupConcatFunction : SqlExpression
 {
     private readonly DistinctKeyword? _distinct;
     private readonly SqlExpression _expr;

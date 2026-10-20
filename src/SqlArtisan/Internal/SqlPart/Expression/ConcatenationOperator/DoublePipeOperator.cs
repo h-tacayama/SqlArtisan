@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class DoublePipeOperator : SqlExpression
+internal sealed class DoublePipeOperator : SqlExpression
 {
     private readonly OperatorJoinedFunctionCore _core;
 

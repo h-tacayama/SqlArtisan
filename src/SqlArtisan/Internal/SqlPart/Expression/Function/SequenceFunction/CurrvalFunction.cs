@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class CurrvalFunction : SqlExpression
+internal sealed class CurrvalFunction : SqlExpression
 {
     private readonly string _sequenceName;
 

@@ -90,11 +90,11 @@ internal static class ContextRules
             dialectName));
     }
 
-    // The value-family nodes SQL Server runs once the window is ordered. Internal
-    // for the parity gate: a node the family gains is classified here or nowhere.
+    // The value-family factories SQL Server runs once the window is ordered. Internal
+    // for the parity gate: a factory the family gains is classified here or nowhere.
     internal static readonly HashSet<string> OrderRequiringValueFunctions =
     [
-        "AnalyticFirstValueFunction", "AnalyticLastValueFunction"
+        "FirstValue", "LastValue"
     ];
 
     /// <summary>
@@ -103,9 +103,9 @@ internal static class ContextRules
     /// accept have no spelling there.
     /// </summary>
     /// <remarks>
-    /// Only a concrete receiver reports: NTH_VALUE fails on SQL Server for having
-    /// no function at all, which is SQLA0100's verdict, so a base-typed receiver
-    /// stays silent rather than risk misnaming that as a window shape (ADR 0003).
+    /// Only a receiver the visible factory call builds reports: the three share one
+    /// return type, so a held value names no function, and NTH_VALUE's failure on SQL
+    /// Server is SQLA0100's verdict, not a window shape (ADR 0003).
     /// </remarks>
     public static void CheckUnorderedWindowRequiresOrderBy(
         OperationAnalysisContext context, IInvocationOperation over, string dialectName)
@@ -114,8 +114,12 @@ internal static class ContextRules
             || over.TargetMethod.Parameters.Length > 1
             || (over.TargetMethod.Parameters.Length == 1
                 && over.TargetMethod.Parameters[0].Type.Name != "PartitionByClause")
-            || over.Instance?.Type is not { Name: string node }
-            || !OrderRequiringValueFunctions.Contains(node))
+            || over.Instance is not IInvocationOperation
+            {
+                TargetMethod: { ContainingType.Name: "Sql" } factory,
+            }
+            || !DialectUsageAnalyzer.IsFromSqlArtisan(factory.ContainingAssembly)
+            || !OrderRequiringValueFunctions.Contains(factory.Name))
         {
             return;
         }

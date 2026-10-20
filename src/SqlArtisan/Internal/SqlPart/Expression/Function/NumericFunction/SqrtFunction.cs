@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class SqrtFunction : SqlExpression
+internal sealed class SqrtFunction : SqlExpression
 {
     private readonly SqlExpression _expr;
 

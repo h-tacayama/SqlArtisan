@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class Log10Function : SqlExpression
+internal sealed class Log10Function : SqlExpression
 {
     private readonly SqlExpression _expr;
 

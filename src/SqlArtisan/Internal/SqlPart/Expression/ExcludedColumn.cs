@@ -6,7 +6,7 @@ namespace SqlArtisan.Internal;
 /// <c>excluded.col</c> (SQLite), or <c>new.col</c> (MySQL), resolved by the
 /// dialect at build time.
 /// </summary>
-public sealed class ExcludedColumn : SqlExpression
+internal sealed class ExcludedColumn : SqlExpression
 {
     private readonly DbColumn _column;
 

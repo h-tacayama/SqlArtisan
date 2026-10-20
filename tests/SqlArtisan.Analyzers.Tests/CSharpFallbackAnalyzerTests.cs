@@ -7,7 +7,6 @@ public class CSharpFallbackAnalyzerTests
 {
     private static string Usage(string statements) => $$"""
         using SqlArtisan;
-        using SqlArtisan.Internal;
         using static SqlArtisan.Sql;
 
         sealed class T : DbTableBase

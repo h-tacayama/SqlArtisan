@@ -1,7 +1,6 @@
 using System.Data;
 using System.Reflection;
 using System.Text;
-using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -196,18 +195,15 @@ public class FactoryGuardSweepTests
     [
         // Pending types awaiting a completing call (.Over/.WithinGroup/.Against/
         // .Then/.Values/.Set/.Using) — the incomplete-construct category.
-        "AnalyticCumeDistFunction", "AnalyticDenseRankFunction", "AnalyticFirstValueFunction",
-        "AnalyticLagFunction", "AnalyticLastValueFunction", "AnalyticLeadFunction",
-        "AnalyticNthValueFunction", "AnalyticNtileFunction", "AnalyticPercentRankFunction",
-        "AnalyticRankFunction", "AnalyticRowNumberFunction", "ListaggFunction", "MatchFunction",
-        "PercentileContFunction", "PercentileDiscFunction", "SearchedCaseWhenCondition",
-        "SimpleCaseWhenExpression", "IInsertBuilderColumnsOutput", "IInsertBuilderTable",
+        "AnalyticFunction", "ListaggFunction", "MatchFunction", "PercentileContFunction",
+        "PercentileDiscFunction", "SearchedCaseWhenCondition", "SimpleCaseWhenExpression",
+        "ValueAnalyticFunction", "IInsertBuilderColumnsOutput", "IInsertBuilderTable",
         "IInsertIgnoreBuilderColumns", "IInsertIgnoreBuilderTable", "IMergeBuilderTarget",
         "IUpdateBuilderUpdate",
         // Complete argument/clause objects TryBuild does not yet embed — a real
         // coverage gap, not a rejected category; extend TryBuild to shrink it.
         "DbSequence", "DistinctOnKeyword", "FrameBound", "IntervalField", "OrderByClause",
-        "PartitionByClause", "TopClause", "WaitBehavior",
+        "PartitionByClause", "TopClause", "LockBehaviorBase",
     ];
 
     [Fact]

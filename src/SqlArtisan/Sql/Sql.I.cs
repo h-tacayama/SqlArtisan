@@ -19,8 +19,8 @@ public static partial class Sql
     /// <remarks>MySQL syntax; SQLite (3.48+) accepts it as a second name for
     /// <c>IIF</c>. Not <see cref="ConditionIf(bool, SqlCondition)"/>, the C#-side
     /// helper that drops a <c>WHERE</c> condition and emits no SQL.</remarks>
-    public static IfFunction If(SqlCondition condition, object then, object @else) =>
-        new(condition, Resolve(then), Resolve(@else));
+    public static SqlExpression If(SqlCondition condition, object then, object @else) =>
+        new IfFunction(condition, Resolve(then), Resolve(@else));
 
     /// <summary>
     /// The <c>IFNULL(<paramref name="expr"/>, <paramref name="alt"/>)</c> function:
@@ -32,8 +32,8 @@ public static partial class Sql
     /// <returns>An <c>IFNULL</c> function expression.</returns>
     /// <remarks>MySQL/SQLite syntax. For the standard equivalent use
     /// <see cref="Coalesce(object, object, object[])"/>.</remarks>
-    public static IfnullFunction Ifnull(object expr, object alt) =>
-        new(Resolve(expr), Resolve(alt));
+    public static SqlExpression Ifnull(object expr, object alt) =>
+        new IfnullFunction(Resolve(expr), Resolve(alt));
 
     /// <summary>
     /// The <c>IIF(<paramref name="condition"/>, <paramref name="then"/>,
@@ -48,8 +48,8 @@ public static partial class Sql
     /// (every operand excluded).</exception>
     /// <remarks>SQLite (3.32+) and SQL Server (2012+) syntax; on MySQL use
     /// <see cref="If(SqlCondition, object, object)"/>.</remarks>
-    public static IifFunction Iif(SqlCondition condition, object then, object @else) =>
-        new(condition, Resolve(then), Resolve(@else));
+    public static SqlExpression Iif(SqlCondition condition, object then, object @else) =>
+        new IifFunction(condition, Resolve(then), Resolve(@else));
 
     /// <summary>
     /// References <paramref name="column"/> of the <c>INSERTED</c> pseudo-table in
@@ -59,7 +59,7 @@ public static partial class Sql
     /// <param name="column">The target-table column whose inserted value to read.</param>
     /// <returns>An <c>INSERTED.col</c> reference.</returns>
     /// <remarks>SQL Server syntax, valid only inside <c>Output(...)</c>.</remarks>
-    public static InsertedColumn Inserted(DbColumn column) => new(column);
+    public static SqlExpression Inserted(DbColumn column) => new InsertedColumn(column);
 
     /// <summary>
     /// Starts an <c>INSERT IGNORE INTO table</c> statement (MySQL): rows whose
@@ -148,26 +148,26 @@ public static partial class Sql
     /// <returns>The INSTR construct.</returns>
     /// <remarks>MySQL, Oracle, and SQLite syntax; the 3- and 4-argument forms
     /// are Oracle-only.</remarks>
-    public static InstrFunction Instr(object source, object substring) =>
-        new(Resolve(source), Resolve(substring));
+    public static SqlExpression Instr(object source, object substring) =>
+        new InstrFunction(Resolve(source), Resolve(substring));
 
     /// <inheritdoc cref="Instr(object, object)"/>
     /// <param name="source">The string to search in.</param>
     /// <param name="substring">The substring to search for.</param>
     /// <param name="position">The 1-based position at which to start searching.</param>
-    public static InstrFunction Instr(object source, object substring, object position) =>
-        new(Resolve(source), Resolve(substring), Resolve(position));
+    public static SqlExpression Instr(object source, object substring, object position) =>
+        new InstrFunction(Resolve(source), Resolve(substring), Resolve(position));
 
     /// <inheritdoc cref="Instr(object, object)"/>
     /// <param name="source">The string to search in.</param>
     /// <param name="substring">The substring to search for.</param>
     /// <param name="position">The 1-based position at which to start searching.</param>
     /// <param name="occurrence">Which occurrence (1-based) to locate.</param>
-    public static InstrFunction Instr(
+    public static SqlExpression Instr(
         object source,
         object substring,
         object position,
-        object occurrence) => new(
+        object occurrence) => new InstrFunction(
             Resolve(source),
             Resolve(substring),
             Resolve(position),
@@ -266,6 +266,6 @@ public static partial class Sql
     /// <remarks>SQL Server syntax — not <see cref="SqlExpression.IsNull"/>, the
     /// no-argument <c>expr IS NULL</c> predicate. For the standard equivalent use
     /// <see cref="Coalesce(object, object, object[])"/>.</remarks>
-    public static IsnullFunction Isnull(object expr, object alt) =>
-        new(Resolve(expr), Resolve(alt));
+    public static SqlExpression Isnull(object expr, object alt) =>
+        new IsnullFunction(Resolve(expr), Resolve(alt));
 }

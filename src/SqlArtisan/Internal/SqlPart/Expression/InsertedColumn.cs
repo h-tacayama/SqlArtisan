@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// A column of SQL Server's <c>INSERTED</c> pseudo-table in an <c>OUTPUT</c> clause
 /// (the post-image of an inserted or updated row); renders as <c>INSERTED.col</c>.
 /// </summary>
-public sealed class InsertedColumn : SqlExpression
+internal sealed class InsertedColumn : SqlExpression
 {
     private readonly DbColumn _column;
 

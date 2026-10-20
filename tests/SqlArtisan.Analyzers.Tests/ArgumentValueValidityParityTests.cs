@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using SqlArtisan.Internal;
 
 namespace SqlArtisan.Analyzers.Tests;
 
@@ -122,7 +121,7 @@ public class ArgumentValueValidityParityTests
         }
 
         bool groupByFound = typeof(IPagination).Assembly
-            .GetType("SqlArtisan.Internal.ISelectBuilderWhere")!
+            .GetType("SqlArtisan.ISelectBuilderWhere")!
             .GetMethod("GroupBy")!
             .GetParameters()
             .Any(p => p.Name == ArgumentValueValidity.GroupByItemsParameterName);

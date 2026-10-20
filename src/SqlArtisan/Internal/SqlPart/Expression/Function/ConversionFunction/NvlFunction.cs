@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class NvlFunction : SqlExpression
+internal sealed class NvlFunction : SqlExpression
 {
     private readonly SqlExpression _expr1;
     private readonly SqlExpression _expr2;

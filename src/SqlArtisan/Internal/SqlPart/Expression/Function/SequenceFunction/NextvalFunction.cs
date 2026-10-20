@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class NextvalFunction : SqlExpression
+internal sealed class NextvalFunction : SqlExpression
 {
     private readonly string _sequenceName;
 

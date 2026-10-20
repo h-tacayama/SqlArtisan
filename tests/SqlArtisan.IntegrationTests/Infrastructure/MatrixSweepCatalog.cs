@@ -1,6 +1,5 @@
 using SqlArtisan.Analyzers;
 using SqlArtisan.IntegrationTests.Schema;
-using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.IntegrationTests.Infrastructure;

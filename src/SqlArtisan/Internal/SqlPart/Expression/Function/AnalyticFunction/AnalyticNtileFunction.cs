@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class AnalyticNtileFunction : AnalyticFunction
+internal sealed class AnalyticNtileFunction : AnalyticFunction
 {
     private readonly string _buckets;
 

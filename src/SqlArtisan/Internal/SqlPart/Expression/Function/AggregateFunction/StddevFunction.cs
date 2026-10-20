@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class StddevFunction : UnfilteredAggregateFunction
+internal sealed class StddevFunction : UnfilteredAggregateFunction
 {
     private readonly SqlPart _expr;
 

@@ -13,9 +13,9 @@ public static partial class Sql
     /// </summary>
     /// <param name="label">The label of the <c>CONTAINS</c> operator whose score
     /// to read.</param>
-    /// <returns>A <see cref="ScoreFunction"/> emitting <c>SCORE(label)</c>.</returns>
+    /// <returns>An expression emitting <c>SCORE(label)</c>.</returns>
     /// <remarks>Oracle syntax.</remarks>
-    public static ScoreFunction Score(int label) => new(label);
+    public static SqlExpression Score(int label) => new ScoreFunction(label);
 
     /// <summary>
     /// The <c>SECOND</c> interval field, for the sole-field overload of
@@ -130,8 +130,8 @@ public static partial class Sql
     /// <param name="expr">The numeric expression whose sign is taken.</param>
     /// <returns>A <c>SIGN</c> function expression.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+), and SQL Server syntax.</remarks>
-    public static SignFunction Sign(object expr) =>
-        new(Resolve(expr));
+    public static SqlExpression Sign(object expr) =>
+        new SignFunction(Resolve(expr));
 
     /// <summary>
     /// The <c>SKIP LOCKED</c> behavior for a <c>FOR UPDATE</c> clause: skip rows that
@@ -139,7 +139,7 @@ public static partial class Sql
     /// </summary>
     /// <remarks>MySQL (8.0+), Oracle, and PostgreSQL syntax.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static SkipLockedBehavior SkipLocked => new();
+    public static LockBehaviorBase SkipLocked => new SkipLockedBehavior();
 
     /// <summary>
     /// The <c>SOME (subquery)</c> quantified comparison operator: equivalent to
@@ -170,65 +170,65 @@ public static partial class Sql
     /// <param name="expr">The numeric expression whose square root is taken.</param>
     /// <returns>A <c>SQRT</c> function expression.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+), and SQL Server syntax.</remarks>
-    public static SqrtFunction Sqrt(object expr) =>
-        new(Resolve(expr));
+    public static SqlExpression Sqrt(object expr) =>
+        new SqrtFunction(Resolve(expr));
 
     /// <summary>
     /// The <c>STDDEV(<paramref name="expr"/>)</c> aggregate function.
     /// </summary>
     /// <param name="expr">The numeric expression to aggregate.</param>
-    /// <returns>A <see cref="StddevFunction"/> emitting <c>STDDEV(expr)</c>.</returns>
+    /// <returns>An aggregate emitting <c>STDDEV(expr)</c>.</returns>
     /// <remarks>
     /// MySQL, Oracle, and PostgreSQL syntax; MySQL computes the population statistic,
     /// the other two the sample. <see cref="StddevPop(object)"/> and
     /// <see cref="StddevSamp(object)"/> name the statistic on every dialect.
     /// </remarks>
-    public static StddevFunction Stddev(object expr) =>
-        new(Resolve(expr));
+    public static UnfilteredAggregateFunction Stddev(object expr) =>
+        new StddevFunction(Resolve(expr));
 
     /// <summary>
     /// The <c>STDDEV_POP(<paramref name="expr"/>)</c> aggregate function: the
     /// population standard deviation of <paramref name="expr"/> across the group.
     /// </summary>
     /// <param name="expr">The numeric expression to aggregate.</param>
-    /// <returns>A <see cref="StddevPopFunction"/> emitting <c>STDDEV_POP(expr)</c>.</returns>
+    /// <returns>An aggregate emitting <c>STDDEV_POP(expr)</c>.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL. SQL Server spells this
     /// <see cref="Stdevp(object)"/>.</remarks>
-    public static StddevPopFunction StddevPop(object expr) =>
-        new(Resolve(expr));
+    public static UnfilteredAggregateFunction StddevPop(object expr) =>
+        new StddevPopFunction(Resolve(expr));
 
     /// <summary>
     /// The <c>STDDEV_SAMP(<paramref name="expr"/>)</c> aggregate function: the
     /// sample standard deviation of <paramref name="expr"/> across the group.
     /// </summary>
     /// <param name="expr">The numeric expression to aggregate.</param>
-    /// <returns>A <see cref="StddevSampFunction"/> emitting <c>STDDEV_SAMP(expr)</c>.</returns>
+    /// <returns>An aggregate emitting <c>STDDEV_SAMP(expr)</c>.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL. SQL Server spells this
     /// <see cref="Stdev(object)"/>.</remarks>
-    public static StddevSampFunction StddevSamp(object expr) =>
-        new(Resolve(expr));
+    public static UnfilteredAggregateFunction StddevSamp(object expr) =>
+        new StddevSampFunction(Resolve(expr));
 
     /// <summary>
     /// The <c>STDEV(<paramref name="expr"/>)</c> aggregate function: the sample
     /// standard deviation of <paramref name="expr"/> across the group.
     /// </summary>
     /// <param name="expr">The numeric expression to aggregate.</param>
-    /// <returns>A <see cref="StdevFunction"/> emitting <c>STDEV(expr)</c>.</returns>
+    /// <returns>An aggregate emitting <c>STDEV(expr)</c>.</returns>
     /// <remarks>SQL Server syntax — no double-D. MySQL, Oracle, and PostgreSQL
     /// spell this <see cref="StddevSamp(object)"/>.</remarks>
-    public static StdevFunction Stdev(object expr) =>
-        new(Resolve(expr));
+    public static UnfilteredAggregateFunction Stdev(object expr) =>
+        new StdevFunction(Resolve(expr));
 
     /// <summary>
     /// The <c>STDEVP(<paramref name="expr"/>)</c> aggregate function: the
     /// population standard deviation of <paramref name="expr"/> across the group.
     /// </summary>
     /// <param name="expr">The numeric expression to aggregate.</param>
-    /// <returns>A <see cref="StdevpFunction"/> emitting <c>STDEVP(expr)</c>.</returns>
+    /// <returns>An aggregate emitting <c>STDEVP(expr)</c>.</returns>
     /// <remarks>SQL Server syntax — no double-D. MySQL, Oracle, and PostgreSQL
     /// spell this <see cref="StddevPop(object)"/>.</remarks>
-    public static StdevpFunction Stdevp(object expr) =>
-        new(Resolve(expr));
+    public static UnfilteredAggregateFunction Stdevp(object expr) =>
+        new StdevpFunction(Resolve(expr));
 
     /// <summary>
     /// The <c>STRFTIME(<paramref name="format"/>, <paramref name="timevalue"/>, ...)</c>
@@ -244,11 +244,11 @@ public static partial class Sql
     /// SQLite syntax — see <see cref="Date(object, object, object[])"/> for why
     /// modifiers are plain strings.
     /// </remarks>
-    public static StrftimeFunction Strftime(
+    public static SqlExpression Strftime(
         object format,
         object timevalue,
         params object[] modifiers) =>
-        new(ResolveVariadic(format, timevalue, modifiers));
+        new StrftimeFunction(ResolveVariadic(format, timevalue, modifiers));
 
     /// <summary>
     /// The <c>STRING_AGG(expr, separator)</c> string aggregate: concatenates
@@ -272,11 +272,14 @@ public static partial class Sql
     /// an inline string literal, like the 2-argument overload's, so the two emit the
     /// separator the same way.</param>
     /// <param name="orderByClause">PostgreSQL's inline ordering, emitted inside the call (<c>STRING_AGG(expr, separator ORDER BY ...)</c>).</param>
-    public static StringAggOrderByFunction StringAgg(
+    public static SqlExpression StringAgg(
         object expr,
         string separator,
         OrderByClause orderByClause) =>
-        new(Resolve(expr), separator, NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)));
+        new StringAggOrderByFunction(
+            Resolve(expr),
+            separator,
+            NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)));
 
     /// <summary>
     /// The <c>STRPOS(<paramref name="source"/>, <paramref name="substring"/>)</c>
@@ -285,11 +288,11 @@ public static partial class Sql
     /// </summary>
     /// <param name="source">The string searched.</param>
     /// <param name="substring">The substring to search for.</param>
-    /// <returns>A <see cref="StrposFunction"/> emitting <c>STRPOS(source, substring)</c>.</returns>
+    /// <returns>An expression emitting <c>STRPOS(source, substring)</c>.</returns>
     /// <remarks>PostgreSQL syntax. For the keyword form (MySQL, PostgreSQL) with the
     /// reverse argument order, see <see cref="Position(object, object)"/>.</remarks>
-    public static StrposFunction Strpos(object source, object substring) =>
-        new(Resolve(source), Resolve(substring));
+    public static SqlExpression Strpos(object source, object substring) =>
+        new StrposFunction(Resolve(source), Resolve(substring));
 
     /// <summary>
     /// The <c>SUBSTR(source, position)</c> function: the substring of
@@ -301,15 +304,15 @@ public static partial class Sql
     /// <returns>A <c>SUBSTR</c> function expression.</returns>
     /// <remarks>Not supported by SQL Server — use <see cref="Substring(object, object, object)"/>
     /// there instead.</remarks>
-    public static SubstrFunction Substr(object source, object position) =>
-        new(Resolve(source), Resolve(position));
+    public static SqlExpression Substr(object source, object position) =>
+        new SubstrFunction(Resolve(source), Resolve(position));
 
     /// <inheritdoc cref="Substr(object, object)"/>
     /// <param name="source">The string to slice.</param>
     /// <param name="position">The 1-based start position.</param>
     /// <param name="length">The number of characters to take.</param>
-    public static SubstrFunction Substr(object source, object position, object length) =>
-        new(Resolve(source), Resolve(position), Resolve(length));
+    public static SqlExpression Substr(object source, object position, object length) =>
+        new SubstrFunction(Resolve(source), Resolve(position), Resolve(length));
 
     /// <summary>
     /// The <c>SUBSTRB(source, position)</c> function: like <see cref="Substr(object, object)"/>
@@ -319,15 +322,15 @@ public static partial class Sql
     /// <param name="position">The 1-based start position, in bytes.</param>
     /// <returns>A <c>SUBSTRB</c> function expression.</returns>
     /// <remarks>Oracle syntax.</remarks>
-    public static SubstrbFunction Substrb(object source, object position) =>
-        new(Resolve(source), Resolve(position));
+    public static SqlExpression Substrb(object source, object position) =>
+        new SubstrbFunction(Resolve(source), Resolve(position));
 
     /// <inheritdoc cref="Substrb(object, object)"/>
     /// <param name="source">The string to slice.</param>
     /// <param name="position">The 1-based start position, in bytes.</param>
     /// <param name="length">The number of bytes to take.</param>
-    public static SubstrbFunction Substrb(object source, object position, object length) =>
-        new(Resolve(source), Resolve(position), Resolve(length));
+    public static SqlExpression Substrb(object source, object position, object length) =>
+        new SubstrbFunction(Resolve(source), Resolve(position), Resolve(length));
 
     /// <summary>
     /// The <c>SUBSTRING(source, position, length)</c> function: the substring of
@@ -337,14 +340,14 @@ public static partial class Sql
     /// <param name="source">The string to slice.</param>
     /// <param name="position">The 1-based start position.</param>
     /// <param name="length">The number of characters to take.</param>
-    /// <returns>A <see cref="SubstringFunction"/> emitting <c>SUBSTRING(source, position, length)</c>.</returns>
+    /// <returns>An expression emitting <c>SUBSTRING(source, position, length)</c>.</returns>
     /// <remarks>MySQL, PostgreSQL, SQLite (3.34+), and SQL Server syntax — SQL Server's
     /// only substring spelling, since it has no <c>SUBSTR</c>. Use
     /// <see cref="Substr(object, object, object)"/> where this construct is unavailable.
     /// Unlike <c>Substr</c>, <paramref name="length"/> is required: SQL Server's grammar
     /// has no 2-argument form.</remarks>
-    public static SubstringFunction Substring(object source, object position, object length) =>
-        new(Resolve(source), Resolve(position), Resolve(length));
+    public static SqlExpression Substring(object source, object position, object length) =>
+        new SubstringFunction(Resolve(source), Resolve(position), Resolve(length));
 
     /// <summary>
     /// The <c>SUM(expr)</c> aggregate: the total of <paramref name="expr"/> over the
@@ -352,8 +355,8 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric expression to total.</param>
     /// <returns>A <c>SUM</c> aggregate expression.</returns>
-    public static SumFunction Sum(object expr) =>
-        new(Resolve(expr));
+    public static UnfilteredAggregateFunction Sum(object expr) =>
+        new SumFunction(Resolve(expr));
 
     /// <inheritdoc cref="Sum(object)"/>
     /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Distinct"/>), emitting <c>SUM(DISTINCT expr)</c>.</param>
@@ -368,7 +371,7 @@ public static partial class Sql
     /// <remarks>Oracle syntax. For the standard current date/time use
     /// <see cref="CurrentTimestamp()"/> or <see cref="CurrentDate"/>.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static SysdateFunction Sysdate => new();
+    public static SqlExpression Sysdate => new SysdateFunction();
 
     /// <summary>
     /// The <c>SYSTIMESTAMP</c> function.
@@ -376,5 +379,5 @@ public static partial class Sql
     /// <remarks>Oracle syntax. For the standard current timestamp use
     /// <see cref="CurrentTimestamp()"/>.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static SystimestampFunction Systimestamp => new();
+    public static SqlExpression Systimestamp => new SystimestampFunction();
 }

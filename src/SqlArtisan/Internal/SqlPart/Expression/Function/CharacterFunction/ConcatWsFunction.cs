@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class ConcatWsFunction : SqlExpression
+internal sealed class ConcatWsFunction : SqlExpression
 {
     private readonly VariadicFunctionCore _core;
 

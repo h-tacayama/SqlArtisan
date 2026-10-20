@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class ToCharFunction : SqlExpression
+internal sealed class ToCharFunction : SqlExpression
 {
     private readonly SqlExpression _expr;
     private readonly SqlExpression? _format;

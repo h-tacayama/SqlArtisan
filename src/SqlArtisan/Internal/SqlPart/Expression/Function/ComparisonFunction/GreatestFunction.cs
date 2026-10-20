@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class GreatestFunction : SqlExpression
+internal sealed class GreatestFunction : SqlExpression
 {
     private readonly VariadicFunctionCore _core;
 

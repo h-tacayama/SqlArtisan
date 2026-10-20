@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class SubstrbFunction : SqlExpression
+internal sealed class SubstrbFunction : SqlExpression
 {
     private readonly SqlExpression _source;
     private readonly SqlExpression _position;

@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class VarpFunction : UnfilteredAggregateFunction
+internal sealed class VarpFunction : UnfilteredAggregateFunction
 {
     private readonly SqlPart _expr;
 

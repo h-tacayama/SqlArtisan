@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class ToTimestampFunction : SqlExpression
+internal sealed class ToTimestampFunction : SqlExpression
 {
     private readonly SqlExpression _text;
     private readonly SqlExpression _format;

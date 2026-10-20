@@ -1,5 +1,4 @@
 using System.Reflection;
-using SqlArtisan.Internal;
 
 namespace SqlArtisan.Tests;
 

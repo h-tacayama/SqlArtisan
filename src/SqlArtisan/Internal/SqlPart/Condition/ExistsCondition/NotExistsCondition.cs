@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class NotExistsCondition : SqlCondition
+internal sealed class NotExistsCondition : SqlCondition
 {
     private readonly ISubquery _subquery;
 

@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class AndCondition : SqlCondition
+internal sealed class AndCondition : SqlCondition
 {
     private readonly LogicalConditionCore _core;
 

@@ -5,7 +5,7 @@ namespace SqlArtisan.Internal;
 /// construct used as a value: the relevance score of the row, for a select list
 /// or <c>ORDER BY</c>.
 /// </summary>
-public sealed class MatchAgainstExpression : SqlExpression
+internal sealed class MatchAgainstExpression : SqlExpression
 {
     private readonly SqlExpression[] _columns;
     private readonly SqlExpression _searchExpr;

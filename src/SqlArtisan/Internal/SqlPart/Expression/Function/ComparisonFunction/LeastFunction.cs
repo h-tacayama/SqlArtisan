@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class LeastFunction : SqlExpression
+internal sealed class LeastFunction : SqlExpression
 {
     private readonly VariadicFunctionCore _core;
 

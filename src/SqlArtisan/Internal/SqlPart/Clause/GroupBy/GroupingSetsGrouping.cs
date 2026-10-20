@@ -7,7 +7,7 @@ namespace SqlArtisan.Internal;
 /// GROUPING SETS; Build still emits it faithfully, leaving the unsupported
 /// statement for the database to reject.
 /// </summary>
-public sealed class GroupingSetsGrouping : GroupingElement
+internal sealed class GroupingSetsGrouping : GroupingElement
 {
     private readonly GroupingSet[] _sets;
 

@@ -8,7 +8,7 @@ namespace SqlArtisan.Internal;
 /// It offers no window: PostgreSQL 16/17 and SQLite 3.50, the engines with <c>FILTER</c>, run
 /// no <c>DISTINCT</c> window (live twins, #662).
 /// </remarks>
-public sealed class FilteredDistinctAggregateFunction : SqlExpression
+internal sealed class FilteredDistinctAggregateFunction : SqlExpression
 {
     private readonly DistinctAggregateFunction _aggregate;
     private readonly SqlCondition _condition;

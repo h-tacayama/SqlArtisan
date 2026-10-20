@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class DbSequenceNextval : SqlExpression
+internal sealed class DbSequenceNextval : SqlExpression
 {
     private readonly DbSequence _sequence;
 

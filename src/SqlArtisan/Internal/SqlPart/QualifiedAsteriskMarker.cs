@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// The qualified star select item — <c>"t".*</c> (aliased) or <c>customer.*</c>
 /// (bare table name): every column of one table.
 /// </summary>
-public sealed class QualifiedAsteriskMarker : SqlPart
+internal sealed class QualifiedAsteriskMarker : SqlPart
 {
     private readonly string _qualifier;
     private readonly bool _quoteQualifier;

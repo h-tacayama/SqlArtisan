@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class CountFunction : UnfilteredAggregateFunction
+internal sealed class CountFunction : UnfilteredAggregateFunction
 {
     private readonly SqlPart _expr;
 

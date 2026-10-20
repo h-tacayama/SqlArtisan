@@ -5,7 +5,7 @@ namespace SqlArtisan.Internal;
 /// FTS table against the pattern. The table renders as its bare name, qualified
 /// by its alias when one is declared (<c>"a".tbl MATCH ...</c>).
 /// </summary>
-public sealed class MatchCondition : SqlCondition
+internal sealed class MatchCondition : SqlCondition
 {
     private readonly DbTableBase _table;
     private readonly SqlExpression _pattern;

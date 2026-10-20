@@ -6,7 +6,7 @@ namespace SqlArtisan.Internal;
 /// Emitted as <c>CUBE(a, b)</c>. MySQL and SQLite have no CUBE; Build still emits
 /// it faithfully, leaving the unsupported statement for the database to reject.
 /// </summary>
-public sealed class CubeGrouping : GroupingElement
+internal sealed class CubeGrouping : GroupingElement
 {
     private readonly SqlPart[] _elements;
 

@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class LeftFunction : SqlExpression
+internal sealed class LeftFunction : SqlExpression
 {
     private readonly SqlExpression _source;
     private readonly SqlExpression _length;
