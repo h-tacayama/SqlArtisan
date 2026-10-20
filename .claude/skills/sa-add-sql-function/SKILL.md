@@ -66,7 +66,7 @@ internal sealed class <Name>Function : SqlExpression
 Rules:
 - `internal sealed class`, derives from `SqlExpression`, constructor is `internal`.
   A node that declares a public member (a fluent `.Over(...)`, `.WithinGroup(...)`)
-  is a public type instead, in the root namespace under
+  or that a public parameter takes is a public type instead, in the root namespace under
   `src/SqlArtisan/SqlPart/Expression/Function/<Category>/` with XML docs, or derives
   from the family's public base that already declares it (`UnfilteredAggregateFunction`
   for `.Over` / `.Filter`) — ADR 0027.
@@ -139,7 +139,8 @@ Rules:
 - Return the narrowest public type carrying the result's members: `SqlExpression`
   for a plain function, the family's base (`UnfilteredAggregateFunction`,
   `AnalyticFunction`, …) where the node derives from one, its own type only when it
-  declares a member (`.claude/rules/public-api-design.md` § Factory return types).
+  declares a member or a parameter takes it (`.claude/rules/public-api-design.md`
+  § Factory return types).
   The target-typed `new(...)` no longer fits; name the node type.
 - Keep the signature on one line when it fits within **100 columns**; wrap
   one parameter per line only when it would not (#209). Where the expression
