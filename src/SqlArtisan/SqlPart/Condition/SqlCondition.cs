@@ -11,6 +11,10 @@ namespace SqlArtisan;
 /// </summary>
 public abstract class SqlCondition : SqlPart
 {
+    private protected SqlCondition()
+    {
+    }
+
     /// <summary>
     /// Combines two conditions with <c>AND</c>: <c>(<paramref name="leftSide"/>)
     /// AND (<paramref name="rightSide"/>)</c>. Chaining three or more with

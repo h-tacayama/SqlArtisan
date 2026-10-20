@@ -81,31 +81,34 @@ public class PublicSurfaceBoundaryTests
 
     /// <summary>
     /// Nodes and stages come from the call or step that produces them, so only a handle a
-    /// caller creates offers a constructor; a primary constructor or none at all publishes
-    /// one silently (#487). An abstract base is the derivation gate's, below.
+    /// caller creates or derives from offers a constructor; a primary constructor or none
+    /// at all publishes one silently, <c>protected</c> on an abstract base (#487, #492).
     /// </summary>
     [Fact]
-    public void ExportedConcreteType_IsConstructibleOnlyWhenAllowlisted()
+    public void ExportedType_IsConstructibleOnlyWhenAllowlisted()
     {
         // By type rather than by name: renaming or unexporting one of these
         // fails to compile here instead of silently shrinking what is permitted.
         HashSet<Type> constructibleByDesign =
         [
-            typeof(BindValue), typeof(Cte), typeof(DbColumn), typeof(DbColumnMetadataAttribute),
-            typeof(DbTable), typeof(DerivedTable),
+            typeof(BindValue), typeof(Cte), typeof(CteBase), typeof(DbColumn),
+            typeof(DbColumnMetadataAttribute), typeof(DbTable), typeof(DbTableBase),
+            typeof(DerivedTable), typeof(DerivedTableBase),
         ];
 
         List<string> constructible = [.. typeof(Sql).Assembly.GetExportedTypes()
-            .Where(t => t.IsClass && !t.IsAbstract && !constructibleByDesign.Contains(t))
+            .Where(t => t.IsClass && !(t.IsAbstract && t.IsSealed))
+            .Where(t => !constructibleByDesign.Contains(t))
             .Where(HasConstructorReachableFromOutside)
             .Select(t => t.Name)
             .OrderBy(n => n, StringComparer.Ordinal)];
 
         Assert.True(
             constructible.Count == 0,
-            $"{constructible.Count} public types can be constructed from outside the "
-                + "assembly — make each constructor internal, or, where a caller creates "
-                + "the type, name it in this test's allowlist:\n  "
+            $"{constructible.Count} public types can be constructed or derived from outside "
+                + "the assembly — make each constructor internal, or private protected on an "
+                + "abstract base, or, where a caller creates or derives from the type, name it "
+                + "in this test's allowlist:\n  "
                 + string.Join("\n  ", constructible));
     }
 

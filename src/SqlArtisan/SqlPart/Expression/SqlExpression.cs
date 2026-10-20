@@ -16,6 +16,10 @@ public abstract class SqlExpression : SqlPart
     private const string NotInConstruct = $"{Keywords.Not} {Keywords.In}";
     private const string NotLikeConstruct = $"{Keywords.Not} {Keywords.Like}";
 
+    private protected SqlExpression()
+    {
+    }
+
     /// <summary>
     /// Gets the ascending <c>ORDER BY</c> sort direction for this expression
     /// (<c>expr ASC</c>).

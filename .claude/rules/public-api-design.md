@@ -480,7 +480,8 @@ A public type a caller does not create is public only because a signature hands
 it back, so it exposes **no constructor another assembly can reach**, and it is
 declared `internal` when no signature names it. Both are gated
 (`PublicSurfaceBoundaryTests`), with the single exported namespace; the handles a
-caller creates (`DbTable`, `DbColumn`, `BindValue`, …) are that test's allowlist.
+caller creates or derives from (`DbTable`, `DbTableBase`, `DbColumn`, `BindValue`, …)
+are that test's allowlist.
 Two spellings publish a constructor without anyone writing `public`, which is how
 30 nodes became `new`-able (#487) — 28 by a **primary constructor** on a concrete
 class, whose accessibility follows the class, and 2 by declaring **no constructor
