@@ -54,14 +54,13 @@ that can take surface back.
 - A tooltip shows `SqlExpression` where it showed `AbsFunction`; the factory's
   own XML docs say what it emits. Every public type carries XML docs, so the
   `Internal/SqlPart/**` CS1591 suppression is gone.
-- The returned types are no longer sealed, so a C# reference comparison that
-  failed with CS0019 — an interface-typed value, or `t.Asterisk` now typed
-  `SqlPart`, on the left of `==` / `!=` against a factory result — compiles and
-  binds a `bool`. Those orders sit in `public-api-design.md`'s open list, and
-  `SQLA0301` reports them; keeping one sealed type per node to hold them shut is
-  the cost this decision declines. A held factory result no longer gets
-  `SQLA0302`, which proves a non-sealed value only where a SqlArtisan member has
-  just returned it (ADR 0023).
+- Most returned types are no longer sealed, so a C# reference comparison between
+  two SqlArtisan values that failed with CS0019 can compile and bind a `bool`.
+  Those orders sit in `public-api-design.md`'s open list, and `SQLA0301` reports
+  one only where an operand can hold an expression (ADR 0023); keeping one sealed
+  type per node to hold them shut is the cost this decision declines. A held
+  result whose return type is no longer sealed no longer gets `SQLA0302`, which
+  proves a non-sealed value only where a SqlArtisan member has just returned it.
 - An analyzer rule cannot tell nodes apart by a receiver's static type: the
   `FirstValue` / `LastValue` window rule reads the factory call `.Over(...)` is
   chained onto, and stays silent on a value held in a variable (ADR 0003). The

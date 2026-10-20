@@ -89,15 +89,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   from `SqlArtisan.Internal` to `SqlArtisan`, which no longer needs a second
   `using`. Every chain that compiled still compiles and emits the same SQL; code
   naming a concrete node type (`SumFunction s = Sum(x)`) no longer compiles, and an
-  assembly built against an earlier release must be rebuilt. The returned types
-  are no longer sealed, so a C# reference comparison that failed to compile —
-  an interface-typed value or `t.Asterisk` on the left of `==` / `!=` against a
-  factory result — now compiles and binds a `bool`, which `SQLA0301` reports. A
-  factory result held in a variable no longer gets `SQLA0102`'s ordered-window
-  report for `FirstValue` / `LastValue` on SQL Server, nor `SQLA0302` when it is
-  interpolated or concatenated, since its static type no longer names the
-  function or rules out a `ToString` override. A guard message naming a moved
-  type prints its new name (`SqlArtisan.AsteriskMarker`). (#686)
+  assembly built against an earlier release must be rebuilt. Most returned types
+  are no longer sealed, so a C# reference comparison between two SqlArtisan
+  values that failed to compile (CS0019) can now compile and bind a `bool`;
+  `SQLA0301` reports it only where one operand can hold an expression. A held
+  `FirstValue` / `LastValue` no longer gets `SQLA0102`'s ordered-window report on
+  SQL Server, and a held result whose return type is no longer sealed no longer
+  gets `SQLA0302` when interpolated or concatenated (a sealed one such as
+  `Listagg`'s still does): its static type no longer names the function or rules
+  out a `ToString` override. A guard message naming a moved type prints its new
+  name (`SqlArtisan.AsteriskMarker`). (#686)
 - `Unnest(...).AsTable(alias, columns)` accepts more column names than there are
   arrays: an array of a composite type yields a column per field, which
   PostgreSQL names this way. A list naming more columns than a scalar array has
@@ -371,12 +372,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `UPDATE` that joins before `SET` and through `FROM` too. Code that writes the
   stage types out needs the new names, and an assembly compiled against an
   earlier version must be rebuilt. (#582)
-- **Breaking:** `StringAgg(expr, separator, OrderBy(...))` now returns
-  `StringAggOrderByFunction`, which has no `.WithinGroup(...)`: stacking SQL
-  Server's `WITHIN GROUP` on PostgreSQL's inline ordering, which no dialect
-  accepts, is a compile error rather than an `ArgumentException`. The emitted
-  SQL is unchanged. Code that writes the type out needs the new name, and an
-  assembly compiled against an earlier version must be rebuilt. (#582)
+- **Breaking:** `StringAgg(expr, separator, OrderBy(...))` now returns an
+  expression with no `.WithinGroup(...)`: stacking SQL Server's `WITHIN GROUP`
+  on PostgreSQL's inline ordering, which no dialect accepts, is a compile error
+  rather than an `ArgumentException`. The emitted SQL is unchanged. Code that
+  writes the type out needs `SqlExpression`, and an assembly compiled against an
+  earlier version must be rebuilt. (#582)
 - **Breaking:** `ForUpdate(...)` now returns its own stage,
   `ISelectBuilderForUpdate`, which is also an `ISubquery`: a locked query embeds
   as a subquery or CTE body without a cast, as in
@@ -393,7 +394,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** `Count(Distinct, x)`, `Sum(Distinct, x)` and `Avg(Distinct, x)`
   now return `DistinctAggregateFunction`, which offers only `.Over()`,
   `.Over(PartitionBy(...))` and `.Filter(...)`, and `.Filter(...)` on it returns
-  `FilteredDistinctAggregateFunction`, which offers no `.Over(...)`. An ordered
+  an expression that offers no `.Over(...)`. An ordered
   or framed window over a `DISTINCT` aggregate runs on none of the lanes the
   `SQLA0102` entry names, and a window after its `FILTER` runs on neither
   engine with `FILTER` (observed on PostgreSQL 16 and SQLite 3.50); both are
