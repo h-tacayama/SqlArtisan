@@ -487,7 +487,10 @@ owner too, and their pseudo-row holds the target's row alone, so another table's
 column read the target's same-named one (`PseudoRowColumn_ReadsTheTargetRowOnly` on
 PostgreSQL 16.15, MySQL 8.0 and SQL Server 2022): each checks its owner at `Build()`
 against the `INSERT`, `UPDATE` or `DELETE` target, by `ColumnListGuard.IsColumnOf`,
-whatever expression it sits in (#675). Where one sits stays the engine's — a `SELECT`
+whatever expression it sits in (#675). The remedies the records name run there too: an
+upsert reads another table's value through a subquery (the same twins, and
+`PseudoRowColumn_ReadsAnotherTableThroughASubquery` on SQLite 3.50.4), and the SQL
+Server twin outputs a joined column directly. Where one sits stays the engine's — a `SELECT`
 or a `MERGE` has no such target (`SELECT EXCLUDED.a` is rejected on PostgreSQL 16.15,
 the same twin) — the complete-construct class the window-function paragraph leaves
 unguarded, and `SQLA0102` reports `Inserted` / `Deleted` outside `OUTPUT`.

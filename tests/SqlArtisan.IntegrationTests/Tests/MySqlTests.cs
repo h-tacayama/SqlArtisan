@@ -974,24 +974,30 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     }
 
     // #675: the row alias holds the target's proposed row alone (MySQL 8.0), so
-    // Excluded(...) over another table's column would read the target's same-named one.
+    // Excluded(...) over another table's column would read the target's same-named one;
+    // another table's value is read through a subquery.
     [Fact]
     public void PseudoRowColumn_ReadsTheTargetRowOnly()
     {
         using IDbConnection connection = _fixture.OpenConnection();
         connection.Execute(
             "CREATE TEMPORARY TABLE pr_t (a INT PRIMARY KEY, b INT); "
-                + "INSERT INTO pr_t VALUES (1, 10);");
+                + "INSERT INTO pr_t VALUES (1, 10); "
+                + "CREATE TEMPORARY TABLE pr_u (a INT, b INT); INSERT INTO pr_u VALUES (1, 99);");
 
         try
         {
             connection.Execute(
                 "INSERT INTO pr_t (a, b) VALUES (1, 5) AS new ON DUPLICATE KEY UPDATE b = new.b");
             Assert.Equal(5, connection.ExecuteScalar<int>("SELECT b FROM pr_t"));
+            connection.Execute(
+                "INSERT INTO pr_t (a, b) VALUES (1, 5) AS new ON DUPLICATE KEY UPDATE b = "
+                    + "(SELECT u.b FROM pr_u u WHERE u.a = new.a)");
+            Assert.Equal(99, connection.ExecuteScalar<int>("SELECT b FROM pr_t"));
         }
         finally
         {
-            connection.Execute("DROP TEMPORARY TABLE pr_t");
+            connection.Execute("DROP TEMPORARY TABLE pr_t; DROP TEMPORARY TABLE pr_u");
         }
     }
 }
