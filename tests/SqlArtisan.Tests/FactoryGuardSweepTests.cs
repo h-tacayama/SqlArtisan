@@ -172,6 +172,9 @@ public class FactoryGuardSweepTests
                 + $"violation(s):\n\n{string.Join("\n\n", violations)}");
     }
 
+    private static readonly Type s_groupingElement = typeof(Sql).Assembly
+        .GetType("SqlArtisan.Internal.GroupingElement", throwOnError: true)!;
+
     // Mirrors TryBuild's switch: a return type assignable to one of these is
     // reached by the sweep. Everything else must sit in UnembeddedReturnTypes,
     // so the blind spot is a recorded list, not a silent fall-through.
@@ -179,7 +182,7 @@ public class FactoryGuardSweepTests
     [
         typeof(SqlStatement), typeof(ISqlBuilder), typeof(ExpressionAlias), typeof(SqlExpression),
         typeof(SqlCondition), typeof(TableReference), typeof(CommonTableExpression),
-        typeof(SortOrder), typeof(SqlHints), typeof(GroupingSet), typeof(GroupingElement),
+        typeof(SortOrder), typeof(SqlHints), typeof(GroupingSet),
         typeof(SeparatorClause), typeof(IWithBuilderWith),
         // No arm of its own in TryBuild: that switch sees one class implementing
         // both WITH states, while this check keys on the declared return type.
@@ -212,7 +215,10 @@ public class FactoryGuardSweepTests
         HashSet<string> unembedded = [];
         foreach (MethodInfo method in SweepableMethods())
         {
-            if (!EmbeddableReturnTypes.Any(t => t.IsAssignableFrom(method.ReturnType)))
+            // A bare SqlPart is the grouping extensions' return, which TryBuild's
+            // grouping arm embeds; every other SqlPart-derived type keys on its own.
+            if (method.ReturnType != typeof(SqlPart)
+                && !EmbeddableReturnTypes.Any(t => t.IsAssignableFrom(method.ReturnType)))
             {
                 unembedded.Add(method.ReturnType.Name);
             }
@@ -625,7 +631,7 @@ public class FactoryGuardSweepTests
                         .From(new DbTable("e", "x"))
                         .GroupBy(GroupingSets(set))
                         .Build(Dbms.PostgreSql).Text,
-                GroupingElement element =>
+                SqlPart element when s_groupingElement.IsInstanceOfType(element) =>
                     Select(new DbTable("e", "x").Column("c"))
                         .From(new DbTable("e", "x"))
                         .GroupBy(element)

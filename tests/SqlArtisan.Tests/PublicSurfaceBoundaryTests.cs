@@ -80,6 +80,38 @@ public class PublicSurfaceBoundaryTests
     }
 
     /// <summary>
+    /// A factory returns its node's own type only for what that type carries (ADR 0027): a
+    /// class here declares a member, is taken by a parameter, or is another public type's
+    /// base, so a memberless node stays internal behind <see cref="SqlExpression"/>.
+    /// </summary>
+    [Fact]
+    public void ExportedClass_CarriesAMemberAParameterOrADerivedType()
+    {
+        // By type rather than by name: BindArrayValue's placement is recorded in
+        // public-api-design.md (an execution layer type-tests for it).
+        HashSet<Type> recorded = [typeof(BindArrayValue)];
+        Type[] exported = typeof(Sql).Assembly.GetExportedTypes();
+        HashSet<Type> parameters = [.. exported
+            .SelectMany(t => t.GetMethods(Declared).Cast<MethodBase>()
+                .Concat(t.GetConstructors(BindingFlags.Public | BindingFlags.Instance)))
+            .SelectMany(m => m.GetParameters())
+            .SelectMany(p => Unwrap(p.ParameterType))];
+        HashSet<Type> bases = [.. exported.Select(t => t.BaseType).OfType<Type>()];
+
+        List<string> hollow = [.. exported
+            .Where(t => t.IsClass && !(t.IsAbstract && t.IsSealed) && !recorded.Contains(t))
+            .Where(t => !DeclaresMember(t) && !parameters.Contains(t) && !bases.Contains(t))
+            .Select(t => t.Name)
+            .OrderBy(n => n, StringComparer.Ordinal)];
+
+        Assert.True(
+            hollow.Count == 0,
+            $"{hollow.Count} public classes declare no member, are taken by no parameter and "
+                + "are no public type's base — make each internal and return its nearest "
+                + "public base:\n  " + string.Join("\n  ", hollow));
+    }
+
+    /// <summary>
     /// Nodes and stages come from the call or step that produces them, so only a handle a
     /// caller creates or derives from offers a constructor; a primary constructor or none
     /// at all publishes one silently, <c>protected</c> on an abstract base (#487, #492).
@@ -201,11 +233,6 @@ public class PublicSurfaceBoundaryTests
     /// </summary>
     private static IEnumerable<Type> HandedBackTypes(Type type)
     {
-        const BindingFlags Declared = BindingFlags.Public
-            | BindingFlags.Static
-            | BindingFlags.Instance
-            | BindingFlags.DeclaredOnly;
-
         IEnumerable<Type> returns = type.GetMethods(Declared).Select(m => m.ReturnType);
         IEnumerable<Type> properties = type.GetProperties(Declared).Select(p => p.PropertyType);
         IEnumerable<Type> fields = type.GetFields(Declared).Select(f => f.FieldType);
@@ -215,6 +242,19 @@ public class PublicSurfaceBoundaryTests
             .Concat(fields)
             .SelectMany(Unwrap);
     }
+
+    private const BindingFlags Declared = BindingFlags.Public
+        | BindingFlags.Static
+        | BindingFlags.Instance
+        | BindingFlags.DeclaredOnly;
+
+    // An override restates a base member, so it adds nothing a caller could not
+    // already reach through the base the factory would return instead.
+    private static bool DeclaresMember(Type type) =>
+        type.GetMethods(Declared).Any(m => m.GetBaseDefinition() == m)
+        || type.GetProperties(Declared).Any(p => p.GetMethod?.GetBaseDefinition() == p.GetMethod)
+        || type.GetFields(Declared).Length > 0
+        || type.GetEvents(Declared).Length > 0;
 
     /// <summary>
     /// A signature's type is the payload, not the wrapper: an array element or a

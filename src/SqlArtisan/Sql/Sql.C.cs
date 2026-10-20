@@ -687,7 +687,7 @@ public static partial class Sql
     /// database to reject.</remarks>
     /// <exception cref="ArgumentException">An element is a value rather than an expression or a
     /// subquery, which would bind as a constant that groups nothing.</exception>
-    public static GroupingElement Cube(object element, params object[] elements) =>
+    public static SqlPart Cube(object element, params object[] elements) =>
         new CubeGrouping(GroupByItemResolver.ResolveElements(element, elements));
 
     /// <summary>

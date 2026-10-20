@@ -395,7 +395,7 @@ public static partial class Sql
     /// </remarks>
     /// <exception cref="ArgumentException">An element is a value rather than an expression or a
     /// subquery, which would bind as a constant that groups nothing.</exception>
-    public static GroupingElement Rollup(object element, params object[] elements) =>
+    public static SqlPart Rollup(object element, params object[] elements) =>
         new RollupGrouping(GroupByItemResolver.ResolveElements(element, elements));
 
     /// <summary>
