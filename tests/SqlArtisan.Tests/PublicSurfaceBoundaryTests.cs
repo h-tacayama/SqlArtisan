@@ -128,8 +128,8 @@ public class PublicSurfaceBoundaryTests
 
         List<string> widened = [];
         HashSet<string> unjudged = [];
+        // Interfaces stay in: a default method (ISubquery.As) has a body to judge.
         foreach (MethodInfo method in typeof(Sql).Assembly.GetExportedTypes()
-            .Where(t => !t.IsInterface)
             .SelectMany(t => t.GetMethods(Declared))
             .Where(m => !m.IsAbstract && typeof(SqlPart).IsAssignableFrom(m.ReturnType)))
         {
