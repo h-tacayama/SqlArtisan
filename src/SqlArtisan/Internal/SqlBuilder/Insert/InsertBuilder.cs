@@ -268,6 +268,10 @@ internal sealed class InsertBuilder :
             throw new ArgumentException(NoRowsMessage);
         }
 
+        // Enumerating runs the caller's code, which may have composed or built this
+        // builder since the entry check; a row added now would reach that statement (#679).
+        ThrowIfBuilt();
+
         foreach (SqlExpression[] row in resolved)
         {
             if (_valuesClause is null)

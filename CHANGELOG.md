@@ -206,7 +206,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   page's, and extending a held first branch put its `WHERE` on the second
   branch, live on PostgreSQL 16. Building a composed builder on its own still
   works. Two variables taken from one chain still share it; build each
-  statement from its own chain. (#676)
+  statement from its own chain. (#676) The same freeze stops a statement
+  composed into itself (`q.Where(t.A.In(q))`), whose `Build()` overflowed the
+  stack and ended the process, which no `catch` can prevent; it now throws
+  `ArgumentException`. So does `Values(rows)` when enumerating `rows` composes or
+  builds the `INSERT` it is adding to: the row reached the statement already
+  holding it, or, composed into itself, the overflow returned. (#679)
 - **Breaking:** `OrderBy(...)` (and `Sql.OrderBy(...)` inside `OVER`, `WITHIN
   GROUP` and the aggregate orderings) throws `ArgumentException` for a
   `string`, `char`, `bool`, `DateTime`, `DateOnly`, `TimeOnly` or enum sort key,
