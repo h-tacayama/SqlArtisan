@@ -2,9 +2,9 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-// The reading recipes of docs/cookbook.md, shared by CookbookTests (the emitted text)
-// and the integration suite's CookbookRecipeTests (the rows on SQLite), so the page,
-// its text pin and its row gate stay one chain (#686).
+// The docs/cookbook.md recipes whose rows the page's stated constraints bear on, shared
+// by CookbookTests (the emitted text) and the integration suite's CookbookRecipeTests
+// (the rows on SQLite), so the page, its text pin and its row gate stay one chain (#686).
 internal static class CookbookRecipes
 {
     public static ISqlBuilder FilteredAggregateReport(bool filterByCategory, bool filterByActive)

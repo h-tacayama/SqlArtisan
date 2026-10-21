@@ -5340,8 +5340,10 @@ internal sealed class Order : DbTableBase
 
 Each table is keyed by its own `_id` column — `order_item` by
 `(order_id, product_id)`, `staging_product` by `product_id` — and the other
-`_id` columns reference those keys. Names are not unique: two products, or two
-categories, may share one. `created_at` and `ordered_at` are timestamps.
+`_id` columns reference those keys. Every column is `NOT NULL`, and the
+`product` columns an `INSERT` below leaves out have defaults. Names are not
+unique: two products, or two categories, may share one. `created_at` and
+`ordered_at` are timestamps.
 
 ---
 
@@ -5465,8 +5467,8 @@ SqlStatement sql =
 
 The three best-selling products per category: rank inside a CTE with
 `ROW_NUMBER()` partitioned by group, then filter on the rank outside. The
-window's `ORDER BY` takes the aggregate directly. Group and partition by the
-keys, not the names, since a name may repeat.
+window's `ORDER BY` takes the aggregate directly. Group by the keys as well as
+the names, and partition by the category key, since a name may repeat.
 
 ```csharp
 Category c = new("c");
