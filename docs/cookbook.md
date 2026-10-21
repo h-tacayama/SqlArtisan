@@ -82,6 +82,11 @@ internal sealed class Order : DbTableBase
 }
 ```
 
+Each table is keyed by its own `_id` column — `order_item` by
+`(order_id, product_id)`, `staging_product` by `product_id` — and the other
+`_id` columns reference those keys. Names are not unique: two products, or two
+categories, may share one. `created_at` and `ordered_at` are timestamps.
+
 ---
 
 ## Everyday Patterns
@@ -124,10 +129,14 @@ On Oracle and SQL Server, replace `.Limit(20).Offset(offset)` with
 
 ### Filtered aggregate report
 
-A category sales report where both the row filter and the active-product filter
-are optional at runtime. `ConditionIf` composes naturally with `JOIN`,
+A category sales report where the category filter and the active-product
+filter can each be off at runtime. `ConditionIf` composes naturally with `JOIN`,
 `GROUP BY`, and `HAVING` — when a filter is off, that predicate drops out of the
-`WHERE` clause and the rest of the query stays intact:
+`WHERE` clause and the rest of the query stays intact. With both off, `Build()`
+throws instead (see
+[Dynamic Condition](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#dynamic-condition)).
+The report groups by the category's key as well as its name, so two categories
+sharing a name stay apart:
 
 ```csharp
 Category c = new("c");
@@ -147,7 +156,7 @@ SqlStatement sql =
     .InnerJoin(p).On(c.CategoryId == p.CategoryId)
     .InnerJoin(oi).On(p.ProductId == oi.ProductId)
     .Where(where)
-    .GroupBy(c.Name)
+    .GroupBy(c.CategoryId, c.Name)
     .Having(Sum(oi.Quantity * oi.UnitPrice) > 1000)
     .OrderBy(Sum(oi.Quantity * oi.UnitPrice).Desc)
     .Build();
@@ -159,7 +168,7 @@ SqlStatement sql =
 // INNER JOIN product "p" ON "c".category_id = "p".category_id
 // INNER JOIN order_item "oi" ON "p".product_id = "oi".product_id
 // WHERE ("c".name = :0) AND ("p".active = :1)
-// GROUP BY "c".name
+// GROUP BY "c".category_id, "c".name
 // HAVING SUM(("oi".quantity * "oi".unit_price)) > :2
 // ORDER BY SUM(("oi".quantity * "oi".unit_price)) DESC
 ```
@@ -200,7 +209,8 @@ SqlStatement sql =
 
 The three best-selling products per category: rank inside a CTE with
 `ROW_NUMBER()` partitioned by group, then filter on the rank outside. The
-window's `ORDER BY` takes the aggregate directly.
+window's `ORDER BY` takes the aggregate directly. Group and partition by the
+keys, not the names, since a name may repeat.
 
 ```csharp
 Category c = new("c");
@@ -211,36 +221,44 @@ Cte ranked = new("ranked");
 SqlStatement sql =
     With(ranked.As(
         Select(
+            c.CategoryId.As(ranked.Column("category_id")),
             c.Name.As(ranked.Column("category_name")),
             p.Name.As(ranked.Column("product_name")),
             Sum(oi.Quantity * oi.UnitPrice).As(ranked.Column("sales")),
             RowNumber()
-                .Over(PartitionBy(c.Name).OrderBy(Sum(oi.Quantity * oi.UnitPrice).Desc))
+                .Over(PartitionBy(c.CategoryId)
+                    .OrderBy(Sum(oi.Quantity * oi.UnitPrice).Desc))
                 .As(ranked.Column("rn")))
         .From(c)
         .InnerJoin(p).On(c.CategoryId == p.CategoryId)
         .InnerJoin(oi).On(p.ProductId == oi.ProductId)
-        .GroupBy(c.Name, p.Name)))
+        .GroupBy(c.CategoryId, c.Name, p.ProductId, p.Name)))
     .Select(
+        ranked.Column("category_id"),
         ranked.Column("category_name"),
         ranked.Column("product_name"),
         ranked.Column("sales"))
     .From(ranked)
     .Where(ranked.Column("rn") <= 3)
-    .OrderBy(ranked.Column("category_name"), ranked.Column("sales").Desc)
+    .OrderBy(
+        ranked.Column("category_name"),
+        ranked.Column("category_id"),
+        ranked.Column("sales").Desc)
     .Build();
 
-// WITH "ranked" AS (SELECT "c".name category_name, "p".name product_name,
+// WITH "ranked" AS (SELECT "c".category_id category_id,
+//   "c".name category_name, "p".name product_name,
 //   SUM(("oi".quantity * "oi".unit_price)) sales,
-//   ROW_NUMBER() OVER (PARTITION BY "c".name
+//   ROW_NUMBER() OVER (PARTITION BY "c".category_id
 //     ORDER BY SUM(("oi".quantity * "oi".unit_price)) DESC) rn
 //   FROM category "c"
 //   INNER JOIN product "p" ON "c".category_id = "p".category_id
 //   INNER JOIN order_item "oi" ON "p".product_id = "oi".product_id
-//   GROUP BY "c".name, "p".name)
-// SELECT "ranked".category_name, "ranked".product_name, "ranked".sales
+//   GROUP BY "c".category_id, "c".name, "p".product_id, "p".name)
+// SELECT "ranked".category_id, "ranked".category_name,
+//   "ranked".product_name, "ranked".sales
 // FROM "ranked" WHERE "ranked".rn <= :0
-// ORDER BY "ranked".category_name, "ranked".sales DESC
+// ORDER BY "ranked".category_name, "ranked".category_id, "ranked".sales DESC
 ```
 
 This shape runs on all five dialects (only markers and quoting differ). On
@@ -292,8 +310,7 @@ Select(
 
 ### Rows without a match
 
-Products never ordered, in the three standard anti-join spellings — all
-equally direct; pick by taste and plan:
+Products never ordered, in the three standard anti-join spellings:
 
 ```csharp
 Product p = new("p");
@@ -325,9 +342,9 @@ Select(p.Name).From(p)
 //   SELECT "oi".product_id FROM order_item "oi")
 ```
 
-Mind the SQL semantics of (iii): if the subquery returns any `NULL`,
-`NOT IN` matches nothing — prefer (i) or (ii) when the subquery column is
-nullable.
+Over a nullable subquery column, (iii) is the shape the analyzer's
+[`SQLA0201`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#schema-aware-warnings-sqla0200)
+reports.
 
 ---
 
@@ -337,14 +354,18 @@ nullable.
 
 The standard admin search: each predicate applies only when its filter is
 active (`ConditionIf`), the sort column and direction come from user input,
-and the page query shares its condition with a companion `COUNT(*)`.
+and the page query shares its condition with a companion `COUNT(*)`. The date
+range is half-open — on or after the first day, before the day after the last —
+so a customer created late on the last day still matches.
 
 ```csharp
 Customer c = new("c");
 var where =
     ConditionIf(useName, c.LastName.Like("%son%"))
     & ConditionIf(useRegion, c.Region == "west")
-    & ConditionIf(useDateRange, c.CreatedAt.Between(new DateTime(2025, 1, 1), new DateTime(2025, 12, 31)));
+    & ConditionIf(
+        useDateRange,
+        c.CreatedAt >= new DateTime(2025, 1, 1) & c.CreatedAt < new DateTime(2026, 1, 1));
 
 DbColumn sortCol = sortKey switch
 {
@@ -365,7 +386,7 @@ SqlStatement page =
 // SELECT "c".customer_id, "c".first_name, "c".last_name, "c".email
 // FROM customer "c"
 // WHERE ("c".last_name LIKE :0) AND ("c".region = :1)
-//   AND ("c".created_at BETWEEN :2 AND :3)
+//   AND (("c".created_at >= :2) AND ("c".created_at < :3))
 // ORDER BY "c".last_name DESC, "c".customer_id LIMIT :4 OFFSET :5
 
 SqlStatement count =
@@ -376,7 +397,7 @@ SqlStatement count =
 
 // SELECT COUNT(*) FROM customer "c"
 // WHERE ("c".last_name LIKE :0) AND ("c".region = :1)
-//   AND ("c".created_at BETWEEN :2 AND :3)
+//   AND (("c".created_at >= :2) AND ("c".created_at < :3))
 ```
 
 When *every* `ConditionIf` is excluded, `Build()` throws rather than run an
@@ -452,23 +473,31 @@ MergeInto(t).Using(Dual).On(t.ProductId == 1)
 // MERGE INTO product "t" USING DUAL ON ("t".product_id = :0)
 // WHEN MATCHED THEN UPDATE SET price = :1
 // WHEN NOT MATCHED THEN INSERT (product_id, price) VALUES (:2, :3)
+
+// SQL Server — single-row upsert via MERGE against a VALUES row:
+ValuesDerivedTable s = Values("s", ["product_id", "price"], [[1, 990]]);
+MergeInto(t).Using(s).On(t.ProductId == s.Column("product_id"))
+    .WhenMatched().ThenUpdateSet(t.Price == s.Column("price"))
+    .WhenNotMatched().ThenInsert(t.ProductId, t.Price)
+        .Values(s.Column("product_id"), s.Column("price"))
+    .Build(Dbms.SqlServer);
+// MERGE INTO product "t" USING (VALUES (@0, @1)) "s" (product_id, price)
+// ON ("t".product_id = "s".product_id)
+// WHEN MATCHED THEN UPDATE SET price = "s".price
+// WHEN NOT MATCHED THEN INSERT (product_id, price)
+//   VALUES ("s".product_id, "s".price);
 ```
 
-SQL Server's UPSERT is also `MERGE`, but it has no `DUAL` — for a single
-literal row there, stage the row in a table (or run `UPDATE` then a
-conditional `INSERT` in one transaction) and `MERGE` from that source, as in
-[Synchronizing a table from staging](#synchronizing-a-table-from-staging).
-
-On MySQL and SQL Server there is no `RETURNING` clause — read the row back by
-key (or use the driver's last-insert-id facility) in the same transaction. See
-[RETURNING](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#returning-clause).
+`RETURNING` is not available on the MySQL, Oracle and SQL Server forms above —
+see [RETURNING](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#returning-clause).
 
 ### Synchronizing a table from staging
 
-Full catalog sync — update changed rows, insert new ones, delete rows gone
-from the source. `WhenNotMatchedBySource()` is PostgreSQL and SQL Server
+Catalog sync — reprice rows whose price differs, insert new ones, delete rows
+gone from the source. `WhenNotMatchedBySource()` is PostgreSQL and SQL Server
 syntax; PostgreSQL takes it from the version in the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
+On MySQL, Oracle and SQLite, `WhenNotMatchedBySource()` is not available.
 
 ```csharp
 Product t = new("t");
@@ -490,16 +519,6 @@ SqlStatement sql =
 // WHEN NOT MATCHED THEN INSERT (product_id, name, price)
 //   VALUES ("s".product_id, "s".name, "s".price)
 // WHEN NOT MATCHED BY SOURCE THEN DELETE;
-
-// Oracle — the delete rides the update branch instead:
-MergeInto(t).Using(s).On(t.ProductId == s.ProductId)
-    .WhenMatched().ThenUpdateSet(t.Price == s.Price)
-        .DeleteWhere(t.Active == false)
-    .Build(Dbms.Oracle);
-// MERGE INTO product "t" USING staging_product "s"
-// ON ("t".product_id = "s".product_id)
-// WHEN MATCHED THEN UPDATE SET price = "s".price
-// DELETE WHERE "t".active = :0
 ```
 
 Mind the SQL Server `MERGE` caveats (auto-appended semicolon, `HOLDLOCK`,

@@ -1,6 +1,7 @@
 namespace SqlArtisan.Tests;
 
-// Table classes mirroring the schema in docs/cookbook.md; used by CookbookTests.
+// Table classes mirroring the schema in docs/cookbook.md; used by CookbookTests and,
+// linked, by the integration suite's CookbookRecipeTests.
 internal sealed class CookbookCategory : DbTableBase
 {
     public CookbookCategory(string alias = "") : base("category", alias)

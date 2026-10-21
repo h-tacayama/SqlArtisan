@@ -84,6 +84,13 @@ with availability left to the database"). ADR cross-references belong in
   that gate is the drift the ADR measured, so add the catalog entry and its
   rows or leave the claim out — the gate only notices a day named beside its
   number, so a basis phrased any other way is yours to catch.
+- **An example that promises rows holds on every row its page admits.** A
+  recipe's text and SQL hold on any rows its page's stated constraints allow —
+  a repeated name, a timestamp late on a range's last day, a renamed row — not
+  only on the rows a test inserts, so the cookbook's schema states its keys and
+  what is not unique. `CookbookRecipeTests` runs the reading recipes on SQLite
+  over such rows, from the `CookbookRecipes` chains `CookbookTests` pins as
+  text; a new reading recipe joins both (#686).
 - **No version floor in a reference page.** A floor lives only where a test
   keeps it tied to `DialectMatrix`: `docs/analyzer.md`'s version-bound register
   and XML `<remarks>` (ADR 0020). Reference pages state which dialects support
