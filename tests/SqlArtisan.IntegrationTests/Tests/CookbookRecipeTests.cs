@@ -30,11 +30,11 @@ public sealed class CookbookRecipeTests : IDisposable
                 quantity INTEGER NOT NULL, unit_price INTEGER NOT NULL,
                 PRIMARY KEY (order_id, product_id));
             CREATE TABLE customer (
-                customer_id INTEGER PRIMARY KEY, first_name TEXT NOT NULL,
+                customer_id INT PRIMARY KEY, first_name TEXT NOT NULL,
                 last_name TEXT NOT NULL, email TEXT NOT NULL, region TEXT NOT NULL,
                 created_at TIMESTAMP NOT NULL);
             CREATE TABLE orders (
-                order_id INTEGER PRIMARY KEY, customer_id INTEGER NOT NULL,
+                order_id INT PRIMARY KEY, customer_id INTEGER NOT NULL,
                 ordered_at TIMESTAMP NOT NULL, status TEXT NOT NULL,
                 total_amount INTEGER NOT NULL);
             INSERT INTO category VALUES (1, 'Electronics'), (2, 'Electronics'), (3, 'Audio');
@@ -46,20 +46,22 @@ public sealed class CookbookRecipeTests : IDisposable
                 (100, 10, 1, 300), (101, 11, 1, 300), (100, 12, 1, 500), (100, 13, 1, 100),
                 (102, 14, 1, 50), (100, 20, 2, 1000);
             """);
+        // INT PRIMARY KEY is no rowid alias, and rows go in in descending key order, so a
+        // scan returns tied rows against key order and only a recipe's key tie-break sorts them.
         _connection.Execute(
             "INSERT INTO customer VALUES (@Id, 'X', @LastName, 'x@example.com', 'west', @At)",
             new[]
             {
-                new { Id = 1, LastName = "Johnson", At = new DateTime(2025, 1, 1) },
-                new { Id = 2, LastName = "Watson", At = new DateTime(2025, 12, 31, 15, 30, 0) },
-                new { Id = 3, LastName = "Nelson", At = new DateTime(2026, 1, 1) },
-                new { Id = 4, LastName = "Carson", At = new DateTime(2024, 12, 31, 23, 59, 59) },
-                new { Id = 5, LastName = "Smith", At = new DateTime(2025, 6, 1) },
                 new { Id = 6, LastName = "Watson", At = new DateTime(2025, 3, 1) },
+                new { Id = 5, LastName = "Smith", At = new DateTime(2025, 6, 1) },
+                new { Id = 4, LastName = "Carson", At = new DateTime(2024, 12, 31, 23, 59, 59) },
+                new { Id = 3, LastName = "Nelson", At = new DateTime(2026, 1, 1) },
+                new { Id = 2, LastName = "Watson", At = new DateTime(2025, 12, 31, 15, 30, 0) },
+                new { Id = 1, LastName = "Johnson", At = new DateTime(2025, 1, 1) },
             });
 
-        // Every order shares one timestamp, so only the key orders a page; customer 2 holds
-        // the other statuses, and customer 3 holds no order.
+        // Every order shares one timestamp; customer 2 holds the other statuses, and
+        // customer 3 holds no order.
         (int Id, int CustomerId, string Status)[] orders =
         [
             .. Enumerable.Range(1, 25).Select(id => (id, 1, "shipped")),
@@ -70,7 +72,7 @@ public sealed class CookbookRecipeTests : IDisposable
         ];
         _connection.Execute(
             "INSERT INTO orders VALUES (@Id, @CustomerId, @At, @Status, 10)",
-            orders.Select(o => new
+            orders.Reverse().Select(o => new
             {
                 o.Id,
                 o.CustomerId,
