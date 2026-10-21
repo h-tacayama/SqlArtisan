@@ -4,8 +4,8 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.Tests;
 
 // Hand-maintained mirror of docs/cookbook.md: the docs-audit sweep cannot parse its recipes
-// (#227). Those whose rows the page's constraints bear on share their chains with the
-// integration row gate through TestFixtures/CookbookRecipes.cs (#686).
+// (#227). Those SQLite runs share their chains with the integration row gate through
+// TestFixtures/CookbookRecipes.cs (#686).
 public class CookbookTests
 {
     [Fact]
@@ -45,16 +45,7 @@ public class CookbookTests
         expected.Append("COUNT(*) \"total\" ");
         expected.Append("FROM orders \"o\" GROUP BY \"o\".customer_id");
 
-        CookbookOrder o = new("o");
-        SqlStatement sql =
-            Select(
-                o.CustomerId,
-                Sum(Case(When(o.Status == "shipped").Then(1), Else(0))).As("shipped_cnt"),
-                Sum(Case(When(o.Status == "cancelled").Then(1), Else(0))).As("cancelled_cnt"),
-                Count(Asterisk).As("total"))
-            .From(o)
-            .GroupBy(o.CustomerId)
-            .Build();
+        SqlStatement sql = CookbookRecipes.PivotByConditionalAggregation().Build();
 
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal("shipped", sql.Parameters.Get<string>(":0"));
@@ -64,15 +55,7 @@ public class CookbookTests
     [Fact]
     public void PivotByAggregateFilter_CorrectSql()
     {
-        CookbookOrder o = new("o");
-        SqlStatement sql =
-            Select(
-                o.CustomerId,
-                Count(Asterisk).Filter(o.Status == "shipped").As("shipped_cnt"),
-                Count(Asterisk).As("total"))
-            .From(o)
-            .GroupBy(o.CustomerId)
-            .Build();
+        SqlStatement sql = CookbookRecipes.PivotByAggregateFilter().Build();
 
         Assert.Equal(
             "SELECT \"o\".customer_id, "
@@ -126,21 +109,7 @@ public class CookbookTests
         CookbookCustomer c = new("c");
         SqlCondition where = CookbookRecipes.SearchCondition(c, useName, useRegion, useDateRange);
 
-        DbColumn sortCol = sortKey switch
-        {
-            "last_name" => c.LastName,
-            "created_at" => c.CreatedAt,
-            _ => c.CustomerId,
-        };
-        object orderItem = sortDesc ? sortCol.Desc : sortCol;
-
-        SqlStatement page =
-            Select(c.CustomerId, c.FirstName, c.LastName, c.Email)
-            .From(c)
-            .Where(where)
-            .OrderBy(orderItem, c.CustomerId)
-            .Limit(20).Offset(40)
-            .Build();
+        SqlStatement page = CookbookRecipes.SearchPage(c, where, sortKey, sortDesc, 40).Build();
 
         StringBuilder expected = new();
         expected.Append(
@@ -189,20 +158,8 @@ public class CookbookTests
     [Fact]
     public void PaginatedList_CorrectSql()
     {
-        CookbookCustomer c = new("c");
-        CookbookOrder o = new("o");
-
-        SqlStatement Page(int offset) =>
-            Select(c.CustomerId, c.FirstName, c.LastName, o.OrderId, o.TotalAmount)
-            .From(c)
-            .InnerJoin(o).On(c.CustomerId == o.CustomerId)
-            .Where(o.Status == "shipped")
-            .OrderBy(o.OrderedAt.Desc, o.OrderId)
-            .Limit(20).Offset(offset)
-            .Build();
-
-        SqlStatement page1 = Page(0);
-        SqlStatement page2 = Page(20);
+        SqlStatement page1 = CookbookRecipes.PaginatedList(0).Build();
+        SqlStatement page2 = CookbookRecipes.PaginatedList(20).Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT \"c\".customer_id, \"c\".first_name, \"c\".last_name, ");
@@ -244,18 +201,7 @@ public class CookbookTests
     [Fact]
     public void CaseSortOrder_CorrectSql()
     {
-        CookbookOrder o = new("o");
-        SqlStatement sql =
-            Select(o.OrderId, o.CustomerId, o.Status, o.TotalAmount)
-            .From(o)
-            .OrderBy(
-                Case(
-                    When(o.Status == "pending").Then(1),
-                    When(o.Status == "shipped").Then(2),
-                    When(o.Status == "cancelled").Then(3),
-                    Else(4)),
-                o.OrderId)
-            .Build();
+        SqlStatement sql = CookbookRecipes.CaseSortOrder().Build();
 
         StringBuilder expected = new();
         expected.Append(

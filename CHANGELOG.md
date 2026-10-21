@@ -783,10 +783,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   bind the string with `Sql.Bind(...)` where its position takes a bound value.
 
 ### Tests
-- `CookbookRecipeTests` runs `docs/cookbook.md`'s top-N and filtered-aggregate
-  reports, anti-joins and search range on SQLite over repeated names and a
-  timestamp late on a range's last day, from the same chains `CookbookTests`
-  pins as text. (#686)
+- `CookbookRecipeTests` runs every `docs/cookbook.md` recipe SQLite runs over
+  repeated names, tied sort keys, a customer with no orders and a timestamp
+  late on a range's last day, from the same chains `CookbookTests` pins as
+  text. (#686)
 - Integration twins for #614's engine claims: Oracle rejects
   `NULLS FIRST NULLS LAST` and reads an empty match
   parameter as the default; `'n'` lets `.` match a newline on MySQL and Oracle

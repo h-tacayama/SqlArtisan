@@ -2,11 +2,64 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-// The docs/cookbook.md recipes whose rows the page's stated constraints bear on, shared
-// by CookbookTests (the emitted text) and the integration suite's CookbookRecipeTests
-// (the rows on SQLite), so the page, its text pin and its row gate stay one chain (#686).
+// Every docs/cookbook.md recipe SQLite runs, shared by CookbookTests (the emitted text)
+// and the integration suite's CookbookRecipeTests (the rows on SQLite), so the page, its
+// text pin and its row gate stay one chain (#686).
 internal static class CookbookRecipes
 {
+    public static ISqlBuilder PaginatedList(int offset)
+    {
+        CookbookCustomer c = new("c");
+        CookbookOrder o = new("o");
+        return
+            Select(c.CustomerId, c.FirstName, c.LastName, o.OrderId, o.TotalAmount)
+            .From(c)
+            .InnerJoin(o).On(c.CustomerId == o.CustomerId)
+            .Where(o.Status == "shipped")
+            .OrderBy(o.OrderedAt.Desc, o.OrderId)
+            .Limit(20).Offset(offset);
+    }
+
+    public static ISqlBuilder CaseSortOrder()
+    {
+        CookbookOrder o = new("o");
+        return
+            Select(o.OrderId, o.CustomerId, o.Status, o.TotalAmount)
+            .From(o)
+            .OrderBy(
+                Case(
+                    When(o.Status == "pending").Then(1),
+                    When(o.Status == "shipped").Then(2),
+                    When(o.Status == "cancelled").Then(3),
+                    Else(4)),
+                o.OrderId);
+    }
+
+    public static ISqlBuilder PivotByConditionalAggregation()
+    {
+        CookbookOrder o = new("o");
+        return
+            Select(
+                o.CustomerId,
+                Sum(Case(When(o.Status == "shipped").Then(1), Else(0))).As("shipped_cnt"),
+                Sum(Case(When(o.Status == "cancelled").Then(1), Else(0))).As("cancelled_cnt"),
+                Count(Asterisk).As("total"))
+            .From(o)
+            .GroupBy(o.CustomerId);
+    }
+
+    public static ISqlBuilder PivotByAggregateFilter()
+    {
+        CookbookOrder o = new("o");
+        return
+            Select(
+                o.CustomerId,
+                Count(Asterisk).Filter(o.Status == "shipped").As("shipped_cnt"),
+                Count(Asterisk).As("total"))
+            .From(o)
+            .GroupBy(o.CustomerId);
+    }
+
     public static ISqlBuilder FilteredAggregateReport(bool filterByCategory, bool filterByActive)
     {
         CookbookCategory c = new("c");
@@ -93,6 +146,25 @@ internal static class CookbookRecipes
         return
             Select(p.Name).From(p)
                 .Where(p.ProductId.NotIn(Select(oi.ProductId).From(oi)));
+    }
+
+    public static ISqlBuilder SearchPage(
+        CookbookCustomer c, SqlCondition where, string sortKey, bool sortDesc, int offset)
+    {
+        DbColumn sortCol = sortKey switch
+        {
+            "last_name" => c.LastName,
+            "created_at" => c.CreatedAt,
+            _ => c.CustomerId,
+        };
+        object orderItem = sortDesc ? sortCol.Desc : sortCol;
+
+        return
+            Select(c.CustomerId, c.FirstName, c.LastName, c.Email)
+            .From(c)
+            .Where(where)
+            .OrderBy(orderItem, c.CustomerId)
+            .Limit(20).Offset(offset);
     }
 
     public static SqlCondition SearchCondition(

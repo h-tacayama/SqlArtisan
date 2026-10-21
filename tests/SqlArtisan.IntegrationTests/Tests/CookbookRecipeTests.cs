@@ -7,9 +7,9 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.IntegrationTests.Tests;
 
-// The docs/cookbook.md recipes whose rows its stated constraints bear on, over rows the
-// schema admits but a happy-path seed never holds: repeated names and a timestamp late
-// on the range's last day (#686).
+// Every docs/cookbook.md recipe SQLite runs, over rows the schema admits but a
+// happy-path seed never holds: repeated names, tied sort keys, a customer with no
+// orders and a timestamp late on the range's last day (#686).
 [Trait("Engine", "Sqlite")]
 public sealed class CookbookRecipeTests : IDisposable
 {
@@ -32,6 +32,10 @@ public sealed class CookbookRecipeTests : IDisposable
                 customer_id INTEGER PRIMARY KEY, first_name TEXT NOT NULL,
                 last_name TEXT NOT NULL, email TEXT NOT NULL, region TEXT NOT NULL,
                 created_at TIMESTAMP NOT NULL);
+            CREATE TABLE orders (
+                order_id INTEGER PRIMARY KEY, customer_id INTEGER NOT NULL,
+                ordered_at TIMESTAMP NOT NULL, status TEXT NOT NULL,
+                total_amount INTEGER NOT NULL);
             INSERT INTO category VALUES (1, 'Electronics'), (2, 'Electronics'), (3, 'Audio');
             INSERT INTO product VALUES
                 (10, 1, 'Cable', 300, 1), (11, 1, 'Cable', 300, 1), (12, 1, 'Adapter', 500, 1),
@@ -50,7 +54,28 @@ public sealed class CookbookRecipeTests : IDisposable
                 new { Id = 3, LastName = "Nelson", At = new DateTime(2026, 1, 1) },
                 new { Id = 4, LastName = "Carson", At = new DateTime(2024, 12, 31, 23, 59, 59) },
                 new { Id = 5, LastName = "Smith", At = new DateTime(2025, 6, 1) },
+                new { Id = 6, LastName = "Watson", At = new DateTime(2025, 3, 1) },
             });
+
+        // Every order shares one timestamp, so only the key orders a page; customer 2 holds
+        // the other statuses, and customer 3 holds no order.
+        (int Id, int CustomerId, string Status)[] orders =
+        [
+            .. Enumerable.Range(1, 25).Select(id => (id, 1, "shipped")),
+            (26, 2, "cancelled"),
+            (27, 2, "pending"),
+            (28, 2, "returned"),
+            (29, 2, "pending"),
+        ];
+        _connection.Execute(
+            "INSERT INTO orders VALUES (@Id, @CustomerId, @At, @Status, 10)",
+            orders.Select(o => new
+            {
+                o.Id,
+                o.CustomerId,
+                At = new DateTime(2025, 5, 1),
+                o.Status,
+            }));
     }
 
     public void Dispose() => _connection.Dispose();
@@ -101,6 +126,71 @@ public sealed class CookbookRecipeTests : IDisposable
     }
 
     [Fact]
+    public void PaginatedList_TiedTimestamps_PagesDoNotOverlap()
+    {
+        (int CustomerId, string FirstName, string LastName, int OrderId, int Total)[] page1 =
+        [
+            .. _connection.Query<(int, string, string, int, int)>(
+                CookbookRecipes.PaginatedList(0)),
+        ];
+        (int CustomerId, string FirstName, string LastName, int OrderId, int Total)[] page2 =
+        [
+            .. _connection.Query<(int, string, string, int, int)>(
+                CookbookRecipes.PaginatedList(20)),
+        ];
+
+        Assert.Equal(20, page1.Length);
+        Assert.Equal(
+            Enumerable.Range(1, 25),
+            page1.Concat(page2).Select(row => row.OrderId));
+    }
+
+    [Fact]
+    public void CaseSortOrder_RepeatedStatuses_SortByRankThenKey()
+    {
+        IEnumerable<int> ids = _connection
+            .Query<(int OrderId, int CustomerId, string Status, int Total)>(
+                CookbookRecipes.CaseSortOrder())
+            .Select(row => row.OrderId);
+
+        Assert.Equal([27, 29, .. Enumerable.Range(1, 25), 26, 28], ids);
+    }
+
+    [Fact]
+    public void Pivot_EverySpelling_OneRowPerCustomerWithOrders()
+    {
+        (long CustomerId, long Shipped, long Cancelled, long Total)[] conditional =
+        [
+            .. _connection
+                .Query<(long, long, long, long)>(CookbookRecipes.PivotByConditionalAggregation())
+                .OrderBy(row => row.Item1),
+        ];
+        (long CustomerId, long Shipped, long Total)[] filtered =
+        [
+            .. _connection
+                .Query<(long, long, long)>(CookbookRecipes.PivotByAggregateFilter())
+                .OrderBy(row => row.Item1),
+        ];
+
+        Assert.Equal([(1L, 25L, 0L, 25L), (2L, 0L, 1L, 4L)], conditional);
+        Assert.Equal([(1L, 25L, 25L), (2L, 0L, 4L)], filtered);
+    }
+
+    [Fact]
+    public void SearchScreen_RepeatedSortKey_OrdersByKeyWithin()
+    {
+        CookbookCustomer c = new("c");
+        SqlCondition where = CookbookRecipes.SearchCondition(c, true, true, true);
+
+        IEnumerable<int> ids = _connection
+            .Query<(int CustomerId, string FirstName, string LastName, string Email)>(
+                CookbookRecipes.SearchPage(c, where, "last_name", true, 0))
+            .Select(row => row.CustomerId);
+
+        Assert.Equal([2, 6, 1], ids);
+    }
+
+    [Fact]
     public void SearchScreen_DateRange_KeepsTheLastDay()
     {
         CookbookCustomer c = new("c");
@@ -109,6 +199,6 @@ public sealed class CookbookRecipeTests : IDisposable
         IEnumerable<int> ids = _connection.Query<int>(
             Select(c.CustomerId).From(c).Where(where).OrderBy(c.CustomerId));
 
-        Assert.Equal([1, 2], ids);
+        Assert.Equal([1, 2, 6], ids);
     }
 }

@@ -88,13 +88,11 @@ with availability left to the database"). ADR cross-references belong in
   recipe's text and SQL hold on any rows its page's stated constraints allow —
   a repeated name, a timestamp late on a range's last day, a renamed row — not
   only on the rows a test inserts, so the cookbook's schema states its keys,
-  its nullability and what is not unique. `CookbookRecipeTests` runs the
-  recipes whose rows those constraints bear on (the two reports, the
-  anti-joins, the search range) on SQLite over such rows, from the
-  `CookbookRecipes` chains `CookbookTests` pins as text; a recipe SQLite runs
-  whose rows a repeated value, a NULL or a range edge can change joins both.
-  The `MERGE` recipes, which SQLite cannot run, rest on the schema's stated
-  constraints with no row gate (#686).
+  its nullability and what is not unique. `CookbookRecipeTests` runs every
+  recipe SQLite runs over such rows, from the `CookbookRecipes` chains
+  `CookbookTests` pins as text, and a new one joins both. The `MERGE`
+  recipes, which SQLite cannot run, rest on the schema's stated constraints
+  with no row gate (#686).
 - **No version floor in a reference page.** A floor lives only where a test
   keeps it tied to `DialectMatrix`: `docs/analyzer.md`'s version-bound register
   and XML `<remarks>` (ADR 0020). Reference pages state which dialects support
