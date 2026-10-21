@@ -465,7 +465,7 @@ InsertIgnoreInto(u, u.ProductId, u.Price)
     .Build(Dbms.MySql);
 // INSERT IGNORE INTO product (product_id, price) VALUES (?0, ?1)
 
-// Oracle — single-row upsert via MERGE against DUAL:
+// Oracle — single-row UPSERT via MERGE against DUAL:
 Product t = new("t");
 MergeInto(t).Using(Dual).On(t.ProductId == 1)
     .WhenMatched().ThenUpdateSet(t.Price == 990)
@@ -475,7 +475,7 @@ MergeInto(t).Using(Dual).On(t.ProductId == 1)
 // WHEN MATCHED THEN UPDATE SET price = :1
 // WHEN NOT MATCHED THEN INSERT (product_id, price) VALUES (:2, :3)
 
-// SQL Server — single-row upsert via MERGE against a VALUES row:
+// SQL Server — single-row UPSERT via MERGE against a VALUES row:
 ValuesDerivedTable s = Values("s", ["product_id", "price"], [[1, 990]]);
 MergeInto(t).Using(s).On(t.ProductId == s.Column("product_id"))
     .WhenMatched().ThenUpdateSet(t.Price == s.Column("price"))
@@ -491,6 +491,9 @@ MergeInto(t).Using(s).On(t.ProductId == s.Column("product_id"))
 
 `RETURNING` is not available on the MySQL, Oracle and SQL Server forms above —
 see [RETURNING](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#returning-clause).
+Mind the SQL Server `MERGE` caveats (auto-appended semicolon, `HOLDLOCK`,
+known engine quirks) — see the
+[MERGE reference](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement).
 
 ### Synchronizing a table from staging
 
