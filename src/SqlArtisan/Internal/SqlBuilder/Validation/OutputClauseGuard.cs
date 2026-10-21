@@ -67,7 +67,20 @@ internal static class OutputClauseGuard
         {
             throw new ArgumentException(
                 "OUTPUT cannot be combined with an UPDATE that joins before SET; "
-                    + "join through From(...) instead.");
+                    + "join through From(...), re-listing the target, instead.");
+        }
+    }
+
+    // SQL Server, the one engine with OUTPUT, spells a joined UPDATE only by re-listing
+    // its target in FROM (ThrowIfSqlServerJoinedTargetNotRepeated).
+    internal static void ThrowIfUpdateCombinedWithUnrelistedFrom(
+        OutputClause? output, DmlJoinState state)
+    {
+        if (output is not null && state.HasFrom && !state.TargetRepeatedInFrom)
+        {
+            throw new ArgumentException(
+                "OUTPUT cannot be combined with an UPDATE ... FROM that does not re-list its "
+                    + "target; re-list the target in From(...) instead.");
         }
     }
 

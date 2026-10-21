@@ -194,6 +194,7 @@ internal sealed class UpdateBuilder(
         OutputClauseGuard.ThrowIfCombinedWithReturning(
             output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
         OutputClauseGuard.ThrowIfUpdateCombinedWithDirectJoin(output, state);
+        OutputClauseGuard.ThrowIfUpdateCombinedWithUnrelistedFrom(output, state);
 
         // Last so the dialect-independent pairing guard above reports first.
         if (state.IsJoined)

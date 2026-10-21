@@ -85,7 +85,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `IInsertBuilderConflictAction`, whose `Returning(...)` returns `ISqlBuilder`;
   put a CTE ahead of `InsertInto(...)`. A held stage that still reaches either
   pair throws `ArgumentException` at `Build()`, as does a held `UPDATE` stage
-  that joins before `SET` and then takes `Output(...)`, and
+  that joins before `SET` and then takes `Output(...)`, an `UPDATE` whose
+  `Output(...)` meets a `From(...)` that does not re-list its target, and
   `Returning(...).Into(...)` after a leading `WITH`, which Oracle takes on no
   `INSERT`, `UPDATE` or `DELETE`. So do Oracle's MERGE action `Where(...)` /
   `DeleteWhere(...)` after a leading `WITH`: Oracle takes none before `MERGE`,

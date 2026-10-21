@@ -657,7 +657,29 @@ public class UpdateTests
 
         Assert.Equal(
             "OUTPUT cannot be combined with an UPDATE that joins before SET; "
-                + "join through From(...) instead.",
+                + "join through From(...), re-listing the target, instead.",
+            ex.Message);
+    }
+
+    // SQL Server, the one engine with OUTPUT, joins an UPDATE only by re-listing its
+    // target in FROM; the other engines' FROM form has no OUTPUT (#679).
+    [Fact]
+    public void Update_OutputWithFromNotRelistingTarget_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable u = new("u");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .Set(t.Name == u.Name)
+            .Output(Inserted(t.Name))
+            .From(u)
+            .Where(t.Code == u.Code)
+            .Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "OUTPUT cannot be combined with an UPDATE ... FROM that does not re-list its "
+                + "target; re-list the target in From(...) instead.",
             ex.Message);
     }
 
