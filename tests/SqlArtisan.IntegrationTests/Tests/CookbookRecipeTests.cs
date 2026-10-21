@@ -8,8 +8,7 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.IntegrationTests.Tests;
 
 // Every docs/cookbook.md recipe SQLite runs, over rows the schema admits but a
-// happy-path seed never holds: repeated names, tied sort keys, a customer with no
-// orders and a timestamp late on the range's last day (#686).
+// happy-path seed never holds (#686).
 [Trait("Engine", "Sqlite")]
 public sealed class CookbookRecipeTests : IDisposable
 {
@@ -40,11 +39,11 @@ public sealed class CookbookRecipeTests : IDisposable
             INSERT INTO category VALUES (1, 'Electronics'), (2, 'Electronics'), (3, 'Audio');
             INSERT INTO product VALUES
                 (10, 1, 'Cable', 300, 1), (11, 1, 'Cable', 300, 1), (12, 1, 'Adapter', 500, 1),
-                (13, 1, 'Hub', 100, 0), (14, 2, 'Cable', 50, 1), (20, 3, 'Speaker', 1000, 1),
+                (13, 1, 'Hub', 100, 0), (14, 2, 'Cable', 400, 1), (20, 3, 'Speaker', 1000, 1),
                 (21, 3, 'Turntable', 900, 1);
             INSERT INTO order_item VALUES
                 (100, 10, 1, 300), (101, 11, 1, 300), (100, 12, 1, 500), (100, 13, 1, 100),
-                (102, 14, 1, 50), (100, 20, 2, 1000);
+                (102, 14, 1, 400), (100, 20, 2, 1000);
             """);
         // INT PRIMARY KEY is no rowid alias, and rows go in in descending key order, so a
         // scan returns tied rows against key order and only a recipe's key tie-break sorts them.
@@ -109,7 +108,7 @@ public sealed class CookbookRecipeTests : IDisposable
                 (1L, "Electronics", "Adapter", 500L),
                 (1L, "Electronics", "Cable", 300L),
                 (1L, "Electronics", "Cable", 300L),
-                (2L, "Electronics", "Cable", 50L),
+                (2L, "Electronics", "Cable", 400L),
             ],
             rows);
     }

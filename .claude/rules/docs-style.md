@@ -78,12 +78,14 @@ with availability left to the database"). ADR cross-references belong in
 - **Result semantics are the engine's** — duplicate handling, `NULL` matching,
   multiplicity, collation, precision. Link the engine's manual; do not restate
   it. A hazard in *SqlArtisan's own emitted SQL* is a different thing and stays
-  (the callouts below). The one exception is a claim a gate ties to a live
-  twin: `DateTimePart`'s `Dow`/`Isodow` numbering, held by
-  `DateTimePartNumbering.Claims` at both ends (ADR 0020). Writing one without
-  that gate is the drift the ADR measured, so add the catalog entry and its
-  rows or leave the claim out — the gate only notices a day named beside its
-  number, so a basis phrased any other way is yours to catch.
+  (the callouts below). The exceptions are claims a gate holds:
+  `DateTimePart`'s `Dow`/`Isodow` numbering, tied to a live twin by
+  `DateTimePartNumbering.Claims` at both ends (ADR 0020), and a cookbook
+  recipe's rows, run on SQLite by `CookbookRecipeTests` (the next bullet).
+  Writing one without its gate is the drift the ADR measured, so add the
+  gate's entry and rows or leave the claim out — the numbering gate only
+  notices a day named beside its number, so a basis phrased any other way is
+  yours to catch.
 - **An example that promises rows holds on every row its page admits.** A
   recipe's text and SQL hold on any rows its page's stated constraints allow —
   a repeated name, a timestamp late on a range's last day, a renamed row — not
