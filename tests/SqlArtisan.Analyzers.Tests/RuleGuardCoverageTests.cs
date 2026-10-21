@@ -62,6 +62,26 @@ public class RuleGuardCoverageTests
         }
     }
 
+    // A declaration read past SourceDeclaration skips its compilation check, which
+    // throws AD0001 on a table class in a referenced project.
+    [Fact]
+    public void NoRule_ReadsDeclarationSyntaxOutsideSourceDeclaration()
+    {
+        string analyzers = Path.Combine(FindRepoRoot(), "src", "SqlArtisan.Analyzers");
+        string[] declarationReads =
+        [
+            "DeclaringSyntaxReferences", "ApplicationSyntaxReference",
+            "SourceTree", "GetSemanticModel"
+        ];
+        string[] offenders = [.. Directory.EnumerateFiles(analyzers, "*.cs")
+            .Where(f => Path.GetFileName(f) != "SourceDeclaration.cs"
+                && declarationReads.Any(File.ReadAllText(f).Contains))
+            .Select(f => Path.GetFileName(f))
+            .OrderBy(n => n, StringComparer.Ordinal)];
+
+        Assert.Empty(offenders);
+    }
+
     private static string DiagnosticId(string descriptors, string field)
     {
         Match match = Regex.Match(descriptors, field + @"\s*=\s*new\(\s*id:\s*""(SQLA\d{4})""");

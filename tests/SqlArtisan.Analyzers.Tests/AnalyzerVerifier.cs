@@ -38,6 +38,28 @@ internal static class AnalyzerVerifier
         return test;
     }
 
+    /// <summary>
+    /// As <see cref="Create(string, string?)"/>, with <paramref name="dataSource"/>
+    /// compiled as a second project the source under test references — the layout of
+    /// a separate data project, which the IDE passes as a compilation reference.
+    /// </summary>
+    public static CSharpAnalyzerTest<DialectUsageAnalyzer, DefaultVerifier> Create(
+        string source,
+        string dataSource,
+        string? editorConfig)
+    {
+        var test = Create(source, editorConfig);
+
+        ProjectState data = new("Data", LanguageNames.CSharp, "/Data/Test", "cs");
+        data.Sources.Add(dataSource);
+        data.AdditionalReferences.Add(
+            MetadataReference.CreateFromFile(typeof(Sql).Assembly.Location));
+        test.TestState.AdditionalProjects.Add("Data", data);
+        test.TestState.AdditionalProjectReferences.Add("Data");
+
+        return test;
+    }
+
     public static string EditorConfig(string dbms) => $"""
         root = true
 
