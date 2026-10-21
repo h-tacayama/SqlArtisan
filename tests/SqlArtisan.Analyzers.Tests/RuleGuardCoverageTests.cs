@@ -62,6 +62,27 @@ public class RuleGuardCoverageTests
         }
     }
 
+    // A symbol's syntax reached past SourceDeclaration skips its compilation check: bound or
+    // reported at, it throws AD0001 on a table class in a referenced project; read alone, it
+    // gives the IDE a fact `dotnet build` never sees.
+    [Fact]
+    public void NoRule_ReadsDeclarationSyntaxOutsideSourceDeclaration()
+    {
+        string analyzers = Path.Combine(FindRepoRoot(), "src", "SqlArtisan.Analyzers");
+        string[] declarationReads =
+        [
+            "DeclaringSyntaxReferences", "ApplicationSyntaxReference",
+            "Locations", "SourceTree", "GetSemanticModel"
+        ];
+        string[] offenders = [.. Directory.EnumerateFiles(analyzers, "*.cs")
+            .Where(f => Path.GetFileName(f) != "SourceDeclaration.cs"
+                && declarationReads.Any(File.ReadAllText(f).Contains))
+            .Select(f => Path.GetFileName(f))
+            .OrderBy(n => n, StringComparer.Ordinal)];
+
+        Assert.Empty(offenders);
+    }
+
     private static string DiagnosticId(string descriptors, string field)
     {
         Match match = Regex.Match(descriptors, field + @"\s*=\s*new\(\s*id:\s*""(SQLA\d{4})""");

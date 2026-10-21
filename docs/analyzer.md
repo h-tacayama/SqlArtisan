@@ -1117,7 +1117,7 @@ reassigned, and the correlated column reference must sit in a subquery
 written inline in the same fluent chain. Anything less certain — the table
 built by a helper, the alias passed as a variable, the builder split across
 statements, a chain head selected by a conditional expression, a table class
-compiled into a referenced assembly — stays silent. A missing warning therefore never means the statement is safe;
+or target field declared in a referenced project or assembly — stays silent. A missing warning therefore never means the statement is safe;
 `Build()` remains the enforcement.
 
 Suppression is per rule ID, the standard Roslyn way
@@ -1579,11 +1579,12 @@ for, not a bug in the matrix.
   Language Reference for which); the rule applies the 128-byte baseline
   whatever `sqlartisan_syntax_oracle` declares, so a 31–128-byte identifier on
   an older target is not reported.
-- **`SQLA0103` traces table-class aliases through classic constructors only.**
-  A table class whose alias flows through a C# *primary constructor*
-  (`class T(string alias) : DbTableBase("t", alias)`) is not traced, so an
-  over-long alias passed to it is missed. TableClassGen always emits the
-  classic constructor form, so generated table classes are unaffected.
+- **`SQLA0103` traces table-class aliases through classic constructors in the
+  same project only.** A table class whose alias flows through a C# *primary
+  constructor* (`class T(string alias) : DbTableBase("t", alias)`), or one
+  declared in a referenced project or assembly, is not traced, so an over-long
+  alias passed to it is missed. TableClassGen always emits the classic
+  constructor form, so a generated table class in the same project is traced.
 - **Absence of an entry still means silence, not endorsement.** The matrix
   covers every referencable public method, property, field, and overloaded
   operator except a

@@ -134,16 +134,10 @@ internal static class IdentifierLengthRule
                 return null;
             }
 
-            if (constructor.DeclaringSyntaxReferences.Length != 1
-                || constructor.DeclaringSyntaxReferences[0]
-                    .GetSyntax() is not ConstructorDeclarationSyntax declaration
-                || declaration.Initializer is not { } initializer)
-            {
-                return null;
-            }
-
-            SemanticModel model = compilation.GetSemanticModel(initializer.SyntaxTree);
-            if (model.GetOperation(initializer) is not IInvocationOperation call
+            if (SourceDeclaration.Single<ConstructorDeclarationSyntax>(compilation, constructor)
+                    ?.Initializer is not { } initializer
+                || SourceDeclaration.Model(compilation, initializer) is not { } model
+                || model.GetOperation(initializer) is not IInvocationOperation call
                 || call.TargetMethod.MethodKind != MethodKind.Constructor)
             {
                 return null;

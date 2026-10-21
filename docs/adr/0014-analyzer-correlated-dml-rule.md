@@ -75,10 +75,10 @@ statement, on a target column read inside a subquery. Descent stops at
 lambdas/local functions.
 
 Accepted false negatives (the ADR 0003 direction — silence where the walk
-cannot prove the shape): table classes from referenced assemblies (no
-declaration syntax), non-readonly fields, helper indirection for the table
-or the subquery, a builder split across statements, `With(...)`-headed
-subqueries, and every CTE body. A joined UPDATE/DELETE (`.From(...)` /
+cannot prove the shape): a table class or target field declared outside the
+compilation (a referenced project or assembly), non-readonly fields, helper
+indirection for the table or the subquery, a builder split across statements,
+`With(...)`-headed subqueries, and every CTE body. A joined UPDATE/DELETE (`.From(...)` /
 `.Using(...)` / a join step **visible in the same expression chain**) with
 an unaliased target is deliberately silent: its own guard throws a
 *different* message ("joined … must be aliased") at the joining call,

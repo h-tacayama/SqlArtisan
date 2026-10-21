@@ -21,10 +21,10 @@ not from how the change describes itself.
 2. Scope the diff per the skill (branch-point diff, not stale-`main` diff),
    run the gates (`dotnet build` / `dotnet test` / `dotnet format
    --verify-no-changes`), then the ADR-conformance and convention checks.
-   The path-scoped rules under `.claude/rules/` (guards-and-empty-states,
-   public-api-design, dbms-differences, unit-tests, docs-style,
-   sql-building-style, code-comments) are part of the bar — read the ones the
-   diff touches.
+   The path-scoped rules under `.claude/rules/` (analyzer-rules,
+   code-comments, csharp-formatting, dbms-differences, docs-style,
+   guards-and-empty-states, public-api-design, sql-building-style,
+   unit-tests) are part of the bar — read the ones the diff touches.
 3. **Verify empirically.** You have no Edit/Write tools by design — build the
    throwaway harness under `/tmp` with Bash heredocs, per
    `.claude/skills/sa-run-sql-harness/SKILL.md`, including the four

@@ -90,16 +90,10 @@ internal static class CorrelatedDmlRule
 
     private static bool IsProvablyUnaliased(Compilation compilation, ISymbol target)
     {
-        if (target.DeclaringSyntaxReferences.Length != 1
-            || target.DeclaringSyntaxReferences[0]
-                .GetSyntax() is not VariableDeclaratorSyntax declarator
-            || declarator.Initializer is not { } initializer)
-        {
-            return false;
-        }
-
-        SemanticModel model = compilation.GetSemanticModel(declarator.SyntaxTree);
-        if (model.GetOperation(initializer.Value) is not { } initial
+        if (SourceDeclaration.Single<VariableDeclaratorSyntax>(compilation, target)
+                is not { Initializer: { } initializer } declarator
+            || SourceDeclaration.Model(compilation, declarator) is not { } model
+            || model.GetOperation(initializer.Value) is not { } initial
             || UnwrapConversion(initial) is not IObjectCreationOperation creation
             || !CreationProvablyUnaliased(compilation, creation))
         {
@@ -108,7 +102,7 @@ internal static class CorrelatedDmlRule
 
         return target is ILocalSymbol
             ? HasNoWrites(EnclosingMemberScope(declarator), target.Name)
-            : ConstructorsDoNotWrite((IFieldSymbol)target);
+            : ConstructorsDoNotWrite(compilation, (IFieldSymbol)target);
     }
 
     // A zero-argument shortcut would false-positive on a ctor hardcoding an alias
@@ -136,16 +130,10 @@ internal static class CorrelatedDmlRule
                     && alias is null or "";
             }
 
-            if (constructor.DeclaringSyntaxReferences.Length != 1
-                || constructor.DeclaringSyntaxReferences[0]
-                    .GetSyntax() is not ConstructorDeclarationSyntax declaration
-                || declaration.Initializer is not { } initializer)
-            {
-                return false;
-            }
-
-            SemanticModel model = compilation.GetSemanticModel(initializer.SyntaxTree);
-            if (model.GetOperation(initializer) is not IInvocationOperation call
+            if (SourceDeclaration.Single<ConstructorDeclarationSyntax>(compilation, constructor)
+                    ?.Initializer is not { } initializer
+                || SourceDeclaration.Model(compilation, initializer) is not { } model
+                || model.GetOperation(initializer) is not IInvocationOperation call
                 || call.TargetMethod.MethodKind != MethodKind.Constructor)
             {
                 return false;
@@ -255,11 +243,16 @@ internal static class CorrelatedDmlRule
 
     // readonly bounds all writes to the initializer and constructors, so a
     // constructor scan is complete.
-    private static bool ConstructorsDoNotWrite(IFieldSymbol field)
+    private static bool ConstructorsDoNotWrite(Compilation compilation, IFieldSymbol field)
     {
-        foreach (SyntaxReference reference in field.ContainingType.DeclaringSyntaxReferences)
+        if (SourceDeclaration.All(compilation, field.ContainingType) is not { } parts)
         {
-            if (reference.GetSyntax() is not TypeDeclarationSyntax type)
+            return false;
+        }
+
+        foreach (SyntaxNode part in parts)
+        {
+            if (part is not TypeDeclarationSyntax type)
             {
                 return false;
             }

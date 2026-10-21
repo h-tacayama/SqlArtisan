@@ -461,6 +461,33 @@ public class IdentifierLengthAnalyzerTests
         await test.RunAsync();
     }
 
+    // The same alias reports when the class is declared beside it; across the project
+    // boundary the forwarding is unknown, as it is to a build reading the emitted assembly.
+    [Fact]
+    public async Task TableClassInReferencedProject_CtorAliasOverLimit_StaysSilent()
+    {
+        var test = AnalyzerVerifier.Create(
+            $$"""
+            class C
+            {
+                void M()
+                {
+                    var t = new UsersTable("{{Repeat('a', 64)}}");
+                }
+            }
+            """,
+            """
+            using SqlArtisan;
+
+            public class UsersTable : DbTableBase
+            {
+                public UsersTable(string alias = "") : base("users", alias) { }
+            }
+            """,
+            AnalyzerVerifier.EditorConfig("postgresql"));
+        await test.RunAsync();
+    }
+
     [Fact]
     public async Task UserClassNamedDbTable_ArgumentNotForwarded_StaysSilent()
     {

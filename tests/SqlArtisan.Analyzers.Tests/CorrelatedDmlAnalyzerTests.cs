@@ -200,6 +200,62 @@ public class CorrelatedDmlAnalyzerTests
             var q = DeleteFrom(t).Where(Exists(Select(r.Id).From(r).Where(r.Id == t.Id)));
             """, dbms: null);
 
+    private const string ReferencedTable = """
+        using SqlArtisan;
+
+        public class T : DbTableBase
+        {
+            public DbColumn Id;
+            public DbColumn Dep;
+            public T(string alias = "") : base("t", alias) { Id = new DbColumn(this, "id"); Dep = new DbColumn(this, "dep"); }
+        }
+
+        public static class Tables
+        {
+            public static readonly T Users = new T();
+        }
+        """;
+
+    // The same shapes report when T is declared beside them; across the project
+    // boundary the alias is unknown, as it is to a build reading the emitted assembly.
+    [Fact]
+    public Task DeleteFrom_TableClassInReferencedProject_StaysSilent() =>
+        AnalyzerVerifier.Create(
+            """
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    T t = new T();
+                    T r = new T("r");
+                    var q = DeleteFrom(t).Where(Exists(Select(r.Id).From(r).Where(r.Id == t.Id)));
+                }
+            }
+            """,
+            ReferencedTable,
+            AnalyzerVerifier.EditorConfig("postgresql")).RunAsync();
+
+    [Fact]
+    public Task DeleteFrom_StaticFieldInReferencedProject_StaysSilent() =>
+        AnalyzerVerifier.Create(
+            """
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    T r = new T("r");
+                    var q = DeleteFrom(Tables.Users)
+                        .Where(Exists(Select(r.Id).From(r).Where(r.Id == Tables.Users.Id)));
+                }
+            }
+            """,
+            ReferencedTable,
+            AnalyzerVerifier.EditorConfig("postgresql")).RunAsync();
+
     [Fact]
     public Task DeleteFrom_LocalReassigned_StaysSilent() =>
         RunSilent("""

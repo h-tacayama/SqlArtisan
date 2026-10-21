@@ -181,7 +181,7 @@ conventions live in `.claude/rules/` (auto-loaded by path when the matching
 files are edited); procedures live in `.claude/skills/`. Add new conventions
 there, not here — a pointer line in this list is enough.
 
-**Rules** (`.claude/rules/`): code-comments, csharp-formatting,
+**Rules** (`.claude/rules/`): analyzer-rules, code-comments, csharp-formatting,
 dbms-differences, docs-style, guards-and-empty-states, public-api-design,
 sql-building-style, unit-tests.
 

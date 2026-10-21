@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 
 namespace SqlArtisan.Analyzers.Tests;
@@ -28,11 +29,10 @@ public class SchemaRuleParityTests
         "CrossApply", "CrossJoin", "CrossJoinLateral", "InnerJoin", "JoinLateral", "NaturalJoin"
     ];
 
-    private static string Usage(string statements, string members = "") => $$"""
+    private const string TableClass = """
         using SqlArtisan;
-        using static SqlArtisan.Sql;
 
-        class T : DbTableBase
+        public class T : DbTableBase
         {
             public T(string alias = "") : base("t", alias)
             {
@@ -51,6 +51,11 @@ public class SchemaRuleParityTests
             [DbColumnMetadata(Nullable = true, HasDefault = false, Indexed = true)]
             public DbColumn Key { get; }
         }
+        """;
+
+    private static string Usage(string statements, string members = "") => $$"""
+        using SqlArtisan;
+        using static SqlArtisan.Sql;
 
         class C
         {
@@ -431,19 +436,44 @@ public class SchemaRuleParityTests
                 .WithLocation(0)
                 .WithArguments("Note"));
 
-    private static Task RunSilent(string statements, string dbms, string members = "")
+    private static async Task RunSilent(string statements, string dbms, string members = "")
     {
-        var test = AnalyzerVerifier.Create(
-            AnalyzerVerifier.Unmarked(Usage(statements, members)),
-            EditorConfig(dbms));
-        return test.RunAsync();
+        foreach (bool referenced in Layouts)
+        {
+            await Create(
+                AnalyzerVerifier.Unmarked(Usage(statements, members)),
+                dbms,
+                referenced).RunAsync();
+        }
     }
 
-    private static Task RunReporting(string statements, DiagnosticResult expected)
+    private static async Task RunReporting(string statements, DiagnosticResult expected)
     {
-        var test = AnalyzerVerifier.Create(Usage(statements), EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(expected);
-        return test.RunAsync();
+        foreach (bool referenced in Layouts)
+        {
+            var test = Create(Usage(statements), "postgresql", referenced);
+            test.ExpectedDiagnostics.Add(expected);
+            await test.RunAsync();
+        }
+    }
+
+    // Every shape also runs with T in a referenced project, as a separate data project
+    // holds it: its facts arrive through the symbol, never through its syntax.
+    private static readonly bool[] Layouts = [false, true];
+
+    private static CSharpAnalyzerTest<DialectUsageAnalyzer, DefaultVerifier> Create(
+        string source,
+        string dbms,
+        bool referenced)
+    {
+        if (referenced)
+        {
+            return AnalyzerVerifier.Create(source, TableClass, EditorConfig(dbms));
+        }
+
+        var test = AnalyzerVerifier.Create(source, EditorConfig(dbms));
+        test.TestState.Sources.Add(TableClass);
+        return test;
     }
 
     // SQLA0203 is opt-in, so the whole family is only observable with it named.

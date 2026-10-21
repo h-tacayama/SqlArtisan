@@ -527,6 +527,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#654)
 
 ### Fixed
+- The analyzer no longer throws `AD0001` ("SyntaxTree is not part of the
+  compilation") on a table class declared in a referenced project that reaches
+  it as a compilation rather than a built assembly, as a project reference does
+  in an IDE workspace. With a dialect configured, every `new UsersTable(...)`
+  threw, and so did `Update` / `DeleteFrom` / `MergeInto` on a local or
+  `readonly` field holding one, correlated or not. A table class declared in
+  another project or assembly is now unknown to the rules that read its
+  source: `SQLA0103` does not trace its alias and `SQLA0300` stays silent, as
+  `dotnet build` already did. (#684)
 - On SQL Server, a `JsonValue` / `JsonQuery` path or a `Like` / `NotLike`
   `.Escape(...)` character holding a non-ASCII character is emitted as
   `N'...'`. A plain literal is converted to the database's code page, so where
