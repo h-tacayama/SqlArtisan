@@ -185,7 +185,11 @@ internal static class CookbookRecipes
     }
 
     public static ISqlBuilder SearchPage(
-        CookbookCustomer c, SqlCondition where, string sortKey, bool sortDesc, int offset)
+        CookbookCustomer c,
+        SqlCondition where,
+        string sortKey,
+        bool sortDesc,
+        int offset)
     {
         DbColumn sortCol = sortKey switch
         {
@@ -204,7 +208,10 @@ internal static class CookbookRecipes
     }
 
     public static SqlCondition SearchCondition(
-        CookbookCustomer c, bool useName, bool useRegion, bool useDateRange) =>
+        CookbookCustomer c,
+        bool useName,
+        bool useRegion,
+        bool useDateRange) =>
         ConditionIf(useName, c.LastName.Like("%son%"))
         & ConditionIf(useRegion, c.Region == "west")
         & ConditionIf(
