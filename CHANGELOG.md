@@ -210,8 +210,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   composed into itself (`q.Where(t.A.In(q))`), whose `Build()` overflowed the
   stack and ended the process, which no `catch` can prevent; it now throws
   `ArgumentException`. So does `Values(rows)` when enumerating `rows` composes or
-  builds the `INSERT` it is adding to: the row reached the statement already
-  holding it, or, composed into itself, the overflow returned. (#679)
+  builds the `INSERT` it is adding to, whose row reached the statement already
+  holding it or, composed into itself, overflowed the stack too; and when it
+  adds a row of another width, which skipped the width check. (#679)
 - **Breaking:** `OrderBy(...)` (and `Sql.OrderBy(...)` inside `OVER`, `WITHIN
   GROUP` and the aggregate orderings) throws `ArgumentException` for a
   `string`, `char`, `bool`, `DateTime`, `DateOnly`, `TimeOnly` or enum sort key,

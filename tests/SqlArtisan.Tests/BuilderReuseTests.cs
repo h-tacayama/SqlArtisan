@@ -1056,7 +1056,7 @@ public class BuilderReuseTests
             insert.Values(LazyRows(() =>
             {
                 outer = With(c.As((ISubquery)insert)).Select(c.CteCode).From(c);
-                return 2;
+                return [2];
             })));
 
         Assert.Equal(
@@ -1081,7 +1081,7 @@ public class BuilderReuseTests
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             insert.Values(LazyRows(() =>
-                With(c.As((ISubquery)insert)).Select(c.CteCode).From(c))).Build());
+                [With(c.As((ISubquery)insert)).Select(c.CteCode).From(c)])).Build());
 
         Assert.Equal(
             "This INSERT statement is composed into another statement; "
@@ -1089,9 +1089,32 @@ public class BuilderReuseTests
             ex.Message);
     }
 
-    private static IEnumerable<object[]> LazyRows(Func<object> value)
+    [Fact]
+    public void Values_LazyRowsAddingARowOfAnotherWidth_ThrowsArgumentException()
     {
-        yield return [value()];
+        IInsertBuilderTable insert = InsertInto(_t);
+        IInsertBuilderValues? held = null;
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            insert.Values(LazyRows(() =>
+            {
+                held = insert.Values(1);
+                return [1, 2];
+            })));
+
+        Assert.Equal(
+            "All rows in a multi-row INSERT must have the same number of values; "
+                + "the first row has 1, but this row has 2.",
+            ex.Message);
+        SqlStatement sql = held!.Build();
+        Assert.Equal("INSERT INTO test_table VALUES (:0)", sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
+
+    private static IEnumerable<object[]> LazyRows(Func<object[]> row)
+    {
+        yield return row();
     }
 
     private SqlCondition SelfReference(string shape, ISelectBuilderFrom sub)

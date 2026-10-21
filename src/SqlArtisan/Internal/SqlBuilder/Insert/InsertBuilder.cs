@@ -255,9 +255,7 @@ internal sealed class InsertBuilder :
             }
             else if (resolvedRow.Length != expectedWidth)
             {
-                throw new ArgumentException(
-                    "All rows in a multi-row INSERT must have the same number of values; "
-                    + $"the first row has {expectedWidth}, but this row has {resolvedRow.Length}.");
+                throw RowWidthMismatch(expectedWidth, resolvedRow.Length);
             }
 
             resolved.Add(resolvedRow);
@@ -268,9 +266,13 @@ internal sealed class InsertBuilder :
             throw new ArgumentException(NoRowsMessage);
         }
 
-        // Enumerating runs the caller's code, which may have composed or built this
-        // builder since the entry check; a row added now would reach that statement (#679).
+        // The caller's enumeration may have composed, built or given rows to this builder
+        // since the checks above, so they run again before any row lands (#679).
         ThrowIfBuilt();
+        if (_valuesClause is not null && _valuesClause.RowWidth != resolved[0].Length)
+        {
+            throw RowWidthMismatch(_valuesClause.RowWidth, resolved[0].Length);
+        }
 
         foreach (SqlExpression[] row in resolved)
         {
@@ -285,6 +287,11 @@ internal sealed class InsertBuilder :
             }
         }
     }
+
+    private static ArgumentException RowWidthMismatch(int first, int row) =>
+        new(
+            "All rows in a multi-row INSERT must have the same number of values; "
+            + $"the first row has {first}, but this row has {row}.");
 
     // A repeat Values(...) call grows the held clause (AddRow checks its width)
     // rather than adding a second VALUES part.
