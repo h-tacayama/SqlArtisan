@@ -798,7 +798,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - The AI-assistants guide, `docs/analyzer.md`'s CI gate and the Context7 rules
   promote the whole dialect family
   (`dotnet_analyzer_diagnostic.category-SqlArtisan.Dialect.severity = error`)
-  to stop wrong-dialect code merging: promoting `SQLA0100` alone left
+  to stop a dialect mismatch the analyzer reports from merging: promoting `SQLA0100` alone left
   `SQLA0101`–`SQLA0104` as warnings, and the build succeeded. The Context7 rule
   no longer says only markers and quoting vary by dialect, the guide prints
   `sql.Parameters` through `ForEach` instead of its type name, the reference
