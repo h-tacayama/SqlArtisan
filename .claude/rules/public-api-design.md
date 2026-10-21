@@ -676,8 +676,8 @@ an additive change, left to demand (ADR 0010).
   SqlArtisan offers `LOG ERRORS` on no statement; added later to the DML
   stages, it would not reach a statement ending in `RETURNING ... INTO`.
 
-As with #581, a stage type reserved now would be a binary break paid for
-forms no caller has asked for (#582).
+A stage type reserved now would be a binary break paid for forms no caller
+has asked for (#582).
 
 **SQL Server's `OUTPUT ... INTO` beside a plain `OUTPUT` is not offered
 (decided — do not re-file):** T-SQL takes one of each in a statement
