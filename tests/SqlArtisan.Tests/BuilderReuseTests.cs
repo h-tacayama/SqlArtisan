@@ -1112,6 +1112,23 @@ public class BuilderReuseTests
         Assert.Equal(1, sql.Parameters.Get<int>(":0"));
     }
 
+    [Fact]
+    public void Values_LazyRowsAddingARowOfTheSameWidth_CorrectSql()
+    {
+        IInsertBuilderTable insert = InsertInto(_t);
+
+        SqlStatement sql = insert.Values(LazyRows(() =>
+        {
+            insert.Values(1);
+            return [2];
+        })).Build();
+
+        Assert.Equal("INSERT INTO test_table VALUES (:0), (:1)", sql.Text);
+        Assert.Equal(2, sql.Parameters.Count);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal(2, sql.Parameters.Get<int>(":1"));
+    }
+
     private static IEnumerable<object[]> LazyRows(Func<object[]> row)
     {
         yield return row();
