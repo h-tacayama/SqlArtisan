@@ -457,8 +457,8 @@ public class SchemaRuleParityTests
         }
     }
 
-    // Every shape also runs with T in a referenced project, the usual home of generated
-    // table classes: its facts arrive through the symbol, never through its syntax.
+    // Every shape also runs with T in a referenced project, as a separate data project
+    // holds it: its facts arrive through the symbol, never through its syntax.
     private static readonly bool[] Layouts = [false, true];
 
     private static CSharpAnalyzerTest<DialectUsageAnalyzer, DefaultVerifier> Create(
