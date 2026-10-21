@@ -7,8 +7,9 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.IntegrationTests.Tests;
 
-// docs/cookbook.md's reading recipes over rows its schema admits but a happy-path
-// seed never holds: repeated names and a timestamp late on the range's last day (#686).
+// The docs/cookbook.md recipes whose rows its stated constraints bear on, over rows the
+// schema admits but a happy-path seed never holds: repeated names and a timestamp late
+// on the range's last day (#686).
 [Trait("Engine", "Sqlite")]
 public sealed class CookbookRecipeTests : IDisposable
 {

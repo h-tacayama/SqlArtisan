@@ -3,9 +3,9 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-// Hand-maintained mirror of docs/cookbook.md (#227): the docs-audit sweep cannot
-// parse the multi-statement recipe shape, so a doc-side edit needs its twin edited by
-// hand. The reading recipes' chains live in TestFixtures/CookbookRecipes.cs (#686).
+// Hand-maintained mirror of docs/cookbook.md: the docs-audit sweep cannot parse its recipes
+// (#227). Those whose rows the page's constraints bear on share their chains with the
+// integration row gate through TestFixtures/CookbookRecipes.cs (#686).
 public class CookbookTests
 {
     [Fact]

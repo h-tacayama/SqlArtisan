@@ -83,11 +83,10 @@ internal sealed class Order : DbTableBase
 ```
 
 Each table is keyed by its own `_id` column — `order_item` by
-`(order_id, product_id)`, `staging_product` by `product_id` — and the other
-`_id` columns reference those keys. Every column is `NOT NULL`, and the
-`product` columns an `INSERT` below leaves out have defaults. Names are not
-unique: two products, or two categories, may share one. `created_at` and
-`ordered_at` are timestamps.
+`(order_id, product_id)`, `staging_product` by `product_id`. Every column is
+`NOT NULL`, and the `product` columns an `INSERT` below leaves out have
+defaults. Names are not unique: two products, or two categories, may share one.
+`created_at` and `ordered_at` are timestamps.
 
 ---
 
