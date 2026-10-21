@@ -62,8 +62,9 @@ public class RuleGuardCoverageTests
         }
     }
 
-    // A symbol's syntax reached past SourceDeclaration skips its compilation check: read
-    // or reported at, it throws AD0001 on a table class in a referenced project.
+    // A symbol's syntax reached past SourceDeclaration skips its compilation check: bound or
+    // reported at, it throws AD0001 on a table class in a referenced project; read alone, it
+    // gives the IDE a fact `dotnet build` never sees.
     [Fact]
     public void NoRule_ReadsDeclarationSyntaxOutsideSourceDeclaration()
     {
