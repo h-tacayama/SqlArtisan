@@ -783,6 +783,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   bind the string with `Sql.Bind(...)` where its position takes a bound value.
 
 ### Tests
+- `CookbookRecipeTests` runs every `docs/cookbook.md` recipe SQLite runs over
+  repeated names, tied sort keys, a customer with no orders, an existing row
+  for the UPSERTs and a timestamp late on a range's last day, from the same
+  chains `CookbookTests` pins as text. (#686)
 - An Oracle twin runs `docs/guides/oracle-array-bind.md`'s `UPDATE` with a null
   row through `ExecuteArrayBind`. (#686)
 - Integration twins for #614's engine claims: Oracle rejects
@@ -797,6 +801,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   header, which drops one phantom entry from its baseline. (#614)
 
 ### Docs
+- `docs/cookbook.md`'s recipes return the rows their text promises on any rows
+  the recipe schema admits, which now states its keys, that every column is
+  `NOT NULL` and that names repeat. The top-N and filtered-aggregate reports
+  group and partition by the keys, so two products or categories sharing a name
+  no longer merge; the search screen's date range is half-open, so it keeps a
+  row created late on its last day; the anti-join spellings are no longer called
+  interchangeable, and the `NOT IN` note points at `SQLA0201`. The staging sync
+  says it reprices rows whose price differs and that `WhenNotMatchedBySource()`
+  is not available on MySQL, Oracle and SQLite, dropping an Oracle
+  `DELETE WHERE` variant that removed rows still in staging. SQL Server's
+  single-row UPSERT is a `MERGE` over a `Values(...)` row instead of a
+  hand-written workaround, the `RETURNING` note names every form above that has
+  none, and the filtered report says `Build()` throws with both filters off.
+  (#686)
 - The TableClassGen README says a file at a generated path whose
   `: base("<table>", tableAlias)` names the table is rewritten whatever else it
   holds, so hand-written classes belong outside `--output`; it said such a class
