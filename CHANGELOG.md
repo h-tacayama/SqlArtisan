@@ -804,7 +804,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   tool does not write for a PostgreSQL column with no default, and it now says
   prompts appear only for a run given no options, that a run's own file also
   derives from `DbTableBase`, and that a `--qualify-schema` segment is the
-  `--schema` value as given. (#686)
+  schema the run reads, as given. (#686)
 - `docs/guides/oracle-array-bind.md`'s `UPDATE` example binds `BindNull()` for a
   null name, where it threw on the nullable rows the page describes; the
   `Execute` snippet imports `Oracle.ManagedDataAccess.Client`, and an ungated

@@ -214,7 +214,7 @@ value it does not know ([Versioning](https://github.com/h-tacayama/SqlArtisan/bl
 | `--tables a,b,c` | act on these tables only (default: every table) |
 | `--accessibility` | `internal` (default) or `public` |
 | `--qualify-schema` | emit schema-qualified table names |
-| `--lowercase` / `--subfolders` | lowercase the table and column names (a `--qualify-schema` schema segment stays the `--schema` value as given, upper-cased on Oracle) / write into subfolders by initial |
+| `--lowercase` / `--subfolders` | lowercase the table and column names (a `--qualify-schema` schema segment stays the schema the run reads, as given — `--schema`, or the `--database` (MySQL) / `--user` (Oracle) it defaults to — upper-cased on Oracle) / write into subfolders by initial |
 | `--config` | JSON file of the options above; flags win |
 | `--check` / `--fix` | drift modes |
 | `--dry-run` | report what would be written, write nothing (also with `--fix`) |
