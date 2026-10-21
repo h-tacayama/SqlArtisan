@@ -257,9 +257,11 @@ class name, so give each schema its own namespace and output directory.
 
 A run refuses to overwrite a generated file that already describes another
 table — the shape two `--tables`-scoped runs can slip past the class-name
-check — and a file at that path whose table it cannot read at all. A file there
-whose `base(...)` names the table is rewritten whatever else it holds, header or
-not, so keep hand-written classes outside `--output`. It reads the table identity the file spells, not the literal, since
+check — and a file at that path whose table it cannot read at all, such as one
+whose `base(...)` call a formatter wrapped. A file there whose
+`: base("<table>", tableAlias)` names the table is rewritten whatever else it
+holds, header or not, so keep hand-written classes outside `--output`. It reads
+the table identity the file spells, not the literal, since
 `--lowercase` and `--qualify-schema` vary that literal for one table; the same
 reading makes two tables whose names differ only by case one table, so on an
 engine where `Orders` and `orders` are distinct, generate them into separate

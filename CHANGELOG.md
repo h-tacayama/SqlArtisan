@@ -695,8 +695,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   tables were regenerated.": it never scans for orphan files, so it now says to
   run without `--tables` to find them. (#645)
 - TableClassGen refuses to overwrite a file at a path it writes when it cannot
-  read which table the file describes (a hand-written class, or a `base(...)`
-  line wrapped by a formatter). It used to pass such a file, so a `--tables` run
+  read which table the file describes (a hand-written class whose `base(...)`
+  it cannot read, or a `base(...)` line wrapped by a formatter). It used to pass such a file, so a `--tables` run
   could overwrite another table's class and exit 0. A file from 0.7 or earlier,
   which carries no generated header, is still recognized by its table name.
   (#645)
@@ -797,9 +797,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   header, which drops one phantom entry from its baseline. (#614)
 
 ### Docs
-- The TableClassGen README says a file at a generated path whose `base(...)`
-  names the table is rewritten whatever else it holds, so hand-written classes
-  belong outside `--output`; it said such a class was refused. Its example class
+- The TableClassGen README says a file at a generated path whose
+  `: base("<table>", tableAlias)` names the table is rewritten whatever else it
+  holds, so hand-written classes belong outside `--output`; it said such a
+  class was refused. Its example class
   drops the `HasDefault = false` arguments the tool never writes, and it now
   says prompts appear only for a run given no options, that a run's own file
   also derives from `DbTableBase`, and that a `--qualify-schema` segment is the
