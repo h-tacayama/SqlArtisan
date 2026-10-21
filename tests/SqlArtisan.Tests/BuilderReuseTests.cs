@@ -1013,6 +1013,173 @@ public class BuilderReuseTests
         _ => throw new ArgumentOutOfRangeException(nameof(site)),
     };
 
+    // #679: a statement containing itself recursed until the stack overflowed, which no
+    // catch survives; the freeze on composing (#690) stops the cycle at the stage call.
+    [Theory]
+    [InlineData("In")]
+    [InlineData("Equal")]
+    [InlineData("Exists")]
+    [InlineData("AsTable")]
+    [InlineData("CteBody")]
+    public void Where_SubqueryComposedIntoItself_ThrowsArgumentException(string shape)
+    {
+        var sub = Select(_t.Code).From(_t);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            sub.Where(SelfReference(shape, sub)).Build());
+
+        Assert.Equal(ComposedMessage, ex.Message);
+    }
+
+    [Fact]
+    public void Union_BranchComposingItsOwnHead_ThrowsArgumentException()
+    {
+        var head = Select(_t.Code).From(_t);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            head.Union.Select(_t.Code).From(_t).Where(_t.Code.In(head)).Build());
+
+        Assert.Equal(ContinuedMessage, ex.Message);
+    }
+
+    // A lazy row source runs while Values(...) holds the builder, so the freeze is checked
+    // again once it has run; a row added after composing reached the outer statement.
+    [Fact]
+    public void Values_LazyRowsComposingTheBuilder_ThrowsArgumentException()
+    {
+        TestCte c = new("c");
+        IInsertBuilderColumnsOutput insert = InsertInto(_t, _t.Code);
+        insert.Values(1);
+        ISqlBuilder? outer = null;
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            insert.Values(LazyRows(() =>
+            {
+                outer = With(c.As((ISubquery)insert)).Select(c.CteCode).From(c);
+                return [2];
+            })));
+
+        Assert.Equal(
+            "This INSERT statement is composed into another statement; "
+                + "start a new chain to change it.",
+            ex.Message);
+        SqlStatement sql = outer!.Build();
+        Assert.Equal(
+            "WITH \"c\" AS (INSERT INTO test_table (code) VALUES (:0)) "
+                + "SELECT \"c\".cte_code FROM \"c\"",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
+    public void Values_LazyRowsComposingTheBuilderIntoItself_ThrowsArgumentException()
+    {
+        TestCte c = new("c");
+        IInsertBuilderColumnsOutput insert = InsertInto(_t, _t.Code);
+        insert.Values(1);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            insert.Values(LazyRows(() =>
+                [With(c.As((ISubquery)insert)).Select(c.CteCode).From(c)])).Build());
+
+        Assert.Equal(
+            "This INSERT statement is composed into another statement; "
+                + "start a new chain to change it.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Values_LazyRowsBuildingTheBuilder_ThrowsArgumentException()
+    {
+        TestCte c = new("c");
+        IInsertBuilderColumnsOutput insert = InsertInto(_t, _t.Code);
+        IInsertBuilderValues held = insert.Values(1);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            insert.Values(LazyRows(() =>
+            {
+                held.Build();
+                return [2];
+            })));
+
+        Assert.Equal(
+            "This INSERT statement was already built; start a new chain.", ex.Message);
+        SqlStatement sql = With(c.As((ISubquery)insert)).Select(c.CteCode).From(c).Build();
+        Assert.Equal(
+            "WITH \"c\" AS (INSERT INTO test_table (code) VALUES (:0)) "
+                + "SELECT \"c\".cte_code FROM \"c\"",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
+    public void Values_LazyRowsAddingARowOfAnotherWidth_ThrowsArgumentException()
+    {
+        IInsertBuilderTable insert = InsertInto(_t);
+        IInsertBuilderValues? held = null;
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            insert.Values(LazyRows(() =>
+            {
+                held = insert.Values(1);
+                return [1, 2];
+            })));
+
+        Assert.Equal(
+            "All rows in a multi-row INSERT must have the same number of values; "
+                + "the first row has 1, but this row has 2.",
+            ex.Message);
+        SqlStatement sql = held!.Build();
+        Assert.Equal("INSERT INTO test_table VALUES (:0)", sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
+    public void Values_LazyRowsAddingARowOfTheSameWidth_CorrectSql()
+    {
+        IInsertBuilderTable insert = InsertInto(_t);
+
+        SqlStatement sql = insert.Values(LazyRows(() =>
+        {
+            insert.Values(1);
+            return [2];
+        })).Build();
+
+        Assert.Equal("INSERT INTO test_table VALUES (:0), (:1)", sql.Text);
+        Assert.Equal(2, sql.Parameters.Count);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal(2, sql.Parameters.Get<int>(":1"));
+    }
+
+    private static IEnumerable<object[]> LazyRows(Func<object[]> row)
+    {
+        yield return row();
+    }
+
+    private SqlCondition SelfReference(string shape, ISelectBuilderFrom sub)
+    {
+        switch (shape)
+        {
+            case "In":
+                return _t.Code.In(sub);
+            case "Equal":
+                return _t.Code == sub;
+            case "Exists":
+                return Exists(sub);
+            case "AsTable":
+                SubqueryDerivedTable x = sub.AsTable("x");
+                return Exists(Select(x.Column(_t.Code)).From(x));
+            case "CteBody":
+                TestCte c = new("c");
+                return _t.Code.In(With(c.As(sub)).Select(c.CteCode).From(c));
+            default:
+                throw new ArgumentOutOfRangeException(nameof(shape));
+        }
+    }
+
     [Fact]
     public void Returning_ThenInnerBuild_ThrowsArgumentException()
     {

@@ -504,7 +504,11 @@ statement — `In`, `NotIn`, `Exists`, `NotExists`, `Any` / `All` / `Some`, a
 scalar subquery, `AsTable`, a CTE's `As`, a lateral or apply join — takes no
 further stage call (`This SELECT statement is composed into another statement;
 start a new chain to change it.`); building it alone stays legal, since that
-changes nothing the other statement renders. A set operator returns a new
+changes nothing the other statement renders. A stage that runs the caller's code
+before it lands — `Values(IEnumerable<object[]>)` enumerating its rows — runs its
+checks again after that code has run: the code can compose the builder into
+itself, which overflowed the stack and ended the process, or call a stage on it
+that changes what was checked, such as a `VALUES` row of another width (#679). A set operator returns a new
 builder holding the chain so far, and the held left branch can no longer be
 extended, built or composed (`This SELECT statement was continued by a set
 operator; use the builder the operator returned.`): the continuation takes the left
