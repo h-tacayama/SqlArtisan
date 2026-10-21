@@ -91,7 +91,6 @@ internal sealed class InsertBuilder :
     public IReturningBuilder Returning(params object[] expressions) =>
         ReturningBuilder.Create(this, expressions);
 
-    // No engine with ON CONFLICT takes RETURNING ... INTO, so this stage withholds Into.
     ISqlBuilder IInsertBuilderConflictAction.Returning(params object[] expressions) =>
         Returning(expressions);
 
@@ -206,6 +205,7 @@ internal sealed class InsertBuilder :
         OnDuplicateKeyUpdateClause? onDuplicateKeyUpdate = FindPart<OnDuplicateKeyUpdateClause>();
         DmlTargetGuard.ThrowIfLeadingWithBeforeOnDuplicateKeyUpdate(
             PartsSpan, onDuplicateKeyUpdate);
+        ReturningGuard.ThrowIfIntoAfterLeadingWith(PartsSpan, FindPart<ReturningIntoClause>());
         DmlTargetGuard.ThrowIfLeadingWithUnsupported(PartsSpan, dbms, insert: true);
         DmlTargetGuard.ThrowIfAliasedOnSqlServer(_table, dbms, Keywords.Insert);
         DmlTargetGuard.ThrowIfInsertTargetAliasedOnMySql(_table, dbms);

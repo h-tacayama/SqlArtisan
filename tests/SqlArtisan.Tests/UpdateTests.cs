@@ -617,6 +617,31 @@ public class UpdateTests
         Assert.Equal(1, sql.Parameters.Get<int>("@1"));
     }
 
+    // Oracle, the one engine with RETURNING ... INTO, takes no leading WITH on DML,
+    // so the pair builds on no target (#679).
+    [Fact]
+    public void Update_ReturningIntoAfterLeadingWith_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable s = new("s");
+        TestCte c = new("c");
+        OutputParameter code = new("code", System.Data.DbType.Int32);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(c.As(Select(s.Code.As(c.CteCode)).From(s)))
+            .Update(t)
+            .Set(t.Name == "a")
+            .Where(t.Code.In(Select(c.CteCode).From(c)))
+            .Returning(t.Code)
+            .Into(code)
+            .Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "RETURNING ... INTO cannot be combined with a leading WITH; "
+                + "inline the subquery instead.",
+            ex.Message);
+    }
+
     // The typestate withholds OUTPUT after a direct join, MySQL's alone; a held
     // pre-join stage still reaches both, so Build() backstops (#679).
     [Fact]

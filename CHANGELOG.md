@@ -85,11 +85,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `IInsertBuilderConflictAction`, whose `Returning(...)` returns `ISqlBuilder`;
   put a CTE ahead of `InsertInto(...)`. A held stage that still reaches either
   pair throws `ArgumentException` at `Build()`, as does a held `UPDATE` stage
-  that joins before `SET` and then takes `Output(...)`. (#679)
+  that joins before `SET` and then takes `Output(...)`, and `Into(...)` after a
+  leading `WITH`, which Oracle takes on no `INSERT`, `UPDATE` or `DELETE`.
+  (#679)
 - **Breaking:** `Build()` throws `ArgumentException` on `TOP ... WITH TIES` in a
   set-operator branch. A branch takes no `ORDER BY` of its own and the compound's
-  sorts the combined result, so SQL Server rejects the tie; put the branch in a
-  derived table that carries its `ORDER BY`. (#679)
+  sorts the combined result, so SQL Server 2022 rejects the tie; put the branch in
+  a derived table that carries its `ORDER BY`. (#679)
 - **Breaking:** the `Sql.*` factories, operators and fluent members return the
   narrowest public type that carries their result's members, and every public
   type lives in the `SqlArtisan` namespace. A call whose node declares a member or

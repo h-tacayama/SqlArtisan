@@ -170,7 +170,7 @@ internal static class DmlTargetGuard
         }
     }
 
-    private static bool LeadsWithCte(ReadOnlySpan<SqlPart> parts) =>
+    internal static bool LeadsWithCte(ReadOnlySpan<SqlPart> parts) =>
         parts.Length > 0 && parts[0] is WithClause or WithRecursiveClause;
 
     // OUTPUT ... INTO is SQL Server-only, and its destination is a plain

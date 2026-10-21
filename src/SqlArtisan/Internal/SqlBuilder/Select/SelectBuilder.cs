@@ -494,18 +494,18 @@ internal class SelectBuilder :
             return;
         }
 
-        if (FindPart<OrderByClause>() is null)
-        {
-            throw new ArgumentException("TOP ... WITH TIES requires an ORDER BY clause.");
-        }
-
         // No branch takes an ORDER BY of its own, and a compound's sorts the combined
         // result, so a tied branch has no ordering to tie on (#679).
-        if (CompoundOrderByIndex(PartsSpan) >= 0)
+        if (HasSetOperator())
         {
             throw new ArgumentException(
                 "TOP ... WITH TIES requires an ORDER BY of its own query block, which a "
                     + "set-operator branch cannot take; put the branch in a derived table.");
+        }
+
+        if (FindPart<OrderByClause>() is null)
+        {
+            throw new ArgumentException("TOP ... WITH TIES requires an ORDER BY clause.");
         }
     }
 
@@ -516,6 +516,19 @@ internal class SelectBuilder :
         foreach (SqlPart part in PartsSpan)
         {
             if (part is ITopSelectClause { WithTies: true })
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool HasSetOperator()
+    {
+        foreach (SqlPart part in PartsSpan)
+        {
+            if (part is UnionOperator or ExceptOperator or IntersectOperator or MinusOperator)
             {
                 return true;
             }

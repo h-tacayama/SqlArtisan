@@ -179,6 +179,7 @@ internal sealed class UpdateBuilder(
 
     protected override void Validate(Dbms dbms)
     {
+        ReturningGuard.ThrowIfIntoAfterLeadingWith(PartsSpan, FindPart<ReturningIntoClause>());
         DmlTargetGuard.ThrowIfLeadingWithUnsupported(PartsSpan, dbms, insert: false);
         if (!state.IsJoined)
         {

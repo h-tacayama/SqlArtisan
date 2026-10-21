@@ -696,7 +696,10 @@ public class SelectTests
             .From(_t)
             .Build(Dbms.SqlServer));
 
-        Assert.Equal("TOP ... WITH TIES requires an ORDER BY clause.", ex.Message);
+        Assert.Equal(
+            "TOP ... WITH TIES requires an ORDER BY of its own query block, which a "
+                + "set-operator branch cannot take; put the branch in a derived table.",
+            ex.Message);
     }
 
     // #679: no branch takes an ORDER BY of its own, so the compound's cannot satisfy

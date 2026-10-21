@@ -33,6 +33,19 @@ internal static class ReturningGuard
         }
     }
 
+    // Oracle, the one engine with RETURNING ... INTO, takes no leading WITH on a DML
+    // statement (ThrowIfLeadingWithUnsupported), so no target runs the pair.
+    internal static void ThrowIfIntoAfterLeadingWith(
+        ReadOnlySpan<SqlPart> parts, ReturningIntoClause? returningInto)
+    {
+        if (returningInto is not null && DmlTargetGuard.LeadsWithCte(parts))
+        {
+            throw new ArgumentException(
+                "RETURNING ... INTO cannot be combined with a leading WITH; "
+                    + "inline the subquery instead.");
+        }
+    }
+
     // The typestate withholds RETURNING on these joined forms, whose only engines
     // (MySQL, SQL Server) have none; this backstops a held stage that reaches both.
     internal static void ThrowIfCombinedWithJoinedDelete(
