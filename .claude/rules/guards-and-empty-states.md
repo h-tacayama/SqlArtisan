@@ -220,22 +220,25 @@ refuse the other half: another DML clause or form, or a clause they take in a
 re-listed `UPDATE` target, Oracle's `RETURNING ... INTO` and MERGE action
 filters, MySQL's `INSERT IGNORE`, `ON DUPLICATE KEY UPDATE` and direct-join
 `UPDATE`, and the joined `DELETE ... FROM` MySQL and SQL Server share; the
-*Incomplete* list above enumerates the pairs. Any other pair is left to the
-analyzer and the engine: a `SELECT` clause an owner refuses in every position
-(`OUTPUT` beside a leading `WITH RECURSIVE` or a feeding `SELECT`'s `LIMIT`),
-and the dozens of `SELECT` pairs that join one engine's clause to another's
-(`TOP` with `FOR UPDATE` or `NATURAL JOIN`, `CROSS APPLY` with `DISTINCT ON`).
-Each half there is a dialect-matrix cell, so with the analyzer on, `SQLA0100`
-reports at least one half on whatever dialect is configured, and the engine
-refuses the text or, as SQL Server does with `MINUS`, reads a half as something
-else its own cell already reports; a guard per pair would copy the matrix into
-the core. A guard keyed on a `WITH` position takes `WITH RECURSIVE` there with
-it, though SQL Server and Oracle refuse that clause everywhere: the position,
-not the keyword, is what the guard reads. An expression in a position no engine
-allows is the engine's for the same reason (the window-function paragraph
-below). This narrows #684's "a pair no engine runs is a type or `Build()` guard"
-(#679). Oracle 23ai's joined `UPDATE` and `DELETE` beside `RETURNING ... INTO`
-are not verified, so they stay unguarded (#679's CI items).
+*Incomplete* list above enumerates the pairs, and the walk's slot exclusivity (§
+"The empty-state policy", `SqlBuilderBase`) holds the two that also spell one
+slot, `ON DUPLICATE KEY UPDATE` beside `ON CONFLICT` and a joined `DELETE ...
+FROM` beside `USING`. Any other pair is left to the analyzer and the engine: a
+`SELECT` clause an owner refuses in every position (`OUTPUT` beside a leading
+`WITH RECURSIVE` or a feeding `SELECT`'s `LIMIT`), and the dozens of `SELECT`
+pairs that join one engine's clause to another's (`TOP` with `FOR UPDATE` or
+`NATURAL JOIN`, `CROSS APPLY` with `DISTINCT ON`). Each half there is a
+dialect-matrix cell, so with the analyzer on, `SQLA0100` reports at least one
+half on whatever dialect is configured, and the engine refuses the text or, as
+SQL Server does with `MINUS`, reads a half as something else its own cell
+already reports; a guard per pair would copy the matrix into the core. A guard
+keyed on a `WITH` position takes `WITH RECURSIVE` there with it, though SQL
+Server and Oracle refuse that clause everywhere: the position, not the keyword,
+is what the guard reads. An expression in a position no engine allows is the
+engine's for the same reason (the window-function paragraph below). This narrows
+#684's "a pair no engine runs is a type or `Build()` guard" (#679). Oracle
+23ai's joined `UPDATE` and `DELETE` beside `RETURNING ... INTO` are not
+verified, so they stay unguarded (#679's CI items).
 
 **A `RegexpOptions` match parameter is never domain-checked (decided — do not
 re-file):** no letter the enum emits is universally invalid, and a
