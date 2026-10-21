@@ -46,6 +46,11 @@
     <ProjectReference Include="..\..\src\SqlArtisan\SqlArtisan.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <!-- The cookbook recipes the unit suite pins as text, run here for their rows (#686). -->
+    <Compile Include="..\SqlArtisan.Tests\TestFixtures\CookbookTables.cs" Link="Cookbook\CookbookTables.cs" />
+    <Compile Include="..\SqlArtisan.Tests\TestFixtures\CookbookRecipes.cs" Link="Cookbook\CookbookRecipes.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 </Project>

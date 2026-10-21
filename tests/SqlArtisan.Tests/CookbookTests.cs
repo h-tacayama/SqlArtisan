@@ -3,9 +3,9 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-// Hand-maintained mirror of docs/cookbook.md (#227): the docs-audit sweep
-// cannot parse the multi-statement recipe shape, so a doc-side edit needs its
-// twin edited by hand. Table classes: TestFixtures/CookbookTables.cs.
+// Hand-maintained mirror of docs/cookbook.md: the docs-audit sweep cannot parse its recipes
+// (#227). Those SQLite runs share their chains with the integration row gate through
+// TestFixtures/CookbookRecipes.cs (#686).
 public class CookbookTests
 {
     [Fact]
@@ -13,44 +13,22 @@ public class CookbookTests
     {
         StringBuilder expected = new();
         expected.Append("WITH \"ranked\" AS (");
-        expected.Append("SELECT \"c\".name category_name, \"p\".name product_name, ");
+        expected.Append("SELECT \"c\".category_id category_id, ");
+        expected.Append("\"c\".name category_name, \"p\".name product_name, ");
         expected.Append("SUM((\"oi\".quantity * \"oi\".unit_price)) sales, ");
-        expected.Append("ROW_NUMBER() OVER (PARTITION BY \"c\".name ");
+        expected.Append("ROW_NUMBER() OVER (PARTITION BY \"c\".category_id ");
         expected.Append("ORDER BY SUM((\"oi\".quantity * \"oi\".unit_price)) DESC) rn ");
         expected.Append("FROM category \"c\" ");
         expected.Append("INNER JOIN product \"p\" ON \"c\".category_id = \"p\".category_id ");
         expected.Append("INNER JOIN order_item \"oi\" ON \"p\".product_id = \"oi\".product_id ");
-        expected.Append("GROUP BY \"c\".name, \"p\".name) ");
-        expected.Append(
-            "SELECT \"ranked\".category_name, \"ranked\".product_name, \"ranked\".sales ");
+        expected.Append("GROUP BY \"c\".category_id, \"c\".name, \"p\".product_id, \"p\".name) ");
+        expected.Append("SELECT \"ranked\".category_id, \"ranked\".category_name, ");
+        expected.Append("\"ranked\".product_name, \"ranked\".sales ");
         expected.Append("FROM \"ranked\" WHERE \"ranked\".rn <= :0 ");
-        expected.Append("ORDER BY \"ranked\".category_name, \"ranked\".sales DESC");
+        expected.Append("ORDER BY \"ranked\".category_name, \"ranked\".category_id, ");
+        expected.Append("\"ranked\".sales DESC");
 
-        CookbookCategory c = new("c");
-        CookbookProduct p = new("p");
-        CookbookOrderItem oi = new("oi");
-        Cte ranked = new("ranked");
-        SqlStatement sql =
-            With(ranked.As(
-                Select(
-                    c.Name.As(ranked.Column("category_name")),
-                    p.Name.As(ranked.Column("product_name")),
-                    Sum(oi.Quantity * oi.UnitPrice).As(ranked.Column("sales")),
-                    RowNumber()
-                        .Over(PartitionBy(c.Name).OrderBy(Sum(oi.Quantity * oi.UnitPrice).Desc))
-                        .As(ranked.Column("rn")))
-                .From(c)
-                .InnerJoin(p).On(c.CategoryId == p.CategoryId)
-                .InnerJoin(oi).On(p.ProductId == oi.ProductId)
-                .GroupBy(c.Name, p.Name)))
-            .Select(
-                ranked.Column("category_name"),
-                ranked.Column("product_name"),
-                ranked.Column("sales"))
-            .From(ranked)
-            .Where(ranked.Column("rn") <= 3)
-            .OrderBy(ranked.Column("category_name"), ranked.Column("sales").Desc)
-            .Build();
+        SqlStatement sql = CookbookRecipes.TopNPerGroup().Build();
 
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal(3, sql.Parameters.Get<int>(":0"));
@@ -67,16 +45,7 @@ public class CookbookTests
         expected.Append("COUNT(*) \"total\" ");
         expected.Append("FROM orders \"o\" GROUP BY \"o\".customer_id");
 
-        CookbookOrder o = new("o");
-        SqlStatement sql =
-            Select(
-                o.CustomerId,
-                Sum(Case(When(o.Status == "shipped").Then(1), Else(0))).As("shipped_cnt"),
-                Sum(Case(When(o.Status == "cancelled").Then(1), Else(0))).As("cancelled_cnt"),
-                Count(Asterisk).As("total"))
-            .From(o)
-            .GroupBy(o.CustomerId)
-            .Build();
+        SqlStatement sql = CookbookRecipes.PivotByConditionalAggregation().Build();
 
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal("shipped", sql.Parameters.Get<string>(":0"));
@@ -86,15 +55,7 @@ public class CookbookTests
     [Fact]
     public void PivotByAggregateFilter_CorrectSql()
     {
-        CookbookOrder o = new("o");
-        SqlStatement sql =
-            Select(
-                o.CustomerId,
-                Count(Asterisk).Filter(o.Status == "shipped").As("shipped_cnt"),
-                Count(Asterisk).As("total"))
-            .From(o)
-            .GroupBy(o.CustomerId)
-            .Build();
+        SqlStatement sql = CookbookRecipes.PivotByAggregateFilter().Build();
 
         Assert.Equal(
             "SELECT \"o\".customer_id, "
@@ -107,13 +68,7 @@ public class CookbookTests
     [Fact]
     public void AntiJoin_NotExists_CorrectSql()
     {
-        CookbookProduct p = new("p");
-        CookbookOrderItem oi = new("oi");
-        SqlStatement sql =
-            Select(p.Name).From(p)
-                .Where(NotExists(
-                    Select(oi.OrderId).From(oi).Where(oi.ProductId == p.ProductId)))
-                .Build();
+        SqlStatement sql = CookbookRecipes.AntiJoinNotExists().Build();
 
         Assert.Equal(
             "SELECT \"p\".name FROM product \"p\" WHERE NOT EXISTS ("
@@ -125,13 +80,7 @@ public class CookbookTests
     [Fact]
     public void AntiJoin_LeftJoinIsNull_CorrectSql()
     {
-        CookbookProduct p = new("p");
-        CookbookOrderItem oi = new("oi");
-        SqlStatement sql =
-            Select(p.Name).From(p)
-                .LeftJoin(oi).On(p.ProductId == oi.ProductId)
-                .Where(oi.OrderId.IsNull)
-                .Build();
+        SqlStatement sql = CookbookRecipes.AntiJoinLeftJoinIsNull().Build();
 
         Assert.Equal(
             "SELECT \"p\".name FROM product \"p\" "
@@ -143,12 +92,7 @@ public class CookbookTests
     [Fact]
     public void AntiJoin_NotIn_CorrectSql()
     {
-        CookbookProduct p = new("p");
-        CookbookOrderItem oi = new("oi");
-        SqlStatement sql =
-            Select(p.Name).From(p)
-                .Where(p.ProductId.NotIn(Select(oi.ProductId).From(oi)))
-                .Build();
+        SqlStatement sql = CookbookRecipes.AntiJoinNotIn().Build();
 
         Assert.Equal(
             "SELECT \"p\".name FROM product \"p\" WHERE \"p\".product_id NOT IN ("
@@ -163,51 +107,29 @@ public class CookbookTests
         string sortKey = "last_name";
 
         CookbookCustomer c = new("c");
-        var where =
-            ConditionIf(useName, c.LastName.Like("%son%"))
-            & ConditionIf(useRegion, c.Region == "west")
-            & ConditionIf(
-                useDateRange,
-                c.CreatedAt.Between(new DateTime(2025, 1, 1), new DateTime(2025, 12, 31)));
+        SqlCondition where = CookbookRecipes.SearchCondition(c, useName, useRegion, useDateRange);
 
-        DbColumn sortCol = sortKey switch
-        {
-            "last_name" => c.LastName,
-            "created_at" => c.CreatedAt,
-            _ => c.CustomerId,
-        };
-        object orderItem = sortDesc ? sortCol.Desc : sortCol;
-
-        SqlStatement page =
-            Select(c.CustomerId, c.FirstName, c.LastName, c.Email)
-            .From(c)
-            .Where(where)
-            .OrderBy(orderItem, c.CustomerId)
-            .Limit(20).Offset(40)
-            .Build();
+        SqlStatement page = CookbookRecipes.SearchPage(c, where, sortKey, sortDesc, 40).Build();
 
         StringBuilder expected = new();
         expected.Append(
             "SELECT \"c\".customer_id, \"c\".first_name, \"c\".last_name, \"c\".email ");
         expected.Append("FROM customer \"c\" ");
         expected.Append("WHERE (\"c\".last_name LIKE :0) AND (\"c\".region = :1) ");
-        expected.Append("AND (\"c\".created_at BETWEEN :2 AND :3) ");
+        expected.Append("AND ((\"c\".created_at >= :2) AND (\"c\".created_at < :3)) ");
         expected.Append("ORDER BY \"c\".last_name DESC, \"c\".customer_id LIMIT :4 OFFSET :5");
         Assert.Equal(expected.ToString(), page.Text);
         Assert.Equal("%son%", page.Parameters.Get<string>(":0"));
         Assert.Equal(new DateTime(2025, 1, 1), page.Parameters.Get<DateTime>(":2"));
+        Assert.Equal(new DateTime(2026, 1, 1), page.Parameters.Get<DateTime>(":3"));
 
         // The same condition object also drives the companion COUNT query.
-        SqlStatement count =
-            Select(Count(Asterisk))
-            .From(c)
-            .Where(where)
-            .Build();
+        SqlStatement count = CookbookRecipes.SearchCount(c, where).Build();
 
         Assert.Equal(
             "SELECT COUNT(*) FROM customer \"c\" "
             + "WHERE (\"c\".last_name LIKE :0) AND (\"c\".region = :1) "
-            + "AND (\"c\".created_at BETWEEN :2 AND :3)",
+            + "AND ((\"c\".created_at >= :2) AND (\"c\".created_at < :3))",
             count.Text);
     }
 
@@ -232,20 +154,8 @@ public class CookbookTests
     [Fact]
     public void PaginatedList_CorrectSql()
     {
-        CookbookCustomer c = new("c");
-        CookbookOrder o = new("o");
-
-        SqlStatement Page(int offset) =>
-            Select(c.CustomerId, c.FirstName, c.LastName, o.OrderId, o.TotalAmount)
-            .From(c)
-            .InnerJoin(o).On(c.CustomerId == o.CustomerId)
-            .Where(o.Status == "shipped")
-            .OrderBy(o.OrderedAt.Desc, o.OrderId)
-            .Limit(20).Offset(offset)
-            .Build();
-
-        SqlStatement page1 = Page(0);
-        SqlStatement page2 = Page(20);
+        SqlStatement page1 = CookbookRecipes.PaginatedList(0).Build();
+        SqlStatement page2 = CookbookRecipes.PaginatedList(20).Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT \"c\".customer_id, \"c\".first_name, \"c\".last_name, ");
@@ -264,28 +174,7 @@ public class CookbookTests
     [Fact]
     public void FilteredAggregateReport_CorrectSql()
     {
-        bool filterByCategory = true, filterByActive = true;
-        CookbookCategory c = new("c");
-        CookbookProduct p = new("p");
-        CookbookOrderItem oi = new("oi");
-
-        var where =
-            ConditionIf(filterByCategory, c.Name == "Electronics")
-            & ConditionIf(filterByActive, p.Active == true);
-
-        SqlStatement sql =
-            Select(
-                c.Name.As("category"),
-                Count(Distinct, p.ProductId).As("products"),
-                Sum(oi.Quantity * oi.UnitPrice).As("revenue"))
-            .From(c)
-            .InnerJoin(p).On(c.CategoryId == p.CategoryId)
-            .InnerJoin(oi).On(p.ProductId == oi.ProductId)
-            .Where(where)
-            .GroupBy(c.Name)
-            .Having(Sum(oi.Quantity * oi.UnitPrice) > 1000)
-            .OrderBy(Sum(oi.Quantity * oi.UnitPrice).Desc)
-            .Build();
+        SqlStatement sql = CookbookRecipes.FilteredAggregateReport(true, true).Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT \"c\".name \"category\", ");
@@ -295,7 +184,7 @@ public class CookbookTests
         expected.Append("INNER JOIN product \"p\" ON \"c\".category_id = \"p\".category_id ");
         expected.Append("INNER JOIN order_item \"oi\" ON \"p\".product_id = \"oi\".product_id ");
         expected.Append("WHERE (\"c\".name = :0) AND (\"p\".active = :1) ");
-        expected.Append("GROUP BY \"c\".name ");
+        expected.Append("GROUP BY \"c\".category_id, \"c\".name ");
         expected.Append("HAVING SUM((\"oi\".quantity * \"oi\".unit_price)) > :2 ");
         expected.Append("ORDER BY SUM((\"oi\".quantity * \"oi\".unit_price)) DESC");
 
@@ -308,18 +197,7 @@ public class CookbookTests
     [Fact]
     public void CaseSortOrder_CorrectSql()
     {
-        CookbookOrder o = new("o");
-        SqlStatement sql =
-            Select(o.OrderId, o.CustomerId, o.Status, o.TotalAmount)
-            .From(o)
-            .OrderBy(
-                Case(
-                    When(o.Status == "pending").Then(1),
-                    When(o.Status == "shipped").Then(2),
-                    When(o.Status == "cancelled").Then(3),
-                    Else(4)),
-                o.OrderId)
-            .Build();
+        SqlStatement sql = CookbookRecipes.CaseSortOrder().Build();
 
         StringBuilder expected = new();
         expected.Append(
@@ -343,14 +221,7 @@ public class CookbookTests
     [Fact]
     public void UpsertReturning_CorrectSql()
     {
-        CookbookProduct u = new();
-        SqlStatement sql =
-            InsertInto(u, u.ProductId, u.Price)
-                .Values(1, 990)
-                .OnConflict(u.ProductId)
-                .DoUpdateSet(u.Price == Excluded(u.Price))
-                .Returning(u.ProductId, u.Price)
-                .Build();
+        SqlStatement sql = CookbookRecipes.UpsertDoUpdateReturning().Build();
 
         Assert.Equal(
             "INSERT INTO product (product_id, price) VALUES (:0, :1) "
@@ -362,13 +233,7 @@ public class CookbookTests
     [Fact]
     public void Upsert_UpdateOnConflict_CorrectSql()
     {
-        CookbookProduct u = new();
-        SqlStatement sql =
-            InsertInto(u, u.ProductId, u.Price)
-                .Values(1, 990)
-                .OnConflict(u.ProductId)
-                .DoUpdateSet(u.Price == Excluded(u.Price))
-                .Build();
+        SqlStatement sql = CookbookRecipes.UpsertDoUpdate().Build();
 
         Assert.Equal(
             "INSERT INTO product (product_id, price) VALUES (:0, :1) "
@@ -379,14 +244,7 @@ public class CookbookTests
     [Fact]
     public void Upsert_Sqlite_WithReturning_CorrectSql()
     {
-        CookbookProduct u = new();
-        SqlStatement sql =
-            InsertInto(u, u.ProductId, u.Price)
-                .Values(1, 990)
-                .OnConflict(u.ProductId)
-                .DoUpdateSet(u.Price == Excluded(u.Price))
-                .Returning(u.ProductId, u.Price)
-                .Build(Dbms.Sqlite);
+        SqlStatement sql = CookbookRecipes.UpsertDoUpdateReturning().Build(Dbms.Sqlite);
 
         Assert.Equal(
             "INSERT INTO product (product_id, price) VALUES (:0, :1) "
@@ -414,13 +272,7 @@ public class CookbookTests
     [Fact]
     public void Upsert_DoNothing_CorrectSql()
     {
-        CookbookProduct u = new();
-        SqlStatement sql =
-            InsertInto(u, u.ProductId, u.Price)
-                .Values(1, 990)
-                .OnConflict()
-                .DoNothing()
-                .Build();
+        SqlStatement sql = CookbookRecipes.UpsertDoNothing().Build();
 
         Assert.Equal(
             "INSERT INTO product (product_id, price) VALUES (:0, :1) "
@@ -460,6 +312,29 @@ public class CookbookTests
     }
 
     [Fact]
+    public void Upsert_SqlServer_ValuesRowMerge_CorrectSql()
+    {
+        CookbookProduct t = new("t");
+        ValuesDerivedTable s = Values("s", ["product_id", "price"], [[1, 990]]);
+        SqlStatement sql =
+            MergeInto(t).Using(s).On(t.ProductId == s.Column("product_id"))
+                .WhenMatched().ThenUpdateSet(t.Price == s.Column("price"))
+                .WhenNotMatched().ThenInsert(t.ProductId, t.Price)
+                    .Values(s.Column("product_id"), s.Column("price"))
+                .Build(Dbms.SqlServer);
+
+        Assert.Equal(
+            "MERGE INTO product \"t\" USING (VALUES (@0, @1)) \"s\" (product_id, price) "
+            + "ON (\"t\".product_id = \"s\".product_id) "
+            + "WHEN MATCHED THEN UPDATE SET price = \"s\".price "
+            + "WHEN NOT MATCHED THEN INSERT (product_id, price) "
+            + "VALUES (\"s\".product_id, \"s\".price);",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+        Assert.Equal(990, sql.Parameters.Get<int>("@1"));
+    }
+
+    [Fact]
     public void MergeSync_SqlServer_CorrectSql()
     {
         StringBuilder expected = new();
@@ -482,25 +357,5 @@ public class CookbookTests
                 .Build(Dbms.SqlServer);
 
         Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
-    public void MergeDeleteWhere_Oracle_CorrectSql()
-    {
-        CookbookProduct t = new("t");
-        CookbookStagingProduct s = new("s");
-        SqlStatement sql =
-            MergeInto(t).Using(s).On(t.ProductId == s.ProductId)
-                .WhenMatched().ThenUpdateSet(t.Price == s.Price)
-                    .DeleteWhere(t.Active == false)
-                .Build(Dbms.Oracle);
-
-        Assert.Equal(
-            "MERGE INTO product \"t\" USING staging_product \"s\" "
-            + "ON (\"t\".product_id = \"s\".product_id) "
-            + "WHEN MATCHED THEN UPDATE SET price = \"s\".price "
-            + "DELETE WHERE \"t\".active = :0",
-            sql.Text);
-        Assert.False(sql.Parameters.Get<bool>(":0"));
     }
 }
