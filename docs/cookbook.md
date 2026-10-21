@@ -269,7 +269,7 @@ is the per-group top-N alternative.
 
 ### Pivoting rows to columns
 
-One column per status, one row per customer — conditional aggregation
+One column per status, one row per customer with orders — conditional aggregation
 (`SUM(CASE ...)`) is the pivot spelling that runs on all five dialects. Each
 `THEN` / `ELSE` literal becomes a bind parameter, like every other literal.
 
