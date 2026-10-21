@@ -1027,6 +1027,34 @@ public abstract class IntegrationTestBase
         transaction.Rollback();
     }
 
+    // An untyped BindNull() leaves the type to the driver; Dapper maps none for DBNull,
+    // so the conversion must not hand it one to look up, on either Dapper path.
+    [Fact]
+    public void Insert_UntypedBindNull_InsertsNull()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name, u.Age).Values(121, BindNull(), BindNull()),
+            transaction);
+        SqlStatement handOff =
+            InsertInto(u, u.Id, u.Name, u.Age).Values(122, BindNull(), BindNull())
+            .Build(_fixture.Dbms);
+        global::Dapper.SqlMapper.Execute(
+            connection, handOff.Text, handOff.Parameters.ToDynamicParameters(), transaction);
+
+        long nulls = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(Asterisk))
+                .From(u)
+                .Where(u.Id.In(121, 122) & u.Name.IsNull & u.Age.IsNull),
+            transaction));
+
+        Assert.Equal(2, nulls);
+        transaction.Rollback();
+    }
+
     [Fact]
     public virtual void EdgeCase_Boolean_RoundTrip()
     {

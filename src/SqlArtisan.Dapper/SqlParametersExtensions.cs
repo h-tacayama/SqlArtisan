@@ -32,7 +32,10 @@ public static class SqlParametersExtensions
                 return;
             }
 
-            dynamicParameters.Add(name, bind.Value, bind.DbType, bind.Direction, bind.Size);
+            // Dapper maps no type for DBNull, so an untyped BindNull() goes in as null, which
+            // Dapper binds as DBNull with the type left to the driver, as BindNull() documents.
+            object? value = bind.Value is DBNull && bind.DbType is null ? null : bind.Value;
+            dynamicParameters.Add(name, value, bind.DbType, bind.Direction, bind.Size);
         });
 
         return dynamicParameters;
