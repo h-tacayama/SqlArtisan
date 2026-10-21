@@ -62,8 +62,8 @@ public class RuleGuardCoverageTests
         }
     }
 
-    // A declaration read past SourceDeclaration skips its compilation check, which
-    // throws AD0001 on a table class in a referenced project.
+    // A symbol's syntax reached past SourceDeclaration skips its compilation check: read
+    // or reported at, it throws AD0001 on a table class in a referenced project.
     [Fact]
     public void NoRule_ReadsDeclarationSyntaxOutsideSourceDeclaration()
     {
@@ -71,7 +71,7 @@ public class RuleGuardCoverageTests
         string[] declarationReads =
         [
             "DeclaringSyntaxReferences", "ApplicationSyntaxReference",
-            "SourceTree", "GetSemanticModel"
+            "Locations", "SourceTree", "GetSemanticModel"
         ];
         string[] offenders = [.. Directory.EnumerateFiles(analyzers, "*.cs")
             .Where(f => Path.GetFileName(f) != "SourceDeclaration.cs"
