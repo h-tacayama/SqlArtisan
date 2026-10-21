@@ -1482,11 +1482,13 @@ compose freely — a path-scoped section can itself set more than one
 **Promote a dialect mismatch to a hard failure:**
 
 ```ini
-dotnet_diagnostic.SQLA0100.severity = error
+dotnet_analyzer_diagnostic.category-SqlArtisan.Dialect.severity = error
 ```
 
-Every confirmed mismatch fails the build; escape hatches (`supported`
-overrides) still apply first, so only genuinely unconfirmed constructs fail.
+Every confirmed mismatch you have not overridden fails the build, `SQLA0100`
+through `SQLA0104` alike. Promoting `SQLA0100` alone leaves a version-bound
+construct (`SQLA0101`), a rejected position (`SQLA0102`), an over-long
+identifier (`SQLA0103`) and a rejected literal value (`SQLA0104`) as warnings.
 
 **Whitelist mode** — failing on any construct the matrix hasn't verified — is
 deliberately not offered. `SQLA0100` fires only on a *confirmed* mismatch (a

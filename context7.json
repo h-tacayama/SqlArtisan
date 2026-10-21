@@ -6,9 +6,9 @@
   "excludeFolders": ["src", "tests", ".github", ".claude", ".devin", "docs/adr"],
   "excludeFiles": ["CLAUDE.md", "SECURITY.md", "llms.txt", "llms-full.txt"],
   "rules": [
-    "SqlArtisan emits SQL faithfully with no dialect translation — always pick the API documented for the target DBMS (MySQL, Oracle, PostgreSQL, SQLite, SQL Server); only bind-parameter markers and alias quoting vary by dialect.",
+    "SqlArtisan emits SQL faithfully with no dialect translation — always pick the API documented for the target DBMS (MySQL, Oracle, PostgreSQL, SQLite, SQL Server) and build for that DBMS, since the emitted text and the chains Build() rejects differ by dialect.",
     "Reference database tables through their table classes (one DbTableBase subclass per table); never name a table or column with a string literal.",
     "A builder chain is single-use — build a fresh chain per statement; never hold a partially built query for reuse.",
-    "Treat SQLA0100 analyzer warnings as errors to fix, not suppress; pin every new or changed query with an exact-SQL unit test asserting sql.Text and its bind parameters."
+    "Treat the SQLA01xx dialect warnings (SQLA0100 to SQLA0104) as errors to fix, not suppress — promote the family with dotnet_analyzer_diagnostic.category-SqlArtisan.Dialect.severity = error; pin every new or changed query with an exact-SQL unit test asserting sql.Text and its bind parameters."
   ]
 }

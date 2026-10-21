@@ -83,8 +83,8 @@ between generation and production:
 1. **Types** — table classes turn column-name errors into build failures.
 2. **Analyzer** — the opt-in
    [Roslyn analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)
-   flags wrong-dialect constructs at build time, catching the most common
-   AI failure mode (mixing dialects from training data).
+   flags wrong-dialect constructs at build time, catching a common AI
+   failure mode (mixing dialects from training data).
 3. **Exact-SQL tests** — `Build()` is deterministic, so a unit test
    freezes the reviewed SQL as a regression contract.
 4. **Integration matrix** — analyzer entries are verified against live
