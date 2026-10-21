@@ -695,8 +695,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   tables were regenerated.": it never scans for orphan files, so it now says to
   run without `--tables` to find them. (#645)
 - TableClassGen refuses to overwrite a file at a path it writes when it cannot
-  read which table the file describes (a hand-written class, or a `base(...)`
-  line wrapped by a formatter). It used to pass such a file, so a `--tables` run
+  read which table the file describes (a hand-written class whose `base(...)`
+  it cannot read, or a `base(...)` line wrapped by a formatter). It used to pass such a file, so a `--tables` run
   could overwrite another table's class and exit 0. A file from 0.7 or earlier,
   which carries no generated header, is still recognized by its table name.
   (#645)
@@ -787,6 +787,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   repeated names, tied sort keys, a customer with no orders, an existing row
   for the UPSERTs and a timestamp late on a range's last day, from the same
   chains `CookbookTests` pins as text. (#686)
+- An Oracle twin runs `docs/guides/oracle-array-bind.md`'s `UPDATE` with a null
+  row through `ExecuteArrayBind`. (#686)
 - Integration twins for #614's engine claims: Oracle rejects
   `NULLS FIRST NULLS LAST` and reads an empty match
   parameter as the default; `'n'` lets `.` match a newline on MySQL and Oracle
@@ -813,6 +815,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   hand-written workaround, the `RETURNING` note names every form above that has
   none, and the filtered report says `Build()` throws with both filters off.
   (#686)
+- The TableClassGen README says a file at a generated path whose
+  `: base("<table>", tableAlias)` names the table is rewritten whatever else it
+  holds, so hand-written classes belong outside `--output`; it said such a class
+  was refused. Its example class drops the `HasDefault = false` arguments the
+  tool does not write for a PostgreSQL column with no default, and it now says
+  prompts appear only for a run given no options, that a run's own file also
+  derives from `DbTableBase`, and that a `--qualify-schema` segment is the
+  schema the run reads, as given. (#686)
+- `docs/guides/oracle-array-bind.md`'s `UPDATE` example binds `BindNull()` for a
+  null name, where it threw on the nullable rows the page describes; the
+  `Execute` snippet imports `Oracle.ManagedDataAccess.Client`, and an ungated
+  `DATE` precision claim is gone. `docs/guides/dapper-quickstart.md` states the
+  `{=name}` / `?name?` token hazard of handing `sql.Text` to Dapper yourself as
+  a warning, with `Sql.Bind(...)` and ADO.NET as the ways out. (#686)
 - `docs/analyzer.md` names a kind of `SQLA0100` that reports SQL the engine
   runs: a spelling the dialect reads as something else, such as `||` on MySQL.
   The 2-argument `Log`'s remark says the swapped SQL Server call still draws it,

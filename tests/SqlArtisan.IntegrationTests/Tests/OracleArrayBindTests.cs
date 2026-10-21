@@ -189,6 +189,39 @@ public sealed class OracleArrayBindTests : IClassFixture<OracleFixture>
         transaction.Rollback();
     }
 
+    // docs/guides/oracle-array-bind.md's UPDATE: a null row binds BindNull(), which keeps
+    // the text identical to the other rows' (#686).
+    [Fact]
+    public void ExecuteArrayBind_UpdateWithNullRow_SetsNull()
+    {
+        UsersTable u = new();
+        using OracleConnection connection = (OracleConnection)_fixture.OpenConnection();
+        using OracleTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(InsertInto(u, u.Id, u.Name).Values(9401, "Before One"), transaction);
+        connection.Execute(InsertInto(u, u.Id, u.Name).Values(9402, "Before Two"), transaction);
+
+        (int Id, string? Name)[] rows = [(9401, "After One"), (9402, null)];
+        List<ISqlBuilder> statements =
+        [
+            .. rows.Select(row =>
+                Update(u)
+                    .Set(u.Name == (row.Name is null ? BindNull() : row.Name))
+                    .Where(u.Id == row.Id)),
+        ];
+
+        int updated = connection.ExecuteArrayBind(statements, transaction);
+
+        Assert.Equal(2, updated);
+
+        IEnumerable<string?> names = connection.Query<string?>(
+            Select(u.Name).From(u).Where(u.Id >= 9401).OrderBy(u.Id),
+            transaction);
+        Assert.Equal(new[] { "After One", null }, names);
+
+        transaction.Rollback();
+    }
+
     // One BindValue in two clauses repeats its marker; bound by position, the repeat
     // would have no parameter of its own (#640).
     [Fact]

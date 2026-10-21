@@ -54,8 +54,7 @@ IReadOnlyCollection<ISqlBuilder> statements = rows.Select(row =>
 
 Each bound position's `OracleDbType` is inferred from the first non-null
 value at that position across the whole batch — supported types are `int`,
-`long`, `short`, `decimal`, `string`, and `DateTime` (binds as `TIMESTAMP`; a
-`DATE` column's own engine-side conversion truncates it to second precision).
+`long`, `short`, `decimal`, `string`, and `DateTime` (binds as `TIMESTAMP`).
 If every row's value at a position is null, pass the type explicitly on at
 least one row: `Sql.BindNull(DbType.Int32)`. A `dbType` you pass must still
 agree with whatever real value another row supplies at that position — it
@@ -68,6 +67,7 @@ is a required fallback for the all-null case, not an override.
 optional transaction:
 
 ```csharp
+using Oracle.ManagedDataAccess.Client;
 using SqlArtisan.ArrayBind;
 
 using OracleConnection connection = new(connectionString);
@@ -87,7 +87,9 @@ transaction.Commit();
 
 ```csharp
 IReadOnlyCollection<ISqlBuilder> statements = rows.Select(row =>
-        Update(users).Set(users.Name == row.Name).Where(users.Id == row.Id))
+        Update(users)
+            .Set(users.Name == (row.Name is null ? BindNull() : row.Name))
+            .Where(users.Id == row.Id))
     .ToList();
 
 int updated = connection.ExecuteArrayBind(statements, transaction);
