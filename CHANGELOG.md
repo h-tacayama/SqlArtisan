@@ -784,9 +784,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Tests
 - `CookbookRecipeTests` runs every `docs/cookbook.md` recipe SQLite runs over
-  repeated names, tied sort keys, a customer with no orders and a timestamp
-  late on a range's last day, from the same chains `CookbookTests` pins as
-  text. (#686)
+  repeated names, tied sort keys, a customer with no orders, an existing row
+  for the UPSERTs and a timestamp late on a range's last day, from the same
+  chains `CookbookTests` pins as text. (#686)
 - Integration twins for #614's engine claims: Oracle rejects
   `NULLS FIRST NULLS LAST` and reads an empty match
   parameter as the default; `'n'` lets `.` match a newline on MySQL and Oracle

@@ -124,11 +124,7 @@ public class CookbookTests
         Assert.Equal(new DateTime(2026, 1, 1), page.Parameters.Get<DateTime>(":3"));
 
         // The same condition object also drives the companion COUNT query.
-        SqlStatement count =
-            Select(Count(Asterisk))
-            .From(c)
-            .Where(where)
-            .Build();
+        SqlStatement count = CookbookRecipes.SearchCount(c, where).Build();
 
         Assert.Equal(
             "SELECT COUNT(*) FROM customer \"c\" "
@@ -225,14 +221,7 @@ public class CookbookTests
     [Fact]
     public void UpsertReturning_CorrectSql()
     {
-        CookbookProduct u = new();
-        SqlStatement sql =
-            InsertInto(u, u.ProductId, u.Price)
-                .Values(1, 990)
-                .OnConflict(u.ProductId)
-                .DoUpdateSet(u.Price == Excluded(u.Price))
-                .Returning(u.ProductId, u.Price)
-                .Build();
+        SqlStatement sql = CookbookRecipes.UpsertDoUpdateReturning().Build();
 
         Assert.Equal(
             "INSERT INTO product (product_id, price) VALUES (:0, :1) "
@@ -244,13 +233,7 @@ public class CookbookTests
     [Fact]
     public void Upsert_UpdateOnConflict_CorrectSql()
     {
-        CookbookProduct u = new();
-        SqlStatement sql =
-            InsertInto(u, u.ProductId, u.Price)
-                .Values(1, 990)
-                .OnConflict(u.ProductId)
-                .DoUpdateSet(u.Price == Excluded(u.Price))
-                .Build();
+        SqlStatement sql = CookbookRecipes.UpsertDoUpdate().Build();
 
         Assert.Equal(
             "INSERT INTO product (product_id, price) VALUES (:0, :1) "
@@ -261,14 +244,7 @@ public class CookbookTests
     [Fact]
     public void Upsert_Sqlite_WithReturning_CorrectSql()
     {
-        CookbookProduct u = new();
-        SqlStatement sql =
-            InsertInto(u, u.ProductId, u.Price)
-                .Values(1, 990)
-                .OnConflict(u.ProductId)
-                .DoUpdateSet(u.Price == Excluded(u.Price))
-                .Returning(u.ProductId, u.Price)
-                .Build(Dbms.Sqlite);
+        SqlStatement sql = CookbookRecipes.UpsertDoUpdateReturning().Build(Dbms.Sqlite);
 
         Assert.Equal(
             "INSERT INTO product (product_id, price) VALUES (:0, :1) "
@@ -296,13 +272,7 @@ public class CookbookTests
     [Fact]
     public void Upsert_DoNothing_CorrectSql()
     {
-        CookbookProduct u = new();
-        SqlStatement sql =
-            InsertInto(u, u.ProductId, u.Price)
-                .Values(1, 990)
-                .OnConflict()
-                .DoNothing()
-                .Build();
+        SqlStatement sql = CookbookRecipes.UpsertDoNothing().Build();
 
         Assert.Equal(
             "INSERT INTO product (product_id, price) VALUES (:0, :1) "

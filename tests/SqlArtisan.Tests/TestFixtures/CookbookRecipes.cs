@@ -148,6 +148,42 @@ internal static class CookbookRecipes
                 .Where(p.ProductId.NotIn(Select(oi.ProductId).From(oi)));
     }
 
+    public static ISqlBuilder SearchCount(CookbookCustomer c, SqlCondition where) =>
+        Select(Count(Asterisk))
+        .From(c)
+        .Where(where);
+
+    public static ISqlBuilder UpsertDoUpdate()
+    {
+        CookbookProduct u = new();
+        return
+            InsertInto(u, u.ProductId, u.Price)
+                .Values(1, 990)
+                .OnConflict(u.ProductId)
+                .DoUpdateSet(u.Price == Excluded(u.Price));
+    }
+
+    public static ISqlBuilder UpsertDoUpdateReturning()
+    {
+        CookbookProduct u = new();
+        return
+            InsertInto(u, u.ProductId, u.Price)
+                .Values(1, 990)
+                .OnConflict(u.ProductId)
+                .DoUpdateSet(u.Price == Excluded(u.Price))
+                .Returning(u.ProductId, u.Price);
+    }
+
+    public static ISqlBuilder UpsertDoNothing()
+    {
+        CookbookProduct u = new();
+        return
+            InsertInto(u, u.ProductId, u.Price)
+                .Values(1, 990)
+                .OnConflict()
+                .DoNothing();
+    }
+
     public static ISqlBuilder SearchPage(
         CookbookCustomer c, SqlCondition where, string sortKey, bool sortDesc, int offset)
     {

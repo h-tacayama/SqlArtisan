@@ -22,8 +22,9 @@ public sealed class CookbookRecipeTests : IDisposable
             """
             CREATE TABLE category (category_id INTEGER PRIMARY KEY, name TEXT NOT NULL);
             CREATE TABLE product (
-                product_id INTEGER PRIMARY KEY, category_id INTEGER NOT NULL,
-                name TEXT NOT NULL, price INTEGER NOT NULL, active BOOLEAN NOT NULL);
+                product_id INTEGER PRIMARY KEY, category_id INTEGER NOT NULL DEFAULT 0,
+                name TEXT NOT NULL DEFAULT '', price INTEGER NOT NULL,
+                active BOOLEAN NOT NULL DEFAULT 1);
             CREATE TABLE order_item (
                 order_id INTEGER NOT NULL, product_id INTEGER NOT NULL,
                 quantity INTEGER NOT NULL, unit_price INTEGER NOT NULL,
@@ -191,14 +192,48 @@ public sealed class CookbookRecipeTests : IDisposable
     }
 
     [Fact]
+    public void Upsert_DoUpdate_InsertsThenUpdatesOneRow()
+    {
+        Assert.Equal(1, _connection.Execute(CookbookRecipes.UpsertDoUpdate()));
+        _connection.Execute("UPDATE product SET price = 100 WHERE product_id = 1");
+
+        Assert.Equal(1, _connection.Execute(CookbookRecipes.UpsertDoUpdate()));
+
+        Assert.Equal(
+            [990L],
+            _connection.Query<long>("SELECT price FROM product WHERE product_id = 1"));
+    }
+
+    [Fact]
+    public void Upsert_DoUpdateReturning_ReadsBackTheAffectedRow()
+    {
+        _connection.Execute("INSERT INTO product (product_id, price) VALUES (1, 100)");
+
+        (long ProductId, long Price) row = _connection
+            .QuerySingle<(long, long)>(CookbookRecipes.UpsertDoUpdateReturning());
+
+        Assert.Equal((1L, 990L), row);
+    }
+
+    [Fact]
+    public void Upsert_DoNothing_SkipsAnExistingRow()
+    {
+        _connection.Execute("INSERT INTO product (product_id, price) VALUES (1, 100)");
+
+        Assert.Equal(0, _connection.Execute(CookbookRecipes.UpsertDoNothing()));
+        Assert.Equal(
+            [100L],
+            _connection.Query<long>("SELECT price FROM product WHERE product_id = 1"));
+    }
+
+    [Fact]
     public void SearchScreen_DateRange_KeepsTheLastDay()
     {
         CookbookCustomer c = new("c");
         SqlCondition where = CookbookRecipes.SearchCondition(c, true, true, true);
 
-        IEnumerable<int> ids = _connection.Query<int>(
-            Select(c.CustomerId).From(c).Where(where).OrderBy(c.CustomerId));
+        long count = _connection.ExecuteScalar<long>(CookbookRecipes.SearchCount(c, where));
 
-        Assert.Equal([1, 2, 6], ids);
+        Assert.Equal(3, count);
     }
 }
