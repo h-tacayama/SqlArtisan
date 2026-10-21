@@ -783,6 +783,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   bind the string with `Sql.Bind(...)` where its position takes a bound value.
 
 ### Tests
+- An Oracle twin runs `docs/guides/oracle-array-bind.md`'s `UPDATE` with a null
+  row through `ExecuteArrayBind`. (#686)
 - Integration twins for #614's engine claims: Oracle rejects
   `NULLS FIRST NULLS LAST` and reads an empty match
   parameter as the default; `'n'` lets `.` match a newline on MySQL and Oracle
@@ -795,6 +797,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   header, which drops one phantom entry from its baseline. (#614)
 
 ### Docs
+- The TableClassGen README says a file at a generated path whose `base(...)`
+  names the table is rewritten whatever else it holds, so hand-written classes
+  belong outside `--output`; it said such a class was refused. Its example class
+  drops the `HasDefault = false` arguments the tool never writes, and it now
+  says prompts appear only for a run given no options, that a run's own file
+  also derives from `DbTableBase`, and that a `--qualify-schema` segment is the
+  `--schema` value as given. (#686)
+- `docs/guides/oracle-array-bind.md`'s `UPDATE` example binds `BindNull()` for a
+  null name, where it threw on the nullable rows the page describes; the
+  `Execute` snippet imports `Oracle.ManagedDataAccess.Client`, and an ungated
+  `DATE` precision claim is gone. `docs/guides/dapper-quickstart.md` states the
+  `{=name}` / `?name?` token hazard of handing `sql.Text` to Dapper yourself as
+  a warning, with `Sql.Bind(...)` and ADO.NET as the ways out. (#686)
 - `docs/analyzer.md` names a kind of `SQLA0100` that reports SQL the engine
   runs: a spelling the dialect reads as something else, such as `||` on MySQL.
   The 2-argument `Log`'s remark says the swapped SQL Server call still draws it,

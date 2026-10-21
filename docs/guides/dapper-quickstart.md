@@ -121,12 +121,18 @@ As in Dapper, `ExecuteReaderAsync` on a connection typed as `DbConnection`
 The multi-map `Query` overloads and the `CommandDefinition` overloads aren't
 mirrored, so build the statement and hand `sql.Text` /
 `sql.Parameters.ToDynamicParameters()` to Dapper yourself for those —
-cancellation is not among the reasons to, being a plain argument above. Dapper
-rewrites a `{=name}` token, and a `?name?` token naming one of the parameters,
-anywhere in that text, string literals included; the mirrored verbs refuse such
-text before running, so check for both yourself on that path. For
+cancellation is not among the reasons to, being a plain argument above. For
 Oracle `RETURNING ... INTO`, `ExecuteReturningInto` returns the parameter bag so
 the output values can be read back with `Get<T>`.
+
+> [!WARNING]
+> **Handed to Dapper yourself, a statement whose text holds a `{=name}` token,
+> or a `?name?` token naming one of its parameters, runs with another value in
+> its place**: Dapper rewrites both anywhere in the text, string literals
+> included, so `JsonArrowText(doc, "{=0}")` reads the key `:0` is bound to. The
+> mirrored verbs refuse such text before running. On the hand-off path, bind the
+> string with `Sql.Bind(...)` where its position takes a bound value, or run the
+> statement through ADO.NET.
 
 Two execution rules to know from day one:
 
