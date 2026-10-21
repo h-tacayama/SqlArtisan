@@ -202,11 +202,14 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     // land Oracle's action filter in the conditioned or BY SOURCE branch its type withholds.
     protected override void Validate(Dbms dbms)
     {
+        DmlTargetGuard.ThrowIfLeadingWithBeforeMergeActionFilter(PartsSpan);
         DmlTargetGuard.ThrowIfLeadingWithUnsupportedOnMerge(PartsSpan, dbms);
 
         bool branchOpen = false;
         bool insertOpen = false;
         bool filterable = false;
+        bool filtered = false;
+        bool refusedByOracle = false;
 
         foreach (SqlPart part in PartsSpan)
         {
@@ -216,10 +219,12 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
                 branchOpen = true;
                 filterable = part is WhenMatchedClause { IsConditioned: false }
                     or WhenNotMatchedClause { IsConditioned: false };
+                refusedByOracle |= !filterable;
             }
             else if (part is MergeUpdateSetClause or MergeDeleteClause)
             {
                 branchOpen = false;
+                refusedByOracle |= part is MergeDeleteClause;
             }
             else if (part is MergeInsertClause)
             {
@@ -239,9 +244,23 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
                         + "WHEN NOT MATCHED branch without AND; a stage on a held builder "
                         + "attached one to another branch.");
             }
+
+            filtered |= part
+                is MergeUpdateWhereClause or MergeDeleteWhereClause or MergeInsertWhereClause;
         }
 
         ThrowIfBranchUnfinished(branchOpen, insertOpen);
+
+        // The filters are Oracle's, which refuses the other branch forms, and the engines
+        // with those refuse an action WHERE, so no target runs both in one MERGE (#679).
+        if (filtered && refusedByOracle)
+        {
+            throw new ArgumentException(
+                "Oracle's MERGE action WHERE and DELETE WHERE cannot share a MERGE with a "
+                    + "WHEN ... AND, THEN DELETE, or BY SOURCE branch; filter every branch with "
+                    + "Where(...) on Oracle, or with WhenMatched(...) / WhenNotMatched(...) "
+                    + "elsewhere.");
+        }
     }
 
     private static void ThrowIfBranchUnfinished(bool branchOpen, bool insertOpen)

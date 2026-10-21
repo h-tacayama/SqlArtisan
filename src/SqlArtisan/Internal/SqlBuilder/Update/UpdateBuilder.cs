@@ -179,6 +179,7 @@ internal sealed class UpdateBuilder(
 
     protected override void Validate(Dbms dbms)
     {
+        ReturningGuard.ThrowIfIntoAfterLeadingWith(PartsSpan, FindPart<ReturningIntoClause>());
         DmlTargetGuard.ThrowIfLeadingWithUnsupported(PartsSpan, dbms, insert: false);
         if (!state.IsJoined)
         {
@@ -192,6 +193,8 @@ internal sealed class UpdateBuilder(
         OutputClause? output = FindPart<OutputClause>();
         OutputClauseGuard.ThrowIfCombinedWithReturning(
             output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
+        OutputClauseGuard.ThrowIfUpdateCombinedWithDirectJoin(output, state);
+        OutputClauseGuard.ThrowIfUpdateCombinedWithUnrelistedFrom(output, state);
 
         // Last so the dialect-independent pairing guard above reports first.
         if (state.IsJoined)

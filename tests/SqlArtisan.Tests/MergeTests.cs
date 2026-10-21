@@ -120,6 +120,75 @@ public class MergeTests
         Assert.Equal("active", sql.Parameters.Get<string>(":0"));
     }
 
+    // The action filters are Oracle's, which takes no leading WITH on MERGE, and the
+    // engines with one refuse an action WHERE, so the pair builds on no target (#679).
+    [Theory]
+    [InlineData("UpdateWhere")]
+    [InlineData("DeleteWhere")]
+    [InlineData("InsertWhere")]
+    public void Merge_ActionFilterAfterLeadingWith_ThrowsArgumentException(string filter)
+    {
+        TestCte c = new("c");
+        IMergeBuilderOn on =
+            With(c.As(Select(_s.Code.As(c.CteCode)).From(_s)))
+            .MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => (filter switch
+        {
+            "UpdateWhere" => on.WhenMatched().ThenUpdateSet(_t.Name == "a").Where(_t.Code > 1),
+            "DeleteWhere" =>
+                on.WhenMatched().ThenUpdateSet(_t.Name == "a").DeleteWhere(_t.Code > 1),
+            _ => on.WhenNotMatched().ThenInsert(_t.Code).Values(_s.Code).Where(_s.Code > 1),
+        }).Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "A MERGE action WHERE or DELETE WHERE takes no leading WITH; "
+                + "put the CTE inside the subquery the Using(...) source names.",
+            ex.Message);
+    }
+
+    // An action filter is Oracle's, which refuses the other branch forms, and the
+    // engines with those refuse an action WHERE, even across branches (#679).
+    [Theory]
+    [InlineData("ConditionedBranch")]
+    [InlineData("ThenDelete")]
+    [InlineData("BySource")]
+    public void Merge_ActionFilterBesideBranchOracleRefuses_ThrowsArgumentException(string branch)
+    {
+        IMergeBuilderWhen filtered =
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenMatched()
+            .ThenUpdateSet(_t.Name == _s.Name)
+            .Where(_t.Code > 1);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => (branch switch
+        {
+            "ConditionedBranch" =>
+                filtered.WhenNotMatched(_s.Code > 2).ThenInsert(_t.Code).Values(_s.Code),
+            "ThenDelete" => MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenMatched()
+                .ThenDelete()
+                .WhenNotMatched()
+                .ThenInsert(_t.Code)
+                .Values(_s.Code)
+                .Where(_s.Code > 1),
+            _ => filtered.WhenNotMatchedBySource().ThenDelete(),
+        }).Build(Dbms.Oracle));
+
+        Assert.Equal(
+            "Oracle's MERGE action WHERE and DELETE WHERE cannot share a MERGE with a "
+                + "WHEN ... AND, THEN DELETE, or BY SOURCE branch; filter every branch with "
+                + "Where(...) on Oracle, or with WhenMatched(...) / WhenNotMatched(...) "
+                + "elsewhere.",
+            ex.Message);
+    }
+
     [Fact]
     public void Merge_Oracle_MatchedUpdate_WithInClauseDeleteWhere()
     {

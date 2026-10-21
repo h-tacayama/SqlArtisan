@@ -489,7 +489,21 @@ internal class SelectBuilder :
                 "TOP cannot be combined with LIMIT, OFFSET, or FETCH; use one or the other.");
         }
 
-        if (FindPart<OrderByClause>() is null && AnyTopWithTies())
+        if (!AnyTopWithTies())
+        {
+            return;
+        }
+
+        // No branch takes an ORDER BY of its own, and a compound's sorts the combined
+        // result, so a tied branch has no ordering to tie on (#679).
+        if (HasSetOperator())
+        {
+            throw new ArgumentException(
+                "TOP ... WITH TIES requires an ORDER BY of its own query block, which a "
+                    + "set-operator branch cannot take; put the branch in a derived table.");
+        }
+
+        if (FindPart<OrderByClause>() is null)
         {
             throw new ArgumentException("TOP ... WITH TIES requires an ORDER BY clause.");
         }
@@ -502,6 +516,19 @@ internal class SelectBuilder :
         foreach (SqlPart part in PartsSpan)
         {
             if (part is ITopSelectClause { WithTies: true })
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool HasSetOperator()
+    {
+        foreach (SqlPart part in PartsSpan)
+        {
+            if (part is UnionOperator or ExceptOperator or IntersectOperator or MinusOperator)
             {
                 return true;
             }

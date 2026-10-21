@@ -117,8 +117,7 @@ A detour through an optional clause returns the stage without it:
 stage several statements share takes its capability's name
 (`IReturningBuilder`, from `IReturning.Returning`). A capability composed into
 stages carries no `Builder` (`IPagination`, `IForUpdate`, `IJoinOperator`,
-`ISetOperator`, `IUpsert`, `IReturning`); `IReturning` also ends an upsert
-action (`DoNothing()`, `DoUpdateSet(...).Where(...)`). `ISqlBuilder` is the one
+`ISetOperator`, `IUpsert`, `IReturning`). `ISqlBuilder` is the one
 recorded exception: a capability by that test, it is the build contract every
 buildable stage composes, and renaming it would break every `this ISqlBuilder`
 extension, so it keeps `Builder` (#614).
@@ -132,8 +131,10 @@ Before 1.0, check each such member against the engines' grammar for a clause
 that can follow it, and either give the member its own stage or record the
 continuation as not offered — #581's record under "Opinions…" is the worked
 example. Checked (#582): `DoNothing()` and `DoUpdateSet(...).Where(...)`
-(#581); `ForUpdate(...)`, given its own stage (#590), and `Into(...)` (under
-"Opinions…");
+(#581), given their own stage, `IInsertBuilderConflictAction`, whose
+`Returning(...)` ends the chain at `ISqlBuilder` since the engines with
+`ON CONFLICT` take no `INTO` (#679); `ForUpdate(...)`, given its own stage
+(#590), and `Into(...)` (under "Opinions…");
 `OnDuplicateKeyUpdate(...)`, after which MySQL's reference syntax for `INSERT`
 lists no clause; and `Returning(...)` (under "Opinions…"), whose shared
 stage offers `Into(...)` alone, while PostgreSQL's reference syntax ends the
@@ -622,19 +623,11 @@ do not re-file):** SQLite runs `ON CONFLICT (id) DO UPDATE ... ON CONFLICT
 (code) DO NOTHING` (3.45.1, live) and PostgreSQL 16 rejects the second
 clause, so the form is SQLite's alone.
 
-- *The fluent chain.* `DoUpdateSet(...)` returns its own stage, so an
-  `OnConflict` added there later is additive, and it can return new stages
-  whose actions carry `OnConflict` again; only `DoNothing()` and
-  `DoUpdateSet(...).Where(...)` on the first clause return the shared
-  `IReturning`, which cannot take `OnConflict` without offering it on the
-  `UPDATE` and `DELETE` stages that take `RETURNING` too, so they stay
-  closed short of a return-type change. Added later,
-  the chain reaches every sequence whose first clause is an unfiltered
-  `DO UPDATE`. The written order matters only for a row that violates two of
-  the targets at once, where the first clause wins (live), so a leading
-  `DO NOTHING` or filtered `DO UPDATE` can usually move behind an unfiltered
-  one; one that must win over a later clause, or a statement with no
-  unfiltered `DO UPDATE` to lead, stays out of the chain's reach.
+- *The fluent chain.* `DoUpdateSet(...)` returns its own stage, and so, since
+  #679, do `DoNothing()` and `DoUpdateSet(...).Where(...)`
+  (`IInsertBuilderConflictAction`), so an `OnConflict` added to either later is
+  additive, and it can return new stages whose actions carry `OnConflict`
+  again, reaching every sequence of clauses.
 - *A held stage.* Calling `OnConflict` twice on a held stage compiles, and
   the once-per-block walk (`SqlBuilderBase.ThrowIfDuplicateClauseInBlock`)
   rejects the second clause at `Build()` on every dialect, SQLite included.
@@ -644,8 +637,8 @@ clause, so the form is SQLite's alone.
   emitting this one for SQLite would make that slip the only spelling of a
   form the chain does not offer.
 
-Reserving a stage type now would be a binary break paid for a form no caller
-has asked for (#581).
+The `OnConflict` step itself waits for a caller who needs the form
+(ADR 0010, #581).
 
 **What may follow `ForUpdate(...)`, `Into(...)` or `Returning(...)` is not
 offered (decided — do not re-file):** `Into(...)` returns the shared
@@ -683,8 +676,8 @@ an additive change, left to demand (ADR 0010).
   SqlArtisan offers `LOG ERRORS` on no statement; added later to the DML
   stages, it would not reach a statement ending in `RETURNING ... INTO`.
 
-As with #581, a stage type reserved now would be a binary break paid for
-forms no caller has asked for (#582).
+A stage type reserved now would be a binary break paid for forms no caller
+has asked for (#582).
 
 **SQL Server's `OUTPUT ... INTO` beside a plain `OUTPUT` is not offered
 (decided — do not re-file):** T-SQL takes one of each in a statement

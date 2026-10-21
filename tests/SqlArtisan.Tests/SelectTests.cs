@@ -696,7 +696,63 @@ public class SelectTests
             .From(_t)
             .Build(Dbms.SqlServer));
 
-        Assert.Equal("TOP ... WITH TIES requires an ORDER BY clause.", ex.Message);
+        Assert.Equal(
+            "TOP ... WITH TIES requires an ORDER BY of its own query block, which a "
+                + "set-operator branch cannot take; put the branch in a derived table.",
+            ex.Message);
+    }
+
+    // #679: no branch takes an ORDER BY of its own, so the compound's cannot satisfy
+    // a branch's WITH TIES, whichever branch carries it.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Top_SqlServer_WithTiesInCompoundBranch_ThrowsArgumentException(bool firstBranch)
+    {
+        TestTable u = new("u");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            (firstBranch
+                ? Select(Top(1).WithTies(), _t.Code).From(_t).Union.Select(u.Code).From(u)
+                : Select(_t.Code).From(_t).Union.Select(Top(1).WithTies(), u.Code).From(u))
+            .OrderBy(1)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "TOP ... WITH TIES requires an ORDER BY of its own query block, which a "
+                + "set-operator branch cannot take; put the branch in a derived table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Top_SqlServer_WithTiesInDerivedTableOfCompoundBranch_CorrectSql()
+    {
+        TestTable u = new("u");
+        SubqueryDerivedTable x =
+            Select(Top(1).WithTies(), u.Code)
+            .From(u)
+            .OrderBy(u.Code)
+            .AsTable("x");
+
+        SqlStatement sql =
+            Select(_t.Code)
+            .From(_t)
+            .Union
+            .Select(x.Column(u.Code))
+            .From(x)
+            .OrderBy(1)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT \"t\".code FROM test_table \"t\" ");
+        expected.Append("UNION ");
+        expected.Append("SELECT \"x\".code ");
+        expected.Append("FROM (SELECT TOP (@0) WITH TIES \"u\".code FROM test_table \"u\" ");
+        expected.Append("ORDER BY \"u\".code) \"x\" ");
+        expected.Append("ORDER BY 1");
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
     }
 
     [Fact]

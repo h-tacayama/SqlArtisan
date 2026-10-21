@@ -769,7 +769,7 @@ SqlStatement sql =
 // ORDER BY age
 ```
 
-`Top(n)` also chains `.Percent()` (`TOP (n) PERCENT`) and combines with `DISTINCT` (`Select(Distinct, Top(n), ...)` → `SELECT DISTINCT TOP (n)`). `WITH TIES` requires an `ORDER BY`, and `TOP` cannot appear with `LIMIT`, `OFFSET`, or `FETCH` in the same query — SqlArtisan throws at `Build()` on every dialect if either rule is broken, in a nested subquery's own clauses as much as in the statement's.
+`Top(n)` also chains `.Percent()` (`TOP (n) PERCENT`) and combines with `DISTINCT` (`Select(Distinct, Top(n), ...)` → `SELECT DISTINCT TOP (n)`). `WITH TIES` requires an `ORDER BY` of its own query block, and `TOP` cannot appear with `LIMIT`, `OFFSET`, or `FETCH` in the same query — SqlArtisan throws at `Build()` on every dialect if either rule is broken, in a nested subquery's own clauses as much as in the statement's. A set-operator branch takes no `ORDER BY` of its own (the compound's sorts the combined result), so a tied branch goes in a derived table that carries its `ORDER BY`.
 
 **Dialect note:** `TOP` is SQL Server only — on MySQL, Oracle, PostgreSQL, and SQLite use the `LIMIT` or `OFFSET/FETCH` families above; those families expose no `WITH TIES` option in SqlArtisan.
 
@@ -1359,7 +1359,9 @@ only the rows it let through: in `.Where(t.Age < 45).DeleteWhere(t.Age >= 35)`,
 a matched row aged 50 is neither updated nor deleted. The `INSERT`'s filter may
 name only source columns — an unmatched row has no target row, and Oracle
 rejects a target column there (observed on Oracle XE 21.3.0). Only an
-unconditioned `WhenMatched()` / `WhenNotMatched()` branch offers the filters.
+unconditioned `WhenMatched()` / `WhenNotMatched()` branch offers the filters,
+and since Oracle has no `WHEN ... AND`, `THEN DELETE` or `BY SOURCE` branch,
+`Build()` throws on a `MERGE` that carries a filter beside one of those.
 
 `UPDATE SET` and the `INSERT` column list both name target columns, which the
 engine resolves against the target table alone — passing the aliased target's
@@ -1561,11 +1563,15 @@ SqlArtisan also supports more advanced WITH clause scenarios:
   follows a leading `WITH` on any target: `With(...)` opens no
   `InsertIgnoreInto(...)`, whose CTE goes inside the feeding `SELECT`
   (`InsertIgnoreInto(...).With(...).Select(...)`), and `Build()` throws on a
-  leading `WITH` before `OnDuplicateKeyUpdate(...)`.
+  leading `WITH` before `OnDuplicateKeyUpdate(...)`. `RETURNING ... INTO` is
+  Oracle's alone too, so `Build()` throws on `Returning(...).Into(...)` after a
+  leading `WITH` on every target.
   Oracle's `MERGE` grammar has no leading `WITH` either (live-verified on XE
   21.3.0 and Free 23ai), and its remedy is a different one: `MERGE`'s own source
   slot takes a subquery, so the CTE goes inside the one `Using(...)` names, and
-  `Build(Dbms.Oracle)` throws on the leading form. `WithRecursive(...)` opens
+  `Build(Dbms.Oracle)` throws on the leading form. The action filters
+  (`Where(...)`, `DeleteWhere(...)`) are Oracle's, so `Build()` throws on one
+  after a leading `WITH` on every target. `WithRecursive(...)` opens
   each of these statements except `MERGE`, which no engine takes a recursive
   `WITH` before — PostgreSQL, the only engine with both the keyword and the
   statement, refuses the pairing whether or not the CTE body recurses

@@ -13,9 +13,8 @@ public class BuilderStageNamingTests
             + "Builder([A-Z][A-Za-z]*)?$",
         RegexOptions.Compiled);
 
-    // A capability that also ends an upsert action (DoNothing(), DoUpdateSet().Where()), and
     // ISqlBuilder, the recorded exception (public-api-design.md § Builder stage names).
-    private static readonly HashSet<string> s_capabilityStages = ["IReturning", "ISqlBuilder"];
+    private static readonly HashSet<string> s_capabilityStages = ["ISqlBuilder"];
 
     public static IEnumerable<object[]> StageInterfaces()
     {
@@ -55,7 +54,7 @@ public class BuilderStageNamingTests
 
         Assert.Contains("ISelectBuilderLimitOffset", names);
         Assert.Contains("IDeleteBuilder", names);
-        Assert.Contains("IReturning", names);
+        Assert.Contains("IInsertBuilderConflictAction", names);
         Assert.Contains("ISqlBuilder", names);
     }
 }

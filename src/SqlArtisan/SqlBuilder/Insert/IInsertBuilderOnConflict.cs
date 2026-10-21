@@ -11,7 +11,7 @@ public interface IInsertBuilderOnConflict
     /// </summary>
     /// <returns>The builder positioned for <c>RETURNING</c> or build.</returns>
     /// <remarks>PostgreSQL and SQLite syntax.</remarks>
-    IReturning DoNothing();
+    IInsertBuilderConflictAction DoNothing();
 
     /// <summary>
     /// Appends <c>DO UPDATE SET ...</c>, updating the conflicting row; reference the proposed

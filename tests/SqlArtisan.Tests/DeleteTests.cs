@@ -917,6 +917,30 @@ public class DeleteTests
             sql.Text);
     }
 
+    // Oracle, the one engine with RETURNING ... INTO, takes no leading WITH on DML,
+    // so the pair builds on no target (#679).
+    [Fact]
+    public void DeleteFrom_ReturningIntoAfterLeadingWith_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable s = new("s");
+        TestCte c = new("c");
+        OutputParameter code = new("code", System.Data.DbType.Int32);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(c.As(Select(s.Code.As(c.CteCode)).From(s)))
+            .DeleteFrom(t)
+            .Where(t.Code.In(Select(c.CteCode).From(c)))
+            .Returning(t.Code)
+            .Into(code)
+            .Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "RETURNING ... INTO cannot be combined with a leading WITH; "
+                + "inline the subquery instead.",
+            ex.Message);
+    }
+
     // No engine that spells DELETE ... FROM has RETURNING, so the stage withholds it.
     [Theory]
     [InlineData(typeof(IDeleteBuilderFrom))]

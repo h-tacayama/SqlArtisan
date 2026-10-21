@@ -220,6 +220,7 @@ public class ContextRuleContractTests
     [InlineData(
         "Values",
         "IInsertBuilderColumns",
+        "IInsertBuilderOutputColumns",
         "IInsertBuilderTable",
         "IInsertBuilderValues",
         "IInsertIgnoreBuilderColumns",

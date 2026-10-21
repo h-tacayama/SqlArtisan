@@ -672,6 +672,25 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT TOP (1) id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY"));
     }
 
+    // #679: a compound's ORDER BY sorts the combined result, so a branch's WITH TIES
+    // has no ordering of its own; a derived table carrying its own ORDER BY runs.
+    [Fact]
+    public void TopWithTiesInCompoundBranch_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(
+            "SELECT id FROM users UNION SELECT x.id FROM "
+                + "(SELECT TOP (1) WITH TIES id FROM users ORDER BY id) x ORDER BY 1");
+        connection.ExecuteScalar(
+            "SELECT id FROM users UNION SELECT TOP (1) id FROM users ORDER BY 1");
+
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT id FROM users UNION SELECT TOP (1) WITH TIES id FROM users ORDER BY 1"));
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT TOP (1) WITH TIES id FROM users UNION SELECT id FROM users ORDER BY 1"));
+    }
+
     // #521 item 2: SQL Server is said to reject grouping by ordinal.
     [Fact]
     public void GroupByOrdinal_IsRejectedByTheEngine()

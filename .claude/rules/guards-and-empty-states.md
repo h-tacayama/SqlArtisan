@@ -60,8 +60,21 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   accepted on SQLite (all five) or MySQL (`InnerJoin`/`JoinLateral` only) as an
   unlabeled `CROSS JOIN` spelling, not a construct with independent meaning
   (ADR 0017); `Output(...)` (SQL Server) combined with `Returning(...)`, with
-  `Using(...)` on `DELETE`, or with `OnConflict(...)`/`OnDuplicateKeyUpdate(...)`
-  on `INSERT` — no dialect accepts both halves of any pairing (#400);
+  `Using(...)` on `DELETE`, with `OnConflict(...)`/`OnDuplicateKeyUpdate(...)`
+  on `INSERT`, with a `WITH` between `INSERT INTO` and its `SELECT` (SQL Server
+  takes one only ahead of `INSERT INTO`, `ContextRule_InsertSelectWith_Rejected`),
+  with an `UPDATE` that joins before `SET` (MySQL's form), or with an
+  `UPDATE ... FROM` that does not re-list its target (the form SQL Server
+  refuses) — no dialect accepts both halves of any pairing (#400, #679);
+  `Returning(...).Into(...)` (Oracle's)
+  beside `OnConflict(...)`, which Oracle lacks, or after a leading `WITH`, which
+  Oracle takes on no DML statement, and Oracle's MERGE action `WHERE` /
+  `DELETE WHERE` after a leading `WITH` too, since the engines with one refuse
+  an action `WHERE`, and beside a `WHEN ... AND`, `THEN DELETE` or `BY SOURCE`
+  branch anywhere in the same `MERGE`, which Oracle refuses (#679); `TOP ... WITH TIES` with no
+  `ORDER BY` of its own query block, which a set-operator branch never has,
+  since a compound's `ORDER BY` sorts the combined result (SQL Server 2022,
+  `TopWithTiesInCompoundBranch_IsRejectedByTheEngine`; #569, #679);
   `Returning(...)` on a joined `DELETE ... FROM`, a direct-join `UPDATE`, or an
   `UPDATE` re-listing its target — those forms belong to MySQL and SQL Server,
   which have no `RETURNING`, and the engines with it reject the forms (#582);
@@ -198,6 +211,39 @@ qualified (a joined table's own alias stays the caller's choice). The guard is l
 a joined-DML twin (`Joined*_Executes` on MySQL, PostgreSQL, SQLite and SQL
 Server), so an engine that accepts an unaliased joined target is not an
 over-guard finding at any tier.
+
+**Which clause pairs no dialect runs get a guard (decided — do not re-file):** a
+pair of statement clauses no dialect accepts together is rejected when both
+halves spell one slot (`TOP` beside `LIMIT` / `OFFSET` / `FETCH`), or when one
+half is a DML clause or statement form only some engines take and those engines
+refuse the other half: another DML clause or form, or a clause they take in a
+`SELECT` but refuse in that position (a `WITH` between `INSERT INTO` and its
+`SELECT`, a leading `WITH` on Oracle). The owners are SQL Server's `OUTPUT` and
+re-listed `UPDATE` target, Oracle's `RETURNING ... INTO` and MERGE action
+filters, MySQL's `INSERT IGNORE`, `ON DUPLICATE KEY UPDATE` and direct-join
+`UPDATE`, and the joined `DELETE ... FROM` MySQL and SQL Server share; the
+*Incomplete* list above enumerates the pairs, and the walk's slot exclusivity (§
+"The empty-state policy", `SqlBuilderBase`) holds the two that also spell one
+slot, `ON DUPLICATE KEY UPDATE` beside `ON CONFLICT` and a joined `DELETE ...
+FROM` beside `USING`; `INSERT IGNORE` beside `OUTPUT` or `ON CONFLICT` is held
+by type alone, since the `IInsertIgnoreBuilder*` stages open from their own
+entry point and offer neither `Output` nor `IUpsert`, so only a cast reaches the
+pair (ADR 0011). Any other pair is left to the analyzer and the engine: a
+`SELECT` clause an owner refuses in every position (`OUTPUT` beside a leading
+`WITH RECURSIVE` or a feeding `SELECT`'s `LIMIT`), and the dozens of `SELECT`
+pairs that join one engine's clause to another's (`TOP` with `FOR UPDATE` or
+`NATURAL JOIN`, `CROSS APPLY` with `DISTINCT ON`). Each half there is a
+dialect-matrix cell, so with the analyzer on, `SQLA0100` reports at least one
+half on whatever dialect is configured, and the engine refuses the text or, as
+SQL Server does with `MINUS`, reads a half as something else its own cell
+already reports; a guard per pair would copy the matrix into the core. A guard
+keyed on a `WITH` position takes `WITH RECURSIVE` there with it, though SQL
+Server and Oracle refuse that clause everywhere: the position, not the keyword,
+is what the guard reads. An expression in a position no engine allows is the
+engine's for the same reason (the window-function paragraph below). This narrows
+#684's "a pair no engine runs is a type or `Build()` guard" (#679). Oracle
+23ai's joined `UPDATE` and `DELETE` beside `RETURNING ... INTO` are not
+verified, so they stay unguarded (#679's CI items).
 
 **A `RegexpOptions` match parameter is never domain-checked (decided — do not
 re-file):** no letter the enum emits is universally invalid, and a
@@ -755,7 +801,10 @@ stage.
 - **Four or fewer copies: compile time.** The quantified operands and MySQL's
   `INTERVAL` (0: their three node types, re-based in place, #666),
   `WithRecursive` (1, #521), the
-  `WhenNotMatchedBySource` branch (1), the direct-join `UPDATE`'s `SET`,
+  `WhenNotMatchedBySource` branch (1), `With(...)` after an `INSERT`'s
+  `Output(...)` (1: `IInsertBuilderOutputColumns`, #679), `Into(...)` after an
+  `ON CONFLICT` action (1: `IInsertBuilderConflictAction`, #679), the
+  direct-join `UPDATE`'s `SET`,
   which leaves out `From` (1), `StringAgg`'s inline `ORDER BY` (1, #582),
   DISTINCT aggregate windows (2: the node the three DISTINCT factories share
   and its filtered form, #662), `RETURNING` on the joined `DELETE ... FROM`
@@ -764,10 +813,19 @@ stage.
   `WHEN NOT MATCHED AND` stages and the latter's `INSERT`, #582) and `InsertIgnoreInto` (4: its Table, Columns, Values and Set
   stages, #275).
 - **Five or more: a `Build()` guard**, its count recorded here. A leading
-  `WITH` before `ON DUPLICATE KEY UPDATE` (6, #569); `TOP` beside
+  `WITH` before `ON DUPLICATE KEY UPDATE` (6, #569); a leading `WITH` before
+  Oracle's MERGE action filters (11: the target, `USING`, `ON` and branch
+  stages a `With(...).MergeInto(...)` chain passes through, #679); a leading
+  `WITH` before `RETURNING ... INTO` (18: the `INSERT`, `UPDATE` and `DELETE`
+  stages a `With(...)`-led chain passes through to `Returning(...)`, #679); an
+  action filter beside a `MERGE` branch form Oracle refuses (10: past its first
+  filter the `When`, `WhenMatched`, `ThenUpdateSet`, `WhenNotMatched`,
+  `ThenInsert` and `Values` stages, and past a refused branch the `When`,
+  `WhenMatched`, `WhenNotMatched` and `ThenInsert` ones, #679); `TOP` beside
   `LIMIT`/`OFFSET`/`FETCH` (9); `TOP ... WITH TIES` without an `ORDER BY` (9:
   the `SELECT` stages before it, the set operator, and a `TopClause` copy,
-  since a plain `Top(n)` reaches it too); the `OUTPUT` pairings (10, across
+  since a plain `Top(n)` reaches it too), or in a set-operator branch (the
+  same 9, #679); the `OUTPUT` pairings (10, across
   three statement families, #400); an `INSERT ... SELECT` embedded as a
   subquery (13).
 
