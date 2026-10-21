@@ -68,7 +68,8 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   beside `OnConflict(...)`, which Oracle lacks, or after a leading `WITH`, which
   Oracle takes on no DML statement, and Oracle's MERGE action `WHERE` /
   `DELETE WHERE` after a leading `WITH` too, since the engines with one refuse
-  an action `WHERE` (#679); `TOP ... WITH TIES` with no
+  an action `WHERE`, and beside a `WHEN ... AND`, `THEN DELETE` or `BY SOURCE`
+  branch anywhere in the same `MERGE`, which Oracle refuses (#679); `TOP ... WITH TIES` with no
   `ORDER BY` of its own query block, which a set-operator branch never has,
   since a compound's `ORDER BY` sorts the combined result (SQL Server 2022,
   `TopWithTiesInCompoundBranch_IsRejectedByTheEngine`; #569, #679);
@@ -209,33 +210,32 @@ a joined-DML twin (`Joined*_Executes` on MySQL, PostgreSQL, SQLite and SQL
 Server), so an engine that accepts an unaliased joined target is not an
 over-guard finding at any tier.
 
-**Which clause pairs no dialect runs get a guard (decided — do not re-file):**
-a pair of statement clauses no dialect accepts together is rejected when both
+**Which clause pairs no dialect runs get a guard (decided — do not re-file):** a
+pair of statement clauses no dialect accepts together is rejected when both
 halves spell one slot (`TOP` beside `LIMIT` / `OFFSET` / `FETCH`), or when one
-half is a DML clause or statement form only some engines take and those
-engines refuse the other half: another DML clause or form, or a clause they
-take in a `SELECT` but refuse in that position (a `WITH` between `INSERT INTO`
-and its `SELECT`, a leading `WITH` on Oracle). The owners are SQL Server's
-`OUTPUT` and re-listed `UPDATE` target, Oracle's `RETURNING ... INTO` and MERGE
-action filters, MySQL's `INSERT IGNORE`, `ON DUPLICATE KEY UPDATE` and
-direct-join `UPDATE`, and the joined `DELETE ... FROM` MySQL and SQL Server
-share; the *Incomplete* list above enumerates the pairs. Any other pair is left
-to the analyzer and the engine: a clause an owner refuses in every position
-(`OUTPUT` beside a leading `WITH RECURSIVE` or a feeding `SELECT`'s `LIMIT`), and the
-dozens of `SELECT` pairs that join one engine's clause to another's (`TOP` with
-`FOR UPDATE` or `NATURAL JOIN`, `CROSS APPLY` with `DISTINCT ON`). Each half
-there is a dialect-matrix cell, so with the analyzer on, `SQLA0100` reports at
-least one half on whatever dialect is configured, and the engine refuses the
-text or, as SQL Server does with `MINUS`, reads a half as something else its
-own cell already reports; a guard per pair would copy the matrix into the core.
-A guard keyed on a `WITH` position takes `WITH RECURSIVE` there with it, though
-the owners refuse that clause everywhere: the position, not the keyword, is
-what the guard reads.
-An expression in a position no engine allows is the engine's for the same
-reason (the window-function paragraph below). This narrows #684's "a pair no
-engine runs is a type or `Build()` guard" (#679). Oracle 23ai's joined
-`UPDATE` and `DELETE` beside `RETURNING ... INTO` are not verified, so they stay
-unguarded (#679's CI items).
+half is a DML clause or statement form only some engines take and those engines
+refuse the other half: another DML clause or form, or a clause they take in a
+`SELECT` but refuse in that position (a `WITH` between `INSERT INTO` and its
+`SELECT`, a leading `WITH` on Oracle). The owners are SQL Server's `OUTPUT` and
+re-listed `UPDATE` target, Oracle's `RETURNING ... INTO` and MERGE action
+filters, MySQL's `INSERT IGNORE`, `ON DUPLICATE KEY UPDATE` and direct-join
+`UPDATE`, and the joined `DELETE ... FROM` MySQL and SQL Server share; the
+*Incomplete* list above enumerates the pairs. Any other pair is left to the
+analyzer and the engine: a `SELECT` clause an owner refuses in every position
+(`OUTPUT` beside a leading `WITH RECURSIVE` or a feeding `SELECT`'s `LIMIT`),
+and the dozens of `SELECT` pairs that join one engine's clause to another's
+(`TOP` with `FOR UPDATE` or `NATURAL JOIN`, `CROSS APPLY` with `DISTINCT ON`).
+Each half there is a dialect-matrix cell, so with the analyzer on, `SQLA0100`
+reports at least one half on whatever dialect is configured, and the engine
+refuses the text or, as SQL Server does with `MINUS`, reads a half as something
+else its own cell already reports; a guard per pair would copy the matrix into
+the core. A guard keyed on a `WITH` position takes `WITH RECURSIVE` there with
+it, though the owners refuse that clause everywhere: the position, not the
+keyword, is what the guard reads. An expression in a position no engine allows
+is the engine's for the same reason (the window-function paragraph below). This
+narrows #684's "a pair no engine runs is a type or `Build()` guard" (#679).
+Oracle 23ai's joined `UPDATE` and `DELETE` beside `RETURNING ... INTO` are not
+verified, so they stay unguarded (#679's CI items).
 
 **A `RegexpOptions` match parameter is never domain-checked (decided — do not
 re-file):** no letter the enum emits is universally invalid, and a
@@ -809,7 +809,11 @@ stage.
   Oracle's MERGE action filters (11: the target, `USING`, `ON` and branch
   stages a `With(...).MergeInto(...)` chain passes through, #679); a leading
   `WITH` before `RETURNING ... INTO` (18: the `INSERT`, `UPDATE` and `DELETE`
-  stages a `With(...)`-led chain passes through to `Returning(...)`, #679); `TOP` beside
+  stages a `With(...)`-led chain passes through to `Returning(...)`, #679); an
+  action filter beside a `MERGE` branch form Oracle refuses (more than 7: past its
+  first filter a chain needs copies of the `When`, `WhenMatched`,
+  `ThenUpdateSet`, `Where`, `WhenNotMatched`, `ThenInsert` and `Values` stages,
+  and past a refused branch as many again, #679); `TOP` beside
   `LIMIT`/`OFFSET`/`FETCH` (9); `TOP ... WITH TIES` without an `ORDER BY` (9:
   the `SELECT` stages before it, the set operator, and a `TopClause` copy,
   since a plain `Top(n)` reaches it too), or in a set-operator branch (the

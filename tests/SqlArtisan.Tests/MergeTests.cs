@@ -149,6 +149,46 @@ public class MergeTests
             ex.Message);
     }
 
+    // An action filter is Oracle's, which refuses the other branch forms, and the
+    // engines with those refuse an action WHERE, even across branches (#679).
+    [Theory]
+    [InlineData("ConditionedBranch")]
+    [InlineData("ThenDelete")]
+    [InlineData("BySource")]
+    public void Merge_ActionFilterBesideBranchOracleRefuses_ThrowsArgumentException(string branch)
+    {
+        IMergeBuilderWhen filtered =
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenMatched()
+            .ThenUpdateSet(_t.Name == _s.Name)
+            .Where(_t.Code > 1);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => (branch switch
+        {
+            "ConditionedBranch" =>
+                filtered.WhenNotMatched(_s.Code > 2).ThenInsert(_t.Code).Values(_s.Code),
+            "ThenDelete" => MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenMatched()
+                .ThenDelete()
+                .WhenNotMatched()
+                .ThenInsert(_t.Code)
+                .Values(_s.Code)
+                .Where(_s.Code > 1),
+            _ => filtered.WhenNotMatchedBySource().ThenDelete(),
+        }).Build(Dbms.Oracle));
+
+        Assert.Equal(
+            "Oracle's MERGE action WHERE and DELETE WHERE cannot share a MERGE with a "
+                + "WHEN ... AND, THEN DELETE, or BY SOURCE branch; filter every branch with "
+                + "Where(...) on Oracle, or with WhenMatched(...) / WhenNotMatched(...) "
+                + "elsewhere.",
+            ex.Message);
+    }
+
     [Fact]
     public void Merge_Oracle_MatchedUpdate_WithInClauseDeleteWhere()
     {
