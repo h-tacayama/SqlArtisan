@@ -225,7 +225,10 @@ filters, MySQL's `INSERT IGNORE`, `ON DUPLICATE KEY UPDATE` and direct-join
 *Incomplete* list above enumerates the pairs, and the walk's slot exclusivity (§
 "The empty-state policy", `SqlBuilderBase`) holds the two that also spell one
 slot, `ON DUPLICATE KEY UPDATE` beside `ON CONFLICT` and a joined `DELETE ...
-FROM` beside `USING`. Any other pair is left to the analyzer and the engine: a
+FROM` beside `USING`; `INSERT IGNORE` beside `OUTPUT` or `ON CONFLICT` is held
+by type alone, since the `IInsertIgnoreBuilder*` stages open from their own
+entry point and offer neither `Output` nor `IUpsert`, so only a cast reaches the
+pair (ADR 0011). Any other pair is left to the analyzer and the engine: a
 `SELECT` clause an owner refuses in every position (`OUTPUT` beside a leading
 `WITH RECURSIVE` or a feeding `SELECT`'s `LIMIT`), and the dozens of `SELECT`
 pairs that join one engine's clause to another's (`TOP` with `FOR UPDATE` or
