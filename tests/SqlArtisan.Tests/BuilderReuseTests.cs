@@ -1090,6 +1090,31 @@ public class BuilderReuseTests
     }
 
     [Fact]
+    public void Values_LazyRowsBuildingTheBuilder_ThrowsArgumentException()
+    {
+        TestCte c = new("c");
+        IInsertBuilderColumnsOutput insert = InsertInto(_t, _t.Code);
+        IInsertBuilderValues held = insert.Values(1);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            insert.Values(LazyRows(() =>
+            {
+                held.Build();
+                return [2];
+            })));
+
+        Assert.Equal(
+            "This INSERT statement was already built; start a new chain.", ex.Message);
+        SqlStatement sql = With(c.As((ISubquery)insert)).Select(c.CteCode).From(c).Build();
+        Assert.Equal(
+            "WITH \"c\" AS (INSERT INTO test_table (code) VALUES (:0)) "
+                + "SELECT \"c\".cte_code FROM \"c\"",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
     public void Values_LazyRowsAddingARowOfAnotherWidth_ThrowsArgumentException()
     {
         IInsertBuilderTable insert = InsertInto(_t);
