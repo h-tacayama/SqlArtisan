@@ -164,7 +164,7 @@ var g = Rollup(t.Code, t.Name);
 // engine version supports it.
 ```
 
-Severity is controlled the standard Roslyn way, per rule ID:
+Severity is controlled the standard Roslyn way, per rule ID or per category:
 
 ```ini
 dotnet_diagnostic.SQLA0100.severity = error   # promote to a build error
@@ -176,9 +176,11 @@ The exception is `SQLA0001`: it carries no file location, so a file-scoped
 analyzer config (a `.globalconfig` file with `is_global = true`) or with
 `<NoWarn>SQLA0001</NoWarn>` in the project file.
 
-Because severity is per rule ID, it cannot be scoped to one construct —
-promoting `SQLA0100` to `error` makes *every* dialect mismatch a build
-failure, not just a chosen one. If you need to forbid a specific construct
+Because severity is per rule ID or per category, it cannot be scoped to one
+construct — promoting `SQLA0100` to `error` makes *every* unsupported construct
+a build failure, not just a chosen one; the
+[CI gate](#ci-gates-and-stricter-enforcement) promotes the whole dialect
+family. If you need to forbid a specific construct
 as a team policy rather than a dialect fact, reach for
 [`BannedApiAnalyzers`](https://www.nuget.org/packages/Microsoft.CodeAnalysis.BannedApiAnalyzers)
 instead — `sqlartisan_construct_*` expresses "my engine actually

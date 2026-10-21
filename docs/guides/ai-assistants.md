@@ -69,8 +69,8 @@ Shipping against more than one engine (or migrating between two)? Set more
 than one `sqlartisan_syntax_*` key — every rule then checks the whole set;
 see [Checking a set of dialects at once](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#checking-a-set-of-dialects-at-once).
 
-For an AI-heavy workflow, promote the dialect family to a build error so
-wrong-dialect code cannot merge:
+For an AI-heavy workflow, promote the dialect family to a build error so a
+dialect mismatch the analyzer reports cannot merge:
 
 ```ini
 dotnet_analyzer_diagnostic.category-SqlArtisan.Dialect.severity = error
