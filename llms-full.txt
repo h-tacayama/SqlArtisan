@@ -1796,7 +1796,9 @@ only the rows it let through: in `.Where(t.Age < 45).DeleteWhere(t.Age >= 35)`,
 a matched row aged 50 is neither updated nor deleted. The `INSERT`'s filter may
 name only source columns — an unmatched row has no target row, and Oracle
 rejects a target column there (observed on Oracle XE 21.3.0). Only an
-unconditioned `WhenMatched()` / `WhenNotMatched()` branch offers the filters.
+unconditioned `WhenMatched()` / `WhenNotMatched()` branch offers the filters,
+and since Oracle has no `WHEN ... AND`, `THEN DELETE` or `BY SOURCE` branch,
+`Build()` throws on a `MERGE` that carries a filter beside one of those.
 
 `UPDATE SET` and the `INSERT` column list both name target columns, which the
 engine resolves against the target table alone — passing the aliased target's

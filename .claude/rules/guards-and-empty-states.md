@@ -230,12 +230,12 @@ reports at least one half on whatever dialect is configured, and the engine
 refuses the text or, as SQL Server does with `MINUS`, reads a half as something
 else its own cell already reports; a guard per pair would copy the matrix into
 the core. A guard keyed on a `WITH` position takes `WITH RECURSIVE` there with
-it, though the owners refuse that clause everywhere: the position, not the
-keyword, is what the guard reads. An expression in a position no engine allows
-is the engine's for the same reason (the window-function paragraph below). This
-narrows #684's "a pair no engine runs is a type or `Build()` guard" (#679).
-Oracle 23ai's joined `UPDATE` and `DELETE` beside `RETURNING ... INTO` are not
-verified, so they stay unguarded (#679's CI items).
+it, though SQL Server and Oracle refuse that clause everywhere: the position,
+not the keyword, is what the guard reads. An expression in a position no engine
+allows is the engine's for the same reason (the window-function paragraph
+below). This narrows #684's "a pair no engine runs is a type or `Build()` guard"
+(#679). Oracle 23ai's joined `UPDATE` and `DELETE` beside `RETURNING ... INTO`
+are not verified, so they stay unguarded (#679's CI items).
 
 **A `RegexpOptions` match parameter is never domain-checked (decided — do not
 re-file):** no letter the enum emits is universally invalid, and a
@@ -810,10 +810,10 @@ stage.
   stages a `With(...).MergeInto(...)` chain passes through, #679); a leading
   `WITH` before `RETURNING ... INTO` (18: the `INSERT`, `UPDATE` and `DELETE`
   stages a `With(...)`-led chain passes through to `Returning(...)`, #679); an
-  action filter beside a `MERGE` branch form Oracle refuses (more than 7: past its
-  first filter a chain needs copies of the `When`, `WhenMatched`,
-  `ThenUpdateSet`, `Where`, `WhenNotMatched`, `ThenInsert` and `Values` stages,
-  and past a refused branch as many again, #679); `TOP` beside
+  action filter beside a `MERGE` branch form Oracle refuses (10: past its first
+  filter the `When`, `WhenMatched`, `ThenUpdateSet`, `WhenNotMatched`,
+  `ThenInsert` and `Values` stages, and past a refused branch the `When`,
+  `WhenMatched`, `WhenNotMatched` and `ThenInsert` ones, #679); `TOP` beside
   `LIMIT`/`OFFSET`/`FETCH` (9); `TOP ... WITH TIES` without an `ORDER BY` (9:
   the `SELECT` stages before it, the set operator, and a `TopClause` copy,
   since a plain `Top(n)` reaches it too), or in a set-operator branch (the
