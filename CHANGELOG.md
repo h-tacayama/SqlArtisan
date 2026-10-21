@@ -799,11 +799,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Docs
 - The TableClassGen README says a file at a generated path whose
   `: base("<table>", tableAlias)` names the table is rewritten whatever else it
-  holds, so hand-written classes belong outside `--output`; it said such a
-  class was refused. Its example class
-  drops the `HasDefault = false` arguments the tool never writes, and it now
-  says prompts appear only for a run given no options, that a run's own file
-  also derives from `DbTableBase`, and that a `--qualify-schema` segment is the
+  holds, so hand-written classes belong outside `--output`; it said such a class
+  was refused. Its example class drops the `HasDefault = false` arguments the
+  tool does not write for a PostgreSQL column with no default, and it now says
+  prompts appear only for a run given no options, that a run's own file also
+  derives from `DbTableBase`, and that a `--qualify-schema` segment is the
   `--schema` value as given. (#686)
 - `docs/guides/oracle-array-bind.md`'s `UPDATE` example binds `BindNull()` for a
   null name, where it threw on the nullable rows the page describes; the
