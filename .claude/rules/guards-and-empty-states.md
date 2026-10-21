@@ -228,6 +228,9 @@ there is a dialect-matrix cell, so with the analyzer on, `SQLA0100` reports at
 least one half on whatever dialect is configured, and the engine refuses the
 text or, as SQL Server does with `MINUS`, reads a half as something else its
 own cell already reports; a guard per pair would copy the matrix into the core.
+A guard keyed on a `WITH` position takes `WITH RECURSIVE` there with it, though
+the owners refuse that clause everywhere: the position, not the keyword, is
+what the guard reads.
 An expression in a position no engine allows is the engine's for the same
 reason (the window-function paragraph below). This narrows #684's "a pair no
 engine runs is a type or `Build()` guard" (#679). Oracle 23ai's joined
@@ -804,7 +807,9 @@ stage.
 - **Five or more: a `Build()` guard**, its count recorded here. A leading
   `WITH` before `ON DUPLICATE KEY UPDATE` (6, #569); a leading `WITH` before
   Oracle's MERGE action filters (11: the target, `USING`, `ON` and branch
-  stages a `With(...).MergeInto(...)` chain passes through, #679); `TOP` beside
+  stages a `With(...).MergeInto(...)` chain passes through, #679); a leading
+  `WITH` before `RETURNING ... INTO` (18: the `INSERT`, `UPDATE` and `DELETE`
+  stages a `With(...)`-led chain passes through to `Returning(...)`, #679); `TOP` beside
   `LIMIT`/`OFFSET`/`FETCH` (9); `TOP ... WITH TIES` without an `ORDER BY` (9:
   the `SELECT` stages before it, the set operator, and a `TopClause` copy,
   since a plain `Top(n)` reaches it too), or in a set-operator branch (the
