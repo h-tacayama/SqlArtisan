@@ -22,7 +22,7 @@ SqlArtisan is SQL, written in C#: a type-safe, SQL-like API where literals becom
 When an AI coding assistant writes your SQL, a new failure mode appears: plausible queries that look right but mix dialects, misname columns, or silently change semantics. SqlArtisan is a deterministic guard rail — four verification layers catch these mistakes before the query reaches a database:
 
 1. **Types** — column names and statement structure are compile-checked; a wrong name fails the build.
-2. **Analyzer** — the opt-in Roslyn analyzer flags constructs your target dialect does not support, catching the most common AI failure mode (mixing dialects from training data).
+2. **Analyzer** — the opt-in Roslyn analyzer flags constructs your target dialect does not support, catching a common AI failure mode (mixing dialects from training data).
 3. **Exact-SQL tests** — `Build()` is deterministic, so a unit test pins the reviewed SQL as a regression contract.
 4. **Integration matrix** — analyzer entries are verified against live engines.
 
@@ -247,7 +247,7 @@ Faithful emission is the foundation of a broader mission: SqlArtisan is a determ
 
 ## Documentation
 
-The same type-safe C# emits idiomatic SQL for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server** — each example shows the C# you write and the exact SQL it produces. The full reference lives in [`docs/`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md); signatures and emitted SQL are also visible inline via IntelliSense.
+Type-safe C# emits the SQL you write, for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server** — each example shows the C# you write and the exact SQL it produces. The full reference lives in [`docs/`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md); signatures and emitted SQL are also visible inline via IntelliSense.
 
 | Reference | Covers |
 |---|---|

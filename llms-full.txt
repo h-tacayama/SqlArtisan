@@ -33,7 +33,7 @@ SqlArtisan is SQL, written in C#: a type-safe, SQL-like API where literals becom
 When an AI coding assistant writes your SQL, a new failure mode appears: plausible queries that look right but mix dialects, misname columns, or silently change semantics. SqlArtisan is a deterministic guard rail — four verification layers catch these mistakes before the query reaches a database:
 
 1. **Types** — column names and statement structure are compile-checked; a wrong name fails the build.
-2. **Analyzer** — the opt-in Roslyn analyzer flags constructs your target dialect does not support, catching the most common AI failure mode (mixing dialects from training data).
+2. **Analyzer** — the opt-in Roslyn analyzer flags constructs your target dialect does not support, catching a common AI failure mode (mixing dialects from training data).
 3. **Exact-SQL tests** — `Build()` is deterministic, so a unit test pins the reviewed SQL as a regression contract.
 4. **Integration matrix** — analyzer entries are verified against live engines.
 
@@ -258,7 +258,7 @@ Faithful emission is the foundation of a broader mission: SqlArtisan is a determ
 
 ## Documentation
 
-The same type-safe C# emits idiomatic SQL for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server** — each example shows the C# you write and the exact SQL it produces. The full reference lives in [`docs/`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md); signatures and emitted SQL are also visible inline via IntelliSense.
+Type-safe C# emits the SQL you write, for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server** — each example shows the C# you write and the exact SQL it produces. The full reference lives in [`docs/`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md); signatures and emitted SQL are also visible inline via IntelliSense.
 
 | Reference | Covers |
 |---|---|
@@ -308,7 +308,7 @@ This project is licensed under the MIT License. See the [LICENSE](https://github
 
 [← Back to README](https://github.com/h-tacayama/SqlArtisan/blob/main/README.md)
 
-SqlArtisan is a deterministic guard rail for SQL written alongside AI — the same type-safe C# emits idiomatic SQL for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
+SqlArtisan is a deterministic guard rail for SQL written alongside AI — type-safe C# that emits the SQL you write, for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
 Every entry below shows the C# you write and the exact SQL it produces. Per-call signatures and
 emitted SQL are also visible inline via IntelliSense (bundled XML docs).
 
@@ -3805,7 +3805,7 @@ var g = Rollup(t.Code, t.Name);
 // engine version supports it.
 ```
 
-Severity is controlled the standard Roslyn way, per rule ID:
+Severity is controlled the standard Roslyn way, per rule ID or per category:
 
 ```ini
 dotnet_diagnostic.SQLA0100.severity = error   # promote to a build error
@@ -3817,9 +3817,11 @@ The exception is `SQLA0001`: it carries no file location, so a file-scoped
 analyzer config (a `.globalconfig` file with `is_global = true`) or with
 `<NoWarn>SQLA0001</NoWarn>` in the project file.
 
-Because severity is per rule ID, it cannot be scoped to one construct —
-promoting `SQLA0100` to `error` makes *every* dialect mismatch a build
-failure, not just a chosen one. If you need to forbid a specific construct
+Because severity is per rule ID or per category, it cannot be scoped to one
+construct — promoting `SQLA0100` to `error` makes *every* unsupported construct
+a build failure, not just a chosen one; the
+[CI gate](#ci-gates-and-stricter-enforcement) promotes the whole dialect
+family. If you need to forbid a specific construct
 as a team policy rather than a dialect fact, reach for
 [`BannedApiAnalyzers`](https://www.nuget.org/packages/Microsoft.CodeAnalysis.BannedApiAnalyzers)
 instead — `sqlartisan_construct_*` expresses "my engine actually
@@ -5123,11 +5125,13 @@ compose freely — a path-scoped section can itself set more than one
 **Promote a dialect mismatch to a hard failure:**
 
 ```ini
-dotnet_diagnostic.SQLA0100.severity = error
+dotnet_analyzer_diagnostic.category-SqlArtisan.Dialect.severity = error
 ```
 
-Every confirmed mismatch fails the build; escape hatches (`supported`
-overrides) still apply first, so only genuinely unconfirmed constructs fail.
+Every confirmed mismatch you have not overridden fails the build, `SQLA0100`
+through `SQLA0104` alike. Promoting `SQLA0100` alone leaves a version-bound
+construct (`SQLA0101`), a rejected position (`SQLA0102`), an over-long
+identifier (`SQLA0103`) and a rejected literal value (`SQLA0104`) as warnings.
 
 **Whitelist mode** — failing on any construct the matrix hasn't verified — is
 deliberately not offered. `SQLA0100` fires only on a *confirmed* mismatch (a
@@ -5874,8 +5878,8 @@ between generation and production:
 1. **Types** — table classes turn column-name errors into build failures.
 2. **Analyzer** — the opt-in
    [Roslyn analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)
-   flags wrong-dialect constructs at build time, catching the most common
-   AI failure mode (mixing dialects from training data).
+   flags wrong-dialect constructs at build time, catching a common AI
+   failure mode (mixing dialects from training data).
 3. **Exact-SQL tests** — `Build()` is deterministic, so a unit test
    freezes the reviewed SQL as a regression contract.
 4. **Integration matrix** — analyzer entries are verified against live
@@ -6377,8 +6381,8 @@ context.
 ## Configure the analyzer target
 
 The bundled Roslyn analyzer is the deterministic reviewer for dialect
-correctness — the failure mode AI assistants hit most, because their training
-data mixes all five dialects. Declare your engine once in `.editorconfig`:
+correctness — a common AI failure mode, because their training data mixes all
+five dialects. Declare your engine once in `.editorconfig`:
 
 ```ini
 [*.cs]
@@ -6398,12 +6402,17 @@ Shipping against more than one engine (or migrating between two)? Set more
 than one `sqlartisan_syntax_*` key — every rule then checks the whole set;
 see [Checking a set of dialects at once](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#checking-a-set-of-dialects-at-once).
 
-For an AI-heavy workflow, promote it to a build error so wrong-dialect code
-cannot merge:
+For an AI-heavy workflow, promote the dialect family to a build error so a
+dialect mismatch the analyzer reports cannot merge:
 
 ```ini
-dotnet_diagnostic.SQLA0100.severity = error
+dotnet_analyzer_diagnostic.category-SqlArtisan.Dialect.severity = error
 ```
+
+That reaches `SQLA0100` through `SQLA0104`: a construct the engine lacks, one
+newer than your declared version, one in a position it rejects, an over-long
+identifier, a literal value it rejects. Promoting `SQLA0100` alone leaves the
+other four as warnings, and the build succeeds.
 
 The [analyzer reference](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)
 covers the rules, per-construct overrides, mixed-dialect projects, and CI
@@ -6464,8 +6473,14 @@ public void OverdueOrdersQuery_CorrectSql()
 }
 ```
 
-To see a query's SQL while reviewing, print `sql.Text` and `sql.Parameters`
-from a scratch console — then paste what you approved into the assertion.
+To see a query's SQL while reviewing, print it from a scratch console — then
+paste what you approved into the assertion:
+
+```csharp
+Console.WriteLine(sql.Text);
+sql.Parameters.ForEach((name, p) => Console.WriteLine($"{name} = {p.Value}"));
+```
+
 This repository pins its own
 [cookbook](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md)
 recipes the same way.
@@ -6481,8 +6496,8 @@ file, and set the dialect line to your engine:
 - Write database queries with SqlArtisan (`using static SqlArtisan.Sql;`),
   never as raw SQL strings.
 - Target DBMS: PostgreSQL. SqlArtisan emits SQL faithfully with no dialect
-  translation — always pick the API documented for this DBMS, and treat
-  SQLA0100 analyzer warnings as errors to fix, not suppress.
+  translation — always pick the API documented for this DBMS, and treat the
+  SQLA01xx dialect warnings as errors to fix, not suppress.
 - API reference (each call shown with its emitted SQL):
   https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/llms.txt
 - Reference database tables through their table classes (one `DbTableBase`
@@ -6493,8 +6508,8 @@ file, and set the dialect line to your engine:
   and its bind parameters.
 ```
 
-Why these lines: the dialect pin plus the analyzer turns the most common AI
-failure (mixing dialects) into a build signal; the table-class rule keeps
+Why these lines: the dialect pin plus the analyzer turns a common AI failure
+(mixing dialects) into a build signal; the table-class rule keeps
 generated queries inside the compile-checked surface; the single-use rule
 matches the builder contract; and the test rule makes every generated query's
 SQL reviewable — and regression-locked — in the diff.

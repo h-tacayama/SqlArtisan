@@ -48,8 +48,8 @@ context.
 ## Configure the analyzer target
 
 The bundled Roslyn analyzer is the deterministic reviewer for dialect
-correctness — the failure mode AI assistants hit most, because their training
-data mixes all five dialects. Declare your engine once in `.editorconfig`:
+correctness — a common AI failure mode, because their training data mixes all
+five dialects. Declare your engine once in `.editorconfig`:
 
 ```ini
 [*.cs]
@@ -69,12 +69,17 @@ Shipping against more than one engine (or migrating between two)? Set more
 than one `sqlartisan_syntax_*` key — every rule then checks the whole set;
 see [Checking a set of dialects at once](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#checking-a-set-of-dialects-at-once).
 
-For an AI-heavy workflow, promote it to a build error so wrong-dialect code
-cannot merge:
+For an AI-heavy workflow, promote the dialect family to a build error so a
+dialect mismatch the analyzer reports cannot merge:
 
 ```ini
-dotnet_diagnostic.SQLA0100.severity = error
+dotnet_analyzer_diagnostic.category-SqlArtisan.Dialect.severity = error
 ```
+
+That reaches `SQLA0100` through `SQLA0104`: a construct the engine lacks, one
+newer than your declared version, one in a position it rejects, an over-long
+identifier, a literal value it rejects. Promoting `SQLA0100` alone leaves the
+other four as warnings, and the build succeeds.
 
 The [analyzer reference](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)
 covers the rules, per-construct overrides, mixed-dialect projects, and CI
@@ -135,8 +140,14 @@ public void OverdueOrdersQuery_CorrectSql()
 }
 ```
 
-To see a query's SQL while reviewing, print `sql.Text` and `sql.Parameters`
-from a scratch console — then paste what you approved into the assertion.
+To see a query's SQL while reviewing, print it from a scratch console — then
+paste what you approved into the assertion:
+
+```csharp
+Console.WriteLine(sql.Text);
+sql.Parameters.ForEach((name, p) => Console.WriteLine($"{name} = {p.Value}"));
+```
+
 This repository pins its own
 [cookbook](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md)
 recipes the same way.
@@ -152,8 +163,8 @@ file, and set the dialect line to your engine:
 - Write database queries with SqlArtisan (`using static SqlArtisan.Sql;`),
   never as raw SQL strings.
 - Target DBMS: PostgreSQL. SqlArtisan emits SQL faithfully with no dialect
-  translation — always pick the API documented for this DBMS, and treat
-  SQLA0100 analyzer warnings as errors to fix, not suppress.
+  translation — always pick the API documented for this DBMS, and treat the
+  SQLA01xx dialect warnings as errors to fix, not suppress.
 - API reference (each call shown with its emitted SQL):
   https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/llms.txt
 - Reference database tables through their table classes (one `DbTableBase`
@@ -164,8 +175,8 @@ file, and set the dialect line to your engine:
   and its bind parameters.
 ```
 
-Why these lines: the dialect pin plus the analyzer turns the most common AI
-failure (mixing dialects) into a build signal; the table-class rule keeps
+Why these lines: the dialect pin plus the analyzer turns a common AI failure
+(mixing dialects) into a build signal; the table-class rule keeps
 generated queries inside the compile-checked surface; the single-use rule
 matches the builder contract; and the test rule makes every generated query's
 SQL reviewable — and regression-locked — in the diff.
