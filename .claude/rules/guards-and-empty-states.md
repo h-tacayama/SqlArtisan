@@ -66,7 +66,9 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   or with an `UPDATE` that joins before `SET` (MySQL's form) — no dialect accepts
   both halves of any pairing (#400, #679); `Returning(...).Into(...)` (Oracle's)
   beside `OnConflict(...)`, which Oracle lacks, or after a leading `WITH`, which
-  Oracle takes on no DML statement (#679); `TOP ... WITH TIES` with no
+  Oracle takes on no DML statement, and Oracle's MERGE action `WHERE` /
+  `DELETE WHERE` after a leading `WITH` too, since the engines with one refuse
+  an action `WHERE` (#679); `TOP ... WITH TIES` with no
   `ORDER BY` of its own query block, which a set-operator branch never has,
   since a compound's `ORDER BY` sorts the combined result (SQL Server 2022,
   `TopWithTiesInCompoundBranch_IsRejectedByTheEngine`; #569, #679);
@@ -219,7 +221,7 @@ action filters, MySQL's `INSERT IGNORE`, `ON DUPLICATE KEY UPDATE` and
 direct-join `UPDATE`, and the joined `DELETE ... FROM` MySQL and SQL Server
 share; the *Incomplete* list above enumerates the pairs. Any other pair is left
 to the analyzer and the engine: a clause an owner refuses in every position
-(`OUTPUT` beside `WITH RECURSIVE` or a feeding `SELECT`'s `LIMIT`), and the
+(`OUTPUT` beside a leading `WITH RECURSIVE` or a feeding `SELECT`'s `LIMIT`), and the
 dozens of `SELECT` pairs that join one engine's clause to another's (`TOP` with
 `FOR UPDATE` or `NATURAL JOIN`, `CROSS APPLY` with `DISTINCT ON`). Each half
 there is a dialect-matrix cell, so with the analyzer on, `SQLA0100` reports at
@@ -800,7 +802,9 @@ stage.
   `WHEN NOT MATCHED AND` stages and the latter's `INSERT`, #582) and `InsertIgnoreInto` (4: its Table, Columns, Values and Set
   stages, #275).
 - **Five or more: a `Build()` guard**, its count recorded here. A leading
-  `WITH` before `ON DUPLICATE KEY UPDATE` (6, #569); `TOP` beside
+  `WITH` before `ON DUPLICATE KEY UPDATE` (6, #569); a leading `WITH` before
+  Oracle's MERGE action filters (11: the target, `USING`, `ON` and branch
+  stages a `With(...).MergeInto(...)` chain passes through, #679); `TOP` beside
   `LIMIT`/`OFFSET`/`FETCH` (9); `TOP ... WITH TIES` without an `ORDER BY` (9:
   the `SELECT` stages before it, the set operator, and a `TopClause` copy,
   since a plain `Top(n)` reaches it too), or in a set-operator branch (the

@@ -682,6 +682,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         connection.ExecuteScalar(
             "SELECT id FROM users UNION SELECT x.id FROM "
                 + "(SELECT TOP (1) WITH TIES id FROM users ORDER BY id) x ORDER BY 1");
+        connection.ExecuteScalar(
+            "SELECT id FROM users UNION SELECT TOP (1) id FROM users ORDER BY 1");
 
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             "SELECT id FROM users UNION SELECT TOP (1) WITH TIES id FROM users ORDER BY 1"));

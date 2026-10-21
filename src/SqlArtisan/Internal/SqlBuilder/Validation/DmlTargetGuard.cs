@@ -129,6 +129,26 @@ internal static class DmlTargetGuard
         }
     }
 
+    // The action filters are Oracle's, which takes no leading WITH on MERGE, and the
+    // engines with one refuse an action WHERE (ContextRule_MergeActionWhere_Rejected).
+    internal static void ThrowIfLeadingWithBeforeMergeActionFilter(ReadOnlySpan<SqlPart> parts)
+    {
+        if (!LeadsWithCte(parts))
+        {
+            return;
+        }
+
+        foreach (SqlPart part in parts)
+        {
+            if (part is MergeUpdateWhereClause or MergeDeleteWhereClause or MergeInsertWhereClause)
+            {
+                throw new ArgumentException(
+                    "A MERGE action WHERE or DELETE WHERE takes no leading WITH; "
+                        + "put the CTE inside the subquery the Using(...) source names.");
+            }
+        }
+    }
+
     // Oracle's DML grammars carry no subquery-factoring clause and MySQL's INSERT
     // does not either (live: 8.0.46 ER_PARSE_ERROR), so the CTE belongs inside the
     // feeding SELECT. A rule could see the WITH-only entry interfaces; none exists (#569).

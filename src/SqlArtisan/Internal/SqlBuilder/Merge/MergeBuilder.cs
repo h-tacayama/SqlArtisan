@@ -202,6 +202,7 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     // land Oracle's action filter in the conditioned or BY SOURCE branch its type withholds.
     protected override void Validate(Dbms dbms)
     {
+        DmlTargetGuard.ThrowIfLeadingWithBeforeMergeActionFilter(PartsSpan);
         DmlTargetGuard.ThrowIfLeadingWithUnsupportedOnMerge(PartsSpan, dbms);
 
         bool branchOpen = false;

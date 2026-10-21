@@ -76,7 +76,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - **Breaking:** an `INSERT` stage after `Output(...)` no longer offers
-  `With(...)`, and an `ON CONFLICT` action no longer offers `Into(...)` after
+  `With(...)` or `WithRecursive(...)`, and an `ON CONFLICT` action no longer offers `Into(...)` after
   `Returning(...)`. SQL Server, the one engine with `OUTPUT`, takes a `WITH` only
   ahead of `INSERT INTO`, and Oracle, the one engine with `RETURNING ... INTO`,
   has no `ON CONFLICT`, so either chain built text no engine runs.
@@ -86,8 +86,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   put a CTE ahead of `InsertInto(...)`. A held stage that still reaches either
   pair throws `ArgumentException` at `Build()`, as does a held `UPDATE` stage
   that joins before `SET` and then takes `Output(...)`, and `Into(...)` after a
-  leading `WITH`, which Oracle takes on no `INSERT`, `UPDATE` or `DELETE`.
-  (#679)
+  leading `WITH`, which Oracle takes on no `INSERT`, `UPDATE` or `DELETE`. So do
+  Oracle's MERGE action `Where(...)` / `DeleteWhere(...)` after a leading
+  `WITH`: Oracle takes none before `MERGE`, and PostgreSQL and SQL Server refuse
+  an action `WHERE`. (#679)
 - **Breaking:** `Build()` throws `ArgumentException` on `TOP ... WITH TIES` in a
   set-operator branch. A branch takes no `ORDER BY` of its own and the compound's
   sorts the combined result, so SQL Server 2022 rejects the tie; put the branch in

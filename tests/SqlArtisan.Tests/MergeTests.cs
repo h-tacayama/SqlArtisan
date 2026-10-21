@@ -120,6 +120,35 @@ public class MergeTests
         Assert.Equal("active", sql.Parameters.Get<string>(":0"));
     }
 
+    // The action filters are Oracle's, which takes no leading WITH on MERGE, and the
+    // engines with one refuse an action WHERE, so the pair builds on no target (#679).
+    [Theory]
+    [InlineData("UpdateWhere")]
+    [InlineData("DeleteWhere")]
+    [InlineData("InsertWhere")]
+    public void Merge_ActionFilterAfterLeadingWith_ThrowsArgumentException(string filter)
+    {
+        TestCte c = new("c");
+        IMergeBuilderOn on =
+            With(c.As(Select(_s.Code.As(c.CteCode)).From(_s)))
+            .MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => (filter switch
+        {
+            "UpdateWhere" => on.WhenMatched().ThenUpdateSet(_t.Name == "a").Where(_t.Code > 1),
+            "DeleteWhere" =>
+                on.WhenMatched().ThenUpdateSet(_t.Name == "a").DeleteWhere(_t.Code > 1),
+            _ => on.WhenNotMatched().ThenInsert(_t.Code).Values(_s.Code).Where(_s.Code > 1),
+        }).Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "A MERGE action WHERE or DELETE WHERE takes no leading WITH; "
+                + "put the CTE inside the subquery the Using(...) source names.",
+            ex.Message);
+    }
+
     [Fact]
     public void Merge_Oracle_MatchedUpdate_WithInClauseDeleteWhere()
     {
