@@ -617,6 +617,25 @@ public class UpdateTests
         Assert.Equal(1, sql.Parameters.Get<int>("@1"));
     }
 
+    // The typestate withholds OUTPUT after a direct join, MySQL's alone; a held
+    // pre-join stage still reaches both, so Build() backstops (#679).
+    [Fact]
+    public void Update_OutputOnHeldStageAfterDirectJoin_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable u = new("u");
+        IUpdateBuilderUpdate held = Update(t);
+        held.InnerJoin(u).On(t.Code == u.Code);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held.Set(t.Name == "a").Output(Inserted(t.Name)).Build(Dbms.MySql));
+
+        Assert.Equal(
+            "OUTPUT cannot be combined with an UPDATE that joins before SET; "
+                + "join through From(...) instead.",
+            ex.Message);
+    }
+
     [Fact]
     public void Update_SqlServer_OutputBeforeJoinedFrom_CorrectSql()
     {

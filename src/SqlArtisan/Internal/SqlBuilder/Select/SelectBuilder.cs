@@ -489,9 +489,23 @@ internal class SelectBuilder :
                 "TOP cannot be combined with LIMIT, OFFSET, or FETCH; use one or the other.");
         }
 
-        if (FindPart<OrderByClause>() is null && AnyTopWithTies())
+        if (!AnyTopWithTies())
+        {
+            return;
+        }
+
+        if (FindPart<OrderByClause>() is null)
         {
             throw new ArgumentException("TOP ... WITH TIES requires an ORDER BY clause.");
+        }
+
+        // No branch takes an ORDER BY of its own, and a compound's sorts the combined
+        // result, so a tied branch has no ordering to tie on (#679).
+        if (CompoundOrderByIndex(PartsSpan) >= 0)
+        {
+            throw new ArgumentException(
+                "TOP ... WITH TIES requires an ORDER BY of its own query block, which a "
+                    + "set-operator branch cannot take; put the branch in a derived table.");
         }
     }
 

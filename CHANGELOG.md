@@ -75,6 +75,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   17, SQLite 3.50, and SQL Server 2022 and 2025. (#662)
 
 ### Changed
+- **Breaking:** an `INSERT` stage after `Output(...)` no longer offers
+  `With(...)`, and an `ON CONFLICT` action no longer offers `Into(...)` after
+  `Returning(...)`. SQL Server, the one engine with `OUTPUT`, takes a `WITH` only
+  ahead of `INSERT INTO`, and Oracle, the one engine with `RETURNING ... INTO`,
+  has no `ON CONFLICT`, so either chain built text no engine runs.
+  `Output(...).Into(...)` returns the new `IInsertBuilderOutputColumns`, and
+  `DoNothing()` and `DoUpdateSet(...).Where(...)` return the new
+  `IInsertBuilderConflictAction`, whose `Returning(...)` returns `ISqlBuilder`;
+  put a CTE ahead of `InsertInto(...)`. A held stage that still reaches either
+  pair throws `ArgumentException` at `Build()`, as does a held `UPDATE` stage
+  that joins before `SET` and then takes `Output(...)`. (#679)
+- **Breaking:** `Build()` throws `ArgumentException` on `TOP ... WITH TIES` in a
+  set-operator branch. A branch takes no `ORDER BY` of its own and the compound's
+  sorts the combined result, so SQL Server rejects the tie; put the branch in a
+  derived table that carries its `ORDER BY`. (#679)
 - **Breaking:** the `Sql.*` factories, operators and fluent members return the
   narrowest public type that carries their result's members, and every public
   type lives in the `SqlArtisan` namespace. A call whose node declares a member or

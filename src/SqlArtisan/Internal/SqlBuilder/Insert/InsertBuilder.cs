@@ -4,8 +4,10 @@ internal sealed class InsertBuilder :
     SelectBuilder,
     IInsertBuilderColumns,
     IInsertBuilderColumnsOutput,
+    IInsertBuilderConflictAction,
     IInsertBuilderDoUpdateSet,
     IInsertBuilderOnConflict,
+    IInsertBuilderOutputColumns,
     IInsertBuilderOutputInto,
     IInsertBuilderSet,
     IInsertBuilderTable,
@@ -42,7 +44,7 @@ internal sealed class InsertBuilder :
 
     private protected override SelectBuilder CreateContinuation() => new InsertBuilder(this);
 
-    public IReturning DoNothing()
+    public IInsertBuilderConflictAction DoNothing()
     {
         AddPart(new DoNothingClause());
         return this;
@@ -54,7 +56,7 @@ internal sealed class InsertBuilder :
         return this;
     }
 
-    public IInsertBuilderColumns Into(DbTableBase table, params DbColumn[] columns)
+    public IInsertBuilderOutputColumns Into(DbTableBase table, params DbColumn[] columns)
     {
         OutputIntoClause into = new(table, columns);
         OutputClauseGuard.ThrowIfIntoWidthMismatch(FindPart<OutputClause>(), into);
@@ -88,6 +90,10 @@ internal sealed class InsertBuilder :
 
     public IReturningBuilder Returning(params object[] expressions) =>
         ReturningBuilder.Create(this, expressions);
+
+    // No engine with ON CONFLICT takes RETURNING ... INTO, so this stage withholds Into.
+    ISqlBuilder IInsertBuilderConflictAction.Returning(params object[] expressions) =>
+        Returning(expressions);
 
     public IInsertBuilderSet Set(params EqualityCondition[] assignments)
     {
@@ -147,7 +153,7 @@ internal sealed class InsertBuilder :
     // The DO UPDATE SET WHERE filter. Explicit implementation keeps this distinct
     // from the inherited SelectBuilder.Where (which returns a SELECT builder);
     // both add the same WhereClause, but this preserves the UPSERT chain.
-    IReturning IInsertBuilderDoUpdateSet.Where(SqlCondition condition)
+    IInsertBuilderConflictAction IInsertBuilderDoUpdateSet.Where(SqlCondition condition)
     {
         AddPart(new WhereClause(condition));
         return this;
@@ -218,6 +224,9 @@ internal sealed class InsertBuilder :
         OutputClauseGuard.ThrowIfCombinedWithReturning(
             output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
         OutputClauseGuard.ThrowIfInsertCombinedWithUpsert(output, onConflict, onDuplicateKeyUpdate);
+        OutputClauseGuard.ThrowIfInsertCombinedWithSelectWith(output, PartsSpan);
+        ReturningGuard.ThrowIfIntoCombinedWithOnConflict(
+            onConflict, FindPart<ReturningIntoClause>());
         ReturningGuard.ThrowIfCombinedWithMySqlInsertForm(
             FindPart<InsertIgnoreIntoClause>(),
             onDuplicateKeyUpdate,

@@ -168,6 +168,35 @@ public class UpsertTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // RETURNING ... INTO is Oracle's, which has no ON CONFLICT (#679). The conflict
+    // action withholds Into; a held VALUES stage reaches both.
+    [Fact]
+    public void OnConflict_Oracle_ReturningIntoOnHeldStage_ThrowsArgumentException()
+    {
+        OutputParameter code = new("code", System.Data.DbType.Int32);
+        IInsertBuilderValues held = InsertInto(_t, _t.Code).Values(1);
+        held.OnConflict(_t.Code).DoNothing();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held.Returning(_t.Code).Into(code).Build(Dbms.Oracle));
+
+        Assert.Equal(
+            "RETURNING ... INTO cannot be combined with ON CONFLICT; "
+                + "build the RETURNING stage without Into(...) instead.",
+            ex.Message);
+    }
+
+    [Theory]
+    [InlineData(typeof(IInsertBuilderConflictAction))]
+    [InlineData(typeof(IInsertBuilderDoUpdateSet))]
+    public void ConflictActionStage_OffersNoReturningInto(Type stage)
+    {
+        Assert.False(typeof(IReturning).IsAssignableFrom(stage));
+        Assert.Equal(
+            typeof(ISqlBuilder),
+            typeof(IInsertBuilderConflictAction).GetMethod("Returning")!.ReturnType);
+    }
+
     [Fact]
     public void OnDuplicateKeyUpdate_MySql_UsesRowAlias()
     {

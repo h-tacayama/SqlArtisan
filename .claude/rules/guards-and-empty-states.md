@@ -60,8 +60,15 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   accepted on SQLite (all five) or MySQL (`InnerJoin`/`JoinLateral` only) as an
   unlabeled `CROSS JOIN` spelling, not a construct with independent meaning
   (ADR 0017); `Output(...)` (SQL Server) combined with `Returning(...)`, with
-  `Using(...)` on `DELETE`, or with `OnConflict(...)`/`OnDuplicateKeyUpdate(...)`
-  on `INSERT` — no dialect accepts both halves of any pairing (#400);
+  `Using(...)` on `DELETE`, with `OnConflict(...)`/`OnDuplicateKeyUpdate(...)`
+  on `INSERT`, with a `WITH` between `INSERT INTO` and its `SELECT` (SQL Server
+  takes one only ahead of `INSERT INTO`, `ContextRule_InsertSelectWith_Rejected`),
+  or with an `UPDATE` that joins before `SET` (MySQL's form) — no dialect accepts
+  both halves of any pairing (#400, #679); `Returning(...).Into(...)` (Oracle's)
+  beside `OnConflict(...)`, which Oracle lacks (#679); `TOP ... WITH TIES` with
+  no `ORDER BY` of its own query block, which a set-operator branch never has,
+  since a compound's `ORDER BY` sorts the combined result
+  (`TopWithTiesInCompoundBranch_IsRejectedByTheEngine`, #569, #679);
   `Returning(...)` on a joined `DELETE ... FROM`, a direct-join `UPDATE`, or an
   `UPDATE` re-listing its target — those forms belong to MySQL and SQL Server,
   which have no `RETURNING`, and the engines with it reject the forms (#582);
@@ -198,6 +205,23 @@ qualified (a joined table's own alias stays the caller's choice). The guard is l
 a joined-DML twin (`Joined*_Executes` on MySQL, PostgreSQL, SQLite and SQL
 Server), so an engine that accepts an unaliased joined target is not an
 over-guard finding at any tier.
+
+**Which clause pairs no dialect runs get a guard (decided — do not re-file):**
+a pair of statement clauses no dialect accepts together is rejected when both
+halves spell one slot (`TOP` beside `LIMIT` / `OFFSET` / `FETCH`) or when one
+half is a DML clause a single engine owns — `OUTPUT` (SQL Server), `RETURNING
+... INTO` (Oracle), `INSERT IGNORE`, `ON DUPLICATE KEY UPDATE` and the
+direct-join `UPDATE` (MySQL) — beside a clause that engine refuses; the
+*Incomplete* list above enumerates them. Any other pair is left to the analyzer
+and the engine, among them the dozens of `SELECT` pairs that join one engine's
+clause to another's (`TOP` with `FOR UPDATE`, `NATURAL JOIN` or `MINUS`;
+`MINUS` with `LIMIT`; `CROSS APPLY` with `DISTINCT ON`). Each half there is a
+dialect-matrix cell, so with the analyzer on, `SQLA0100` reports at least one
+half on whatever dialect is configured, and every engine refuses the text
+loudly; a guard per pair would copy the matrix into the core for nothing the
+engine leaves silent. An expression in a position no engine allows is the
+engine's for the same reason (the window-function paragraph below). This
+narrows #684's "a pair no engine runs is a type or `Build()` guard" (#679).
 
 **A `RegexpOptions` match parameter is never domain-checked (decided — do not
 re-file):** no letter the enum emits is universally invalid, and a
@@ -755,7 +779,10 @@ stage.
 - **Four or fewer copies: compile time.** The quantified operands and MySQL's
   `INTERVAL` (0: their three node types, re-based in place, #666),
   `WithRecursive` (1, #521), the
-  `WhenNotMatchedBySource` branch (1), the direct-join `UPDATE`'s `SET`,
+  `WhenNotMatchedBySource` branch (1), `With(...)` after an `INSERT`'s
+  `Output(...)` (1: `IInsertBuilderOutputColumns`, #679), `Into(...)` after an
+  `ON CONFLICT` action (1: `IInsertBuilderConflictAction`, #679), the
+  direct-join `UPDATE`'s `SET`,
   which leaves out `From` (1), `StringAgg`'s inline `ORDER BY` (1, #582),
   DISTINCT aggregate windows (2: the node the three DISTINCT factories share
   and its filtered form, #662), `RETURNING` on the joined `DELETE ... FROM`
@@ -767,7 +794,8 @@ stage.
   `WITH` before `ON DUPLICATE KEY UPDATE` (6, #569); `TOP` beside
   `LIMIT`/`OFFSET`/`FETCH` (9); `TOP ... WITH TIES` without an `ORDER BY` (9:
   the `SELECT` stages before it, the set operator, and a `TopClause` copy,
-  since a plain `Top(n)` reaches it too); the `OUTPUT` pairings (10, across
+  since a plain `Top(n)` reaches it too), or in a set-operator branch (the
+  same 9, #679); the `OUTPUT` pairings (10, across
   three statement families, #400); an `INSERT ... SELECT` embedded as a
   subquery (13).
 

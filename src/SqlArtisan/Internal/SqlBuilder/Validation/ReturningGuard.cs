@@ -20,6 +20,19 @@ internal static class ReturningGuard
         }
     }
 
+    // RETURNING ... INTO is Oracle's, which has no ON CONFLICT; the engines with
+    // ON CONFLICT take RETURNING without INTO.
+    internal static void ThrowIfIntoCombinedWithOnConflict(
+        OnConflictClause? onConflict, ReturningIntoClause? returningInto)
+    {
+        if (onConflict is not null && returningInto is not null)
+        {
+            throw new ArgumentException(
+                "RETURNING ... INTO cannot be combined with ON CONFLICT; "
+                    + "build the RETURNING stage without Into(...) instead.");
+        }
+    }
+
     // The typestate withholds RETURNING on these joined forms, whose only engines
     // (MySQL, SQL Server) have none; this backstops a held stage that reaches both.
     internal static void ThrowIfCombinedWithJoinedDelete(

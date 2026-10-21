@@ -684,6 +684,61 @@ public class InsertTests
             ex.Message);
     }
 
+    // SQL Server, the one engine with OUTPUT, takes a WITH only ahead of INSERT INTO
+    // (#679). The OUTPUT stages withhold With; a held column-list stage reaches both.
+    [Fact]
+    public void InsertInto_SqlServer_OutputAndWithBeforeSelectOnHeldStage_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable s = new("s");
+        TestCte c = new("c");
+        IInsertBuilderColumnsOutput held = InsertInto(t, t.Code);
+        held.Output(Inserted(t.Code));
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held
+            .With(c.As(Select(s.Code.As(c.CteCode)).From(s)))
+            .Select(c.CteCode)
+            .From(c)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "OUTPUT cannot be combined with a WITH between INSERT INTO and its SELECT; "
+                + "put the WITH ahead of INSERT INTO instead.",
+            ex.Message);
+    }
+
+    [Theory]
+    [InlineData(typeof(IInsertBuilderOutputInto))]
+    [InlineData(typeof(IInsertBuilderOutputColumns))]
+    public void InsertOutputStage_OffersNoWith(Type stage)
+    {
+        Assert.False(typeof(IWithBuilder).IsAssignableFrom(stage));
+    }
+
+    [Fact]
+    public void InsertInto_SqlServer_OutputAfterLeadingWith_CorrectSql()
+    {
+        TestTable t = new();
+        TestTable s = new("s");
+        TestCte c = new("c");
+
+        SqlStatement sql =
+            With(c.As(Select(s.Code.As(c.CteCode)).From(s)))
+            .InsertInto(t, t.Code)
+            .Output(Inserted(t.Code))
+            .Select(c.CteCode)
+            .From(c)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("WITH \"c\" AS (SELECT \"s\".code cte_code FROM test_table \"s\") ");
+        expected.Append("INSERT INTO test_table (code) ");
+        expected.Append("OUTPUT INSERTED.code ");
+        expected.Append("SELECT \"c\".cte_code FROM \"c\"");
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
     [Fact]
     public void InsertIntoSet_NonColumnLeftSide_ThrowsArgumentException()
     {
