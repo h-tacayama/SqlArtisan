@@ -129,10 +129,11 @@ the output values can be read back with `Get<T>`.
 > **Handed to Dapper yourself, a statement whose text holds a `{=name}` token,
 > or a `?name?` token naming one of its parameters, runs with another value in
 > its place**: Dapper rewrites both anywhere in the text, string literals
-> included, so `JsonArrowText(doc, "{=0}")` reads the key `:0` is bound to (a
-> `{=name}` naming a string parameter fails inside Dapper instead). The mirrored
-> verbs refuse such text before running. On the hand-off path, bind the string
-> with `Sql.Bind(...)` where its position takes a bound value, or run the
+> included, so `JsonArrowText(doc, "{=0}")` reads the key `:0` is bound to.
+> Dapper writes only a number or `bool` into a `{=name}`; one naming another
+> parameter, such as a string or a date, fails inside Dapper instead. The
+> mirrored verbs refuse such text before running. On the hand-off path, bind the
+> string with `Sql.Bind(...)` where its position takes a bound value, or run the
 > statement through ADO.NET.
 
 Two execution rules to know from day one:
