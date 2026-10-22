@@ -210,8 +210,8 @@ reused.
   versions in the analyzer's
   [verified-against table](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#verified-against-versions)).
   Other engine versions generally work — the emitted SQL is plain text. A
-  version floor at or below the older verified version, such as `SQLA0101`'s
-  `requires PostgreSQL 12+`, runs live only on its supported side; the
+  `SQLA0101` version floor at or below a dialect's verified baseline (the older
+  version where two run) is proven live only on its supported side; the
   rejection below it rests on the vendor's documentation.
 - **Support window**: fixes land in the latest release only — the latest
   pre-release before 1.0, the latest minor of the current major after.
