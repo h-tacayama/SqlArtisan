@@ -20,7 +20,11 @@ internal sealed class DoUpdateSetClause : SqlPart
         return new(resolved);
     }
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Clause} ")
-        .AppendAssignmentsCsv(_assignments);
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        buffer.QualifyUpsertTarget();
+        buffer
+            .Append($"{Clause} ")
+            .AppendAssignmentsCsv(_assignments);
+    }
 }

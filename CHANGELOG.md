@@ -633,6 +633,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#654)
 
 ### Fixed
+- `DoUpdateSet(...)` and its `Where(...)` qualify a column of an unaliased
+  `INSERT` target by the table name (`users.id`). PostgreSQL rejected the bare
+  name as ambiguous with `EXCLUDED`'s (`column reference "id" is ambiguous`,
+  16.15), so `OnConflict(u.Id).DoUpdateSet(...).Where(u.Id < 100)`, the
+  documented example, failed there; SQLite reads both forms alike. A subquery
+  keeps its own bare names, and `RETURNING` is unchanged. (#675)
 - An untyped `Sql.BindNull()` runs through SqlArtisan.Dapper, on the mirrored
   verbs and through `ToDynamicParameters()` alike. Dapper maps no type for
   `DBNull`, so the statement threw `NotSupportedException` before it ran; the
