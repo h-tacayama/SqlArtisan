@@ -28,6 +28,9 @@ internal sealed class SqlBuildingBuffer : IDisposable
     private int _subqueryDepth;
     // Fits the padding beside _disposed, so it costs no build an allocation.
     private bool _qualifyReturningByTableName;
+    // Set by DO UPDATE SET for the rest of its statement level: PostgreSQL reads an
+    // unaliased target's bare column there as ambiguous with EXCLUDED's (#675).
+    private bool _qualifyUpsertTarget;
     // Inside a CTE body the guard defers to each query block's end: a target
     // column is legitimate only where its own block lists the target (#607).
     // A byte flags enum, so it shares that padding.
@@ -387,6 +390,9 @@ internal sealed class SqlBuildingBuffer : IDisposable
             _correlatedDmlTarget = null;
         }
 
+        bool qualifyUpsertTarget = _qualifyUpsertTarget;
+        _qualifyUpsertTarget = false;
+
         // Inside a CTE body a subquery is its own block for the deferred guard.
         CteGuard outer = _cteGuard;
         _cteGuard &= CteGuard.InBody;
@@ -401,6 +407,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
         _subqueryDepth--;
         Append(')');
         _correlatedDmlTarget = target;
+        _qualifyUpsertTarget = qualifyUpsertTarget;
         _cteGuard = outer;
         _block = outerBlock;
         return this;
@@ -423,8 +430,11 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
     internal string ExcludedName => _dialect.ExcludedName;
 
+    internal void QualifyUpsertTarget() => _qualifyUpsertTarget = true;
+
     internal SqlBuildingBuffer AppendReturningItems(SqlPart[] items)
     {
+        _qualifyUpsertTarget = false;
         _qualifyReturningByTableName = _dialect.ReturningIgnoresTargetAlias;
         AppendSelectItems(items);
         _qualifyReturningByTableName = false;
@@ -444,9 +454,13 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // SQLite 3.50.4 resolves the target in RETURNING by table name alone; a
     // subquery or CTE body that rebinds the name or the alias clears the slot.
     internal bool QualifiesByTableName(TableReference owner) =>
-        _qualifyReturningByTableName
-        && ReferenceEquals(owner, _correlatedDmlTarget)
-        && owner is DbTableBase { HasAlias: true };
+        (_qualifyReturningByTableName
+            && ReferenceEquals(owner, _correlatedDmlTarget)
+            && owner is DbTableBase { HasAlias: true })
+        || (_qualifyUpsertTarget
+            && owner is DbTableBase { HasAlias: false }
+            && _pseudoRowTarget is { HasAlias: false } target
+            && TableReference.NamesSameTable(owner, target));
 
     // Matched by name, not instance: the capture comes from any relation so
     // named, the target's own instance or another (#595).

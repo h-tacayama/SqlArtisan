@@ -100,6 +100,75 @@ public class UpsertTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // PostgreSQL reads an unaliased target's bare column in DO UPDATE as ambiguous with
+    // EXCLUDED's (#675), so the action qualifies it by table name; RETURNING stays bare.
+    [Fact]
+    public void OnConflict_DoUpdateSet_UnaliasedTarget_QualifiesByTableName()
+    {
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO test_table (code, name) ");
+        expected.Append("VALUES (:0, :1) ");
+        expected.Append("ON CONFLICT (code) ");
+        expected.Append("DO UPDATE SET code = (test_table.code + EXCLUDED.code) ");
+        expected.Append("WHERE test_table.code < :2 ");
+        expected.Append("RETURNING code");
+
+        SqlStatement sql =
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "a")
+            .OnConflict(_t.Code)
+            .DoUpdateSet(_t.Code == _t.Code + Excluded(_t.Code))
+            .Where(_t.Code < 100)
+            .Returning(_t.Code)
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal("a", sql.Parameters.Get<string>(":1"));
+        Assert.Equal(100, sql.Parameters.Get<int>(":2"));
+    }
+
+    [Fact]
+    public void OnConflict_DoUpdateSet_SchemaQualifiedUnaliasedTarget_QualifiesByTableName()
+    {
+        DbTable items = new("s.items");
+
+        SqlStatement sql =
+            InsertInto(items, items.Column("id"), items.Column("b"))
+            .Values(1, 5)
+            .OnConflict(items.Column("id"))
+            .DoUpdateSet(items.Column("b") == items.Column("b") + Excluded(items.Column("b")))
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal(
+            "INSERT INTO s.items (id, b) VALUES (:0, :1) ON CONFLICT (id) "
+                + "DO UPDATE SET b = (items.b + EXCLUDED.b)",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal(5, sql.Parameters.Get<int>(":1"));
+    }
+
+    // A subquery is its own scope, where the bare name binds its own relation.
+    [Fact]
+    public void OnConflict_DoUpdateSet_UnaliasedTarget_LeavesSubqueryColumnsBare()
+    {
+        DbTable u = new("u");
+
+        SqlStatement sql =
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "a")
+            .OnConflict(_t.Code)
+            .DoUpdateSet(_t.Name == Select(Max(u.Column("name"))).From(u))
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) VALUES (:0, :1) ON CONFLICT (code) "
+                + "DO UPDATE SET name = (SELECT MAX(name) FROM u)",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal("a", sql.Parameters.Get<string>(":1"));
+    }
+
     [Fact]
     public void OnConflict_DoNothing_WithTarget_CorrectSql()
     {

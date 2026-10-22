@@ -583,7 +583,7 @@ SqlStatement sql =
 // SELECT "u".id, "u".name FROM users "u" WHERE "u".id > :0
 ```
 
-Columns are qualified by the alias — or rendered unqualified when the table has no alias (`new DbTable("users")` → `id`). `DbTable` works anywhere a table class does, including `INSERT` / `UPDATE` / `DELETE`. For columns referenced repeatedly, or for IntelliSense on column names, declare a typed `DbTableBase` subclass (or generate one with SqlArtisan.TableClassGen) instead.
+Columns are qualified by the alias — or rendered unqualified when the table has no alias (`new DbTable("users")` → `id`), except in an UPSERT's `DO UPDATE`, which qualifies them by the table name ([UPSERT](#upsert-insert-update-or-skip)). `DbTable` works anywhere a table class does, including `INSERT` / `UPDATE` / `DELETE`. For columns referenced repeatedly, or for IntelliSense on column names, declare a typed `DbTableBase` subclass (or generate one with SqlArtisan.TableClassGen) instead.
 
 #### FROM-less Queries
 ```csharp
@@ -1632,11 +1632,14 @@ SqlStatement sql =
 the dialect: `EXCLUDED` on PostgreSQL, lowercase `excluded` on SQLite, and the
 `new` row alias on MySQL. That row is the target's, so `column` must belong to the
 target table; another table's column throws at `Build()`, and another table's value
-is read through a subquery. A conditional update is expressed with `Where(...)`,
-and `DoNothing()` skips conflicting rows:
+is read through a subquery. A column of an unaliased target in the update or its
+`WHERE` is qualified by the table name (`users.id`): both the target row and
+`EXCLUDED` are in scope there, and PostgreSQL rejects the bare name as ambiguous.
+A conditional update is expressed with `Where(...)`, and `DoNothing()` skips
+conflicting rows:
 
 ```csharp
-// ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name WHERE ...
+// ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name WHERE users.id < :2
 .OnConflict(u.Id).DoUpdateSet(u.Name == Excluded(u.Name)).Where(u.Id < 100)
 
 // ON CONFLICT (id) DO NOTHING

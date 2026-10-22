@@ -98,6 +98,29 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         transaction.Rollback();
     }
 
+    // #675: the unaliased target's column in DO UPDATE renders table-qualified, which
+    // PostgreSQL needs, a bare one being ambiguous with EXCLUDED's.
+    [Fact]
+    public void Upsert_OnConflictDoUpdate_UnaliasedTargetColumn_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        const string AgeOfFirst = "SELECT age FROM users WHERE id = 1";
+        int age = connection.ExecuteScalar<int>(AgeOfFirst, null, transaction);
+
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name, u.Age)
+                .Values(1, "Alice", 5)
+                .OnConflict(u.Id)
+                .DoUpdateSet(u.Age == u.Age + Excluded(u.Age))
+                .Where(u.Id < 100),
+            transaction);
+
+        Assert.Equal(age + 5, connection.ExecuteScalar<int>(AgeOfFirst, null, transaction));
+        transaction.Rollback();
+    }
+
     [Fact]
     public void Upsert_OnConflictDoNothing_Executes()
     {
