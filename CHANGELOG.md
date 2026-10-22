@@ -987,6 +987,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `Bind(...)` now names every value, not only the `WHEN` one, and a `CASE` in
   both `SELECT` and `GROUP BY` is said to bind once when both take the same
   instance. (#685)
+- `SECURITY.md` names what counts as a vulnerability in each companion
+  package: SqlArtisan.ArrayBind, which executes its `OracleCommand` itself, and
+  SqlArtisan.TableClassGen, which takes a database password and writes catalog
+  names into C# source, beside SqlArtisan.Dapper. It had named the Dapper
+  integration only. (#686)
+- `docs/versioning.md` says a `SQLA0101` version floor at or below a dialect's
+  verified baseline is proven live only on its supported side, and that the
+  rejection below it rests on the vendor's documentation; it said dialect-availability
+  claims were made for the verified versions only. (#686)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added
