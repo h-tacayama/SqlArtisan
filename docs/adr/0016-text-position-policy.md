@@ -166,6 +166,19 @@ alongside the bind-parameter types.
   Twins:
   `SqlServerTests.NonAsciiForcedLiteral_PlainForm_LosesTheCharacter`,
   `SqlServerTests.NonAsciiForcedLiteral_OnACodePageHoldingIt_KeepsWhatThePlainFormRan`.
+- **A backslash before a line break vanishes from a forced literal on SQL
+  Server (#679).** T-SQL reads `\` followed by LF or CRLF inside a string
+  constant as a line continuation and drops both, in a plain or an `N'...'`
+  literal (SQL Server 2022 and 2025): a `JSON_VALUE` path holding the pair
+  names another key, and a `STRING_AGG` separator loses it.
+  The grammar has no spelling that keeps the pair inside one literal, and these
+  positions take no parameter, so the literal is emitted as written and the
+  engine's reading stands. A caller reaches the pair only through a key that
+  holds it or a shell-style separator such as `" \\\n"`, and the separator's
+  loss shows in the result. Twins:
+  `SqlServerTests.InlineLiteral_BackslashNewline_ContinuesTheLine`,
+  `SqlServerTests.JsonValue_PathWithBackslashNewline_ReadsAnotherKey`,
+  `SqlServer2025Tests.InlineLiteral_BackslashNewline_ContinuesTheLine`.
 - **Not a Boundary-cluster ADR.** This records emission behavior; it adds no
   rejection category to ADR 0007 / 0011 / 0012 and does not count toward their
   consolidation trigger.

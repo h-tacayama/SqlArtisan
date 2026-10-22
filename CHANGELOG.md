@@ -792,6 +792,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   bind the string with `Sql.Bind(...)` where its position takes a bound value.
 
 ### Tests
+- Twins on both SQL Server lanes pin that a backslash before LF or CRLF in a
+  string literal continues the line, so both characters vanish: SQL Server
+  2022 and 2025 read SqlArtisan's inlined `JSON_VALUE` path holding the pair as
+  another key, and a `STRING_AGG` separator loses it. (#679)
 - `CookbookRecipeTests` runs every `docs/cookbook.md` recipe SQLite runs over
   repeated names, tied sort keys, a customer with no orders, an existing row
   for the UPSERTs and a timestamp late on a range's last day, from the same

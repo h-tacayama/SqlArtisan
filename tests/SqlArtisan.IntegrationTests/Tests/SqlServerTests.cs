@@ -1117,6 +1117,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT STRING_AGG(k, N'、') FROM dbo.s663"));
     }
 
+    // ADR 0016 (#679): the forced literal is emitted as written, and the engine's
+    // line continuation drops the pair.
     [Theory]
     [MemberData(
         nameof(BackslashNewlineLiterals.Every),
