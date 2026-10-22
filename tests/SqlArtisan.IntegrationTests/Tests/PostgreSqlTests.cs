@@ -612,27 +612,28 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             Select(u.Id).From(u).CrossJoinLateral(sub, sub.AsTable("z"))));
     }
 
-    // Without the list the INSERT body runs, write-only; the list asks it for columns
-    // a body with no RETURNING never has.
+    // Without a list or a reference the INSERT body runs, write-only; either asks it for
+    // columns a body with no RETURNING never has.
     [Fact]
-    public void WithColumnList_InsertSelectBody_IsRejectedByTheEngine()
+    public void InsertSelectCteBody_ListedOrRead_IsRejectedByTheEngine()
     {
         UsersTable u = new();
         OrdersTable o = new();
         Cte c = new("c");
         using IDbConnection connection = _fixture.OpenConnection();
-        using IDbTransaction transaction = connection.BeginTransaction();
         ISubquery unlisted =
             InsertInto(o, o.Id, o.UserId).Select(u.Id, u.Age).From(u).Where(u.Id < 0);
         ISubquery listed =
             InsertInto(o, o.Id, o.UserId).Select(u.Id, u.Age).From(u).Where(u.Id < 0);
+        ISubquery read =
+            InsertInto(o, o.Id, o.UserId).Select(u.Id, u.Age).From(u).Where(u.Id < 0);
 
-        connection.Query<int>(With(c.As(unlisted)).Select(u.Id).From(u), transaction);
+        connection.Query<int>(With(c.As(unlisted)).Select(u.Id).From(u));
 
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
-            With(c.As(listed).WithColumnList()).Select(u.Id).From(u),
-            transaction));
-        transaction.Rollback();
+            With(c.As(listed).WithColumnList()).Select(u.Id).From(u)));
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            With(c.As(read)).Select(c.Column("id")).From(c)));
     }
 
     // #664: a composite-typed array yields a column per field, which is why AsTable's

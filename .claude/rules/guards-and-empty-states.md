@@ -294,9 +294,9 @@ on PostgreSQL and SQLite, `Unnest_SeveralArraysInSelectList_IsRejectedByTheEngin
 re-file):** a `RANGE` offset over two or more `ORDER BY` keys; a percentile
 `WithinGroup(...)` over two or more keys; `WithRollup()` after a `GROUP BY`
 holding a grouping element; a lateral or apply join given a derived table that
-carries its own source, which it then emits twice; and `.WithColumnList()` on an
-`INSERT ... SELECT` CTE body, which has no columns to name (without the list the
-body runs, write-only). Each fails loudly where it was run — PostgreSQL 16.15 for
+carries its own source, which it then emits twice; and an `INSERT ... SELECT` CTE
+body given `.WithColumnList()` or read through a reference, since it has no
+columns to name or read (with neither, the body runs, write-only). Each fails loudly where it was run — PostgreSQL 16.15 for
 all but `WithRollup()` and the apply joins, SQLite 3.50.4 for the frame, SQL
 Server 2022 for `WithRollup()`, the one dialect the matrix gives both halves, and
 SQL Server 2022 and Oracle XE 21.3.0 for `CrossApply` — so there is no silent
