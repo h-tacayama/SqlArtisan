@@ -410,9 +410,9 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         }
     }
 
-    // SQLA0104 (#684): every member against both PostgreSQL cells, so a field the lists
-    // leave out but PostgreSQL 16 runs, or the reverse, fails here. A timestamptz
-    // source keeps the time-zone fields from failing on the column's type alone.
+    // SQLA0104 (#684): every member against both PostgreSQL cells, the two Extract reads
+    // as another field aside (they run and stay out). A timestamptz source keeps the
+    // time-zone fields from failing on the column's type alone.
     [Theory]
     [MemberData(nameof(EveryDateTimePart))]
     public void DatepartCells_EveryMember_MatchTheEngine(DateTimePart part)
@@ -420,13 +420,31 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
         SqlExpression ts = Cast(u.CreatedAt, "timestamptz");
+        bool readsAnotherField = part is DateTimePart.Microsecond or DateTimePart.Millisecond;
 
         Assert.Equal(
-            DatepartValidity.For("Extract", TargetDbms.PostgreSql)!.Contains(part.ToString()),
+            readsAnotherField
+                || DatepartValidity.For("Extract", TargetDbms.PostgreSql)!.Contains(
+                    part.ToString()),
             Runs(connection, Select(Extract(part, ts)).From(u)));
         Assert.Equal(
             DatepartValidity.For("DateTrunc", TargetDbms.PostgreSql)!.Contains(part.ToString()),
             Runs(connection, Select(DateTrunc(part, ts)).From(u)));
+    }
+
+    // The other meaning SQLA0104 reports: the plural field, seconds scaled, where the
+    // members name the component (123456 and 123.456 here).
+    [Fact]
+    public void Extract_SingularSubsecondField_ReadsThePluralField()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        decimal Field(string field) => connection.ExecuteScalar<decimal>(
+            $"SELECT EXTRACT({field} FROM CAST('2020-03-15 10:30:45.123456' AS timestamp))");
+
+        Assert.Equal(45123456m, Field("MICROSECOND"));
+        Assert.Equal(45123456m, Field("MICROSECONDS"));
+        Assert.Equal(45123.456m, Field("MILLISECOND"));
+        Assert.Equal(45123.456m, Field("MILLISECONDS"));
     }
 
     private static bool Runs(IDbConnection connection, ISqlBuilder query)

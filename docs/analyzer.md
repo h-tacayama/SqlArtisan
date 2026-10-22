@@ -963,7 +963,11 @@ var q = Select(Datetrunc(DateTimePart.Weekday, u.CreatedAt)).From(u);
 
 Each list is built from the vendor's own reference, and six of the eight are
 spot-verified against a live engine (`SqlServerDateaddFields` and
-`MySqlTimestampUnits` have no lane anchor yet).
+`MySqlTimestampUnits` have no lane anchor yet). PostgreSQL's `DateTrunc` list
+also takes `Microsecond` and `Millisecond`, which its manual omits and
+PostgreSQL 16 truncates as the plural spellings; its `Extract` list leaves them
+out, since PostgreSQL reads them as the plural fields, not the component those
+members name.
 
 ### A `RegexpOptions` letter an engine's match parameter has not
 

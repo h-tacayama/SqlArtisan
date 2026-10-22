@@ -147,6 +147,12 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 > for a modifier it doesn't recognize or a time value it can't parse, so a typo
 > surfaces as a silently empty column instead of a failed query.
 
+> [!NOTE]
+> On PostgreSQL, `Extract(DateTimePart.Microsecond, ...)` and `Extract(DateTimePart.Millisecond, ...)`
+> return the plural fields — the seconds field, fractional part included, times 1,000,000 or
+> 1,000 — not the component those members name: PostgreSQL 16 reads `MICROSECOND` and
+> `MILLISECOND` as `MICROSECONDS` and `MILLISECONDS`. `SQLA0104` reports both there.
+
 ---
 
 ## Conversion Functions

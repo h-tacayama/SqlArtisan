@@ -81,15 +81,15 @@ public class DatepartValidityAnalyzerTests
             AnalyzerVerifier.EditorConfig("postgresql"),
             expectWarning: false);
 
-    // PostgreSQL runs the singular sub-second spellings beside the plural (#684).
+    // PostgreSQL reads the singular sub-second spellings as the plural fields (#684).
     [Theory]
     [InlineData("Microsecond")]
     [InlineData("Millisecond")]
-    public Task Extract_PostgreSql_SingularSubsecondField_StaysSilent(string part) =>
+    public Task Extract_PostgreSql_SingularSubsecondField_ReportsSqla0104(string part) =>
         RunAsync(
-            $"var s = Select(Extract(DateTimePart.{part}, t.CreatedAt)).From(t).Build();",
+            $"var s = Select(Extract({{|#0:DateTimePart.{part}|}}, t.CreatedAt)).From(t).Build();",
             AnalyzerVerifier.EditorConfig("postgresql"),
-            expectWarning: false);
+            expectWarning: true);
 
     [Fact]
     public Task Extract_PostgreSql_InvalidField_ReportsSqla0104() =>
