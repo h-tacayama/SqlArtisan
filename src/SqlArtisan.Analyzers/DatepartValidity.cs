@@ -35,19 +35,21 @@ internal static class DatepartValidity
         "TimezoneHour", "TimezoneMinute", "TimezoneRegion", "TimezoneAbbr",
     };
 
-    // postgresql.org Date/Time Functions and Operators, EXTRACT.
+    // postgresql.org Date/Time Functions and Operators, EXTRACT. The singular sub-second
+    // spellings run too (PostgreSQL 16.15), though the manual lists only the plural.
     private static readonly HashSet<string> PostgreSqlExtractFields = new(StringComparer.Ordinal)
     {
         "Century", "Day", "Decade", "Dow", "Doy", "Epoch", "Hour", "Isodow", "Isoyear", "Julian",
-        "Microseconds", "Millennium", "Milliseconds", "Minute", "Month", "Quarter", "Second",
-        "Timezone", "TimezoneHour", "TimezoneMinute", "Week", "Year",
+        "Microsecond", "Microseconds", "Millennium", "Millisecond", "Milliseconds", "Minute",
+        "Month", "Quarter", "Second", "Timezone", "TimezoneHour", "TimezoneMinute", "Week",
+        "Year",
     };
 
     // date_trunc takes the EXTRACT fields that name a truncation boundary.
     private static readonly HashSet<string> PostgreSqlDateTruncFields = new(StringComparer.Ordinal)
     {
-        "Microseconds", "Milliseconds", "Second", "Minute", "Hour", "Day", "Week", "Month",
-        "Quarter", "Year", "Decade", "Century", "Millennium",
+        "Microsecond", "Microseconds", "Millisecond", "Milliseconds", "Second", "Minute", "Hour",
+        "Day", "Week", "Month", "Quarter", "Year", "Decade", "Century", "Millennium",
     };
 
     // learn.microsoft.com DATEPART (each entry also accepts an abbreviation,

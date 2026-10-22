@@ -638,6 +638,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `DBNull`, so the statement threw `NotSupportedException` before it ran; the
   NULL now binds with its type left to the driver, as `BindNull()` documents.
   `BindNull(DbType)` was unaffected.
+- `SQLA0104` no longer reports `Microsecond` or `Millisecond` in `Extract` and
+  `DateTrunc` on PostgreSQL, which runs the singular spellings beside the
+  plural ones (16.15). A PostgreSQL twin now runs every `DateTimePart` member
+  against both of its lists. (#684)
 - The analyzer no longer throws `AD0001` ("SyntaxTree is not part of the
   compilation") on a table class declared in a referenced project that reaches
   it as a compilation rather than a built assembly, as a project reference does

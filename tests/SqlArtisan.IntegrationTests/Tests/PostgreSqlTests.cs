@@ -2,6 +2,7 @@ using System.Data;
 using System.Data.Common;
 using Dapper;
 using Npgsql;
+using SqlArtisan.Analyzers;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
@@ -393,6 +394,52 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         // PostgreSQL rejects.
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             "SELECT DATE_TRUNC('epoch', created_at) FROM users"));
+    }
+
+    public static TheoryData<DateTimePart> EveryDateTimePart
+    {
+        get
+        {
+            TheoryData<DateTimePart> data = new();
+            foreach (DateTimePart part in Enum.GetValues<DateTimePart>())
+            {
+                data.Add(part);
+            }
+
+            return data;
+        }
+    }
+
+    // SQLA0104 (#684): every member against both PostgreSQL cells, so a field the lists
+    // leave out but PostgreSQL 16 runs, or the reverse, fails here. A timestamptz
+    // source keeps the time-zone fields from failing on the column's type alone.
+    [Theory]
+    [MemberData(nameof(EveryDateTimePart))]
+    public void DatepartCells_EveryMember_MatchTheEngine(DateTimePart part)
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        SqlExpression ts = Cast(u.CreatedAt, "timestamptz");
+
+        Assert.Equal(
+            DatepartValidity.For("Extract", TargetDbms.PostgreSql)!.Contains(part.ToString()),
+            Runs(connection, Select(Extract(part, ts)).From(u)));
+        Assert.Equal(
+            DatepartValidity.For("DateTrunc", TargetDbms.PostgreSql)!.Contains(part.ToString()),
+            Runs(connection, Select(DateTrunc(part, ts)).From(u)));
+    }
+
+    private static bool Runs(IDbConnection connection, ISqlBuilder query)
+    {
+        try
+        {
+            connection.ExecuteScalar(query);
+            return true;
+        }
+        catch (DbException)
+        {
+            return false;
+        }
     }
 
     // ADR 0012 (#661): anchors the open-domain example; the field is rejected here, the
