@@ -290,12 +290,13 @@ on PostgreSQL and SQLite, `Unnest_SeveralArraysInSelectList_IsRejectedByTheEngin
 re-file):** a `RANGE` offset over two or more `ORDER BY` keys; a percentile
 `WithinGroup(...)` over two or more keys; `WithRollup()` after a `GROUP BY` holding
 a grouping element; a held `INSERT` stage whose `OnConflict(...)` gets no action; a
-lateral join given a derived table that carries its own source, which it then emits
-twice; and `.WithColumnList()` on an `INSERT ... SELECT` CTE body, which has no
+lateral or apply join given a derived table that carries its own source, which it
+then emits twice; and `.WithColumnList()` on an `INSERT ... SELECT` CTE body, which has no
 columns to name (without the list the body runs, write-only). Each fails loudly
-where it was run — PostgreSQL 16.15 for all but `WithRollup()`, SQLite 3.50.4 for
-the frame and the held `OnConflict`, SQL Server 2022 for `WithRollup()`, the one
-dialect the matrix gives both halves — so there is no silent wrongness to convert,
+where it was run — PostgreSQL 16.15 for all but `WithRollup()` and the apply joins,
+SQLite 3.50.4 for the frame and the held `OnConflict`, SQL Server 2022 for
+`WithRollup()`, the one dialect the matrix gives both halves, and SQL Server 2022
+and Oracle XE 21.3.0 for `CrossApply` — so there is no silent wrongness to convert,
 and the held `OnConflict` sits with the held stage's out-of-order clause below. A
 twin per shape asserts the rejection beside a control that runs (the
 `*_IsRejectedByTheEngine` twins #675 added). The other engines are not run for

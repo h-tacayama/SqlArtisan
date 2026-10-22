@@ -673,6 +673,23 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             Select(u.DepartmentId).From(u).GroupBy(Rollup(u.DepartmentId)).WithRollup()));
     }
 
+    // #675: a source-carrying derived table emits its source twice, which the engine is
+    // left to reject (guards-and-empty-states.md); the DerivedTable handle runs.
+    [Fact]
+    public void CrossApply_SourceCarryingDerivedTable_IsRejectedByTheEngine()
+    {
+        UsersTable u = new("u");
+        UsersTable s = new("s");
+        using IDbConnection connection = _fixture.OpenConnection();
+        ISubquery sub = Select(s.Id).From(s).Where(s.Id == u.Id);
+
+        connection.Query<int>(
+            Select(u.Id).From(u).CrossApply(sub, new DerivedTable("z"))).ToList();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.Id).From(u).CrossApply(sub, sub.AsTable("z"))).ToList());
+    }
+
     // The Build() guard's reason (#569): SQL Server has TOP and OFFSET/FETCH, but
     // not in one query.
     [Fact]
