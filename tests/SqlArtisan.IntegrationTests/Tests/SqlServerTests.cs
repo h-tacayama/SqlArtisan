@@ -655,6 +655,24 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         transaction.Rollback();
     }
 
+    // #675: WITH ROLLUP after a grouping element stays the engine's
+    // (guards-and-empty-states.md); SQL Server is the one dialect the matrix gives both
+    // halves, and each half runs alone.
+    [Fact]
+    public void WithRollup_AfterGroupingElement_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int?>(
+            Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId).WithRollup());
+        connection.Query<int?>(
+            Select(u.DepartmentId).From(u).GroupBy(Rollup(u.DepartmentId)));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int?>(
+            Select(u.DepartmentId).From(u).GroupBy(Rollup(u.DepartmentId)).WithRollup()));
+    }
+
     // The Build() guard's reason (#569): SQL Server has TOP and OFFSET/FETCH, but
     // not in one query.
     [Fact]

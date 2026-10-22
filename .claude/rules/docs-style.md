@@ -95,6 +95,11 @@ with availability left to the database"). ADR cross-references belong in
   `CookbookTests` pins as text, and a new one joins both. The recipes SQLite
   cannot run, the MySQL and `MERGE` forms, rest on the schema's stated
   constraints with no row gate (#686).
+- **An example runs as shown.** Its SQL executes on each dialect it is shown
+  for and does what the text around it says. `verify_sql_examples.py` compares
+  only the emitted text, and examples it matched failed or returned other rows
+  when run (#685), so run a new or changed example on an engine before writing
+  it — locally, or on its integration lane for an engine not available here.
 - **No version floor in a reference page.** A floor lives only where a test
   keeps it tied to `DialectMatrix`: `docs/analyzer.md`'s version-bound register
   and XML `<remarks>` (ADR 0020). Reference pages state which dialects support

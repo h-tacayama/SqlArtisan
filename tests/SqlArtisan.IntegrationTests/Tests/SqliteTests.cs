@@ -445,6 +445,39 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
             Select(u.Id).From(u).Where(RowNumber().Over(OrderBy(u.Id)) == 1)));
     }
 
+    // #675: shapes no verified engine runs stay the engine's (guards-and-empty-states.md);
+    // each control runs, so the assertion fails only for the shape it names.
+    [Fact]
+    public void RangeOffset_SeveralOrderByKeys_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<long>(
+            Select(Count(u.Id).Over(OrderBy(u.Id).RangeBetween(Preceding(1), CurrentRow)))
+            .From(u));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<long>(
+            Select(Count(u.Id).Over(OrderBy(u.Id, u.Age).RangeBetween(Preceding(1), CurrentRow)))
+            .From(u)));
+    }
+
+    [Fact]
+    public void OnConflict_HeldStageWithNoAction_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u, u.Id).Values(6751).OnConflict(u.Id).DoNothing(), transaction);
+        IInsertBuilderValues held = InsertInto(u, u.Id).Values(6752);
+        held.OnConflict(u.Id);
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(held, transaction));
+        transaction.Rollback();
+    }
+
     // ADR 0016 (#661): the bound format and modifier miss an expression index, a cost
     // weighed and accepted there; only the inline literal, written by hand, matches.
     [Theory]
