@@ -408,6 +408,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `--tables` silently narrowed a run, so `--check --tables b --tables a`
   reported in sync over `b`'s drift. List several tables as `--tables b,a`.
   A flag still overrides the same key in the `--config` file. (#643)
+- **Breaking:** TableClassGen's `--tables` emits each table name as the
+  catalog stores it, not as the flag spells it, so `--tables ITEM` writes the
+  class a full run writes for `item`. Where the catalog lookup ignores case
+  (SQLite, or SQL Server's default collation), `--tables ORDERS` wrote
+  `"ORDERS"` for `Orders`, which the next full `--check` reported modified.
+  (#645)
 - **Breaking:** TableClassGen's `--tables` on SQLite rejects a view or an
   internal `sqlite_*` table (`--tables names 'v', which is not a table in the
   schema`), as it already did on the other engines. A full run never read them,
@@ -718,8 +724,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - TableClassGen starts on a machine with only a newer .NET runtime: the tool
   now rolls forward to the next major version (`RollForward=Major`) instead of
   refusing to run without .NET 8. (#645)
-- TableClassGen's `--tables` on SQLite emits the table name as stored in the
-  catalog, so `--tables ITEM` writes the same file as a full run for `item`. (#645)
 - A blank TableClassGen option or `--config` value now counts as absent for
   every option: `--output ""` reads the current directory with its orphan
   scan, which a blank value used to skip, and `--output " "` no longer creates a
@@ -764,10 +768,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     `INSERT` the engine rejects.
   - A PostgreSQL table with no columns gets a class with no properties. A full
     run skipped it and exited 0, and `--tables` called it absent.
-  - `--tables` on MySQL, PostgreSQL and SQL Server emits the table name as the
-    catalog stores it, as it now does on SQLite: under SQL Server's
-    case-insensitive collation, `--tables ORDERS` wrote `"ORDERS"` for
-    `Orders`, which the next full `--check` reported modified.
 
 - TableClassGen's `--HELP`, `--Help` and `--he-lp` show the help, as `--help`
   does, instead of failing as an unknown option: every other option name already
