@@ -6609,9 +6609,10 @@ Four cases are specific to this library, beyond the usual API-level changes:
   that newly fails on input the last release accepted is breaking, including a
   chain whose SQL ran but read or wrote the wrong rows — the caller changes code
   either way. It is not breaking where the last release is known to have
-  failed too: SQL that every engine with the construct rejects, or a failure
-  that only moves earlier or changes its message. A case not known to have
-  failed counts as breaking.
+  failed too: SQL rejected by every verified engine version that has the
+  construct ([Support statement](#support-statement)), or a failure that only
+  moves earlier or changes its message. A case not known to have failed counts
+  as breaking.
 
 The analyzer's diagnostics follow their own rules, below: a new warning may
 land in a minor release, since it changes what a build reports, never what a

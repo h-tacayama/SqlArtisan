@@ -409,6 +409,27 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   used to pass such a file, so a `--tables` run could overwrite another table's
   class and exit 0. A file from 0.7 or earlier, which carries no generated
   header, is still recognized by its table name. (#645)
+- **Breaking:** TableClassGen no longer creates a SQLite database at a mistyped
+  `--file`. `--check` used to read the new empty file and report every committed
+  class removed; the path now fails to connect, naming `--file`. A file that is
+  not a database fails the same way instead of printing the bare driver error.
+  (#645)
+- **Breaking:** a TableClassGen `--config` value of the wrong JSON kind is
+  rejected: `"output": false` used to generate into a directory named `false`. A
+  switch takes `true` or `false`, `tables` a string or an array of strings, and
+  every other key a string or number. A file whose root is not a JSON object, or
+  one that cannot be read, is reported against `--config`. (#645)
+- **Breaking:** a `.cs` file under `--output` that TableClassGen cannot read now
+  fails the run, naming the file, instead of being skipped: an unreadable orphan
+  of the tool's own read as in sync. (#645)
+- **Breaking:** a table with no column visible to the TableClassGen user fails
+  the run naming the table, and on PostgreSQL so does one with any column hidden
+  (a role holding only `DELETE`, or `SELECT` on some columns); it used to be
+  skipped, or written with only the visible columns. (#645)
+- **Breaking:** TableClassGen fails the run on an Oracle table with a quoted
+  name that is not upper case, naming the table, by `--tables` too. Every read
+  folded the name to upper case, so the table was skipped while the run
+  exited 0. A table in the recycle bin is no longer listed. (#645)
 - **Breaking:** `SqlArtisan.Dapper` adds Dapper's `DbConnection` twin of
   `ExecuteReaderAsync`, returning `Task<DbDataReader>`, so a reader opened
   asynchronously can also read asynchronously (`ReadAsync`, `await using`). A
@@ -683,21 +704,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - TableClassGen starts on a machine with only a newer .NET runtime: the tool
   now rolls forward to the next major version (`RollForward=Major`) instead of
   refusing to run without .NET 8. (#645)
-- TableClassGen no longer creates a SQLite database at a mistyped `--file`.
-  `--check` used to read the new empty file and report every committed class
-  removed; the path now fails to connect, naming `--file`. A file that is not a
-  database fails the same way instead of printing the bare driver error. (#645)
 - TableClassGen's `--tables` on SQLite emits the table name as stored in the
   catalog, so `--tables ITEM` writes the same file as a full run for `item`. (#645)
 - A blank TableClassGen option or `--config` value now counts as absent for
   every option: `--output ""` reads the current directory with its orphan
   scan, which a blank value used to skip, and `--output " "` no longer creates a
   directory named with a space. (#645)
-- A TableClassGen `--config` value of the wrong JSON kind is rejected:
-  `"output": false` used to generate into a directory named `false`. A switch
-  takes `true` or `false`, `tables` a string or an array of strings, and every
-  other key a string or number. A file whose root is not a JSON object, or one
-  that cannot be read, is reported against `--config`. (#645)
 - TableClassGen rejects an `--output` that names a file. It scans for orphan
   files before it writes anything, so a directory it cannot read fails the run
   before any file is rewritten, and a write that fails midway names the files
@@ -710,9 +722,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   or `/* */`) and the run's `--namespace`, compared without whitespace. A
   prepended license comment used to hide a generated file from the scan, and another generation's files in a nested `--output`
   directory were reported removed on every `--check`. (#645)
-- A `.cs` file under `--output` that TableClassGen cannot read now fails the
-  run, naming the file, instead of being skipped: an unreadable orphan of the
-  tool's own read as in sync. (#645)
 - On a case-folding file system, TableClassGen's orphan scan no longer reports
   a file it regenerates under another case of the same name (a class whose case
   changes with `--lowercase`). (#645)
@@ -744,15 +753,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     Server. It supplies no value, so `SQLA0202` stayed silent on an
     `INSERT` the engine rejects.
   - A PostgreSQL table with no columns gets a class with no properties. A full
-    run skipped it and exited 0, and `--tables` called it absent. A table
-    with no column visible to the user fails the run naming the table, and on
-    PostgreSQL so does one with any column hidden (a role holding only
-    `DELETE`, or `SELECT` on some columns); it used to be skipped, or written
-    with only the visible columns.
-  - An Oracle table with a quoted name that is not upper case fails the run,
-    naming the table, by `--tables` too. Every read folded the name to upper
-    case, so the table was skipped while the run exited 0. A table in the
-    recycle bin is no longer listed.
+    run skipped it and exited 0, and `--tables` called it absent.
   - `--tables` on MySQL, PostgreSQL and SQL Server emits the table name as the
     catalog stores it, as it now does on SQLite: under SQL Server's
     case-insensitive collation, `--tables ORDERS` wrote `"ORDERS"` for
