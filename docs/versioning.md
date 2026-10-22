@@ -206,11 +206,13 @@ reused.
   [integration test matrix](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.IntegrationTests)
   against one representative version each of MySQL, Oracle, PostgreSQL,
   SQLite, and SQL Server — Oracle, PostgreSQL and SQL Server at a second,
-  newer one too, where their version-bound entries are proven (exact versions
-  in the analyzer's
+  newer one too, where the version bounds between the two are proven (exact
+  versions in the analyzer's
   [verified-against table](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#verified-against-versions)).
-  Other engine versions generally work — the emitted SQL is plain text —
-  but dialect-availability claims are only made for the verified ones.
+  Other engine versions generally work — the emitted SQL is plain text. The
+  analyzer's dialect-availability verdicts are proven live at those versions;
+  a version floor below them, such as `SQLA0101`'s `requires PostgreSQL 12+`,
+  rests on the vendor's documentation instead.
 - **Support window**: fixes land in the latest release only — the latest
   pre-release before 1.0, the latest minor of the current major after.
   Vulnerabilities: see [SECURITY.md](https://github.com/h-tacayama/SqlArtisan/blob/main/SECURITY.md).
