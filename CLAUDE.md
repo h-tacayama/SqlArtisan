@@ -118,8 +118,8 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships fifteen diagnostics:
 - **SQLA0102** — Context-restricted construct. A construct the target supports,
   used in a position that dialect rejects.
 - **SQLA0103** — Identifier too long for the target dialect's limit.
-- **SQLA0104** — A literal argument value the target dialect rejects, where the
-  construct itself runs there — a finer grain than SQLA0100's whole-construct
+- **SQLA0104** — A literal argument value the target dialect rejects (or runs
+  with another meaning), where the construct itself runs there — a finer grain than SQLA0100's whole-construct
   verdict. Four value domains report under the one ID (**ADR 0022**): a
   `DateTimePart` outside what a function accepts (`Extract`, `Datepart`,
   `Dateadd`, `Datediff`, `DateTrunc`, `Datetrunc`, `Interval`, `Timestampadd`,
