@@ -989,10 +989,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   SqlArtisan.TableClassGen, which takes a database password and writes catalog
   names into C# source, beside SqlArtisan.Dapper. It had named the Dapper
   integration only. (#686)
-- `docs/versioning.md` says the analyzer's dialect-availability verdicts are
-  proven live at the verified engine versions, and that a version floor below
-  them rests on the vendor's documentation; it said verdicts were made for the
-  verified versions only. (#686)
+- `docs/versioning.md` says a version floor at or below the older verified
+  engine version runs live only on its supported side, and that the rejection
+  below it rests on the vendor's documentation; it said dialect-availability
+  claims were made for the verified versions only. (#686)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

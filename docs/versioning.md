@@ -209,10 +209,10 @@ reused.
   newer one too, where the version bounds between the two are proven (exact
   versions in the analyzer's
   [verified-against table](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#verified-against-versions)).
-  Other engine versions generally work — the emitted SQL is plain text. The
-  analyzer's dialect-availability verdicts are proven live at those versions;
-  a version floor below them, such as `SQLA0101`'s `requires PostgreSQL 12+`,
-  rests on the vendor's documentation instead.
+  Other engine versions generally work — the emitted SQL is plain text. A
+  version floor at or below the older verified version, such as `SQLA0101`'s
+  `requires PostgreSQL 12+`, runs live only on its supported side; the
+  rejection below it rests on the vendor's documentation.
 - **Support window**: fixes land in the latest release only — the latest
   pre-release before 1.0, the latest minor of the current major after.
   Vulnerabilities: see [SECURITY.md](https://github.com/h-tacayama/SqlArtisan/blob/main/SECURITY.md).

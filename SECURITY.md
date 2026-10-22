@@ -11,7 +11,8 @@ unless you prefer otherwise.
 
 ## What counts as a vulnerability here
 
-SqlArtisan builds SQL text and bind parameters — it does not execute queries.
+The SqlArtisan query builder builds SQL text and bind parameters — it does not
+execute queries.
 The guarantees worth attacking:
 
 - **Automatic parameterization** — a value you supply is bound as a parameter,
