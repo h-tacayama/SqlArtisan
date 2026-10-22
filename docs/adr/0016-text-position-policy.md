@@ -28,7 +28,7 @@ the string names:
 | Position | Behavior | Mechanism |
 |----------|----------|-----------|
 | **Value** — anything the grammar accepts as a parameter | bound | `BindValue`; ADR 0004 |
-| **Forced literal** — a position that needs a literal: the dialect grammar rejects a bind marker there, or a bind marker would change how the engine resolves or plans the statement | emitted inline, single-quoted, `'` doubled (`\` doubled on MySQL; on PostgreSQL a literal holding `\` is an `E'...'` constant with `\` doubled; on SQL Server a literal holding a non-ASCII character is `N'...'`, the `STRING_AGG` separator excepted) | `SqlBuildingBuffer.AppendStringLiteral`; `AppendCodePageStringLiteral` for the `STRING_AGG` separator |
+| **Forced literal** — a position that needs a literal: the dialect grammar rejects a bind marker there, or a bind marker would change how the engine resolves or plans the statement | emitted inline, single-quoted, `'` doubled (`\` doubled on MySQL; on PostgreSQL a literal holding `\` is an `E'...'` constant with `\` doubled; on SQL Server a literal holding a non-ASCII character is `N'...'`, the `STRING_AGG` separator excepted, and a backslash before a line break gets a spare backslash and line break ahead of the break) | `SqlBuildingBuffer.AppendStringLiteral`; `AppendCodePageStringLiteral` for the `STRING_AGG` separator |
 | **Identifier** — a name or type token in the statement's structure | emitted verbatim, between the dialect's alias quotes where the position is quoted at all | `SqlBuildingBuffer.EncloseInAliasQuotes`, or a bare append |
 
 `Nextval` / `Currval` are the case that looked like an exception and is not.

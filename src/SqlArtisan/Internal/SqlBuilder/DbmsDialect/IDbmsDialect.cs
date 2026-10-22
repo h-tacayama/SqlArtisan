@@ -20,8 +20,8 @@ internal interface IDbmsDialect
 
     /// <summary>
     /// Whether a backslash before a line break in a string literal is a line
-    /// continuation the engine drops with the break — true only on SQL Server, so a
-    /// literal holding the pair writes a spare one before the break (#679).
+    /// continuation the engine drops (before a lone CR, the backslash alone) — true only
+    /// on SQL Server, so a literal holding the pair writes a spare one first (#679).
     /// </summary>
     bool BackslashNewlineContinuesStringLiterals { get; }
 

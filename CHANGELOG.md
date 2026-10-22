@@ -113,9 +113,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   separator holding a backslash before a line break keeps both characters. SQL
   Server reads a backslash before LF or CRLF as a line continuation and drops
   the pair, and before a lone CR drops the backslash, so the path named another
-  key and the separator lost its line break (SQL Server 2022 and 2025); the
-  literal now carries a spare backslash and line break ahead of it, which the
-  engine drops. (#679)
+  key and the separator lost the pair or its backslash (SQL Server 2022 and
+  2025); the literal now carries a spare backslash and line break ahead of it,
+  which the engine drops. (#679)
 - **Breaking:** the `Sql.*` factories, operators and fluent members return the
   narrowest public type that carries their result's members, and every public
   type lives in the `SqlArtisan` namespace. A call whose node declares a member or
