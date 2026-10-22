@@ -409,11 +409,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   reported in sync over `b`'s drift. List several tables as `--tables b,a`.
   A flag still overrides the same key in the `--config` file. (#643)
 - **Breaking:** TableClassGen's `--tables` emits each table name as the
-  catalog stores it, not as the flag spells it, so `--tables ITEM` writes the
-  class a full run writes for `item`. Where the catalog lookup ignores case
-  (SQLite, or SQL Server's default collation), `--tables ORDERS` wrote
-  `"ORDERS"` for `Orders`, which the next full `--check` reported modified.
-  (#645)
+  catalog stores it, not as the flag spells it. Where the catalog lookup
+  ignores case (SQLite, or SQL Server's default collation), `--tables ORDERS`
+  wrote `"ORDERS"` for `Orders`, which the next full `--check` reported
+  modified; it now writes the class a full run writes. (#645)
 - **Breaking:** TableClassGen's `--tables` on SQLite rejects a view or an
   internal `sqlite_*` table (`--tables names 'v', which is not a table in the
   schema`), as it already did on the other engines. A full run never read them,
@@ -779,8 +778,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#645)
 
 ### Security
-- PostgreSQL: a forced literal holding a backslash — a `JsonArrow` /
-  `JsonArrowText` string key, `IntervalLiteral` text, a JSON path, the
+- **Breaking:** PostgreSQL: a forced literal holding a backslash — a `JsonArrow`
+  / `JsonArrowText` string key, `IntervalLiteral` text, a JSON path, the
   `NEXTVAL` / `CURRVAL` sequence name, a text-search configuration, the
   `STRING_AGG` separator, the `LIKE ... ESCAPE` character — is now written as an
   escape-string constant, `E'...'` with the backslash doubled. A plain literal
@@ -788,7 +787,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   role, database or connection can turn off; with it off, `\'` closed the
   literal and the rest of the caller's string ran as SQL. A literal without a
   backslash is unchanged, and an expression index written with the plain
-  spelling still matches.
+  spelling still matches. With the setting off, the backslash now reads as
+  written, so the same call reads other rows there: a `'\n'` key or separator
+  was a newline.
 - **Breaking:** SqlArtisan.Dapper: a statement whose text holds a `{=name}`
   token, or a `?name?` token naming one of its parameters, now throws
   `ArgumentException` before Dapper runs it. Dapper rewrites both shapes
