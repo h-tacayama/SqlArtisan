@@ -8,6 +8,8 @@ internal sealed class SqliteDialect : IDbmsDialect
 
     public bool BackslashLiteralsUseEscapeString => false;
 
+    public bool BackslashNewlineContinuesStringLiterals => false;
+
     public string DmlTableAliasSeparator => " AS ";
 
     public string ExcludedName => "excluded";

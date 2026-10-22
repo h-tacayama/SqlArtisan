@@ -640,6 +640,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   form. The `StringAgg` separator stays plain, since SQL Server rejects
   `N'...'` there over a `varchar` input, so a separator character the page
   lacks still arrives as `?`. (#663)
+- On SQL Server, a `JsonValue` / `JsonQuery` path or a `StringAgg` separator
+  holding a backslash before LF or CRLF keeps both characters. SQL Server reads
+  the pair as a line continuation and drops it, so the path named another key
+  and the separator lost its line break (SQL Server 2022 and 2025); the literal
+  now carries a spare pair ahead of the line break, which the engine drops.
+  (#679)
 - `ExecuteArrayBind` binds by name. A `BindValue` passed to several clauses
   emits its marker in each (`UPDATE t SET qty = :0 WHERE id = :0`), and bound by
   position the repeated marker had no parameter of its own; the same statement
@@ -792,10 +798,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   bind the string with `Sql.Bind(...)` where its position takes a bound value.
 
 ### Tests
-- Twins on both SQL Server lanes pin that a backslash before LF or CRLF in a
-  string literal continues the line, so both characters vanish: SQL Server
-  2022 and 2025 read SqlArtisan's inlined `JSON_VALUE` path holding the pair as
-  another key, and a `STRING_AGG` separator loses it. (#679)
 - `CookbookRecipeTests` runs every `docs/cookbook.md` recipe SQLite runs over
   repeated names, tied sort keys, a customer with no orders, an existing row
   for the UPSERTs and a timestamp late on a range's last day, from the same

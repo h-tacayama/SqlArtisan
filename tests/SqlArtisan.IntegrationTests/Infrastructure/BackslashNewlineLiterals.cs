@@ -19,7 +19,8 @@ public static class BackslashNewlineLiterals
         },
     };
 
-    // Probe: a second backslash-newline after the first, if continuation is one pass.
+    // The spelling SqlArtisan writes: a spare backslash-newline ahead of the caller's,
+    // which the one-pass continuation drops. A lone CR continues nothing.
     public static TheoryData<string, string> Kept => new()
     {
         { "SELECT 'a\\\\\nb'", "a\\b" },
@@ -27,5 +28,6 @@ public static class BackslashNewlineLiterals
         { "SELECT 'a\\\\\r\n\r\nb'", "a\\\r\nb" },
         { "SELECT N'a\\\\\n\nb'", "a\\\nb" },
         { "SELECT 'a\\\\\\\n\nb'", "a\\\\\nb" },
+        { "SELECT 'a\\\rb'", "a\\\rb" },
     };
 }

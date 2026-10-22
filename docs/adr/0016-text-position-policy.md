@@ -166,19 +166,20 @@ alongside the bind-parameter types.
   Twins:
   `SqlServerTests.NonAsciiForcedLiteral_PlainForm_LosesTheCharacter`,
   `SqlServerTests.NonAsciiForcedLiteral_OnACodePageHoldingIt_KeepsWhatThePlainFormRan`.
-- **A backslash before a line break vanishes from a forced literal on SQL
-  Server (#679).** T-SQL reads `\` followed by LF or CRLF inside a string
-  constant as a line continuation and drops both, in a plain or an `N'...'`
-  literal (SQL Server 2022 and 2025): a `JSON_VALUE` path holding the pair
-  names another key, and a `STRING_AGG` separator loses it.
-  The grammar has no spelling that keeps the pair inside one literal, and these
-  positions take no parameter, so the literal is emitted as written and the
-  engine's reading stands. A caller reaches the pair only through a key that
-  holds it or a shell-style separator such as `" \\\n"`, and the separator's
-  loss shows in the result. Twins:
+- **A backslash before a line break keeps its line break on SQL Server
+  (#679).** T-SQL reads `\` followed by LF or CRLF inside a string constant
+  as a line continuation and drops both, in a plain or an `N'...'` literal, so
+  a forced literal holding the pair lost it: a `JSON_VALUE` / `JSON_QUERY` path
+  named another key, and a `STRING_AGG` separator lost its line break. The
+  continuation is read in one pass, so a spare backslash and the same line
+  break written ahead of the caller's are what the engine drops, and the
+  literal reads as written; `BackslashNewlineContinuesStringLiterals` holds
+  that spelling to SQL Server. A lone CR continues nothing. All of it holds on
+  SQL Server 2022 and 2025. Twins:
   `SqlServerTests.InlineLiteral_BackslashNewline_ContinuesTheLine`,
-  `SqlServerTests.JsonValue_PathWithBackslashNewline_ReadsAnotherKey`,
-  `SqlServer2025Tests.InlineLiteral_BackslashNewline_ContinuesTheLine`.
+  `SqlServerTests.InlineLiteral_DoubledBackslashNewline_KeepsThePair`,
+  `SqlServerTests.StringAgg_SeparatorWithBackslashNewline_KeepsThePair`, and
+  the first two on `SqlServer2025Tests`.
 - **Not a Boundary-cluster ADR.** This records emission behavior; it adds no
   rejection category to ADR 0007 / 0011 / 0012 and does not count toward their
   consolidation trigger.

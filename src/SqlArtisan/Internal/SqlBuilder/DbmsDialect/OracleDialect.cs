@@ -8,6 +8,8 @@ internal sealed class OracleDialect : IDbmsDialect
 
     public bool BackslashLiteralsUseEscapeString => false;
 
+    public bool BackslashNewlineContinuesStringLiterals => false;
+
     public string DmlTableAliasSeparator => " ";
 
     public string ExcludedName => "EXCLUDED";

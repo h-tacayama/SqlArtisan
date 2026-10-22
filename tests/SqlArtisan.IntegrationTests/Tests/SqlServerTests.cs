@@ -1117,8 +1117,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT STRING_AGG(k, N'、') FROM dbo.s663"));
     }
 
-    // ADR 0016 (#679): the forced literal is emitted as written, and the engine's
-    // line continuation drops the pair.
+    // ADR 0016 (#679): a backslash-newline in a literal is a line continuation.
     [Theory]
     [MemberData(
         nameof(BackslashNewlineLiterals.Every),
@@ -1141,16 +1140,28 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Equal(expected, connection.ExecuteScalar<string>(sql));
     }
 
-    // #679: the path SqlArtisan inlines loses the pair and names another key; the same
-    // text bound as a value keeps it.
+    // #679: the separator SqlArtisan inlines arrives whole, the case a shell-style
+    // join writes.
     [Fact]
-    public void JsonValue_PathWithBackslashNewline_ReadsAnotherKey()
+    public void StringAgg_SeparatorWithBackslashNewline_KeepsThePair()
     {
         using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        connection.Execute(
+            "CREATE TABLE #sep_679 (v VARCHAR(10)); INSERT INTO #sep_679 VALUES ('x'), ('y');",
+            null,
+            transaction);
+        DbTable s = new("#sep_679", "s");
 
-        Assert.Equal("other", connection.ExecuteScalar<string>(
-            Select(JsonValue(Bind("{\"ab\":\"other\"}"), "$.\"a\\\nb\""))));
-        Assert.Equal("a\\\nb", connection.ExecuteScalar<string>(Select(Bind("a\\\nb"))));
+        foreach (string separator in new[] { " \\\n", " \\\r\n", "\\\\\n" })
+        {
+            Assert.Equal($"x{separator}y", connection.ExecuteScalar<string>(
+                Select(StringAgg(s.Column("v"), separator).WithinGroup(OrderBy(s.Column("v"))))
+                .From(s),
+                transaction));
+        }
+
+        transaction.Rollback();
     }
 
     // #666: ANY is half of a comparison, valid nowhere on its own (SQL Server 2022).
