@@ -105,7 +105,8 @@ public enum DateTimePart
     Julian = 18,
 
     /// <summary>
-    /// The <c>MICROSECOND</c> field — the microseconds component.
+    /// The <c>MICROSECOND</c> field — the microseconds component. PostgreSQL's
+    /// <c>EXTRACT</c> reads it as <c>MICROSECONDS</c>.
     /// </summary>
     Microsecond = 19,
 
@@ -121,7 +122,8 @@ public enum DateTimePart
     Millennium = 21,
 
     /// <summary>
-    /// The <c>MILLISECOND</c> field — the milliseconds component.
+    /// The <c>MILLISECOND</c> field — the milliseconds component. PostgreSQL's
+    /// <c>EXTRACT</c> reads it as <c>MILLISECONDS</c>.
     /// </summary>
     Millisecond = 22,
 

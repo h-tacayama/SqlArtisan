@@ -6,7 +6,7 @@ namespace SqlArtisan.Analyzers;
 /// <summary>
 /// The per-(member, dialect) set of <c>DateTimePart</c> member names each
 /// vendor grammar accepts for SQLA0104; the lists are vendor-documentation
-/// facts, shared where the vendor shares them.
+/// facts, shared where the vendor shares them, plus any spelling a comment cites live.
 /// </summary>
 internal static class DatepartValidity
 {
@@ -35,7 +35,8 @@ internal static class DatepartValidity
         "TimezoneHour", "TimezoneMinute", "TimezoneRegion", "TimezoneAbbr",
     };
 
-    // postgresql.org Date/Time Functions and Operators, EXTRACT.
+    // postgresql.org Date/Time Functions and Operators, EXTRACT. MICROSECOND / MILLISECOND
+    // stay out: PostgreSQL 16.15 reads them as the plural fields, not the members' component.
     private static readonly HashSet<string> PostgreSqlExtractFields = new(StringComparer.Ordinal)
     {
         "Century", "Day", "Decade", "Dow", "Doy", "Epoch", "Hour", "Isodow", "Isoyear", "Julian",
@@ -43,11 +44,12 @@ internal static class DatepartValidity
         "Timezone", "TimezoneHour", "TimezoneMinute", "Week", "Year",
     };
 
-    // date_trunc takes the EXTRACT fields that name a truncation boundary.
+    // date_trunc takes the EXTRACT fields that name a truncation boundary; the singular
+    // sub-second spellings, which its manual omits, truncate as the plural do (16.15).
     private static readonly HashSet<string> PostgreSqlDateTruncFields = new(StringComparer.Ordinal)
     {
-        "Microseconds", "Milliseconds", "Second", "Minute", "Hour", "Day", "Week", "Month",
-        "Quarter", "Year", "Decade", "Century", "Millennium",
+        "Microsecond", "Microseconds", "Millisecond", "Milliseconds", "Second", "Minute", "Hour",
+        "Day", "Week", "Month", "Quarter", "Year", "Decade", "Century", "Millennium",
     };
 
     // learn.microsoft.com DATEPART (each entry also accepts an abbreviation,

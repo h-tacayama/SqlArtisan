@@ -8,8 +8,12 @@ an ID is never renumbered or reused, and is removed only by a major that
 retires its rule or merges its reports into another ID. So the merge below —
 which it calls "a third renumber" — retires one published ID, needs a major
 after 1.0, and is not a renumber; versioning.md never said "only before 1.0".
-ADR 0026 also records why `SQLA0103` keeps its own ID. Everything else here
-stands.
+ADR 0026 also records why `SQLA0103` keeps its own ID. #684 widens the
+verdict: a value the engine runs with another meaning than the member's
+(PostgreSQL's `EXTRACT(MICROSECOND)`, read as `MICROSECONDS`) also reports, as
+a token read as something else does under `SQLA0100`, its twin asserting that
+meaning in place of a rejection proof; "code that runs today" below means code
+that runs as written. Everything else here stands.
 
 ## Context
 

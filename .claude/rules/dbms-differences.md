@@ -119,8 +119,14 @@ the dialect layer nor a plain matrix entry (the first two identified in the
   on either. Add the cell to `DatepartValidity.cs` (dateparts) or
   `ArgumentValueValidity.cs` (the rest), with a primary source, a live
   rejection proof, and the acceptance twin that proves the probe was
-  well-formed. A value no engine accepts is ADR 0012's eager guard instead
-  only when its domain is closed (condition 3): a vendor's own accepted-value
+  well-formed. A value the engine runs with another meaning than the member's
+  stays out of the accepted list, so it reports, as a token read as something
+  else does; a twin asserting that meaning stands in for the rejection proof,
+  a `[!NOTE]` docs callout states it, as there, and no sweep `NegativeSkip`
+  applies, since the sweep reaches no value cell (PostgreSQL's
+  `EXTRACT(MICROSECOND)`, #684; ADR 0022's status). A value no engine accepts is
+  ADR 0012's eager guard instead only when its domain is closed (condition 3):
+  a vendor's own accepted-value
   list keeps the cell even where no engine accepts the value today, as
   `DATE_TRUNC('day_hour', ts)`, which PostgreSQL 16.15, the one engine with
   `DATE_TRUNC`, rejects (#661). An engine nobody has measured is left out,
