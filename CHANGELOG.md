@@ -97,6 +97,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   set-operator branch. A branch takes no `ORDER BY` of its own and the compound's
   sorts the combined result, so SQL Server 2022 rejects the tie; put the branch in
   a derived table that carries its `ORDER BY`. (#679)
+- **Breaking:** `Build()` throws on `TOP ... WITH TIES` without an `ORDER BY`
+  in any block of a compound query. Only the first `TOP` in the chain was
+  checked, so a later block's `WITH TIES` built when an earlier block carried
+  its own `TOP`. (#569)
 - **Breaking:** the `Sql.*` factories, operators and fluent members return the
   narrowest public type that carries their result's members, and every public
   type lives in the `SqlArtisan` namespace. A call whose node declares a member or
@@ -195,6 +199,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   be aliased, an `ON DUPLICATE KEY UPDATE` subquery reads the inserted row
   through `Excluded(...)` instead, and has no spelling for the existing row's
   other columns. (#677)
+- **Breaking:** `Build()` throws the correlated-DML guard's message when a query
+  block in a CTE body reads a column of an unaliased `UPDATE`/`DELETE`/`MERGE`
+  target without listing the target in that block. The guard was off for every
+  CTE body, so the bare column rendered and could bind a same-named column of
+  the block's own relation silently: SQLite 3.50.4 updated every row instead of
+  the four that matched, whether the CTE was nested in a subquery or headed the
+  statement. A block that reads the target as its own relation builds as before;
+  aliasing the target is the fix for the rest. Each branch of a set operator is
+  a block of its own, so a branch that lists the target does not cover one that
+  correlates; a compound's trailing `ORDER BY` may still name the target's
+  column where a branch lists the target. (#607, #611)
 - **Breaking:** a `SET` assignment whose column belongs to a table other than
   the statement's target throws `ArgumentException`, `The SET assignment list
   must assign only columns of the target table.` with each clause naming
@@ -298,6 +313,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `Int32 values map to OracleDbType.Int32` rather than `a Int32 value maps`.
   The output-parameter and all-null messages are now one sentence each, their
   remedy joined by `so` or `;`. (#640)
+- **Breaking:** `ExecuteArrayBind` rejects more than one statement when none
+  binds a value: ODP.NET runs a parameterless command once whatever its
+  `ArrayBindCount`, so all but the first statement silently did not run (live on
+  Oracle XE 21c). A single parameterless statement still runs. (#640)
 - `Match(...).Against(null)` no longer suggests `Sql.Null`: MySQL 8.0 runs
   `AGAINST (NULL)` and matches no row, so the message says so and asks for the
   search text or no predicate at all. `AgainstScore(null)` keeps the
@@ -306,14 +325,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   join or `Using(...)` call that joins it instead of at `Build()`; the alias is
   fixed by then, and a `DELETE`'s `From(...)` already threw its re-list check.
   (#614)
-- `DbmsResolver.RegisterProvider` throws `ArgumentOutOfRangeException` on
-  `Dbms.Unknown` or an undefined value, as `SetDefaultDbms` does. It accepted
-  them, and the first registration for a type wins, so the bad entry could not
-  be replaced and surfaced only at `Build(cnn)`, as an unrelated failure. (#614)
-- A `RegexpOptions` value with an undefined bit throws
+- **Breaking:** `DbmsResolver.RegisterProvider` throws
+  `ArgumentOutOfRangeException` on `Dbms.Unknown` or an undefined value, as
+  `SetDefaultDbms` does. It accepted them, and the first registration for a type
+  wins, so the call was ignored for a type already registered, and for a new
+  one the bad entry could not be replaced and surfaced only at `Build(cnn)`, as
+  an unrelated failure. (#614)
+- **Breaking:** a `RegexpOptions` value with an undefined bit throws
   `ArgumentOutOfRangeException`. The bit emitted no letter, so
   `(RegexpOptions)(32 | 2)` built `'i'`, and appending a flag at that bit would
   have changed the SQL the same call emits. (#614)
+- **Breaking:** `.NullsFirst` / `.NullsLast` on a sort key that already has a
+  null ordering throws `InvalidOperationException`. The second call silently
+  replaced the first, so `.NullsFirst.NullsLast` emitted `NULLS LAST`. (#614)
+- **Breaking:** `new BindValue(...)` throws on a SqlArtisan object — an
+  expression, a query, a pending node such as `PercentileCont(0.5)`, or a built
+  statement — which bound the object itself (`new BindValue(u.Id + 1)` bound an
+  `AdditionOperator`) rather than rendering SQL. Any other value, an enum
+  included, still passes through to the driver. (#614)
 - `.WithColumnList()` over a `Select(Asterisk)` or `Select(t.Asterisk)` block
   says to select the columns by name; it said to alias the expression with
   `.As(...)`, which neither marker has. (#614)
@@ -379,6 +408,38 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   schema rules off. Files generated by 0.6 or later read as `modified`
   (`~ column metadata or layout changed`) on the first `--check` after the
   upgrade; `--fix` regenerates them. (#645)
+- **Breaking:** TableClassGen refuses to overwrite a file at a path it writes
+  when it cannot read which table the file describes (a hand-written class whose
+  `base(...)` it cannot read, or a `base(...)` line wrapped by a formatter). It
+  used to pass such a file, so a `--tables` run could overwrite another table's
+  class and exit 0. A file from 0.7 or earlier, which carries no generated
+  header, is still recognized by its table name. (#645)
+- **Breaking:** TableClassGen rejects an `--output` that names a file, where
+  `--check` reported drift against it. It scans for orphan files before it
+  writes anything, so a directory it cannot read fails the run before any file
+  is rewritten, and a write that fails midway names the files already written.
+  (#645)
+- **Breaking:** TableClassGen no longer creates a SQLite database at a mistyped
+  `--file`. `--check` used to read the new empty file and report every committed
+  class removed; the path now fails to connect, naming `--file`. A file that is
+  not a database fails the same way instead of printing the bare driver error.
+  (#645)
+- **Breaking:** a TableClassGen `--config` value of the wrong JSON kind is
+  rejected: `"output": false` used to generate into a directory named `false`. A
+  switch takes `true` or `false`, `tables` a string or an array of strings, and
+  every other key a string or number. A file whose root is not a JSON object, or
+  one that cannot be read, is reported against `--config`. (#645)
+- **Breaking:** a `.cs` file under `--output` that TableClassGen cannot read now
+  fails the run, naming the file, instead of being skipped: an unreadable orphan
+  of the tool's own read as in sync. (#645)
+- **Breaking:** a table that has columns but none visible to the TableClassGen
+  user fails the run naming the table, and on PostgreSQL so does one with any
+  column hidden (a role holding only `DELETE`, or `SELECT` on some columns); it
+  used to be skipped, or written with only the visible columns. (#645)
+- **Breaking:** TableClassGen fails the run on an Oracle table with a quoted
+  name that is not upper case, naming the table, by `--tables` too. Every read
+  folded the name to upper case, so the table was skipped while the run
+  exited 0. A table in the recycle bin is no longer listed. (#645)
 - **Breaking:** `SqlArtisan.Dapper` adds Dapper's `DbConnection` twin of
   `ExecuteReaderAsync`, returning `Task<DbDataReader>`, so a reader opened
   asynchronously can also read asynchronously (`ReadAsync`, `await using`). A
@@ -583,10 +644,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   emits its marker in each (`UPDATE t SET qty = :0 WHERE id = :0`), and bound by
   position the repeated marker had no parameter of its own; the same statement
   already ran through `SqlArtisan.Dapper`, which binds by name. (#640)
-- `ExecuteArrayBind` rejects more than one statement when none binds a value:
-  ODP.NET runs a parameterless command once whatever its `ArrayBindCount`, so
-  all but the first statement silently did not run (live on Oracle XE 21c). A
-  single parameterless statement still runs. (#640)
 - An aliased `UPDATE`/`DELETE` target on SQL Server throws a message that
   names a remedy the statement can take: an unaliased target, or the aliased
   target re-listed in `From(...)` when a subquery correlates with it. It told
@@ -606,30 +663,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   "Only SQL Server supports a joined UPDATE that re-lists the target table",
   which a SQL Server user building through an unregistered connection read as
   rejecting their own engine's form. (#614)
-- `.NullsFirst` / `.NullsLast` on a sort key that already has a null ordering
-  throws `InvalidOperationException`. The second call silently replaced the
-  first, so `.NullsFirst.NullsLast` emitted `NULLS LAST`; written out, the pair
-  is rejected by PostgreSQL 16 and SQLite. (#614)
-- `new BindValue(...)` throws on a SqlArtisan object — an expression, a query,
-  a pending node such as `PercentileCont(0.5)`, or a built statement — which
-  bound the object itself (`new BindValue(u.Id + 1)` bound an
-  `AdditionOperator`) rather than rendering SQL. Any other value, an enum
-  included, still passes through to the driver. (#614)
 - `Match(table, ...)` on SQLite drops a schema from the target:
   `new DbTable("main.ft", "f")` emits `"f".ft MATCH`, where it emitted
   `"f".main.ft MATCH`, which SQLite 3.45.1 rejects (`no such column`), and the
   unaliased form emits `ft MATCH` for `main.ft MATCH`. (#614)
-- `Build()` throws the correlated-DML guard's message when a query block in a
-  CTE body reads a column of an unaliased `UPDATE`/`DELETE`/`MERGE` target
-  without listing the target in that block. The guard was off for every CTE
-  body, so the bare column rendered and could bind a same-named column of the
-  block's own relation silently: SQLite 3.50.4 updated every row instead of
-  the four that matched, whether the CTE was nested in a subquery or headed
-  the statement. A block that reads the target as its own relation builds as
-  before; aliasing the target is the fix for the rest. Each branch of a set
-  operator is a block of its own, so a branch that lists the target does not
-  cover one that correlates; a compound's trailing `ORDER BY` may still name the
-  target's column where a branch lists the target. (#607, #611)
 - `SQLA0300` no longer reports a target column inside a CTE body, where a
   `With(...)` chain sits in a subquery or a MERGE `USING` source. It warned on
   a body that reads the target as its own relation, which builds; `Build()`
@@ -665,9 +702,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   MySQL's alone and MySQL's `INSERT` takes no leading `WITH`, so no engine
   accepts the pairing; only MySQL and Oracle threw before, and PostgreSQL,
   SQLite and SQL Server emitted the statement. (#569)
-- `Build()` throws on `TOP ... WITH TIES` without an `ORDER BY` in any block of a
-  compound query. Only the first `TOP` in the chain was checked, so a later
-  block's `WITH TIES` built when an earlier block carried its own `TOP`. (#569)
 - `Into(...)` throws at the call on a duplicate variable name or a
   `default(OutputParameter)`, and `OrderBy(0)` throws at the call. `Into(...)`
   threw only at `Build()`, after the stage was frozen, so retrying with
@@ -677,42 +711,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - TableClassGen starts on a machine with only a newer .NET runtime: the tool
   now rolls forward to the next major version (`RollForward=Major`) instead of
   refusing to run without .NET 8. (#645)
-- TableClassGen no longer creates a SQLite database at a mistyped `--file`.
-  `--check` used to read the new empty file and report every committed class
-  removed; the path now fails to connect, naming `--file`. A file that is not a
-  database fails the same way instead of printing the bare driver error. (#645)
 - TableClassGen's `--tables` on SQLite emits the table name as stored in the
   catalog, so `--tables ITEM` writes the same file as a full run for `item`. (#645)
 - A blank TableClassGen option or `--config` value now counts as absent for
   every option: `--output ""` reads the current directory with its orphan
   scan, which a blank value used to skip, and `--output " "` no longer creates a
   directory named with a space. (#645)
-- A TableClassGen `--config` value of the wrong JSON kind is rejected:
-  `"output": false` used to generate into a directory named `false`. A switch
-  takes `true` or `false`, `tables` a string or an array of strings, and every
-  other key a string or number. A file whose root is not a JSON object, or one
-  that cannot be read, is reported against `--config`. (#645)
-- TableClassGen rejects an `--output` that names a file. It scans for orphan
-  files before it writes anything, so a directory it cannot read fails the run
-  before any file is rewritten, and a write that fails midway names the files
-  already written. (#645)
 - A TableClassGen `--fix --tables` run no longer closes with "All drifted
   tables were regenerated.": it never scans for orphan files, so it now says to
   run without `--tables` to find them. (#645)
-- TableClassGen refuses to overwrite a file at a path it writes when it cannot
-  read which table the file describes (a hand-written class whose `base(...)`
-  it cannot read, or a `base(...)` line wrapped by a formatter). It used to pass such a file, so a `--tables` run
-  could overwrite another table's class and exit 0. A file from 0.7 or earlier,
-  which carries no generated header, is still recognized by its table name.
-  (#645)
 - TableClassGen's orphan scan counts a file as its own only when the file
   carries the `// <auto-generated/>` header among its leading comments (`//`
   or `/* */`) and the run's `--namespace`, compared without whitespace. A
   prepended license comment used to hide a generated file from the scan, and another generation's files in a nested `--output`
   directory were reported removed on every `--check`. (#645)
-- A `.cs` file under `--output` that TableClassGen cannot read now fails the
-  run, naming the file, instead of being skipped: an unreadable orphan of the
-  tool's own read as in sync. (#645)
 - On a case-folding file system, TableClassGen's orphan scan no longer reports
   a file it regenerates under another case of the same name (a class whose case
   changes with `--lowercase`). (#645)
@@ -744,17 +756,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     Server. It supplies no value, so `SQLA0202` stayed silent on an
     `INSERT` the engine rejects.
   - A PostgreSQL table with no columns gets a class with no properties. A full
-    run skipped it and exited 0, and `--tables` called it absent. A table
-    with no column visible to the user fails the run naming the table, and on
-    PostgreSQL so does one with any column hidden (a role holding only
-    `DELETE`, or `SELECT` on some columns); it used to be skipped, or written
-    with only the visible columns.
-  - An Oracle table with a quoted name that is not upper case fails the run,
-    naming the table, by `--tables` too. Every read folded the name to upper
-    case, so the table was skipped while the run exited 0. A table in the
-    recycle bin is no longer listed.
+    run skipped it and exited 0, and `--tables` called it absent.
   - `--tables` on MySQL, PostgreSQL and SQL Server emits the table name as the
-    catalog stores it, as SQLite already did: under SQL Server's
+    catalog stores it, as it now does on SQLite: under SQL Server's
     case-insensitive collation, `--tables ORDERS` wrote `"ORDERS"` for
     `Orders`, which the next full `--check` reported modified.
 
@@ -806,6 +810,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   header, which drops one phantom entry from its baseline. (#614)
 
 ### Docs
+- `docs/versioning.md` states that a new rejection is breaking: a call, a
+  `Build()` or a TableClassGen run that newly fails on input the last release
+  accepted, unless that release is known to have failed on it too. The entries
+  above that meet it now open with **Breaking:**. (#686)
 - `docs/cookbook.md`'s recipes return the rows their text promises on any rows
   the recipe schema admits, which now states its keys, that every column is
   `NOT NULL` and that names repeat. The top-N and filtered-aggregate reports

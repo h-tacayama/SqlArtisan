@@ -6583,7 +6583,7 @@ never meant to cover.
 
 ## What counts as breaking
 
-Three cases are specific to this library, beyond the usual API-level changes:
+Four cases are specific to this library, beyond the usual API-level changes:
 
 - **Emitted SQL is part of the contract.** A change to the SQL text emitted
   for the same input is at minimum a **minor** release, even as a bug fix,
@@ -6605,6 +6605,17 @@ Three cases are specific to this library, beyond the usual API-level changes:
   the emitted-SQL rule above guards against. A member is replaced by
   appending its successor at the next unused value and marking the old one
   `[Obsolete]`, never by an alias that repeats its number.
+- **A new rejection is breaking.** A call, a `Build()` or a TableClassGen run
+  that newly fails on input the last release accepted is breaking, including a
+  chain whose SQL ran but read or wrote the wrong rows — the caller changes code
+  either way. A TableClassGen run fails when it exits `2`; a drift report
+  (exit `1`) is a result. It is not breaking where the last release is known to
+  have failed too: SQL rejected by every verified engine version that has the
+  construct ([Support statement](#support-statement)), or a failure that only
+  moves earlier or changes its message. A check moved to the call that writes a
+  node moves earlier even where the last release never rendered the node, as
+  in a disabled `ConditionIf` operand. A case not known to have failed counts as
+  breaking.
 
 The analyzer's diagnostics follow their own rules, below: a new warning may
 land in a minor release, since it changes what a build reports, never what a

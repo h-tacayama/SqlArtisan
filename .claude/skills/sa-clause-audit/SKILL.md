@@ -107,7 +107,8 @@ The reviewers' reports are drafts, not verdicts. For every finding:
 
 ## 4. Land every finding
 
-- **Breaking** (a public signature, namespace or emitted SQL must change) →
+- **Breaking** (a public signature, namespace or emitted SQL must change, or
+  a call newly fails — `docs/versioning.md` § What counts as breaking) →
   its own issue, targeted before 1.0.
 - **Non-breaking** (record corrections, analyzer gaps, doc fixes) → one issue
   for the unit, as a checklist, linking the unit's breaking issues.
