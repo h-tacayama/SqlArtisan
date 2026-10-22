@@ -4,18 +4,21 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.Tests;
 
 // Pins ADR 0016's forced-literal row: every public text parameter is classified, and
-// each forced literal is built with ', \ and a non-ASCII character on every dialect, so
-// a node rewritten to append its string raw fails here instead of shipping.
+// each forced literal is built with ', \, a backslash-newline and a non-ASCII character
+// on every dialect, so a node rewritten to append its string raw fails here.
 public class ForcedLiteralSweepTests
 {
     private const string StringInput = "a'b\\c";
 
     private const string NonAsciiInput = "名";
 
+    private const string BackslashNewlineInput = "a\\\nb\\\r\nc\\\rd";
+
     // A char position cannot hold every hazard at once, so it takes them one by one.
     private static readonly string[] CharInputs = ["'", "\\", NonAsciiInput];
 
-    private static readonly string[] StringInputs = [StringInput, NonAsciiInput];
+    private static readonly string[] StringInputs =
+        [StringInput, BackslashNewlineInput, NonAsciiInput];
 
     private static readonly (string, Dbms) CodePageCase = (NonAsciiInput, Dbms.SqlServer);
 
@@ -28,6 +31,12 @@ public class ForcedLiteralSweepTests
         [(StringInput, Dbms.PostgreSql)] = "E'a''b\\\\c'",
         [(StringInput, Dbms.Sqlite)] = "'a''b\\c'",
         [(StringInput, Dbms.SqlServer)] = "'a''b\\c'",
+        [(BackslashNewlineInput, Dbms.MySql)] = "'a\\\\\nb\\\\\r\nc\\\\\rd'",
+        [(BackslashNewlineInput, Dbms.Oracle)] = "'a\\\nb\\\r\nc\\\rd'",
+        [(BackslashNewlineInput, Dbms.PostgreSql)] = "E'a\\\\\nb\\\\\r\nc\\\\\rd'",
+        [(BackslashNewlineInput, Dbms.Sqlite)] = "'a\\\nb\\\r\nc\\\rd'",
+        [(BackslashNewlineInput, Dbms.SqlServer)] =
+            "'a\\\\\n\nb\\\\\r\n\r\nc\\\\\n\rd'",
         [("'", Dbms.MySql)] = "''''",
         [("'", Dbms.Oracle)] = "''''",
         [("'", Dbms.PostgreSql)] = "''''",

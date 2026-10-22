@@ -101,6 +101,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   in any block of a compound query. Only the first `TOP` in the chain was
   checked, so a later block's `WITH TIES` built when an earlier block carried
   its own `TOP`. (#569)
+- **Breaking:** on SQL Server, a `JsonValue` / `JsonQuery` path or a `Like` /
+  `NotLike` `.Escape(...)` character holding a non-ASCII character is emitted as
+  `N'...'`. A plain literal is converted to the database's code page, so where
+  the page lacks the character the path named another key and returned NULL, and
+  the escape character escaped nothing. An ASCII literal keeps its plain form.
+  The `StringAgg` separator stays plain, since SQL Server rejects `N'...'` there
+  over a `varchar` input, so a separator character the page lacks still arrives
+  as `?`. (#663)
+- **Breaking:** on SQL Server, a `JsonValue` / `JsonQuery` path or a `StringAgg`
+  separator holding a backslash before a line break keeps both characters. SQL
+  Server reads a backslash before LF or CRLF as a line continuation and drops
+  the pair, and before a lone CR drops the backslash, so the path named another
+  key and the separator lost the pair or its backslash (SQL Server 2022 and
+  2025); the literal now carries a spare backslash and line break ahead of the
+  line break, which the engine drops. (#679)
 - **Breaking:** the `Sql.*` factories, operators and fluent members return the
   narrowest public type that carries their result's members, and every public
   type lives in the `SqlArtisan` namespace. A call whose node declares a member or
@@ -632,14 +647,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   another project or assembly is now unknown to the rules that read its
   source: `SQLA0103` does not trace its alias and `SQLA0300` stays silent, as
   `dotnet build` already did. (#684)
-- On SQL Server, a `JsonValue` / `JsonQuery` path or a `Like` / `NotLike`
-  `.Escape(...)` character holding a non-ASCII character is emitted as
-  `N'...'`. A plain literal is converted to the database's code page, so where
-  the page lacks the character the path named another key and returned NULL,
-  and the escape character escaped nothing. An ASCII literal keeps its plain
-  form. The `StringAgg` separator stays plain, since SQL Server rejects
-  `N'...'` there over a `varchar` input, so a separator character the page
-  lacks still arrives as `?`. (#663)
 - `ExecuteArrayBind` binds by name. A `BindValue` passed to several clauses
   emits its marker in each (`UPDATE t SET qty = :0 WHERE id = :0`), and bound by
   position the repeated marker had no parameter of its own; the same statement

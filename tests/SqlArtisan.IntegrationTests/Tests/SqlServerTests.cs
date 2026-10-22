@@ -1117,6 +1117,53 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT STRING_AGG(k, N'、') FROM dbo.s663"));
     }
 
+    // ADR 0016 (#679): a backslash-newline in a literal is a line continuation.
+    [Theory]
+    [MemberData(
+        nameof(BackslashNewlineLiterals.Every),
+        MemberType = typeof(BackslashNewlineLiterals))]
+    public void InlineLiteral_BackslashNewline_ContinuesTheLine(string sql, string expected)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(expected, connection.ExecuteScalar<string>(sql));
+    }
+
+    [Theory]
+    [MemberData(
+        nameof(BackslashNewlineLiterals.Kept),
+        MemberType = typeof(BackslashNewlineLiterals))]
+    public void InlineLiteral_DoubledBackslashNewline_KeepsThePair(string sql, string expected)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(expected, connection.ExecuteScalar<string>(sql));
+    }
+
+    // #679: the separator SqlArtisan inlines arrives whole, the case a shell-style
+    // join writes.
+    [Fact]
+    public void StringAgg_SeparatorWithBackslashNewline_KeepsThePair()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        connection.Execute(
+            "CREATE TABLE #sep_679 (v VARCHAR(10)); INSERT INTO #sep_679 VALUES ('x'), ('y');",
+            null,
+            transaction);
+        DbTable s = new("#sep_679", "s");
+
+        foreach (string separator in new[] { " \\\n", " \\\r\n", " \\\r", "\\\\\n" })
+        {
+            Assert.Equal($"x{separator}y", connection.ExecuteScalar<string>(
+                Select(StringAgg(s.Column("v"), separator).WithinGroup(OrderBy(s.Column("v"))))
+                .From(s),
+                transaction));
+        }
+
+        transaction.Rollback();
+    }
+
     // #666: ANY is half of a comparison, valid nowhere on its own (SQL Server 2022).
     [Fact]
     public void QuantifiedOperand_OutsideAComparison_IsRejectedByTheEngine()

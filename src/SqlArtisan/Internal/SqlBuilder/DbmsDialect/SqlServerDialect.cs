@@ -8,6 +8,8 @@ internal sealed class SqlServerDialect : IDbmsDialect
 
     public bool BackslashLiteralsUseEscapeString => false;
 
+    public bool BackslashNewlineContinuesStringLiterals => true;
+
     public string DmlTableAliasSeparator => " AS ";
 
     public string ExcludedName => "EXCLUDED";

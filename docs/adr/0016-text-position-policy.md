@@ -28,7 +28,7 @@ the string names:
 | Position | Behavior | Mechanism |
 |----------|----------|-----------|
 | **Value** — anything the grammar accepts as a parameter | bound | `BindValue`; ADR 0004 |
-| **Forced literal** — a position that needs a literal: the dialect grammar rejects a bind marker there, or a bind marker would change how the engine resolves or plans the statement | emitted inline, single-quoted, `'` doubled (`\` doubled on MySQL; on PostgreSQL a literal holding `\` is an `E'...'` constant with `\` doubled; on SQL Server a literal holding a non-ASCII character is `N'...'`, the `STRING_AGG` separator excepted) | `SqlBuildingBuffer.AppendStringLiteral`; `AppendCodePageStringLiteral` for the `STRING_AGG` separator |
+| **Forced literal** — a position that needs a literal: the dialect grammar rejects a bind marker there, or a bind marker would change how the engine resolves or plans the statement | emitted inline, single-quoted, `'` doubled (`\` doubled on MySQL; on PostgreSQL a literal holding `\` is an `E'...'` constant with `\` doubled; on SQL Server a literal holding a non-ASCII character is `N'...'`, the `STRING_AGG` separator excepted, and a backslash before a line break gets a spare backslash and line break ahead of the break) | `SqlBuildingBuffer.AppendStringLiteral`; `AppendCodePageStringLiteral` for the `STRING_AGG` separator |
 | **Identifier** — a name or type token in the statement's structure | emitted verbatim, between the dialect's alias quotes where the position is quoted at all | `SqlBuildingBuffer.EncloseInAliasQuotes`, or a bare append |
 
 `Nextval` / `Currval` are the case that looked like an exception and is not.
@@ -166,6 +166,21 @@ alongside the bind-parameter types.
   Twins:
   `SqlServerTests.NonAsciiForcedLiteral_PlainForm_LosesTheCharacter`,
   `SqlServerTests.NonAsciiForcedLiteral_OnACodePageHoldingIt_KeepsWhatThePlainFormRan`.
+- **A backslash before a line break keeps both on SQL Server (#679).** T-SQL
+  reads `\` followed by LF or CRLF inside a string constant as a line
+  continuation and drops both, in a plain or an `N'...'` literal, and before a
+  lone CR it drops the backslash alone. A forced literal holding the pair lost
+  it: a `JSON_VALUE` / `JSON_QUERY` path named another key, and a `STRING_AGG`
+  separator lost its line break. The continuation is read in one pass, so a
+  spare backslash and line break written ahead of the caller's (the same CRLF
+  before a CRLF, an LF before an LF or a lone CR) are what the engine drops,
+  and the literal reads as written; `BackslashNewlineContinuesStringLiterals`
+  holds that spelling to SQL Server. All of it holds on SQL Server 2022 and
+  2025. Twins:
+  `SqlServerTests.InlineLiteral_BackslashNewline_ContinuesTheLine`,
+  `SqlServerTests.InlineLiteral_DoubledBackslashNewline_KeepsThePair`,
+  `SqlServerTests.StringAgg_SeparatorWithBackslashNewline_KeepsThePair`, and
+  the first two on `SqlServer2025Tests`.
 - **Not a Boundary-cluster ADR.** This records emission behavior; it adds no
   rejection category to ADR 0007 / 0011 / 0012 and does not count toward their
   consolidation trigger.

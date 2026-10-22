@@ -19,6 +19,13 @@ internal interface IDbmsDialect
     bool BackslashLiteralsUseEscapeString { get; }
 
     /// <summary>
+    /// Whether a backslash before a line break in a string literal is a line
+    /// continuation the engine drops (before a lone CR, the backslash alone) — true only
+    /// on SQL Server, so a literal holding the pair writes a spare one first (#679).
+    /// </summary>
+    bool BackslashNewlineContinuesStringLiterals { get; }
+
+    /// <summary>
     /// The separator between an INSERT/UPDATE/DELETE target and its alias:
     /// <c> AS </c>, or a space on Oracle (ORA-00933). A MERGE target and every
     /// FROM alias render AS-less on all dialects.

@@ -103,4 +103,27 @@ public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
 
         Assert.ThrowsAny<System.Data.Common.DbException>(() => connection.Execute(sql));
     }
+
+    // #679: the 2022 lane's backslash-newline continuation, re-run at 2025.
+    [Theory]
+    [MemberData(
+        nameof(BackslashNewlineLiterals.Every),
+        MemberType = typeof(BackslashNewlineLiterals))]
+    public void InlineLiteral_BackslashNewline_ContinuesTheLine(string sql, string expected)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(expected, connection.ExecuteScalar<string>(sql));
+    }
+
+    [Theory]
+    [MemberData(
+        nameof(BackslashNewlineLiterals.Kept),
+        MemberType = typeof(BackslashNewlineLiterals))]
+    public void InlineLiteral_DoubledBackslashNewline_KeepsThePair(string sql, string expected)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(expected, connection.ExecuteScalar<string>(sql));
+    }
 }

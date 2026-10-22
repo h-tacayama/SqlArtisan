@@ -11,6 +11,8 @@ internal sealed class PostgreSqlDialect : IDbmsDialect
     // reads it the same way under either setting.
     public bool BackslashLiteralsUseEscapeString => true;
 
+    public bool BackslashNewlineContinuesStringLiterals => false;
+
     public string DmlTableAliasSeparator => " AS ";
 
     public string ExcludedName => "EXCLUDED";

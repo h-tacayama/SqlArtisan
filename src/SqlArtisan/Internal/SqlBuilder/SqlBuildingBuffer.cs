@@ -301,10 +301,26 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         bool escapeString = _dialect.BackslashLiteralsUseEscapeString && value.Contains('\\');
         bool national = nationalIfNonAscii && !Ascii.IsValid(value);
+        bool keepsContinuation = _dialect.BackslashNewlineContinuesStringLiterals;
         OpenStringLiteral(escapeString, national);
 
-        foreach (char c in value)
+        for (int i = 0; i < value.Length; i++)
         {
+            char c = value[i];
+            if (keepsContinuation && i > 0 && value[i - 1] == '\\')
+            {
+                // The engine drops the first backslash-break as a continuation (a lone
+                // CR loses its backslash), so a spare pair keeps the caller's (#679).
+                if (c == '\r' && i + 1 < value.Length && value[i + 1] == '\n')
+                {
+                    Append("\\\r\n");
+                }
+                else if (c is '\n' or '\r')
+                {
+                    Append("\\\n");
+                }
+            }
+
             AppendEscaped(c, escapeString);
         }
 

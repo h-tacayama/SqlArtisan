@@ -10,6 +10,8 @@ internal sealed class MySqlDialect : IDbmsDialect
 
     public bool BackslashLiteralsUseEscapeString => false;
 
+    public bool BackslashNewlineContinuesStringLiterals => false;
+
     public string DmlTableAliasSeparator => " AS ";
 
     // The 8.0.19+ row alias RowAliasClause emits, read as `new.column`.
