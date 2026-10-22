@@ -1130,6 +1130,17 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Equal(expected, connection.ExecuteScalar<string>(sql));
     }
 
+    [Theory]
+    [MemberData(
+        nameof(BackslashNewlineLiterals.Kept),
+        MemberType = typeof(BackslashNewlineLiterals))]
+    public void InlineLiteral_DoubledBackslashNewline_KeepsThePair(string sql, string expected)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(expected, connection.ExecuteScalar<string>(sql));
+    }
+
     // #679: the path SqlArtisan inlines loses the pair and names another key; the same
     // text bound as a value keeps it.
     [Fact]

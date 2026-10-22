@@ -115,4 +115,15 @@ public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
 
         Assert.Equal(expected, connection.ExecuteScalar<string>(sql));
     }
+
+    [Theory]
+    [MemberData(
+        nameof(BackslashNewlineLiterals.Kept),
+        MemberType = typeof(BackslashNewlineLiterals))]
+    public void InlineLiteral_DoubledBackslashNewline_KeepsThePair(string sql, string expected)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(expected, connection.ExecuteScalar<string>(sql));
+    }
 }

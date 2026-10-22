@@ -9,11 +9,23 @@ public static class BackslashNewlineLiterals
         { "SELECT 'a\\\r\nb'", "ab" },
         { "SELECT 'a\\\nb'", "ab" },
         { "SELECT N'a\\\nb'", "ab" },
+        { "SELECT N'a\\\r\nb'", "ab" },
         { "SELECT JSON_VALUE('{\"ab\":\"other\"}', '$.\"a\\\nb\"')", "other" },
+        { "SELECT JSON_QUERY('{\"ab\":{\"x\":1}}', '$.\"a\\\nb\"')", "{\"x\":1}" },
         {
             "SELECT STRING_AGG(v, 'a\\\r\nb') WITHIN GROUP (ORDER BY v) "
                 + "FROM (VALUES ('x'), ('y')) t (v)",
             "xaby"
         },
+    };
+
+    // Probe: a second backslash-newline after the first, if continuation is one pass.
+    public static TheoryData<string, string> Kept => new()
+    {
+        { "SELECT 'a\\\\\nb'", "a\\b" },
+        { "SELECT 'a\\\\\n\nb'", "a\\\nb" },
+        { "SELECT 'a\\\\\r\n\r\nb'", "a\\\r\nb" },
+        { "SELECT N'a\\\\\n\nb'", "a\\\nb" },
+        { "SELECT 'a\\\\\\\n\nb'", "a\\\\\nb" },
     };
 }
