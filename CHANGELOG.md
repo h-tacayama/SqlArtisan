@@ -97,6 +97,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   set-operator branch. A branch takes no `ORDER BY` of its own and the compound's
   sorts the combined result, so SQL Server 2022 rejects the tie; put the branch in
   a derived table that carries its `ORDER BY`. (#679)
+- **Breaking:** `Build()` throws on `TOP ... WITH TIES` without an `ORDER BY`
+  in any block of a compound query. Only the first `TOP` in the chain was
+  checked, so a later block's `WITH TIES` built when an earlier block carried
+  its own `TOP`. (#569)
 - **Breaking:** the `Sql.*` factories, operators and fluent members return the
   narrowest public type that carries their result's members, and every public
   type lives in the `SqlArtisan` namespace. A call whose node declares a member or
@@ -331,8 +335,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   have changed the SQL the same call emits. (#614)
 - **Breaking:** `.NullsFirst` / `.NullsLast` on a sort key that already has a
   null ordering throws `InvalidOperationException`. The second call silently
-  replaced the first, so `.NullsFirst.NullsLast` emitted `NULLS LAST`; written
-  out, the pair is rejected by Oracle, PostgreSQL 16 and SQLite. (#614)
+  replaced the first, so `.NullsFirst.NullsLast` emitted `NULLS LAST`. (#614)
 - **Breaking:** `new BindValue(...)` throws on a SqlArtisan object — an
   expression, a query, a pending node such as `PercentileCont(0.5)`, or a built
   statement — which bound the object itself (`new BindValue(u.Id + 1)` bound an
@@ -409,6 +412,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   used to pass such a file, so a `--tables` run could overwrite another table's
   class and exit 0. A file from 0.7 or earlier, which carries no generated
   header, is still recognized by its table name. (#645)
+- **Breaking:** TableClassGen rejects an `--output` that names a file, where
+  `--check` reported drift against it. It scans for orphan files before it
+  writes anything, so a directory it cannot read fails the run before any file
+  is rewritten, and a write that fails midway names the files already written.
+  (#645)
 - **Breaking:** TableClassGen no longer creates a SQLite database at a mistyped
   `--file`. `--check` used to read the new empty file and report every committed
   class removed; the path now fails to connect, naming `--file`. A file that is
@@ -422,10 +430,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** a `.cs` file under `--output` that TableClassGen cannot read now
   fails the run, naming the file, instead of being skipped: an unreadable orphan
   of the tool's own read as in sync. (#645)
-- **Breaking:** a table with no column visible to the TableClassGen user fails
-  the run naming the table, and on PostgreSQL so does one with any column hidden
-  (a role holding only `DELETE`, or `SELECT` on some columns); it used to be
-  skipped, or written with only the visible columns. (#645)
+- **Breaking:** a table that has columns but none visible to the TableClassGen
+  user fails the run naming the table, and on PostgreSQL so does one with any
+  column hidden (a role holding only `DELETE`, or `SELECT` on some columns); it
+  used to be skipped, or written with only the visible columns. (#645)
 - **Breaking:** TableClassGen fails the run on an Oracle table with a quoted
   name that is not upper case, naming the table, by `--tables` too. Every read
   folded the name to upper case, so the table was skipped while the run
@@ -692,9 +700,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   MySQL's alone and MySQL's `INSERT` takes no leading `WITH`, so no engine
   accepts the pairing; only MySQL and Oracle threw before, and PostgreSQL,
   SQLite and SQL Server emitted the statement. (#569)
-- `Build()` throws on `TOP ... WITH TIES` without an `ORDER BY` in any block of a
-  compound query. Only the first `TOP` in the chain was checked, so a later
-  block's `WITH TIES` built when an earlier block carried its own `TOP`. (#569)
 - `Into(...)` throws at the call on a duplicate variable name or a
   `default(OutputParameter)`, and `OrderBy(0)` throws at the call. `Into(...)`
   threw only at `Build()`, after the stage was frozen, so retrying with
@@ -710,10 +715,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   every option: `--output ""` reads the current directory with its orphan
   scan, which a blank value used to skip, and `--output " "` no longer creates a
   directory named with a space. (#645)
-- TableClassGen rejects an `--output` that names a file. It scans for orphan
-  files before it writes anything, so a directory it cannot read fails the run
-  before any file is rewritten, and a write that fails midway names the files
-  already written. (#645)
 - A TableClassGen `--fix --tables` run no longer closes with "All drifted
   tables were regenerated.": it never scans for orphan files, so it now says to
   run without `--tables` to find them. (#645)
