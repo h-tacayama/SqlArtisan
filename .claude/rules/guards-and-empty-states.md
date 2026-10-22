@@ -90,7 +90,11 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   `OnConflict()` with no conflict target paired with `.DoUpdateSet(...)` on
   PostgreSQL — SQLite takes the targetless form, so the guard is `Build(Dbms)`
   and `Dbms.PostgreSql`-scoped (ADR 0011; the earlier dialect-blind guard
-  rejected SQLite's valid statement, and was corrected);
+  rejected SQLite's valid statement, and was corrected); an `OnConflict(...)`
+  with no `DO NOTHING` / `DO UPDATE SET` — only a held stage builds before the
+  action, so `Build()` backstops it on every dialect, as it does a MERGE `WHEN`
+  with no action and a join with no `ON` (PostgreSQL 16.15 and SQLite 3.50.4
+  reject the text, `OnConflict_WithoutAction_IsRejectedByTheEngine`; #675);
   `Returning(...)` beside `INSERT IGNORE` or
   `OnDuplicateKeyUpdate(...)` — MySQL, the only engine with either, has no
   `RETURNING`, so the typestate withholds it and `Build()` backstops a held
@@ -286,19 +290,19 @@ shape § "Minimum-arity enforcement" keeps (`public-api-design.md`, #552). The
 database is the arbiter (#664; the twins `WindowFunctionInWhere_IsRejectedByTheEngine`
 on PostgreSQL and SQLite, `Unnest_SeveralArraysInSelectList_IsRejectedByTheEngine`).
 
-**Six shapes the engines that run them reject stay unguarded (decided — do not
+**Five shapes the engines that run them reject stay unguarded (decided — do not
 re-file):** a `RANGE` offset over two or more `ORDER BY` keys; a percentile
-`WithinGroup(...)` over two or more keys; `WithRollup()` after a `GROUP BY` holding
-a grouping element; a held `INSERT` stage whose `OnConflict(...)` gets no action; a
-lateral or apply join given a derived table that carries its own source, which it
-then emits twice; and `.WithColumnList()` on an `INSERT ... SELECT` CTE body, which has no
-columns to name (without the list the body runs, write-only). Each fails loudly
-where it was run — PostgreSQL 16.15 for all but `WithRollup()` and the apply joins,
-SQLite 3.50.4 for the frame and the held `OnConflict`, SQL Server 2022 for
-`WithRollup()`, the one dialect the matrix gives both halves, and SQL Server 2022
-and Oracle XE 21.3.0 for `CrossApply` — so there is no silent wrongness to convert,
-and the held `OnConflict` sits with the held stage's out-of-order clause below. A
-twin per shape asserts the rejection beside a control that runs (the
+`WithinGroup(...)` over two or more keys; `WithRollup()` after a `GROUP BY`
+holding a grouping element; a lateral or apply join given a derived table that
+carries its own source, which it then emits twice; and `.WithColumnList()` on an
+`INSERT ... SELECT` CTE body, which has no columns to name (without the list the
+body runs, write-only). Each fails loudly where it was run — PostgreSQL 16.15 for
+all but `WithRollup()` and the apply joins, SQLite 3.50.4 for the frame, SQL
+Server 2022 for `WithRollup()`, the one dialect the matrix gives both halves, and
+SQL Server 2022 and Oracle XE 21.3.0 for `CrossApply` — so there is no silent
+wrongness to convert. None is a construct missing a part, which a held stage's
+backstop takes (the *Incomplete* list): each is complete, in a shape its engines
+refuse. A twin per shape asserts the rejection beside a control that runs (the
 `*_IsRejectedByTheEngine` twins #675 added). The other engines are not run for
 these: one that runs a shape, with any meaning, reopens it (#675's CI items).
 

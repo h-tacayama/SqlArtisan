@@ -566,19 +566,21 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             .From(u)));
     }
 
+    // The Build() guard's reason (#675): ON CONFLICT takes an action, which a held stage
+    // can leave off; the control with DO NOTHING runs.
     [Fact]
-    public void OnConflict_HeldStageWithNoAction_IsRejectedByTheEngine()
+    public void OnConflict_WithoutAction_IsRejectedByTheEngine()
     {
-        UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
         connection.Execute(
-            InsertInto(u, u.Id).Values(6751).OnConflict(u.Id).DoNothing(), transaction);
-        IInsertBuilderValues held = InsertInto(u, u.Id).Values(6752);
-        held.OnConflict(u.Id);
+            "INSERT INTO users (id) VALUES (6751) ON CONFLICT (id) DO NOTHING",
+            transaction: transaction);
 
-        Assert.ThrowsAny<DbException>(() => connection.Execute(held, transaction));
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "INSERT INTO users (id) VALUES (6752) ON CONFLICT (id)",
+            transaction: transaction));
         transaction.Rollback();
     }
 

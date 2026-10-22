@@ -93,6 +93,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   and PostgreSQL and SQL Server refuse an action `WHERE`. So does one beside a
   `WHEN ... AND`, `THEN DELETE` or `BY SOURCE` branch elsewhere in the same
   `MERGE`, which Oracle refuses. (#679)
+- **Breaking:** `Build()` throws `ArgumentException` on an `ON CONFLICT` with no
+  `DoNothing()` or `DoUpdateSet(...)`, which only a held stage reaches. PostgreSQL
+  16 and SQLite reject the text. (#675)
 - **Breaking:** `Build()` throws `ArgumentException` on `TOP ... WITH TIES` in a
   set-operator branch. A branch takes no `ORDER BY` of its own and the compound's
   sorts the combined result, so SQL Server 2022 rejects the tie; put the branch in
