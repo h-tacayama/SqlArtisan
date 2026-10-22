@@ -113,9 +113,10 @@ so `YEAR TO MONTH`/`DAY TO SECOND`/etc. read the way they sound:
 ```csharp
 SqlStatement sql =
     Select(IntervalLiteral("123-11", Year(3), ToMonth))
+    .From(Dual)
     .Build(Dbms.Oracle);
 
-// SELECT INTERVAL '123-11' YEAR(3) TO MONTH
+// SELECT INTERVAL '123-11' YEAR(3) TO MONTH FROM DUAL
 ```
 
 Each field has a precision overload — `Year(3)`, `Day(2)`, …, `ToSecond(4)` —
@@ -263,7 +264,7 @@ UsersTable u = new();
 SqlStatement sql =
     Select(u.Name)
     .From(u)
-    .Where(u.Name.Like("100%_off").Escape('!'))
+    .Where(u.Name.Like("100!%!_off").Escape('!'))
     .Build();
 
 // SELECT name
@@ -811,7 +812,7 @@ SqlStatement sql =
 
 Every `WHEN`, `THEN`, and `ELSE` literal becomes a bind parameter — the 3-arm simple CASE above produces 7 binds (3 match values + 3 result values + 1 ELSE). A 3-column pivot built from single-arm CASEs produces 9. This is the same literals-are-binds design used everywhere else: these values never reach the SQL text, which keeps them injection-safe and lets the engine reuse the execution plan when only the label values change.
 
-Engines cap how many parameters one statement may carry — see your engine's manual for its limit. A CASE in a `SELECT` list that also appears in `GROUP BY` doubles the bind count because the expression is repeated; wrapping the CASE in a CTE or subquery and grouping on its alias avoids the duplication.
+Engines cap how many parameters one statement may carry — see your engine's manual for its limit. A CASE in a `SELECT` list that also appears in `GROUP BY` binds its values once when both clauses take the same instance ([GROUP BY and HAVING Clause](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#group-by-and-having-clause)); only a CASE built twice binds them twice.
 
 ---
 
@@ -1112,26 +1113,28 @@ MySQL's grammar requires the `SEPARATOR` value to be a string literal (a bind pa
 ```csharp
 SqlStatement sql =
     Select(
-        Sequence("users_id_seq").Currval,
-        Sequence("users_id_seq").Nextval)
+        Sequence("users_id_seq").Nextval,
+        Sequence("users_id_seq").Currval)
+    .From(Dual)
     .Build();
 
 // SELECT
-// users_id_seq.CURRVAL,
-// users_id_seq.NEXTVAL
+// users_id_seq.NEXTVAL,
+// users_id_seq.CURRVAL
+// FROM DUAL
 ```
 
 ### PostgreSQL Example
 ```csharp
 SqlStatement sql =
     Select(
-        Currval("users_id_seq"),
-        Nextval("users_id_seq"))
+        Nextval("users_id_seq"),
+        Currval("users_id_seq"))
     .Build();
 
 // SELECT
-// CURRVAL('users_id_seq'),
-// NEXTVAL('users_id_seq')
+// NEXTVAL('users_id_seq'),
+// CURRVAL('users_id_seq')
 ```
 
 ### SQL Server Example

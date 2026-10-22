@@ -974,6 +974,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `docs/analyzer.md` says why `SQLA0204` reports a wrapped column and a
   leading-wildcard pattern under one ID, and gives each its own remedy; it said
   the remedy was the same. (#655)
+- Examples that failed or returned other rows when run now run as shown. The
+  `Escape` example escapes its wildcards; it matched every row starting with
+  `100`. The PostgreSQL sequence example calls `Nextval` before `Currval`, which
+  failed in a fresh session, and the Oracle sequence and interval examples read
+  `FROM DUAL`. The README's `UserDto` takes settable properties: its
+  constructor matched only an `int` id and a provider-typed `DateTime`, so it
+  threw on a `bigint` id and on SQLite. Hoisting a repeated `CASE`'s values with
+  `Bind(...)` now names every value, not only the `WHEN` one, and a `CASE` in
+  both `SELECT` and `GROUP BY` is said to bind once when both take the same
+  instance. (#685)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added
