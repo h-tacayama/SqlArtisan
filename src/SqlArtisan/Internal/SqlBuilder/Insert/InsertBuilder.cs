@@ -211,6 +211,15 @@ internal sealed class InsertBuilder :
         DmlTargetGuard.ThrowIfInsertTargetAliasedOnMySql(_table, dbms);
 
         OnConflictClause? onConflict = FindPart<OnConflictClause>();
+        // ON CONFLICT's grammar requires an action; only a held stage builds before one.
+        if (onConflict is not null
+            && FindPart<DoNothingClause>() is null
+            && FindPart<DoUpdateSetClause>() is null)
+        {
+            throw new ArgumentException(
+                "An ON CONFLICT clause requires an action (DO NOTHING or DO UPDATE SET).");
+        }
+
         if (dbms == Dbms.PostgreSql
             && onConflict is { HasTarget: false }
             && FindPart<DoUpdateSetClause>() is not null)

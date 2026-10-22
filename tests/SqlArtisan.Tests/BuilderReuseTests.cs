@@ -725,6 +725,19 @@ public class BuilderReuseTests
     }
 
     [Fact]
+    public void OnConflict_WithoutAction_OnHeldStage_ThrowsArgumentException()
+    {
+        IInsertBuilderValues held = InsertInto(_t, _t.Code).Values(1);
+        held.OnConflict(_t.Code);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Build());
+
+        Assert.Equal(
+            "An ON CONFLICT clause requires an action (DO NOTHING or DO UPDATE SET).",
+            ex.Message);
+    }
+
+    [Fact]
     public void DoNothing_ThenDoUpdateSet_OnHeldStage_ThrowsArgumentException()
     {
         IInsertBuilderOnConflict held = InsertInto(_t, _t.Code).Values(1).OnConflict(_t.Code);

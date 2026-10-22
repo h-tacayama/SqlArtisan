@@ -549,6 +549,93 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             Select(Unnest(BindArray([1, 2]), BindArray([3, 4])))));
     }
 
+    // #675: shapes no verified engine runs stay the engine's (guards-and-empty-states.md);
+    // each control runs, so the assertion fails only for the shape it names.
+    [Fact]
+    public void RangeOffset_SeveralOrderByKeys_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<long>(
+            Select(Count(u.Id).Over(OrderBy(u.Id).RangeBetween(Preceding(1), CurrentRow)))
+            .From(u));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<long>(
+            Select(Count(u.Id).Over(OrderBy(u.Id, u.Age).RangeBetween(Preceding(1), CurrentRow)))
+            .From(u)));
+    }
+
+    // The Build() guard's reason (#675): ON CONFLICT takes an action, which a held stage
+    // can leave off; the control with DO NOTHING runs.
+    [Fact]
+    public void OnConflict_WithoutAction_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "INSERT INTO users (id) VALUES (6751) ON CONFLICT (id) DO NOTHING",
+            transaction: transaction);
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "INSERT INTO users (id) VALUES (6752) ON CONFLICT (id)",
+            transaction: transaction));
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void PercentileWithinGroup_SeveralKeys_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<double?>(
+            Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age))).From(u));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<double?>(
+            Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age, u.Id))).From(u)));
+    }
+
+    [Fact]
+    public void CrossJoinLateral_SourceCarryingDerivedTable_IsRejectedByTheEngine()
+    {
+        UsersTable u = new("u");
+        UsersTable s = new("s");
+        using IDbConnection connection = _fixture.OpenConnection();
+        ISubquery sub = Select(s.Id).From(s).Where(s.Id == u.Id);
+
+        connection.Query<int>(
+            Select(u.Id).From(u).CrossJoinLateral(sub, new DerivedTable("z")));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.Id).From(u).CrossJoinLateral(sub, sub.AsTable("z"))));
+    }
+
+    // Without a list or a reference the INSERT body runs, write-only; either asks it for
+    // columns a body with no RETURNING never has.
+    [Fact]
+    public void InsertSelectCteBody_ListedOrRead_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        OrdersTable o = new();
+        Cte c = new("c");
+        using IDbConnection connection = _fixture.OpenConnection();
+        ISubquery unlisted =
+            InsertInto(o, o.Id, o.UserId).Select(u.Id, u.Age).From(u).Where(u.Id < 0);
+        ISubquery listed =
+            InsertInto(o, o.Id, o.UserId).Select(u.Id, u.Age).From(u).Where(u.Id < 0);
+        ISubquery read =
+            InsertInto(o, o.Id, o.UserId).Select(u.Id, u.Age).From(u).Where(u.Id < 0);
+
+        connection.Query<int>(With(c.As(unlisted)).Select(u.Id).From(u));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            With(c.As(listed).WithColumnList()).Select(u.Id).From(u)));
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            With(c.As(read)).Select(c.Column("id")).From(c)));
+    }
+
     // #664: a composite-typed array yields a column per field, which is why AsTable's
     // column list is not capped at the array count.
     [Fact]
