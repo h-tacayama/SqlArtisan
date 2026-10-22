@@ -146,7 +146,7 @@ SqlStatement sql =
 // SELECT "u".id, "u".name FROM users "u" WHERE "u".id > :0
 ```
 
-Columns are qualified by the alias — or rendered unqualified when the table has no alias (`new DbTable("users")` → `id`). `DbTable` works anywhere a table class does, including `INSERT` / `UPDATE` / `DELETE`. For columns referenced repeatedly, or for IntelliSense on column names, declare a typed `DbTableBase` subclass (or generate one with SqlArtisan.TableClassGen) instead.
+Columns are qualified by the alias — or rendered unqualified when the table has no alias (`new DbTable("users")` → `id`), except in an UPSERT's `DO UPDATE`, which qualifies them by the table name ([UPSERT](#upsert-insert-update-or-skip)). `DbTable` works anywhere a table class does, including `INSERT` / `UPDATE` / `DELETE`. For columns referenced repeatedly, or for IntelliSense on column names, declare a typed `DbTableBase` subclass (or generate one with SqlArtisan.TableClassGen) instead.
 
 #### FROM-less Queries
 ```csharp

@@ -4,8 +4,8 @@ namespace SqlArtisan;
 
 /// <summary>
 /// A reference to a table column, rendered <c>alias.column</c> (or bare <c>column</c>
-/// when the owning table has no correlation name). Expose one per column from a
-/// <see cref="DbTableBase"/> subclass.
+/// when the owning table has no correlation name, but <c>table.column</c> in an UPSERT's
+/// <c>DO UPDATE</c>). Expose one per column from a <see cref="DbTableBase"/> subclass.
 /// </summary>
 public sealed class DbColumn : SqlExpression
 {
