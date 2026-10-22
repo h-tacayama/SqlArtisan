@@ -620,17 +620,15 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Cte c = new("c");
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
+        ISubquery unlisted =
+            InsertInto(o, o.Id, o.UserId).Select(u.Id, u.Age).From(u).Where(u.Id < 0);
+        ISubquery listed =
+            InsertInto(o, o.Id, o.UserId).Select(u.Id, u.Age).From(u).Where(u.Id < 0);
 
-        connection.Query<int>(
-            With(c.As(InsertInto(o, o.Id, o.UserId).Select(u.Id, u.Age).From(u)))
-            .Select(u.Id)
-            .From(u),
-            transaction);
+        connection.Query<int>(With(c.As(unlisted)).Select(u.Id).From(u), transaction);
 
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
-            With(c.As(InsertInto(o, o.Id, o.UserId).Select(u.Id, u.Age).From(u)).WithColumnList())
-            .Select(u.Id)
-            .From(u),
+            With(c.As(listed).WithColumnList()).Select(u.Id).From(u),
             transaction));
         transaction.Rollback();
     }
