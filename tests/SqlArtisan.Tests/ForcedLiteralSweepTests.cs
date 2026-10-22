@@ -12,7 +12,7 @@ public class ForcedLiteralSweepTests
 
     private const string NonAsciiInput = "名";
 
-    private const string BackslashNewlineInput = "a\\\nb\\\r\nc";
+    private const string BackslashNewlineInput = "a\\\nb\\\r\nc\\\rd";
 
     // A char position cannot hold every hazard at once, so it takes them one by one.
     private static readonly string[] CharInputs = ["'", "\\", NonAsciiInput];
@@ -31,11 +31,12 @@ public class ForcedLiteralSweepTests
         [(StringInput, Dbms.PostgreSql)] = "E'a''b\\\\c'",
         [(StringInput, Dbms.Sqlite)] = "'a''b\\c'",
         [(StringInput, Dbms.SqlServer)] = "'a''b\\c'",
-        [(BackslashNewlineInput, Dbms.MySql)] = "'a\\\\\nb\\\\\r\nc'",
-        [(BackslashNewlineInput, Dbms.Oracle)] = "'a\\\nb\\\r\nc'",
-        [(BackslashNewlineInput, Dbms.PostgreSql)] = "E'a\\\\\nb\\\\\r\nc'",
-        [(BackslashNewlineInput, Dbms.Sqlite)] = "'a\\\nb\\\r\nc'",
-        [(BackslashNewlineInput, Dbms.SqlServer)] = "'a\\\\\n\nb\\\\\r\n\r\nc'",
+        [(BackslashNewlineInput, Dbms.MySql)] = "'a\\\\\nb\\\\\r\nc\\\\\rd'",
+        [(BackslashNewlineInput, Dbms.Oracle)] = "'a\\\nb\\\r\nc\\\rd'",
+        [(BackslashNewlineInput, Dbms.PostgreSql)] = "E'a\\\\\nb\\\\\r\nc\\\\\rd'",
+        [(BackslashNewlineInput, Dbms.Sqlite)] = "'a\\\nb\\\r\nc\\\rd'",
+        [(BackslashNewlineInput, Dbms.SqlServer)] =
+            "'a\\\\\n\nb\\\\\r\n\r\nc\\\\\n\rd'",
         [("'", Dbms.MySql)] = "''''",
         [("'", Dbms.Oracle)] = "''''",
         [("'", Dbms.PostgreSql)] = "''''",

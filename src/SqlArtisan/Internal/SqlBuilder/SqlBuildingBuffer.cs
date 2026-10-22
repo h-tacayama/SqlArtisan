@@ -309,15 +309,15 @@ internal sealed class SqlBuildingBuffer : IDisposable
             char c = value[i];
             if (keepsContinuation && i > 0 && value[i - 1] == '\\')
             {
-                // The engine reads the first backslash-break as a continuation and drops
-                // it, so a spare pair ahead of the caller's keeps theirs (#679).
-                if (c == '\n')
-                {
-                    Append("\\\n");
-                }
-                else if (c == '\r' && i + 1 < value.Length && value[i + 1] == '\n')
+                // The engine drops the first backslash-break as a continuation (a lone
+                // CR loses its backslash), so a spare pair keeps the caller's (#679).
+                if (c == '\r' && i + 1 < value.Length && value[i + 1] == '\n')
                 {
                     Append("\\\r\n");
+                }
+                else if (c is '\n' or '\r')
+                {
+                    Append("\\\n");
                 }
             }
 

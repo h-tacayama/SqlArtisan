@@ -166,16 +166,17 @@ alongside the bind-parameter types.
   Twins:
   `SqlServerTests.NonAsciiForcedLiteral_PlainForm_LosesTheCharacter`,
   `SqlServerTests.NonAsciiForcedLiteral_OnACodePageHoldingIt_KeepsWhatThePlainFormRan`.
-- **A backslash before a line break keeps its line break on SQL Server
-  (#679).** T-SQL reads `\` followed by LF or CRLF inside a string constant
-  as a line continuation and drops both, in a plain or an `N'...'` literal, so
-  a forced literal holding the pair lost it: a `JSON_VALUE` / `JSON_QUERY` path
-  named another key, and a `STRING_AGG` separator lost its line break. The
-  continuation is read in one pass, so a spare backslash and the same line
-  break written ahead of the caller's are what the engine drops, and the
-  literal reads as written; `BackslashNewlineContinuesStringLiterals` holds
-  that spelling to SQL Server. A lone CR continues nothing. All of it holds on
-  SQL Server 2022 and 2025. Twins:
+- **A backslash before a line break keeps both on SQL Server (#679).** T-SQL
+  reads `\` followed by LF or CRLF inside a string constant as a line
+  continuation and drops both, in a plain or an `N'...'` literal, and before a
+  lone CR it drops the backslash alone. A forced literal holding the pair lost
+  it: a `JSON_VALUE` / `JSON_QUERY` path named another key, and a `STRING_AGG`
+  separator lost its line break. The continuation is read in one pass, so a
+  spare backslash and line break written ahead of the caller's (the same CRLF
+  before a CRLF, an LF before an LF or a lone CR) are what the engine drops,
+  and the literal reads as written; `BackslashNewlineContinuesStringLiterals`
+  holds that spelling to SQL Server. All of it holds on SQL Server 2022 and
+  2025. Twins:
   `SqlServerTests.InlineLiteral_BackslashNewline_ContinuesTheLine`,
   `SqlServerTests.InlineLiteral_DoubledBackslashNewline_KeepsThePair`,
   `SqlServerTests.StringAgg_SeparatorWithBackslashNewline_KeepsThePair`, and

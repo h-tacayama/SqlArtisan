@@ -1153,7 +1153,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             transaction);
         DbTable s = new("#sep_679", "s");
 
-        foreach (string separator in new[] { " \\\n", " \\\r\n", "\\\\\n" })
+        foreach (string separator in new[] { " \\\n", " \\\r\n", " \\\r", "\\\\\n" })
         {
             Assert.Equal($"x{separator}y", connection.ExecuteScalar<string>(
                 Select(StringAgg(s.Column("v"), separator).WithinGroup(OrderBy(s.Column("v"))))
