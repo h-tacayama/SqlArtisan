@@ -153,14 +153,14 @@ dotnet add package SqlArtisan.ArrayBind --prerelease # optional: Oracle array-bi
 
 2. Define your DTO Class
 
-    A plain class to map query results onto:
+    A plain class with settable properties, which Dapper fills by column name:
 
     ```csharp
-    internal sealed class UserDto(int id, string name, DateTime createdAt)
+    internal sealed class UserDto
     {
-        public int Id => id;
-        public string Name => name;
-        public DateTime CreatedAt => createdAt;
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public DateTime CreatedAt { get; set; }
     }
     ```
 
