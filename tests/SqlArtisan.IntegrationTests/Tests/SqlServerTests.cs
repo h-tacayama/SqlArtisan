@@ -1117,6 +1117,29 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT STRING_AGG(k, N'、') FROM dbo.s663"));
     }
 
+    [Theory]
+    [MemberData(
+        nameof(BackslashNewlineLiterals.Every),
+        MemberType = typeof(BackslashNewlineLiterals))]
+    public void InlineLiteral_BackslashNewline_ContinuesTheLine(string sql, string expected)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(expected, connection.ExecuteScalar<string>(sql));
+    }
+
+    // #679: the path SqlArtisan inlines loses the pair and names another key; the same
+    // text bound as a value keeps it.
+    [Fact]
+    public void JsonValue_PathWithBackslashNewline_ReadsAnotherKey()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal("other", connection.ExecuteScalar<string>(
+            Select(JsonValue(Bind("{\"ab\":\"other\"}"), "$.\"a\\\nb\""))));
+        Assert.Equal("a\\\nb", connection.ExecuteScalar<string>(Select(Bind("a\\\nb"))));
+    }
+
     // #666: ANY is half of a comparison, valid nowhere on its own (SQL Server 2022).
     [Fact]
     public void QuantifiedOperand_OutsideAComparison_IsRejectedByTheEngine()
