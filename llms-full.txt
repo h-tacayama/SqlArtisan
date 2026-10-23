@@ -325,8 +325,9 @@ Task-oriented paths from your current project to SqlArtisan.
   run SqlArtisan-built statements for N rows in one round trip via ODP.NET
   array binding.
 - **[Using SqlArtisan with AI Coding Assistants](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md)** —
-  the analyzer target, the `llms.txt` feed, and exact-SQL test pinning for
-  AI-written queries.
+  the `llms.txt` feed, the analyzer target, keeping the table classes in step
+  with the database, exact-SQL test pinning for AI-written queries, and a rules
+  snippet for your agent file.
 
 ## [Query Cookbook](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md)
 
@@ -412,8 +413,11 @@ Built-in function catalog, grouped by family, plus bind-parameter types.
 
 ## [Analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)
 
-An opt-in Roslyn analyzer that warns when a construct is used against a target
-dialect it doesn't support.
+An opt-in Roslyn analyzer that reports configuration problems; constructs,
+identifiers and argument values a target dialect doesn't support; what the
+generated table classes' schema metadata says about a query; and validity
+problems — a correlated DML target `Build()` would reject, or C# that binds a
+value instead of building SQL.
 
 [Enabling It](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it) ·
 [Rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules) ·
@@ -2239,8 +2243,8 @@ instead; the analyzer warns when a `%` expression targets Oracle.
 `INTERVAL` has no common spelling across engines, so pick the factory for your
 target DBMS: `Interval(quantity, unit)` binds its quantity as a parameter
 (MySQL's own unquoted form), `IntervalLiteral(...)` emits its value inline as a
-quoted literal (Oracle/PostgreSQL). Combine either with `+`/`-` for date-shift
-arithmetic.
+quoted literal (MySQL in its `value, field` form only, Oracle, PostgreSQL).
+Combine either with `+`/`-` for date-shift arithmetic.
 
 ```csharp
 SqlStatement sql =
@@ -5868,16 +5872,18 @@ How much the compiler catches before the query reaches a database:
 
 | Level | What the compiler checks | Examples |
 |-------|-------------------------|----------|
-| **Raw SQL strings** | Nothing — typos and schema drift surface at runtime | EF Core `FromSqlRaw`, raw Dapper, InterpolatedSql |
-| **String-keyed builders** | Statement structure is typed, but table/column names are strings | Dapper.SqlBuilder, SqlKata |
-| **Generated table classes** | Column references are compile-checked C# properties; an `ALTER TABLE` that drops a column breaks the build | SqlArtisan |
+| **Raw SQL strings** | Nothing — typos and schema drift surface at runtime | EF Core `FromSqlRaw`, raw Dapper, Dapper.SqlBuilder (each clause is a SQL string in a string template), InterpolatedSql's interpolated strings |
+| **String-keyed builders** | Statement structure is typed, but table/column names are strings | SqlKata, InterpolatedSql's `FluentQueryBuilder` (staged clauses, each body a SQL string) |
+| **Generated table classes** | Column references are compile-checked C# properties; once the classes are regenerated, an `ALTER TABLE` that drops a column breaks the build | SqlArtisan |
 | **Expression-tree mapping** | Full compile-time model, tightest coupling between domain types and schema | EF Core, linq2db |
 
 Expression-tree mapping (EF Core, linq2db) offers the tightest
 compile-time safety. SqlArtisan's table classes sit one level below: column
 names and statement structure are compile-checked, while the query itself
-stays in the SQL domain — you see the SQL you are writing, and the compiler
-still catches a renamed or deleted column.
+stays in the SQL domain — you see the SQL you are writing, and once the table
+classes are regenerated the compiler catches a renamed or deleted column. Until
+then a stale class still compiles; TableClassGen's `--check` reports the drift
+in CI.
 
 ---
 
@@ -5902,7 +5908,7 @@ between generation and production:
    engines.
 
 Raw SQL strings verify nothing until the database rejects them.
-String-keyed builders catch structural mistakes but not column typos.
+String-keyed builders catch clause-order mistakes but not column typos.
 Expression-tree ORMs catch the most at compile time, but the emitted SQL
 is opaque — you cannot pin it with exact-SQL tests without coupling to the
 ORM's internal translation.
@@ -5963,11 +5969,13 @@ See the
 SqlArtisan minimizes heap allocations — string buffers are recycled from a
 pooled `ArrayPool<T>`. In the project's
 [like-for-like BenchmarkDotNet workload](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.Benchmark),
-it allocated the least and ran the fastest among the query builders tested;
-only a hand-written `StringBuilder` (no compile-checked names, no dialect
-handling) was lighter. See the
+it allocated the least among the query builders tested — a firm lead — and
+ran the fastest, an order to treat as directional; only a hand-written
+`StringBuilder` (no compile-checked names, no dialect handling) was lighter.
+See the
 [benchmark table in the README](https://github.com/h-tacayama/SqlArtisan/blob/main/README.md#performance)
-for the numbers and re-run instructions.
+for the numbers, the machine and runtime they were measured on, and re-run
+instructions.
 
 **What the benchmark measures:** building the SQL string and its bind
 parameters — the builder path only. It does not measure end-to-end query
@@ -6084,7 +6092,7 @@ default; they are what makes wrong column names a compile error.
 Add `using SqlArtisan.Dapper;` and call Dapper's verbs directly on your
 `IDbConnection`, passing the builder chain instead of a SQL string. The
 extension builds the statement for the connection's dialect (resolved from the
-connection's provider type — Npgsql → PostgreSQL, MySqlConnector → MySQL, …)
+connection's provider type — MySqlConnector → MySQL, Npgsql → PostgreSQL, …)
 and forwards text and bind parameters to Dapper:
 
 ```csharp

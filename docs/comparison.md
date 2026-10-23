@@ -57,16 +57,18 @@ How much the compiler catches before the query reaches a database:
 
 | Level | What the compiler checks | Examples |
 |-------|-------------------------|----------|
-| **Raw SQL strings** | Nothing — typos and schema drift surface at runtime | EF Core `FromSqlRaw`, raw Dapper, InterpolatedSql |
-| **String-keyed builders** | Statement structure is typed, but table/column names are strings | Dapper.SqlBuilder, SqlKata |
-| **Generated table classes** | Column references are compile-checked C# properties; an `ALTER TABLE` that drops a column breaks the build | SqlArtisan |
+| **Raw SQL strings** | Nothing — typos and schema drift surface at runtime | EF Core `FromSqlRaw`, raw Dapper, Dapper.SqlBuilder (each clause is a SQL string in a string template), InterpolatedSql's interpolated strings |
+| **String-keyed builders** | Statement structure is typed, but table/column names are strings | SqlKata, InterpolatedSql's `FluentQueryBuilder` (staged clauses, each body a SQL string) |
+| **Generated table classes** | Column references are compile-checked C# properties; once the classes are regenerated, an `ALTER TABLE` that drops a column breaks the build | SqlArtisan |
 | **Expression-tree mapping** | Full compile-time model, tightest coupling between domain types and schema | EF Core, linq2db |
 
 Expression-tree mapping (EF Core, linq2db) offers the tightest
 compile-time safety. SqlArtisan's table classes sit one level below: column
 names and statement structure are compile-checked, while the query itself
-stays in the SQL domain — you see the SQL you are writing, and the compiler
-still catches a renamed or deleted column.
+stays in the SQL domain — you see the SQL you are writing, and once the table
+classes are regenerated the compiler catches a renamed or deleted column. Until
+then a stale class still compiles; TableClassGen's `--check` reports the drift
+in CI.
 
 ---
 
@@ -91,7 +93,7 @@ between generation and production:
    engines.
 
 Raw SQL strings verify nothing until the database rejects them.
-String-keyed builders catch structural mistakes but not column typos.
+String-keyed builders catch clause-order mistakes but not column typos.
 Expression-tree ORMs catch the most at compile time, but the emitted SQL
 is opaque — you cannot pin it with exact-SQL tests without coupling to the
 ORM's internal translation.
@@ -152,11 +154,13 @@ See the
 SqlArtisan minimizes heap allocations — string buffers are recycled from a
 pooled `ArrayPool<T>`. In the project's
 [like-for-like BenchmarkDotNet workload](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.Benchmark),
-it allocated the least and ran the fastest among the query builders tested;
-only a hand-written `StringBuilder` (no compile-checked names, no dialect
-handling) was lighter. See the
+it allocated the least among the query builders tested — a firm lead — and
+ran the fastest, an order to treat as directional; only a hand-written
+`StringBuilder` (no compile-checked names, no dialect handling) was lighter.
+See the
 [benchmark table in the README](https://github.com/h-tacayama/SqlArtisan/blob/main/README.md#performance)
-for the numbers and re-run instructions.
+for the numbers, the machine and runtime they were measured on, and re-run
+instructions.
 
 **What the benchmark measures:** building the SQL string and its bind
 parameters — the builder path only. It does not measure end-to-end query

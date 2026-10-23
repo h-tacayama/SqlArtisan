@@ -77,7 +77,7 @@ default; they are what makes wrong column names a compile error.
 Add `using SqlArtisan.Dapper;` and call Dapper's verbs directly on your
 `IDbConnection`, passing the builder chain instead of a SQL string. The
 extension builds the statement for the connection's dialect (resolved from the
-connection's provider type — Npgsql → PostgreSQL, MySqlConnector → MySQL, …)
+connection's provider type — MySqlConnector → MySQL, Npgsql → PostgreSQL, …)
 and forwards text and bind parameters to Dapper:
 
 ```csharp

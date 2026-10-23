@@ -19,8 +19,9 @@ Task-oriented paths from your current project to SqlArtisan.
   run SqlArtisan-built statements for N rows in one round trip via ODP.NET
   array binding.
 - **[Using SqlArtisan with AI Coding Assistants](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md)** —
-  the analyzer target, the `llms.txt` feed, and exact-SQL test pinning for
-  AI-written queries.
+  the `llms.txt` feed, the analyzer target, keeping the table classes in step
+  with the database, exact-SQL test pinning for AI-written queries, and a rules
+  snippet for your agent file.
 
 ## [Query Cookbook](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md)
 
@@ -106,8 +107,11 @@ Built-in function catalog, grouped by family, plus bind-parameter types.
 
 ## [Analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)
 
-An opt-in Roslyn analyzer that warns when a construct is used against a target
-dialect it doesn't support.
+An opt-in Roslyn analyzer that reports configuration problems; constructs,
+identifiers and argument values a target dialect doesn't support; what the
+generated table classes' schema metadata says about a query; and validity
+problems — a correlated DML target `Build()` would reject, or C# that binds a
+value instead of building SQL.
 
 [Enabling It](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it) ·
 [Rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules) ·

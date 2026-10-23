@@ -32,6 +32,7 @@ FILES = [
     "docs/versioning.md",
     "SECURITY.md",
     "CHANGELOG.md",
+    "src/SqlArtisan.TableClassGen/README.md",
 ]
 
 
