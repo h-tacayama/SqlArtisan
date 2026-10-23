@@ -1570,8 +1570,9 @@ for, not a bug in the matrix.
   argument, not its declared type or arity, is not modeled at all.**
   `Trunc(expr[, format])` is the example: a numeric argument is Oracle,
   PostgreSQL and SQLite 3.35+, a date/time argument is Oracle-only, and both shapes
-  compile to the exact same C# overload. It has no matrix entry, so it warns
-  only under your own `sqlartisan_construct_trunc = unsupported`.
+  compile to the exact same C# overload. It has no matrix entry, so no dialect
+  verdict reports it unless you set `sqlartisan_construct_trunc` (or an
+  `_arity<N>` key) to `unsupported`.
 - **`SQLA0104`'s lists don't model a source-type or column-type constraint.**
   Oracle's `EXTRACT` rejects `HOUR`/`MINUTE`/`SECOND` on a plain `DATE`
   source (it needs a `TIMESTAMP`) and the four `TIMEZONE_*` fields need
@@ -1602,8 +1603,8 @@ for, not a bug in the matrix.
   covers every referencable public method, property, field, and overloaded
   operator except a
   documented set of dialect-neutral members and `Trunc` above — gate-enforced by the
-  repository's tests — but a member in that excluded set warns only under
-  your own `unsupported` override. See
+  repository's tests — but a member in that excluded set gets no dialect
+  verdict unless your own `unsupported` override gives it one. See
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)
   for what's entered.
 - **The dialect-independent rules need a configured target too.**

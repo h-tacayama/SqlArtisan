@@ -330,7 +330,8 @@ internal static class DialectMatrix
         [new MatrixKey("NextValueFor")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("Sequence")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
 
-        // --- RETURNING (Oracle only with INTO; SQL Server uses OUTPUT) ---
+        // --- RETURNING (Oracle requires INTO: ContextRules.CheckReturningRequiresInto;
+        // SQL Server uses OUTPUT) ---
         [new MatrixKey("Returning")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         // "Into" (the RETURNING ... INTO chain) is Oracle-specific — narrower than Returning
         // itself.
