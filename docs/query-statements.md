@@ -57,7 +57,7 @@ SqlStatement sql =
 // FROM users "u"
 // INNER JOIN orders "o" ON "o".user_id = "u".id
 ```
-Both markers are valid only in a `SELECT` or `RETURNING` list, with one exception: `Count(Asterisk)` emits `COUNT(*)` — the only aggregate where `*` is legal. Any other expression position (`Upper(...)`, `ORDER BY`, …) throws or does not compile.
+Both markers are list items — a `SELECT` list, and a `RETURNING` or `OUTPUT` list where the engine takes them — plus one aggregate: `Count(Asterisk)` emits `COUNT(*)`, the only aggregate where `*` is legal. Any other expression position (`Upper(...)`, `ORDER BY`, …) throws or does not compile. Oracle rejects either marker before `INTO`; PostgreSQL's `RETURNING` takes both, and SQLite's only the bare `*`; SQL Server rejects `OUTPUT *` and the target's `t.*` in an `OUTPUT` on a statement that joins nothing.
 
 Do **not** write `Select("*")` — a string in a value position is always a bind value, never SQL, so it emits `SELECT :0` returning the literal `'*'` per row. The same rule protects every string you bind from injection; `Asterisk` is the SQL spelling. For `EXISTS (SELECT * ...)`, prefer the `Exists(Select(1)...)` idiom — see [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions).
 

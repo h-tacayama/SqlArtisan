@@ -311,12 +311,12 @@ unguarded (decided — do not re-file):** on an `INSERT`, `UPDATE` or `DELETE`
 that joins nothing, SQL Server 2022 rejects an `OUTPUT` item that reads the
 target other than through `Inserted(...)` / `Deleted(...)` — a bare column (run
 on `UPDATE` and `INSERT`), `t.*` (`DELETE`) or `*` (all three) — and Oracle XE
-21.3.0 rejects `*` and `t.*` in `RETURNING ... INTO`, even with one output
+21.3.0 rejects `*` and `t.*` in a `DELETE`'s `RETURNING ... INTO`, even with one output
 parameter per column, a width `Into(...)` refuses for one `Returning(Asterisk)`
 item (`Output_*_IsRejectedByTheEngine`, `ReturningInto_Asterisk_IsRejectedByTheEngine`;
 #669, #675). Each is complete and fails loudly, the paragraph above's ground. The
-joined forms, whose `OUTPUT` reads a `FROM` table by name, and SQL Server 2025 and
-Oracle 23ai are not run.
+joined forms, whose `OUTPUT` reads a `FROM` table by name, Oracle's `INSERT` and
+`UPDATE`, and SQL Server 2025 and Oracle 23ai are not run.
 
 **A `GROUP BY` column ordinal stays permissive on the engines that refuse it
 (decided — do not re-file):** Oracle XE 21.3.0 and SQL Server 2022 reject a
