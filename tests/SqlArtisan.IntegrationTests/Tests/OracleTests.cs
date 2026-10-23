@@ -156,6 +156,32 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
+    // #675 item 7: one output parameter per orders column, so only the * differs.
+    [Fact]
+    public void ReturningInto_Asterisk_IsRejectedByTheEngine()
+    {
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        DynamicParameters outputs = connection.ExecuteReturningInto(
+            DeleteFrom(o).Where(o.Id == 4).Returning(o.Id, o.UserId, o.Amount).Into(Outputs()),
+            transaction);
+
+        Assert.Equal(3, Convert.ToInt32(outputs.Get<object>("outUserId")!.ToString()));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteReturningInto(
+            DeleteFrom(o).Where(o.Id == 1).Returning(Asterisk).Into(Outputs()), transaction));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteReturningInto(
+            DeleteFrom(o).Where(o.Id == 2).Returning(o.Asterisk).Into(Outputs()), transaction));
+
+        static OutputParameter[] Outputs() =>
+            [
+                new("outId", DbType.Int32),
+                new("outUserId", DbType.Int32),
+                new("outAmount", DbType.Decimal),
+            ];
+    }
+
     [Fact]
     public void Sequence_NextvalCurrval_Executes()
     {
