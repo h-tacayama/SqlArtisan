@@ -955,7 +955,7 @@ SqlStatement sql =
 // GROUP BY ROLLUP(region)
 ```
 
-`Grouping(a, b, ...)` also takes multiple columns, returning a combined bitmask (MySQL, PostgreSQL); Oracle and SQL Server spell the same bitmask `GroupingId(a, ...)` instead. MySQL accepts `Grouping(...)` only inside a `WITH ROLLUP` query (its own grouping syntax, above) — using it with an ordinary `GroupBy(...)` is rejected there, a context requirement no dialect matrix key can express.
+`Grouping(a, b, ...)` also takes multiple columns, returning a combined bitmask (MySQL, PostgreSQL); Oracle and SQL Server spell the same bitmask `GroupingId(a, ...)` instead. MySQL accepts `Grouping(...)` only inside a `WITH ROLLUP` query (its own grouping syntax, above) — using it with an ordinary `GroupBy(...)` is rejected there, a context requirement no dialect matrix key can express, which the analyzer reports as `SQLA0102`.
 
 ---
 
@@ -1250,7 +1250,7 @@ On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is r
 A builder chain is **single-use**: once you call `Build()`, that builder is finished — any further stage call on it, including a second `Build()`, throws. This turns a silently-wrong reuse into a loud error:
 
 ```csharp
-// NG — holding a base query to fetch each page throws on the second Build().
+// NG — holding a base query to fetch each page throws on the first call after Build().
 TestTable t = new();
 var q = Select(t.Code).From(t).OrderBy(t.Code).Limit(10);
 
@@ -1480,7 +1480,8 @@ that joins it throws. A joined `DELETE ... FROM` must re-list the
 target in `FROM`, or `From(...)` throws; on SQL Server a joined `UPDATE` must too
 — T-SQL's joined form takes the target's alias from there — or
 `Build(Dbms.SqlServer)` throws. A re-listed `UPDATE` target off SQL Server throws
-at `Build()`. Every other wrong-dialect spelling is emitted as written and rejected
+at `Build()`, and so does `DeleteFrom(t).Using(...)` on SQL Server, which has no
+`DELETE ... USING` form. Every other wrong-dialect spelling is emitted as written and rejected
 by the database; with the analyzer configured it is named first — see
 [Context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102).
 Oracle and SQLite before the releases that added `UPDATE … FROM` take none of
@@ -1682,8 +1683,8 @@ emits the row-alias form (`AS new` … `new.column`) to avoid the deprecated
 
 **Note:** `ON CONFLICT` is PostgreSQL/SQLite-only and `ON DUPLICATE KEY UPDATE`
 is MySQL-only. Oracle and SQL Server use [`MERGE`](#merge-statement) instead.
-SqlArtisan does not validate feature support, so ensure the clause is valid for
-your target DBMS.
+With the analyzer configured, `SQLA0100` reports either clause on a dialect
+without it; otherwise the database rejects it.
 
 **MySQL — `INSERT IGNORE`**
 
@@ -2022,8 +2023,11 @@ SqlArtisan also supports more advanced WITH clause scenarios:
   `WITH` before — PostgreSQL, the only engine with both the keyword and the
   statement, refuses the pairing whether or not the CTE body recurses
   (live-verified on 16) — so `WithRecursive(...).MergeInto(...)` does not
-  compile. DML *inside* a CTE body (PostgreSQL data-modifying CTEs) is not
-  supported.
+  compile. Of the DML statements, only an `INSERT ... SELECT` can be a CTE
+  body (no `UPDATE`, `DELETE`, `MERGE` or `INSERT ... VALUES` stage is a
+  subquery). It is emitted as written, which PostgreSQL runs as a data-modifying
+  CTE; with no `RETURNING` offered there, the body is write-only, and
+  PostgreSQL rejects a `.WithColumnList()` on it or a read of it.
 
 ---
 
@@ -2114,7 +2118,7 @@ int deletedId = outputs.Get<int>("outId");
 string deletedName = outputs.Get<string>("outName");
 ```
 
-**Note:** `RETURNING` is supported by Oracle, PostgreSQL, and SQLite (SQLite gained it in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)). It is not supported by MySQL or SQL Server (which uses [`OUTPUT`](#output-clause-sql-server)). The `RETURNING ... INTO` form is Oracle-specific. SqlArtisan does not validate database feature support, so ensure the clause is valid for your target DBMS.
+**Note:** `RETURNING` is supported by PostgreSQL and SQLite (SQLite gained it in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)), and Oracle takes it only as `Returning(...).Into(...)`. It is not supported by MySQL or SQL Server (which uses [`OUTPUT`](#output-clause-sql-server)). With the analyzer configured, `SQLA0100` reports `Returning` on MySQL and SQL Server, and `SQLA0102` reports an Oracle `Returning(...)` with no `.Into(...)`.
 
 ## OUTPUT Clause (SQL Server)
 
@@ -2284,8 +2288,8 @@ SqlStatement sql =
 // SELECT INTERVAL '123-11' YEAR(3) TO MONTH FROM DUAL
 ```
 
-Each field has a precision overload — `Year(3)`, `Day(2)`, …, `ToSecond(4)` —
-taking 0-9 (`ToSecond` any count from 0); the no-argument form leaves the
+Six fields have a precision overload — `Year(n)`, `Month(n)`, `Day(n)`, `Hour(n)`,
+`Minute(n)` and `ToSecond(n)` — taking 0-9 (`ToSecond` any count from 0); the no-argument form leaves the
 engine's own default. It is the
 leading-digit count on a sole or leading field (Oracle only), and the
 fractional-seconds count on `ToSecond` (Oracle and PostgreSQL). Only `ToSecond` may carry it as a *trailing* field;
@@ -2330,7 +2334,7 @@ SqlStatement sql =
 
 - **Oracle, PostgreSQL, SQLite (every version), and SQL Server (from a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs))** — `DoublePipe(a, b, ...)` for the native `||` operator, chaining any number of arguments without nesting.
 - **MySQL** — `Concat(a, b)` / `Concat(a, b, c, ...)` for the `CONCAT` function.
-- **SQL Server** — the existing `+` operator (`u.FirstName + " " + u.LastName`, or `"Dr. " + u.LastName` with the text first) for native concatenation, or the 2-argument `Concat(a, b)` function.
+- **SQL Server** — the existing `+` operator (`u.FirstName + " " + u.LastName`, or `"Dr. " + u.LastName` with the text first) for native concatenation, or the `Concat(a, b, ...)` function.
 - **Oracle's `CONCAT`** takes exactly two arguments — `Concat(a, b, c)` (three or more) is invalid there; use `DoublePipe(...)` for chains of three or more on Oracle.
 
 > [!NOTE]
@@ -2422,7 +2426,7 @@ SqlStatement sql =
 // OR (REGEXP_LIKE(name, :2))
 ```
 
-To match a wildcard (`%` or `_`) literally, chain `.Escape(...)` onto a `Like` / `NotLike` condition to emit a standard `ESCAPE` clause (supported identically across all dialects):
+To match a wildcard (`%` or `_`) literally, chain `.Escape(...)` onto a `Like` / `NotLike` condition to emit a standard `ESCAPE` clause (supported on every dialect):
 
 ```csharp
 UsersTable u = new();
@@ -2439,7 +2443,8 @@ SqlStatement sql =
 
 The escape character is emitted as an inline string literal rather than a bind
 parameter: `ESCAPE` takes a constant character fixed at the call site, and the
-literal spelling is valid identically on every dialect. On SQL Server a non-ASCII
+literal is spelled per dialect so it stays valid on each (a backslash is `'\\'`
+on MySQL and `E'\\'` on PostgreSQL). On SQL Server a non-ASCII
 escape character is written `N'...'`, so the database's code page cannot replace it.
 
 ### BETWEEN Condition
@@ -3354,7 +3359,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Round()` for `ROUND` (single-argument `Round(expr)` is not supported by SQL Server — pass the scale explicitly there)
 - `Sign()` for `SIGN`
 - `Sqrt()` for `SQRT`
-- `Trunc()` for `TRUNC` (Numeric Overload; Oracle, PostgreSQL, SQLite — the two-argument scale form is Oracle/PostgreSQL only)
+- `Trunc()` for `TRUNC` (numeric argument; Oracle, PostgreSQL, SQLite — the two-argument scale form is Oracle/PostgreSQL only)
 
 > [!WARNING]
 > **`LOG` silently changes meaning with the target, in both forms.** `SQLA0100` catches Oracle's rejection of `Log(x)` and every 2-arg `Log` on SQL Server; every other cell below runs, right or silently wrong.
@@ -3389,7 +3394,7 @@ not at the SqlArtisan layer.
 - `Length()` for `LENGTH` (MySQL, Oracle, PostgreSQL, SQLite)
 - `Lengthb()` for `LENGTHB` (Oracle)
 - `Lower()` for `LOWER`
-- `Position()` for `POSITION(substr IN str)`
+- `Position()` for `POSITION(substr IN str)` (MySQL, PostgreSQL)
 - `Right()` for `RIGHT` (MySQL, PostgreSQL, SQL Server)
 - `Rpad()` for `RPAD` (MySQL, Oracle, PostgreSQL; the 2-argument form is Oracle/PostgreSQL only)
 - `Rtrim()` for `RTRIM` (two-argument trim-set form: Oracle, PostgreSQL, SQLite, SQL Server)
@@ -3398,7 +3403,7 @@ not at the SqlArtisan layer.
 - `RegexpReplace()` for `REGEXP_REPLACE` (MySQL, Oracle, PostgreSQL, SQL Server)
 - `RegexpSubstr()` for `REGEXP_SUBSTR` (MySQL, Oracle, PostgreSQL, SQL Server; the 6-argument `subPatternPos` form is Oracle/PostgreSQL/SQL Server only)
 - `Replace()` for `REPLACE`
-- `Strpos()` for `STRPOS`
+- `Strpos()` for `STRPOS` (PostgreSQL)
 - `Substr()` for `SUBSTR` (not supported by SQL Server — use `Substring()` there)
 - `Substrb()` for `SUBSTRB` (Oracle)
 - `Substring()` for `SUBSTRING` (MySQL, PostgreSQL, SQLite, SQL Server; on Oracle use `Substr()`)
@@ -3444,7 +3449,7 @@ for the full per-dialect guide, including a MySQL semantics trap `||` has that
 - `DateTrunc()` for `DATE_TRUNC` (PostgreSQL)
 - `Datetime(timevalue[, modifier, ...])` for `DATETIME` (SQLite)
 - `Datetrunc()` for `DATETRUNC` (SQL Server)
-- `Extract()` for `EXTRACT` (Date/Time Overload; MySQL, Oracle, PostgreSQL)
+- `Extract()` for `EXTRACT` (MySQL, Oracle, PostgreSQL)
 - `Julianday(timevalue[, modifier, ...])` for `JULIANDAY` (SQLite)
 - `LastDay()` for `LAST_DAY` (MySQL, Oracle)
 - `MonthsBetween()` for `MONTHS_BETWEEN` (Oracle)
@@ -3453,7 +3458,7 @@ for the full per-dialect guide, including a MySQL semantics trap `||` has that
 - `Systimestamp` for `SYSTIMESTAMP` (Oracle)
 - `Timestampadd()` for `TIMESTAMPADD` (MySQL)
 - `Timestampdiff()` for `TIMESTAMPDIFF` (MySQL)
-- `Trunc()` for `TRUNC` (Date/Time Overload; Oracle)
+- `Trunc()` for `TRUNC` (date argument; Oracle)
 
 `DateAdd()`/`DateSub()` above take their shift amount from an `INTERVAL`
 expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
@@ -3627,7 +3632,8 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 - `RowNumber()` for `ROW_NUMBER()`
 
 A window function is invalid without `OVER`, so complete each one with
-`.Over(...)` (see [Expressions: Window Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#window-functions)).
+`.Over(...)` — except `PercentileCont` / `PercentileDisc`, which
+`.WithinGroup(...)` completes, as their entries above say (see [Expressions: Window Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#window-functions)).
 The library enforces this: a bare `Rank()`, `RowNumber()`, etc. is not a usable
 expression, so passing one to `Select(...)` is rejected rather than emitting an
 `OVER`-less token the database would reject.
@@ -3644,11 +3650,11 @@ SqlArtisan automatically converts C# literal values into bind parameters (to bin
 - **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
 - **Enum**: Any `enum` type, except the function-argument enums `DateTimePart`, `RegexpOptions` and `SearchModifier`, which throw `ArgumentException` in a value position. Passed there, one is a slip — an argument given at an arity with no slot of its type, as `RegexpCount(s, p, RegexpOptions.CaseInsensitive)` gives the options as the position — and bound, it is the value — through `SqlArtisan.Dapper`, its integer. To store or compare one deliberately, bind it with `Sql.Bind(value)`.
 
-`Sql.Bind(value)` rejects `null`. For a bound `NULL`, use `Sql.BindNull()`: a bare `null` literal inlines the `NULL` keyword into the SQL text, while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
+`Sql.Bind(value)` rejects `null`. For a bound `NULL`, use `Sql.BindNull()`: `Sql.Null` inlines the `NULL` keyword into the SQL text — as does a bare C# `null` in a `VALUES` row, the one position that takes one; anywhere else it throws `A C# null is not SQL NULL; pass Sql.Null instead.` — while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
 
 Two kinds of string never become a bind parameter, and they behave differently:
 
-- **Forced literals** — positions that need a literal, because the dialect rejects a bind marker there or because a marker would change how the engine resolves or plans the statement: the `LIKE ... ESCAPE` character, MySQL's `GROUP_CONCAT ... SEPARATOR` and the `STRING_AGG` separator (SQL Server rejects a bound one over a `varchar` input), `IntervalLiteral` text, a JSON path, a `JsonArrow` / `JsonArrowText` string key, a PostgreSQL text-search configuration, and the sequence name in `NEXTVAL('seq')` / `CURRVAL('seq')`. These are emitted inline as single-quoted literals with the quote character escaped (and the backslash too, on MySQL; on PostgreSQL a literal holding a backslash is written `E'...'` with it doubled, so it reads the same whatever the session's `standard_conforming_strings`). On SQL Server a literal holding a non-ASCII character is written `N'...'`, so the database's code page cannot replace it; the `STRING_AGG` separator stays plain, since SQL Server rejects `N'...'` there over a `varchar` input, so a separator character the code page lacks arrives as `?`. On SQL Server a backslash before a line break in such a literal gets a spare backslash and line break between the backslash and the line break, which SQL Server drops as a line continuation, so the literal keeps both characters.
+- **Forced literals** — positions that need a literal, because the dialect rejects a bind marker there or because a marker would change how the engine resolves or plans the statement: the `LIKE ... ESCAPE` character, MySQL's `GROUP_CONCAT ... SEPARATOR` and the `STRING_AGG` separator (SQL Server rejects a bound one over a `varchar` input), `IntervalLiteral` text, a JSON function's path (`JSON_EXTRACT` / `JSON_VALUE` / `JSON_QUERY`), a `JsonArrow` / `JsonArrowText` string key, a PostgreSQL text-search configuration, and the sequence name in `NEXTVAL('seq')` / `CURRVAL('seq')`. These are emitted inline as single-quoted literals with the quote character escaped (and the backslash too, on MySQL; on PostgreSQL a literal holding a backslash is written `E'...'` with it doubled, so it reads the same whatever the session's `standard_conforming_strings`). On SQL Server a literal holding a non-ASCII character is written `N'...'`, so the database's code page cannot replace it; the `STRING_AGG` separator stays plain, since SQL Server rejects `N'...'` there over a `varchar` input, so a separator character the code page lacks arrives as `?`. On SQL Server a backslash before a line break in such a literal gets a spare backslash and line break between the backslash and the line break, which SQL Server drops as a line continuation, so the literal keeps both characters.
 - **Identifiers** — an alias, a table or column name, a `Cast(...)` target type, and the sequence name in the Oracle (`Sequence("s").Nextval`) and SQL Server (`NextValueFor("s")`) spellings. These are emitted **exactly as written**, with no escaping: a type name like `DECIMAL(10,2)` is not a name that could be quoted, and rewriting an alias you spelled would break the guarantee that the SQL you write is the SQL that runs. `Sql.Hints(...)` is not an identifier but behaves the same way — it is a raw-SQL escape hatch, emitted verbatim by definition.
 
 So automatic parameterization prevents injection **through values**. Build identifiers from constants or an allowlist you control — never straight from request input.
@@ -3759,10 +3765,10 @@ still needs naming by ID.
 | ID | Severity | Reports |
 |---|---|---|
 | `SQLA0001` | Warning | A SqlArtisan analyzer configuration problem: an unrecognized `sqlartisan_syntax_*` key name or value (a blank `.editorconfig` value, or a version in another engine's spelling, included), a `sqlartisan_construct_*` key naming no SqlArtisan member or declared parameter count, a `sqlartisan_construct_*` value that could not be recognized, a `sqlartisan_syntax_*` family that resolves to no dialect in any file, or a removed `sqlartisan_target_dbms` / `sqlartisan_target_version` key still set — see [Checking a set of dialects at once](#checking-a-set-of-dialects-at-once) and [Migrating from the legacy target key](#migrating-from-the-legacy-target-key). |
-| `SQLA0100` | Warning | A SqlArtisan construct is used against a configured dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. Checking more than one dialect joins every failing one into a single diagnostic. |
+| `SQLA0100` | Warning | A SqlArtisan construct is used against a configured dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it, or your own `unsupported` override says so. Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0101` | Warning | A construct is supported on a configured dialect, but not at its declared version — see [Version-aware warnings](#version-aware-warnings-sqla0101). Checking more than one dialect reports one diagnostic per failing dialect. |
 | `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
-| `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
+| `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` or `Unnest(...).AsTable(...)` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
 | `SQLA0104` | Warning | A literal argument value a configured dialect rejects, or runs with another meaning, where the construct itself runs there: a `DateTimePart` the function's grammar does not accept or reads as another field, a `RegexpOptions` member outside that engine's match-parameter alphabet, a negative `Top`/`FetchFirst`/`FetchNext`/`Limit` count, or a `GroupBy` column ordinal on an engine that has no `GROUP BY` positions — see [Argument value validity](#argument-value-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join on its own spine — past one, the anti-join makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0201` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
@@ -3780,9 +3786,10 @@ Build entries), but not in the editor's live analysis, which never runs
 compilation-end actions. `SQLA0100`, by contrast, is a per-usage diagnostic
 and shows up live as you type.
 
-`SQLA0100` only ever fires for a construct the matrix has confirmed — one
-without a matrix entry stays silent rather than guessed at, so an incomplete
-matrix can under-warn but never produce a false positive.
+Absent your own `unsupported` override, `SQLA0100` only ever fires for a
+construct the matrix has confirmed — one without a matrix entry stays silent
+rather than guessed at, so an incomplete matrix can under-warn but never
+produce a false positive.
 
 One kind of entry reports SQL the engine runs: a spelling the dialect reads as
 something else — `||` as logical OR on MySQL, `<=>` as MySQL's NULL-safe
@@ -3792,8 +3799,9 @@ there, so the warning is the only signal; where you mean the dialect's own
 reading, suppress it at that call.
 
 `SQLA0103` checks compile-time identifier literals — table and expression
-aliases (`.As(...)`), CTE and derived-table names, `VALUES` column names, and
-the Oracle `RETURNING ... INTO` output variable — against each dialect's limit:
+aliases (`.As(...)`), CTE and derived-table names, `VALUES` and
+`Unnest(...).AsTable(...)` column names, and the Oracle `RETURNING ... INTO`
+output variable — against each dialect's limit:
 
 | Dialect | Limit | Measured in |
 |---|---|---|
@@ -4043,8 +4051,8 @@ An arity-level key always wins over a member-level key for the same member,
 and any override always wins over the shipped matrix:
 
 ```ini
-sqlartisan_syntax_postgresql = 15
-sqlartisan_construct_merge_into = supported   # e.g. targeting PostgreSQL 15+, where MERGE landed
+sqlartisan_syntax_sqlite = 3.45
+sqlartisan_construct_log10 = unsupported   # e.g. a SQLite build without SQLITE_ENABLE_MATH_FUNCTIONS
 ```
 
 A key that names no SqlArtisan member, or no declared parameter count of one,
@@ -4260,8 +4268,9 @@ the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
 expression where the construct is used. Nineteen rules ship today — twelve reading
 the construct's surroundings, seven reading the DML statement a clause sits in.
-Every verdict below, rejection and acceptance alike, is live-verified on the
-pinned lanes: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
+Every rejection below is live-verified on the pinned lanes, and so is every
+acceptance but MySQL's `LIMIT` in the scalar, `EXISTS`, CTE and derived-table
+positions, which no lane runs: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
 Server 2022 — the Oracle floors on Free 23ai, and `WHEN NOT MATCHED BY SOURCE` on
 PostgreSQL 17. A floor below a lane's
 version rests on the vendor's release notes, as the version-bound register's
@@ -4939,18 +4948,18 @@ var sql = InsertInto(t, t.Note).Values("x").Build();
 // this INSERT's column list
 ```
 
-A column the engine assigns itself — identity, auto-increment, generated, or
-one with a `DEFAULT` — is recorded as defaulted and never reported; omitting it
+Only a column the class records as `HasDefault = false` is reported.
+TableClassGen records that for every column without a default on Oracle and
+SQLite. On PostgreSQL and SQL Server it records it only for an explicit
+`DEFAULT NULL`, and on MySQL never, so there only a hand-written class can state
+it: `information_schema` cannot tell no default from an identity column, so a
+plain `NOT NULL` column with no default is left unknown and the rule stays
+silent. A column with a `DEFAULT`, an Oracle identity or virtual column and
+SQLite's rowid alias are recorded as defaulted and never reported; omitting one
 is the normal thing to do. The explicit-column-list form and the `Set` form
 (whose assignments are its column list) are checked; the positional
 `InsertInto(t).Values(...)` supplies every column by construction, and
 `InsertIgnoreInto` asked for error-raising rows to be skipped.
-
-> **MySQL caveat.** Outside strict mode MySQL does not reject this statement —
-> it substitutes an implicit default (`0`, `''`) and warns. `STRICT_TRANS_TABLES`
-> is on by default from MySQL 5.7, so the warning matches what the default
-> configuration does; on a non-strict server, read it as flagging a column that
-> will silently receive an implicit default rather than the value you meant.
 
 The fourth is not a mistake at all, which is why it ships switched off.
 `COUNT(column)` counts the rows where that column is not NULL — correct SQL, and
@@ -5156,16 +5165,18 @@ construct (`SQLA0101`), a rejected position (`SQLA0102`), an over-long
 identifier (`SQLA0103`) and a rejected literal value (`SQLA0104`) as warnings.
 
 **Whitelist mode** — failing on any construct the matrix hasn't verified — is
-deliberately not offered. `SQLA0100` fires only on a *confirmed* mismatch (a
-construct the matrix doesn't know stays silent rather than guess), so there is
+deliberately not offered. Absent your own `unsupported` override, `SQLA0100`
+fires only on a *confirmed* mismatch (a construct the matrix doesn't know stays
+silent rather than guess), so there is
 no "unverified construct" diagnostic to promote: the matrix's completeness is
 the safety net, and this repository enforces it. A coverage test fails when any
 public method, property, field, or overloaded operator ships without a matrix
 entry or a documented dialect-neutral exclusion, and an integration-test sweep
 executes the entries against a live engine per dialect (the versions in the
 table below), asserting that accept/reject outcomes match the matrix both ways.
-Two entries are excluded by name, and a dozen more skip individual engines for
-a recorded reason: the shared runner or the container image cannot execute the
+The entries with no SQL of their own (the interval field markers and
+`ConditionIf`) and Oracle's `Into` are excluded by name, and some cases skip
+individual engines for a recorded reason: the shared runner or the container image cannot execute the
 statement — SQL Server's image ships without Full-Text Search, for example —
 the engine executes the text as a *different* construct, so its acceptance
 would prove nothing about the entry, or the driver rejects the statement
@@ -5255,8 +5266,7 @@ for, not a bug in the matrix.
 - **Absence of an entry still means silence, not endorsement.** The matrix
   covers every referencable public method, property, field, and overloaded
   operator except a
-  documented set of dialect-neutral plumbing (`Build`, the result and
-  configuration objects) and `Trunc` above — gate-enforced by the
+  documented set of dialect-neutral members and `Trunc` above — gate-enforced by the
   repository's tests — but a member in that excluded set never warns either
   way. See
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)

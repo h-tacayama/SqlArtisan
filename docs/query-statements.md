@@ -512,7 +512,7 @@ SqlStatement sql =
 // GROUP BY ROLLUP(region)
 ```
 
-`Grouping(a, b, ...)` also takes multiple columns, returning a combined bitmask (MySQL, PostgreSQL); Oracle and SQL Server spell the same bitmask `GroupingId(a, ...)` instead. MySQL accepts `Grouping(...)` only inside a `WITH ROLLUP` query (its own grouping syntax, above) — using it with an ordinary `GroupBy(...)` is rejected there, a context requirement no dialect matrix key can express.
+`Grouping(a, b, ...)` also takes multiple columns, returning a combined bitmask (MySQL, PostgreSQL); Oracle and SQL Server spell the same bitmask `GroupingId(a, ...)` instead. MySQL accepts `Grouping(...)` only inside a `WITH ROLLUP` query (its own grouping syntax, above) — using it with an ordinary `GroupBy(...)` is rejected there, a context requirement no dialect matrix key can express, which the analyzer reports as `SQLA0102`.
 
 ---
 
@@ -807,7 +807,7 @@ On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is r
 A builder chain is **single-use**: once you call `Build()`, that builder is finished — any further stage call on it, including a second `Build()`, throws. This turns a silently-wrong reuse into a loud error:
 
 ```csharp
-// NG — holding a base query to fetch each page throws on the second Build().
+// NG — holding a base query to fetch each page throws on the first call after Build().
 TestTable t = new();
 var q = Select(t.Code).From(t).OrderBy(t.Code).Limit(10);
 
@@ -1037,7 +1037,8 @@ that joins it throws. A joined `DELETE ... FROM` must re-list the
 target in `FROM`, or `From(...)` throws; on SQL Server a joined `UPDATE` must too
 — T-SQL's joined form takes the target's alias from there — or
 `Build(Dbms.SqlServer)` throws. A re-listed `UPDATE` target off SQL Server throws
-at `Build()`. Every other wrong-dialect spelling is emitted as written and rejected
+at `Build()`, and so does `DeleteFrom(t).Using(...)` on SQL Server, which has no
+`DELETE ... USING` form. Every other wrong-dialect spelling is emitted as written and rejected
 by the database; with the analyzer configured it is named first — see
 [Context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102).
 Oracle and SQLite before the releases that added `UPDATE … FROM` take none of
@@ -1239,8 +1240,8 @@ emits the row-alias form (`AS new` … `new.column`) to avoid the deprecated
 
 **Note:** `ON CONFLICT` is PostgreSQL/SQLite-only and `ON DUPLICATE KEY UPDATE`
 is MySQL-only. Oracle and SQL Server use [`MERGE`](#merge-statement) instead.
-SqlArtisan does not validate feature support, so ensure the clause is valid for
-your target DBMS.
+With the analyzer configured, `SQLA0100` reports either clause on a dialect
+without it; otherwise the database rejects it.
 
 **MySQL — `INSERT IGNORE`**
 
@@ -1579,8 +1580,11 @@ SqlArtisan also supports more advanced WITH clause scenarios:
   `WITH` before — PostgreSQL, the only engine with both the keyword and the
   statement, refuses the pairing whether or not the CTE body recurses
   (live-verified on 16) — so `WithRecursive(...).MergeInto(...)` does not
-  compile. DML *inside* a CTE body (PostgreSQL data-modifying CTEs) is not
-  supported.
+  compile. Of the DML statements, only an `INSERT ... SELECT` can be a CTE
+  body (no `UPDATE`, `DELETE`, `MERGE` or `INSERT ... VALUES` stage is a
+  subquery). It is emitted as written, which PostgreSQL runs as a data-modifying
+  CTE; with no `RETURNING` offered there, the body is write-only, and
+  PostgreSQL rejects a `.WithColumnList()` on it or a read of it.
 
 ---
 
@@ -1671,7 +1675,7 @@ int deletedId = outputs.Get<int>("outId");
 string deletedName = outputs.Get<string>("outName");
 ```
 
-**Note:** `RETURNING` is supported by Oracle, PostgreSQL, and SQLite (SQLite gained it in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)). It is not supported by MySQL or SQL Server (which uses [`OUTPUT`](#output-clause-sql-server)). The `RETURNING ... INTO` form is Oracle-specific. SqlArtisan does not validate database feature support, so ensure the clause is valid for your target DBMS.
+**Note:** `RETURNING` is supported by PostgreSQL and SQLite (SQLite gained it in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)), and Oracle takes it only as `Returning(...).Into(...)`. It is not supported by MySQL or SQL Server (which uses [`OUTPUT`](#output-clause-sql-server)). With the analyzer configured, `SQLA0100` reports `Returning` on MySQL and SQL Server, and `SQLA0102` reports an Oracle `Returning(...)` with no `.Into(...)`.
 
 ## OUTPUT Clause (SQL Server)
 
