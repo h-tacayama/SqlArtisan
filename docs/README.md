@@ -12,15 +12,18 @@ Task-oriented paths from your current project to SqlArtisan.
 
 - **[Comparison Guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/comparison.md)** —
   how SqlArtisan compares to EF Core, linq2db, SqlKata, Dapper.SqlBuilder,
-  and InterpolatedSql — and when NOT to choose SqlArtisan.
+  and InterpolatedSql — philosophy, type safety, machine-verifiability, dialect
+  handling, execution, performance, and when NOT to choose SqlArtisan.
 - **[Dapper + SqlArtisan from Scratch](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md)** —
-  the greenfield path: packages → table classes → executed queries.
+  the greenfield path: packages → table classes → executed queries → the
+  reference for writing statements → pinning queries with tests.
 - **[Oracle Array-Bind Execution with SqlArtisan.ArrayBind](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md)** —
   run SqlArtisan-built statements for N rows in one round trip via ODP.NET
   array binding.
 - **[Using SqlArtisan with AI Coding Assistants](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md)** —
-  the analyzer target, the `llms.txt` feed, and exact-SQL test pinning for
-  AI-written queries.
+  the `llms.txt` feed, the analyzer target, keeping the table classes in step
+  with the database, exact-SQL test pinning for AI-written queries, and a rules
+  snippet for your agent file.
 
 ## [Query Cookbook](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md)
 
@@ -106,8 +109,11 @@ Built-in function catalog, grouped by family, plus bind-parameter types.
 
 ## [Analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)
 
-An opt-in Roslyn analyzer that warns when a construct is used against a target
-dialect it doesn't support.
+An opt-in Roslyn analyzer that reports configuration problems; constructs,
+identifiers and argument values a target dialect doesn't support; what the
+generated table classes' schema metadata says about a query; and validity
+problems — a correlated DML target `Build()` would reject, or C# that binds a
+value instead of building SQL.
 
 [Enabling It](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it) ·
 [Rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules) ·

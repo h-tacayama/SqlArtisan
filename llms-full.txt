@@ -263,12 +263,12 @@ Type-safe C# emits the SQL you write, for **MySQL, Oracle, PostgreSQL, SQLite, a
 | Reference | Covers |
 |---|---|
 | **Guides** | [Comparison guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/comparison.md) · [Dapper + SqlArtisan from scratch](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md) · [Oracle array-bind execution with SqlArtisan.ArrayBind](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) · [Using SqlArtisan with AI coding assistants](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md) |
-| **[Query Cookbook](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md)** | Realistic end-to-end queries, each pinned by an exact-SQL unit test — [reporting](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#reporting-queries) · [dynamic search screens](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#dynamic-search-screens) · [batch and UPSERT DML](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#batch-and-upsert-dml) |
+| **[Query Cookbook](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md)** | Realistic end-to-end queries, each pinned by an exact-SQL unit test — [everyday patterns](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#everyday-patterns) · [reporting](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#reporting-queries) · [dynamic search screens](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#dynamic-search-screens) · [batch and UPSERT DML](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#batch-and-upsert-dml) |
 | **[Query Statements](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md)** | **Read** — [SELECT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#select-clause) · [FROM](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#from-clause) · [WHERE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#where-clause) · [JOIN](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#join-clause) · [ORDER BY](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#order-by-clause) · [GROUP BY / HAVING](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#group-by-and-having-clause) · [Set Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#set-operators) · [FOR UPDATE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#for-update-clause) · [Pagination](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination) |
 | | **Write** — [DELETE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#delete-statement) · [UPDATE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#update-statement) — [joined](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#joined-update--delete) · [INSERT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#insert-statement) — [multi-row](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#multiple-rows), [SET-like](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#alternative-syntax-set-like), [INSERT … SELECT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#insert-select-syntax), [UPSERT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#upsert-insert-update-or-skip), [MERGE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement) · [WITH / CTE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#with-clause-common-table-expressions) · [RETURNING](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#returning-clause) · [OUTPUT (SQL Server)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#output-clause-sql-server) |
 | **[Expressions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md)** | [NULL](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#null-literal) · [Arithmetic](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#arithmetic-operators) · [Interval Expressions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#interval-expressions) · [String Concatenation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-concatenation) · [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions) · [JSON Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#json-operators) · [Array Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#array-operators) · [Vector Distance](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#vector-distance-operators) · [Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#full-text-search) · [Scalar Subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#scalar-subquery) · [ALL / ANY / SOME](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#all--any--some) · [CASE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#case-expressions) · [CAST](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#cast) · [Window Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#window-functions) · [Conditional Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditional-aggregation-filter) · [String Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-aggregation) · [Sequence](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#sequence) |
 | **[Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md)** | [Numeric](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#numeric-functions) · [Character](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#character-functions) (incl. `REGEXP_*`) · [Date & Time](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#date-and-time-functions) (incl. `ADD_MONTHS`, `DATE_TRUNC`) · [Conversion](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#conversion-functions) · [Comparison](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#comparison-functions) (`GREATEST`, `LEAST`) · [JSON](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#json-functions) (`JSON_EXTRACT`, `JSON_VALUE`, `JSON_QUERY`) · [Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#full-text-search-functions) (`MATCH ... AGAINST`, `CONTAINS`, `@@`, FTS5 `MATCH`, `FREETEXT`) · [Aggregate](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#aggregate-functions) · [String Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#string-aggregation-functions) (`STRING_AGG`, `LISTAGG`, `GROUP_CONCAT`) · [Window / Analytic](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#window-functions) (`ROW_NUMBER`, `LAG`/`LEAD`, `PERCENTILE_CONT`) · [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types) |
-| **[Analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)** | Opt-in Roslyn analyzer — [enabling it](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it), [rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules), [checking a set of dialects at once](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#checking-a-set-of-dialects-at-once), [correcting a warning](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#correcting-a-warning-the-override-keys), [mixed-dialect projects](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#mixed-dialect-projects), [CI gates](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#ci-gates-and-stricter-enforcement) |
+| **[Analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)** | Opt-in Roslyn analyzer — [enabling it](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it), [rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules), [checking a set of dialects at once](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#checking-a-set-of-dialects-at-once), [migrating from the legacy target key](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#migrating-from-the-legacy-target-key), [correcting a warning](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#correcting-a-warning-the-override-keys), [version-aware warnings](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-aware-warnings-sqla0101), [context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102), [argument value validity](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#argument-value-validity-sqla0104), [correlated DML target](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#correlated-dml-target-sqla0300), [C# fallbacks](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#c-fallbacks-sqla0301-sqla0302), [schema-aware warnings](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#schema-aware-warnings-sqla0200), [mixed-dialect projects](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#mixed-dialect-projects), [CI gates](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#ci-gates-and-stricter-enforcement), [verified-against versions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#verified-against-versions), [known limitations](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#known-limitations) |
 
 > Using an AI coding assistant? Point it at [`llms.txt`](https://github.com/h-tacayama/SqlArtisan/blob/main/llms.txt) for an LLM-friendly index of this documentation, or [`llms-full.txt`](https://github.com/h-tacayama/SqlArtisan/blob/main/llms-full.txt) for the full-text dump when your tool ingests one file instead of following links. Tools integrated with [Context7](https://context7.com/) can resolve "SqlArtisan" by name instead. See the [AI coding assistants guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md) for the setup that makes generated queries verifiable.
 
@@ -318,15 +318,18 @@ Task-oriented paths from your current project to SqlArtisan.
 
 - **[Comparison Guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/comparison.md)** —
   how SqlArtisan compares to EF Core, linq2db, SqlKata, Dapper.SqlBuilder,
-  and InterpolatedSql — and when NOT to choose SqlArtisan.
+  and InterpolatedSql — philosophy, type safety, machine-verifiability, dialect
+  handling, execution, performance, and when NOT to choose SqlArtisan.
 - **[Dapper + SqlArtisan from Scratch](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md)** —
-  the greenfield path: packages → table classes → executed queries.
+  the greenfield path: packages → table classes → executed queries → the
+  reference for writing statements → pinning queries with tests.
 - **[Oracle Array-Bind Execution with SqlArtisan.ArrayBind](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md)** —
   run SqlArtisan-built statements for N rows in one round trip via ODP.NET
   array binding.
 - **[Using SqlArtisan with AI Coding Assistants](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md)** —
-  the analyzer target, the `llms.txt` feed, and exact-SQL test pinning for
-  AI-written queries.
+  the `llms.txt` feed, the analyzer target, keeping the table classes in step
+  with the database, exact-SQL test pinning for AI-written queries, and a rules
+  snippet for your agent file.
 
 ## [Query Cookbook](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md)
 
@@ -412,8 +415,11 @@ Built-in function catalog, grouped by family, plus bind-parameter types.
 
 ## [Analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)
 
-An opt-in Roslyn analyzer that warns when a construct is used against a target
-dialect it doesn't support.
+An opt-in Roslyn analyzer that reports configuration problems; constructs,
+identifiers and argument values a target dialect doesn't support; what the
+generated table classes' schema metadata says about a query; and validity
+problems — a correlated DML target `Build()` would reject, or C# that binds a
+value instead of building SQL.
 
 [Enabling It](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it) ·
 [Rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules) ·
@@ -2239,8 +2245,8 @@ instead; the analyzer warns when a `%` expression targets Oracle.
 `INTERVAL` has no common spelling across engines, so pick the factory for your
 target DBMS: `Interval(quantity, unit)` binds its quantity as a parameter
 (MySQL's own unquoted form), `IntervalLiteral(...)` emits its value inline as a
-quoted literal (Oracle/PostgreSQL). Combine either with `+`/`-` for date-shift
-arithmetic.
+quoted literal (MySQL in its `value, field` form only, Oracle, PostgreSQL).
+Combine either with `+`/`-` for date-shift arithmetic.
 
 ```csharp
 SqlStatement sql =
@@ -5868,16 +5874,18 @@ How much the compiler catches before the query reaches a database:
 
 | Level | What the compiler checks | Examples |
 |-------|-------------------------|----------|
-| **Raw SQL strings** | Nothing — typos and schema drift surface at runtime | EF Core `FromSqlRaw`, raw Dapper, InterpolatedSql |
-| **String-keyed builders** | Statement structure is typed, but table/column names are strings | Dapper.SqlBuilder, SqlKata |
-| **Generated table classes** | Column references are compile-checked C# properties; an `ALTER TABLE` that drops a column breaks the build | SqlArtisan |
+| **Raw SQL strings** | Nothing — typos and schema drift surface at runtime | EF Core `FromSqlRaw`, raw Dapper, Dapper.SqlBuilder (its statement is a SQL string template that SQL-string clause bodies fill), InterpolatedSql's interpolated strings |
+| **String-keyed builders** | Statement structure is typed, but table/column names are strings | SqlKata, InterpolatedSql's `FluentQueryBuilder` (staged clauses, each body a SQL string) |
+| **Generated table classes** | Column references are compile-checked C# properties; once the classes are regenerated, an `ALTER TABLE` that drops a column breaks the build | SqlArtisan |
 | **Expression-tree mapping** | Full compile-time model, tightest coupling between domain types and schema | EF Core, linq2db |
 
 Expression-tree mapping (EF Core, linq2db) offers the tightest
 compile-time safety. SqlArtisan's table classes sit one level below: column
 names and statement structure are compile-checked, while the query itself
-stays in the SQL domain — you see the SQL you are writing, and the compiler
-still catches a renamed or deleted column.
+stays in the SQL domain — you see the SQL you are writing, and once the table
+classes are regenerated the compiler catches a renamed or deleted column. Until
+then a stale class still compiles; TableClassGen's `--check` reports the drift
+in CI.
 
 ---
 
@@ -5902,7 +5910,8 @@ between generation and production:
    engines.
 
 Raw SQL strings verify nothing until the database rejects them.
-String-keyed builders catch structural mistakes but not column typos.
+String-keyed builders type the statement's structure but leave a column typo
+to the database.
 Expression-tree ORMs catch the most at compile time, but the emitted SQL
 is opaque — you cannot pin it with exact-SQL tests without coupling to the
 ORM's internal translation.
@@ -5963,11 +5972,13 @@ See the
 SqlArtisan minimizes heap allocations — string buffers are recycled from a
 pooled `ArrayPool<T>`. In the project's
 [like-for-like BenchmarkDotNet workload](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.Benchmark),
-it allocated the least and ran the fastest among the query builders tested;
-only a hand-written `StringBuilder` (no compile-checked names, no dialect
-handling) was lighter. See the
+it allocated the least among the query builders tested — a firm lead — and
+ran the fastest, an order to treat as directional; only a hand-written
+`StringBuilder` (no compile-checked names, no dialect handling) was lighter.
+See the
 [benchmark table in the README](https://github.com/h-tacayama/SqlArtisan/blob/main/README.md#performance)
-for the numbers and re-run instructions.
+for the numbers, the machine and runtime they were measured on, and re-run
+instructions.
 
 **What the benchmark measures:** building the SQL string and its bind
 parameters — the builder path only. It does not measure end-to-end query
@@ -6084,7 +6095,7 @@ default; they are what makes wrong column names a compile error.
 Add `using SqlArtisan.Dapper;` and call Dapper's verbs directly on your
 `IDbConnection`, passing the builder chain instead of a SQL string. The
 extension builds the statement for the connection's dialect (resolved from the
-connection's provider type — Npgsql → PostgreSQL, MySqlConnector → MySQL, …)
+connection's provider type — MySqlConnector → MySQL, Npgsql → PostgreSQL, …)
 and forwards text and bind parameters to Dapper:
 
 ```csharp
@@ -6165,7 +6176,8 @@ From here it is the reference material:
   [Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md) —
   conditions, operators, and the built-in function catalog.
 - [Query Cookbook](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md) —
-  realistic end-to-end queries (reporting, search screens, batch DML) to
+  realistic end-to-end queries (everyday patterns, reporting, search screens,
+  batch DML) to
   start from.
 
 Write the SQL your target DBMS runs — SqlArtisan emits it faithfully and does

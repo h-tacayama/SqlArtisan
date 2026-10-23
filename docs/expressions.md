@@ -80,8 +80,8 @@ instead; the analyzer warns when a `%` expression targets Oracle.
 `INTERVAL` has no common spelling across engines, so pick the factory for your
 target DBMS: `Interval(quantity, unit)` binds its quantity as a parameter
 (MySQL's own unquoted form), `IntervalLiteral(...)` emits its value inline as a
-quoted literal (Oracle/PostgreSQL). Combine either with `+`/`-` for date-shift
-arithmetic.
+quoted literal (MySQL in its `value, field` form only, Oracle, PostgreSQL).
+Combine either with `+`/`-` for date-shift arithmetic.
 
 ```csharp
 SqlStatement sql =

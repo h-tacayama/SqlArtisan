@@ -172,7 +172,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `DELETE` target. They rendered the column's name alone, so
   `DoUpdateSet(t.B == Excluded(u.B))` or an `UPDATE ... FROM` with
   `Output(Inserted(u.B))` read the target's `b` with no error. Another handle of
-  the target table still passes; read another table's value in an upsert through
+  the target table still passes; read another table's value in an UPSERT through
   a subquery, and output a joined table's column directly. (#675)
 - **Breaking:** `Any` / `All` / `Some` and `Interval(n, unit)` return types that
   are no longer `SqlExpression`s, since each completes only one operand slot (a
@@ -206,7 +206,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   body or a derived table reads a column of an unaliased table it does not
   list itself, in any statement: a correlated `SELECT` subquery, an
   `INSERT ... SELECT`'s `NOT EXISTS`, a joined `UPDATE`'s or a `MERGE`
-  source's subquery, an upsert or `RETURNING` subquery reading the `INSERT`
+  source's subquery, an UPSERT or `RETURNING` subquery reading the `INSERT`
   target, a second unaliased instance of a DML target. The column rendered
   bare and bound any same-named column of the subquery's own tables, so the
   subquery stopped depending on the outer row: `EXISTS (SELECT id FROM orders
@@ -1001,6 +1001,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `RETURNING` and `OUTPUT` list. Oracle rejects either before `INTO`, SQLite's
   `RETURNING` rejects `t.*`, and SQL Server rejects `OUTPUT *` and the target's
   `t.*` in `OUTPUT` on a statement that joins nothing. (#669, #675, #685)
+- `docs/comparison.md` scopes "an `ALTER TABLE` that drops a column breaks the
+  build" to regenerated table classes, with `--check` catching the drift until
+  then; places Dapper.SqlBuilder, whose statement is a SQL string template, with raw
+  SQL strings and InterpolatedSql's staged `FluentQueryBuilder` with the
+  string-keyed builders; and calls the benchmark's timing order directional, as
+  the README does. (#686)
+- The page descriptors in `llms.txt`, `README.md`, `docs/README.md` and
+  `docs/guides/dapper-quickstart.md` list every section of their kind (the analyzer's families and sections, the
+  cookbook's everyday patterns, the AI guide's feed and drift sections), and
+  `context7.json` stops indexing `CHANGELOG.md`, whose history names removed
+  APIs. `IntervalLiteral(value, field)` is listed for MySQL too. (#686)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added
@@ -1008,7 +1019,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `CURRENT_TIMESTAMP(p)` / `CURRENT_TIME(p)`, for fractional seconds — MySQL's
   bare `CURRENT_TIMESTAMP` has whole-second precision. The precision form is
   MySQL, Oracle and PostgreSQL for `CURRENT_TIMESTAMP` and MySQL and PostgreSQL
-  for `CURRENT_TIME`; `SQLA0100` reports it on SQL Server and SQLite, which
+  for `CURRENT_TIME`; `SQLA0100` reports it on SQLite and SQL Server, which
   spell both keywords bare only. A precision outside 0-9 throws
   `ArgumentException` at the call. (#553)
 - `SQLA0100` reports an interval field's precision where the target rejects it:
@@ -1144,16 +1155,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   on the other engines. See [MERGE
   Statement](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement).
   (#521)
-- `Of(table, ...)` names the tables a PostgreSQL or MySQL `FOR UPDATE` locks —
+- `Of(table, ...)` names the tables a MySQL or PostgreSQL `FOR UPDATE` locks —
   `ForUpdate(Of(u), SkipLocked)` emits `FOR UPDATE OF "u" SKIP LOCKED`, and
   `Of(u, o)` names more than one. Both engines take a relation there, not the
   column Oracle's `Of(column)` names, so `OF` on a join had no spelling on
-  either: PostgreSQL 16 and MySQL 8.0 lock only the named tables' rows, and
+  either: MySQL 8.0 and PostgreSQL 16 lock only the named tables' rows, and
   PostgreSQL rejects a plain `FOR UPDATE` on an outer join, which `Of(...)`
   naming the preserved side runs. An aliased table renders as its alias, since
   both engines reject the table name once it is aliased, and an unaliased one as
   its name without the schema, which PostgreSQL requires there. `SQLA0100` reports
-  `Of(table)` on Oracle and `Of(column)` on PostgreSQL and MySQL. See [FOR UPDATE
+  `Of(table)` on Oracle and `Of(column)` on MySQL and PostgreSQL. See [FOR UPDATE
   Clause](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#for-update-clause).
   (#521)
 
@@ -1186,7 +1197,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `OrderBy(2.5)` and `OrderBy(-1)` now throw at `Build(Dbms.SqlServer)` too,
   instead of emitting an `ORDER BY` T-SQL rejects at execution. Oracle is
   unaffected: it reads either literal as a constant expression and accepts it
-  (both facts live-verified on the SQL Server 2022 and Oracle XE 21.3.0 lanes).
+  (both facts live-verified on the Oracle XE 21.3.0 and SQL Server 2022 lanes).
 - `RegexpOptions.CaseSensitive` and `.CaseInsensitive` no longer claim to be
   mutually exclusive. Nothing enforced it and no engine rejects the pair:
   MySQL, Oracle and PostgreSQL each apply the last letter, and SqlArtisan
@@ -1703,10 +1714,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   documented. (#487)
 
 ### Docs
-- The release-audit process is retired: ADR 0022 (its convergence criterion),
-  the `sa-release-audit` skill, and the decline ledger are deleted. Every
-  decision the ledger carried now lives in the record that owns its subject —
-  ADR 0007, 0011, 0012 and 0014, `guards-and-empty-states.md`,
+- The release-audit process is retired: the ADR holding its convergence
+  criterion, the `sa-release-audit` skill, and the decline ledger are deleted.
+  Every decision the ledger carried now lives in the record that owns its
+  subject — the ADRs on the validity boundary, bounded exceptions, value-domain
+  guards and the correlated-DML rule, `guards-and-empty-states.md`,
   `code-comments.md`, `unit-tests.md`, the TableClassGen README, or a comment
   at the site — stated as what the behaviour is and why, with no pass numbers
   and no matching protocol. The questions that were genuinely open, each
@@ -1898,7 +1910,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - `Sql.RegexpInstr(source, pattern, ...)` for `REGEXP_INSTR` — the one member of the `REGEXP_*` family (`RegexpCount`/`RegexpReplace`/`RegexpSubstr`) that was still missing. Mirrors `RegexpSubstr`'s progressive overload ladder (`position`/`occurrence`/match options/`subPatternPos`), plus its own `returnOption` argument (0 for the match's first-character position, 1 for the position following it). Runs on MySQL, Oracle, and PostgreSQL (15+, vendor-verified alongside its siblings); the 7-argument overload carrying `subPatternPos` is Oracle/PostgreSQL only — MySQL's `REGEXP_INSTR` tops out at 6 arguments, with no `subexpr`. See [Functions: Character Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#character-functions). (#446)
 - `Sql.Substring(source, position, length)` for SQL Server's `SUBSTRING` — the only substring spelling that dialect has, since it has no `SUBSTR`. Unlike `Substr`, `length` is required (SQL Server's grammar has no 2-argument form). `Substring` also runs on MySQL, PostgreSQL, and SQLite (3.34+, vendor-verified: SQLite registered `SUBSTRING` as a second name for `substr()` there); Oracle has no `SUBSTRING` (`ORA-00904`) — use `Substr` there instead. See [Functions: Character Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#character-functions). (#445)
-- `Sql.ConcatWs(sep, a, b, ...)`, `Sql.CharLength(str)`, `Sql.Left(str, n)`/`Sql.Right(str, n)`, `Sql.Position(substr, str)`, and `Sql.Strpos(str, substr)` — six ubiquitous string helpers `CharacterFunction/` was missing entirely. `ConcatWs` requires at least two values (SQL Server's own arity floor for `CONCAT_WS`) and carries version bounds for SQL Server 2017+ and SQLite 3.44+ (both vendor-verified); it has no Oracle spelling (`ORA-00904`). `Position(substr, str)` and `Strpos(str, substr)` are two separate factories, not one dialect-switched call: MySQL/PostgreSQL's `POSITION(substr IN str)` and PostgreSQL's own `STRPOS(str, substr)` differ in both keyword-vs-function-call syntax and argument order — a construct difference, not a token swap — and neither runs on Oracle, SQLite, or SQL Server, which spell this `INSTR`/`CHARINDEX` instead. `CharLength` is MySQL/PostgreSQL only; `Left`/`Right` add SQL Server. See [Functions: Character Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#character-functions). (#444)
+- `Sql.ConcatWs(sep, a, b, ...)`, `Sql.CharLength(str)`, `Sql.Left(str, n)`/`Sql.Right(str, n)`, `Sql.Position(substr, str)`, and `Sql.Strpos(str, substr)` — six ubiquitous string helpers `CharacterFunction/` was missing entirely. `ConcatWs` requires at least two values (SQL Server's own arity floor for `CONCAT_WS`) and carries version bounds for SQLite 3.44+ and SQL Server 2017+ (both vendor-verified); it has no Oracle spelling (`ORA-00904`). `Position(substr, str)` and `Strpos(str, substr)` are two separate factories, not one dialect-switched call: MySQL/PostgreSQL's `POSITION(substr IN str)` and PostgreSQL's own `STRPOS(str, substr)` differ in both keyword-vs-function-call syntax and argument order — a construct difference, not a token swap — and neither runs on Oracle, SQLite, or SQL Server, which spell this `INSTR`/`CHARINDEX` instead. `CharLength` is MySQL/PostgreSQL only; `Left`/`Right` add SQL Server. See [Functions: Character Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#character-functions). (#444)
 - `Sql.Ifnull(expr, alt)`/`Sql.Isnull(expr, alt)` and `Sql.If(condition, then, else)`/`Sql.Iif(condition, then, else)` — MySQL/SQLite's `IFNULL`, SQL Server's `ISNULL`, MySQL's `IF`, and SQLite/SQL Server's `IIF`, the dialect-faithful siblings `Coalesce`/`Nvl`/`Decode` already establish as the house pattern for conditional NULL-handling and branching. `Isnull` is deliberately not to be confused with the pre-existing `expr.IsNull` property (`IS NULL`, a predicate) — same letters, different capitalization, different construct — and `If` is deliberately not `ConditionIf` (a C#-side helper that emits no SQL); both pairs cross-reference explicitly in their XML docs and in `docs/functions.md`. `If`/`Iif` take a `SqlCondition` first argument (mirroring `Sql.When(SqlCondition)`) and throw `ArgumentException` for an empty condition, following the project's `WHERE`/`CASE WHEN` empty-condition policy. A harness probe found SQLite also accepts `IF(...)` as a second name for `IIF`, added in SQLite 3.48 (confirmed against the `sqlite/sqlite` source mirror), so `If` carries a SQLite version bound and `SQLA0101` flags it below 3.48. See [Functions: Conversion Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#conversion-functions). (#443)
 - `Sql.StddevPop(x)`/`Sql.StddevSamp(x)` and `Sql.VarPop(x)`/`Sql.VarSamp(x)` — `STDDEV_POP`/`STDDEV_SAMP`/`VAR_POP`/`VAR_SAMP`, universal on MySQL/Oracle/PostgreSQL with no SQLite spelling; plus `Sql.Stddev(x)`/`Sql.Variance(x)`, those three dialects' short-form aliases, and SQL Server's own distinct tokens `Sql.Stdev(x)`/`Sql.Stdevp(x)`/`Sql.Var(x)`/`Sql.Varp(x)` (no double-D there). `Stddev`/`Variance` ship despite computing a different statistic per dialect — MySQL's is the population form, Oracle's and PostgreSQL's the sample form — the same `Log(x)`-style silent-meaning-change #440/#441 settled: an accepted, opinion-free spelling stays available with the hazard carried in `docs/functions.md`'s warning table rather than withheld from the API, since all three engines run it and return a (different) number, so `SQLA0100` cannot catch the mismatch. `StddevPop`/`StddevSamp`/`VarPop`/`VarSamp` avoid it entirely and are the recommended spelling when a query must mean the same thing everywhere it runs. All ten derive from the existing `UnfilteredAggregateFunction` base, so `.Over(...)`/`.Filter(...)` compose for free. `DISTINCT` overloads and MySQL's `STD()` alias are intentionally out of scope. See [Functions: Aggregate](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#aggregate-functions). (#442)
 - `Sql.Exp(x)`, `Sql.Ln(x)`, `Sql.Log(x)`, `Sql.Log(base, x)`, and `Sql.Log10(x)` — the exponential and logarithmic functions, which `NumericFunction/` had none of. Only `EXP` means the same thing on all five dialects: `LN` has no T-SQL spelling (SQL Server's natural logarithm *is* its `LOG(x)`), `LOG10` has no Oracle one, and `LOG` itself silently changes meaning per dialect in **both** its forms — the base of `LOG(x)`, and the argument order of `LOG(base, x)`, which T-SQL reverses. Only Oracle errors on the mismatch; every other dialect runs and returns a number. Both `LOG` forms ship rather than being withheld, as the design-decision issue considered: `LOG(x)` is SQL Server's only natural logarithm, so omitting it would leave a dialect unable to express the query at all — the same failure mode that reversed `COUNT(*)`'s omission ("opinions live in docs and the analyzer, never in API holes"). `SQLA0100` covers what's provable instead — `Log(x)`/`Log10(x)` on Oracle, `Ln(x)`/`Log(base, x)` on SQL Server — and `Log10` carries a PostgreSQL 12 version bound. See [Functions: Numeric](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#numeric-functions). (#440, #441)
@@ -2183,7 +2195,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - The published packages now enable Source Link (`Microsoft.SourceLink.GitHub`), a deterministic build on CI (`ContinuousIntegrationBuild`), and ship debugging symbols as a separate `.snupkg` (`DebugType=portable`) — so consumers can step straight into SqlArtisan source while debugging, and the assemblies are reproducible from this exact commit. Applies to `SqlArtisan`, `SqlArtisan.Dapper`, and `SqlArtisan.TableClassGen`. (#157)
 - Declared the core `SqlArtisan` package trim- and AOT-compatible (`IsAotCompatible`, which turns on the trim/single-file/AOT analyzers): the builder uses no reflection or dynamic codegen, so it produces zero trim/AOT warnings — verified by a native-AOT smoke test — a trust signal for container, CLI, and serverless deployments. Scoped to the core; `SqlArtisan.Dapper` depends on Dapper and is out of scope. (#158)
 ### Tests
-- Added a real-database integration test matrix (`tests/SqlArtisan.IntegrationTests`) that executes SqlArtisan-built statements against all five engines — MySQL, Oracle, PostgreSQL, SQL Server (via Testcontainers) and SQLite (in-process) — catching grammar and semantic bugs only the engine itself rejects. It exercises the query surface (joins, CTEs, window functions, `GROUP BY` and its extensions, set operators, `WHERE` predicates, `APPLY`/`LATERAL`), DML (per-dialect pagination, UPSERT, `MERGE`, `RETURNING` and Oracle `RETURNING … INTO`), the Dapper integration (sync and async, typed parameter binding), and edge cases (`NULL`, Unicode, `decimal`/`DateTime`/`boolean`). The exact-SQL unit tests remain the fast inner loop; the matrix runs nightly, on demand, and gates releases. (#151)
+- Added a real-database integration test matrix (`tests/SqlArtisan.IntegrationTests`) that executes SqlArtisan-built statements against all five engines — MySQL, Oracle, PostgreSQL, SQLite (in-process) and SQL Server (the rest via Testcontainers) — catching grammar and semantic bugs only the engine itself rejects. It exercises the query surface (joins, CTEs, window functions, `GROUP BY` and its extensions, set operators, `WHERE` predicates, `APPLY`/`LATERAL`), DML (per-dialect pagination, UPSERT, `MERGE`, `RETURNING` and Oracle `RETURNING … INTO`), the Dapper integration (sync and async, typed parameter binding), and edge cases (`NULL`, Unicode, `decimal`/`DateTime`/`boolean`). The exact-SQL unit tests remain the fast inner loop; the matrix runs nightly, on demand, and gates releases. (#151)
 
 ## [0.4.0-beta.1] - 2026-06-27
 ### Added
@@ -2195,7 +2207,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Documented the public `SqlArtisan.Dapper` surface and enabled `GenerateDocumentationFile` for that package, so its `IDbConnection` extensions (`Execute` / `Query` / `QuerySingle` / `QueryFirst` / `ExecuteScalar` / `QueryMultiple` / `ExecuteReader` and their async variants) and `ToDynamicParameters` now ship IntelliSense. (#133)
 
 ### Changed
-- **[BREAKING CHANGE]** Renamed the CTE schema base class `CteSchemaBase` to `CteBase` (and named the new derived-table base `DerivedTableBase`, not `DerivedTableSchemaBase`), dropping the `Schema` term that read inconsistently with `DbTableBase` and invited confusion with a database schema. CTE subclasses update only the base type name (e.g. `class MyCte : CteSchemaBase` → `: CteBase`); emitted SQL is unchanged. (#122)
+- **Breaking:** Renamed the CTE schema base class `CteSchemaBase` to `CteBase` (and named the new derived-table base `DerivedTableBase`, not `DerivedTableSchemaBase`), dropping the `Schema` term that read inconsistently with `DbTableBase` and invited confusion with a database schema. CTE subclasses update only the base type name (e.g. `class MyCte : CteSchemaBase` → `: CteBase`); emitted SQL is unchanged. (#122)
 - Reworked the benchmark suite into a fair builder comparison (every entrant emits SQL plus bind parameters for the same query), added linq2db and a labeled EF Core reference, and refreshed the README Performance section. (#79)
 
 ### Fixed
@@ -2213,7 +2225,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added support for the scalar functions `NULLIF`, `ROUND`, `CEIL`, `CEILING`, `FLOOR`, `POWER`, `SQRT`, and `SIGN`. (#84)
 
 ### Changed
-- **[BREAKING CHANGE]** Renamed the `Datepart` enum to `DateTimePart` to avoid a `CS0119` collision with the `Sql.Datepart()` factory; emitted SQL is unchanged, callers update only the type name (e.g. `Datepart.Year` → `DateTimePart.Year`). (#99)
+- **Breaking:** Renamed the `Datepart` enum to `DateTimePart` to avoid a `CS0119` collision with the `Sql.Datepart()` factory; emitted SQL is unchanged, callers update only the type name (e.g. `Datepart.Year` → `DateTimePart.Year`). (#99)
 
 ### Fixed
 - Aliased DML now renders dialect-correctly. A table alias in `InsertInto` / `Update` / `DeleteFrom` is introduced with `AS` (MySQL/PostgreSQL/SQLite/SQL Server) or a bare space (Oracle), and target columns — the INSERT column list, the `ON CONFLICT` target, and `SET` / `DO UPDATE SET` left sides — are emitted unqualified. This makes the PostgreSQL `INSERT INTO t AS x ... ON CONFLICT ... DO UPDATE ... WHERE x.col` UPSERT idiom and aliased `UPDATE` / `DELETE` executable; previously they reused the SELECT-context aliasing (`t "x"` + `"x".col`) and produced invalid SQL. Aliasing the DML target itself remains engine-dependent and is not validated: SQL Server's structural single-table aliased `DELETE` / `UPDATE` (`DELETE x FROM t AS x` / `UPDATE x SET ... FROM t AS x`) is intentionally not emitted, and some engines reject an aliased INSERT target (e.g. MySQL has no alias slot in `INSERT INTO`). Since a single-table DML never requires an alias, omit it on those engines — `DeleteFrom(t).Where(...)` already renders valid unaliased SQL. (#96)
@@ -2262,7 +2274,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.2.0-alpha.1] - 2025-06-19
 ### Changed
-- **[BREAKING CHANGE]** Unified the C# API naming convention. (#27)
+- **Breaking:** Unified the C# API naming convention. (#27)
   - **New Rule:** Remove underscores from the SQL keyword and convert to PascalCase.
   - **Example:** `SysTimestamp` has been renamed to `Systimestamp`, and `LPad` has been renamed to `Lpad`.
 - Updated README:
@@ -2318,7 +2330,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.1.0-alpha.12] - 2025-05-26
 ### Changed
-- **[BREAKING CHANGE]** Rename `SqlWordbook` to `Sql` for conciseness and appropriateness (#21).
+- **Breaking:** Rename `SqlWordbook` to `Sql` for conciseness and appropriateness (#21).
 
 ## [0.1.0-alpha.11] - 2025-05-23
 ### Added

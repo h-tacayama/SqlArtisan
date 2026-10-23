@@ -4,7 +4,7 @@
   "description": "A type-safe SQL query builder for C# (.NET 8): SQL-like C# in, the SQL string plus its bind parameters out — emitted faithfully with no dialect translation.",
   "folders": [],
   "excludeFolders": ["src", "tests", ".github", ".claude", ".devin", "docs/adr"],
-  "excludeFiles": ["CLAUDE.md", "SECURITY.md", "llms.txt", "llms-full.txt"],
+  "excludeFiles": ["CHANGELOG.md", "CLAUDE.md", "SECURITY.md", "llms.txt", "llms-full.txt"],
   "rules": [
     "SqlArtisan emits SQL faithfully with no dialect translation — always pick the API documented for the target DBMS (MySQL, Oracle, PostgreSQL, SQLite, SQL Server) and build for that DBMS, since the emitted text and the chains Build() rejects differ by dialect.",
     "Reference database tables through their table classes (one DbTableBase subclass per table); never name a table or column with a string literal.",
