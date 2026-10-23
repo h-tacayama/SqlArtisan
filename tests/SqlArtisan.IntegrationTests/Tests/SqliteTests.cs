@@ -176,6 +176,33 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
+    // docs/query-statements.md states SQLite's RETURNING takes the bare * only.
+    [Fact]
+    public void Returning_TableAsterisk_IsRejectedByTheEngine()
+    {
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query(
+            InsertInto(o, o.Id, o.UserId, o.Amount).Values(90, 1, 10m).Returning(o.Asterisk),
+            transaction));
+        Assert.Equal(90, connection.Query<int>(
+            InsertInto(o, o.Id, o.UserId, o.Amount).Values(90, 1, 10m).Returning(Asterisk),
+            transaction).Single());
+        Assert.ThrowsAny<DbException>(() => connection.Query(
+            Update(o).Set(o.Amount == 20m).Where(o.Id == 90).Returning(o.Asterisk),
+            transaction));
+        Assert.Equal(90, connection.Query<int>(
+            Update(o).Set(o.Amount == 20m).Where(o.Id == 90).Returning(Asterisk),
+            transaction).Single());
+        Assert.ThrowsAny<DbException>(() => connection.Query(
+            DeleteFrom(o).Where(o.Id == 90).Returning(o.Asterisk), transaction));
+        Assert.Equal(90, connection.Query<int>(
+            DeleteFrom(o).Where(o.Id == 90).Returning(Asterisk), transaction).Single());
+        transaction.Rollback();
+    }
+
     // The table-name qualifier drops the schema because SQLite rejects one there.
     [Fact]
     public void Returning_Sqlite_SchemaQualifiedTarget_IsRejectedByTheEngine()

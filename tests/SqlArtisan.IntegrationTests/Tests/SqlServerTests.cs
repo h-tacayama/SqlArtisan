@@ -491,6 +491,20 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
                 DeleteFrom(u).Output(Deleted(u.Id)).Where(u.Id == 3), transaction).Single());
         Assert.ThrowsAny<DbException>(() => connection.Query(
             DeleteFrom(u).Output(u.Asterisk).Where(u.Id == 2), transaction));
+        Assert.Equal(
+            "x",
+            connection.Query<string>(
+                Update(u).Set(u.Name == "x").Output(Inserted(u.Name)).Where(u.Id == 1),
+                transaction).Single());
+        Assert.ThrowsAny<DbException>(() => connection.Query(
+            Update(u).Set(u.Name == "y").Output(u.Asterisk).Where(u.Id == 1), transaction));
+        Assert.Equal(
+            702,
+            connection.Query<int>(
+                InsertInto(u, u.Id, u.Name).Output(Inserted(u.Id)).Values(702, "Grace"),
+                transaction).Single());
+        Assert.ThrowsAny<DbException>(() => connection.Query(
+            InsertInto(u, u.Id, u.Name).Output(u.Asterisk).Values(703, "Grace"), transaction));
     }
 
     // #669: SQL Server's grammar takes * only after a prefix.

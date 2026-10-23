@@ -164,28 +164,33 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         OrdersTable o = new();
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
+        (string Statement, int UserId)[] cases =
+        [
+            ("INSERT INTO orders (id, user_id, amount) VALUES (90, 1, 10) RETURNING {0}", 1),
+            ("UPDATE orders SET amount = amount WHERE id = 5 RETURNING {0}", 5),
+            ("DELETE FROM orders WHERE id = 4 RETURNING {0}", 3),
+        ];
 
-        DynamicParameters outputs = Outputs();
-        connection.Execute(
-            "DELETE FROM orders WHERE id = 4 RETURNING id, user_id, amount "
-                + "INTO :outId, :outUserId, :outAmount",
-            outputs,
-            transaction);
+        // Each probe runs before its control, so a rejection cannot be the control's key.
+        foreach ((string statement, int userId) in cases)
+        {
+            Assert.ThrowsAny<DbException>(
+                () => connection.Execute(Into(statement, "*"), Outputs(), transaction));
+            Assert.ThrowsAny<DbException>(
+                () => connection.Execute(Into(statement, "orders.*"), Outputs(), transaction));
 
-        Assert.Equal(3, Convert.ToInt32(outputs.Get<object>("outUserId")!.ToString()));
-        Assert.ThrowsAny<DbException>(() => connection.Execute(
-            "DELETE FROM orders WHERE id = 1 RETURNING * INTO :outId, :outUserId, :outAmount",
-            Outputs(),
-            transaction));
-        Assert.ThrowsAny<DbException>(() => connection.Execute(
-            "DELETE FROM orders WHERE id = 2 RETURNING orders.* "
-                + "INTO :outId, :outUserId, :outAmount",
-            Outputs(),
-            transaction));
+            DynamicParameters outputs = Outputs();
+            connection.Execute(Into(statement, "id, user_id, amount"), outputs, transaction);
+            Assert.Equal(userId, Convert.ToInt32(outputs.Get<object>("outUserId")!.ToString()));
+        }
+
         Assert.ThrowsAny<DbException>(() => connection.ExecuteReturningInto(
             DeleteFrom(o).Where(o.Id == 3).Returning(Asterisk)
                 .Into(new OutputParameter("outId", DbType.Int32)),
             transaction));
+
+        static string Into(string statement, string items) =>
+            string.Format(statement, items) + " INTO :outId, :outUserId, :outAmount";
 
         static DynamicParameters Outputs()
         {
