@@ -57,7 +57,7 @@ How much the compiler catches before the query reaches a database:
 
 | Level | What the compiler checks | Examples |
 |-------|-------------------------|----------|
-| **Raw SQL strings** | Nothing — typos and schema drift surface at runtime | EF Core `FromSqlRaw`, raw Dapper, Dapper.SqlBuilder (each clause is a SQL string in a string template), InterpolatedSql's interpolated strings |
+| **Raw SQL strings** | Nothing — typos and schema drift surface at runtime | EF Core `FromSqlRaw`, raw Dapper, Dapper.SqlBuilder (its statement is a SQL string template that SQL-string clause bodies fill), InterpolatedSql's interpolated strings |
 | **String-keyed builders** | Statement structure is typed, but table/column names are strings | SqlKata, InterpolatedSql's `FluentQueryBuilder` (staged clauses, each body a SQL string) |
 | **Generated table classes** | Column references are compile-checked C# properties; once the classes are regenerated, an `ALTER TABLE` that drops a column breaks the build | SqlArtisan |
 | **Expression-tree mapping** | Full compile-time model, tightest coupling between domain types and schema | EF Core, linq2db |
@@ -93,8 +93,8 @@ between generation and production:
    engines.
 
 Raw SQL strings verify nothing until the database rejects them.
-String-keyed builders type the statement's clauses but leave a column typo to
-the database.
+String-keyed builders type the statement's structure but leave a column typo
+to the database.
 Expression-tree ORMs catch the most at compile time, but the emitted SQL
 is opaque — you cannot pin it with exact-SQL tests without coupling to the
 ORM's internal translation.

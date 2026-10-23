@@ -12,9 +12,11 @@ Task-oriented paths from your current project to SqlArtisan.
 
 - **[Comparison Guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/comparison.md)** —
   how SqlArtisan compares to EF Core, linq2db, SqlKata, Dapper.SqlBuilder,
-  and InterpolatedSql — and when NOT to choose SqlArtisan.
+  and InterpolatedSql — philosophy, type safety, machine-verifiability, dialect
+  handling, execution, performance, and when NOT to choose SqlArtisan.
 - **[Dapper + SqlArtisan from Scratch](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md)** —
-  the greenfield path: packages → table classes → executed queries.
+  the greenfield path: packages → table classes → executed queries → the
+  reference for writing statements → pinning queries with tests.
 - **[Oracle Array-Bind Execution with SqlArtisan.ArrayBind](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md)** —
   run SqlArtisan-built statements for N rows in one round trip via ODP.NET
   array binding.
