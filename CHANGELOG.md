@@ -996,6 +996,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   verified baseline is proven live only on its supported side, and that the
   rejection below it rests on the vendor's documentation; it said dialect-availability
   claims were made for the verified versions only. (#686)
+- `Sql.Asterisk`'s XML docs no longer call a bare `*` valid in an `OUTPUT`
+  list: SQL Server rejects `OUTPUT *`, and Oracle rejects `RETURNING * INTO`.
+  It is valid in a `SELECT` list and a `RETURNING` list without `INTO`. (#685)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

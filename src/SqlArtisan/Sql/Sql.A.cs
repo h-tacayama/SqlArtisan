@@ -131,8 +131,8 @@ public static partial class Sql
 
     /// <summary>
     /// The bare <c>*</c> select item (every column of every table in <c>FROM</c>). Valid in
-    /// a <c>SELECT</c>, <c>RETURNING</c>, or <c>OUTPUT</c> list and as <c>Count(Asterisk)</c>;
-    /// for one table's columns use <see cref="TableReference.Asterisk"/>.
+    /// a <c>SELECT</c> list, a <c>RETURNING</c> list without <c>INTO</c>, and as
+    /// <c>Count(Asterisk)</c>; for one table's columns use <see cref="TableReference.Asterisk"/>.
     /// </summary>
     /// <remarks>Do not write <c>Select("*")</c> — a string is always a bind value,
     /// so it emits <c>SELECT :0</c> returning the literal <c>'*'</c>.</remarks>
