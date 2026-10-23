@@ -158,7 +158,8 @@ From here it is the reference material:
   [Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md) —
   conditions, operators, and the built-in function catalog.
 - [Query Cookbook](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md) —
-  realistic end-to-end queries (reporting, search screens, batch DML) to
+  realistic end-to-end queries (everyday patterns, reporting, search screens,
+  batch DML) to
   start from.
 
 Write the SQL your target DBMS runs — SqlArtisan emits it faithfully and does

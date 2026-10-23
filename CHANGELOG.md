@@ -1001,6 +1001,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `RETURNING` and `OUTPUT` list. Oracle rejects either before `INTO`, SQLite's
   `RETURNING` rejects `t.*`, and SQL Server rejects `OUTPUT *` and the target's
   `t.*` in `OUTPUT` on a statement that joins nothing. (#669, #675, #685)
+- `docs/comparison.md` scopes "an `ALTER TABLE` that drops a column breaks the
+  build" to regenerated table classes, with `--check` catching the drift until
+  then; places Dapper.SqlBuilder, whose clauses are SQL strings, with raw SQL
+  strings and InterpolatedSql's staged `FluentQueryBuilder` with the
+  string-keyed builders; and calls the benchmark's timing order directional, as
+  the README does. (#686)
+- The page descriptors in `llms.txt`, `README.md` and `docs/README.md` list
+  every section of their kind (the analyzer's families and sections, the
+  cookbook's everyday patterns, the AI guide's feed and drift sections), and
+  `context7.json` stops indexing `CHANGELOG.md`, whose history names removed
+  APIs. `IntervalLiteral(value, field)` is listed for MySQL too. (#686)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

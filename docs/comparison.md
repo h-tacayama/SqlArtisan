@@ -93,7 +93,8 @@ between generation and production:
    engines.
 
 Raw SQL strings verify nothing until the database rejects them.
-String-keyed builders catch clause-order mistakes but not column typos.
+String-keyed builders type the statement's clauses but leave a column typo to
+the database.
 Expression-tree ORMs catch the most at compile time, but the emitted SQL
 is opaque — you cannot pin it with exact-SQL tests without coupling to the
 ORM's internal translation.
