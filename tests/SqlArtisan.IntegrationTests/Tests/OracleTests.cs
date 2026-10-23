@@ -156,6 +156,54 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
+    // #675 item 7. The library's width check refuses * against three outputs, so
+    // the width-matched form, which isolates the *, is raw text.
+    [Fact]
+    public void ReturningInto_Asterisk_IsRejectedByTheEngine()
+    {
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        (string Statement, int UserId)[] cases =
+        [
+            ("INSERT INTO orders (id, user_id, amount) VALUES (90, 1, 10) RETURNING {0}", 1),
+            ("UPDATE orders SET amount = amount WHERE id = 5 RETURNING {0}", 5),
+            ("DELETE FROM orders WHERE id = 4 RETURNING {0}", 3),
+        ];
+
+        // Each probe runs before its control, so a rejection cannot be the control's key.
+        foreach ((string statement, int userId) in cases)
+        {
+            Assert.ThrowsAny<DbException>(
+                () => connection.Execute(Into(statement, "*"), Outputs(), transaction));
+            Assert.ThrowsAny<DbException>(
+                () => connection.Execute(Into(statement, "orders.*"), Outputs(), transaction));
+
+            DynamicParameters outputs = Outputs();
+            connection.Execute(Into(statement, "id, user_id, amount"), outputs, transaction);
+            Assert.Equal(userId, Convert.ToInt32(outputs.Get<object>("outUserId")!.ToString()));
+        }
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteReturningInto(
+            DeleteFrom(o).Where(o.Id == 3).Returning(Asterisk)
+                .Into(new OutputParameter("outId", DbType.Int32)),
+            transaction));
+
+        static string Into(string statement, string items) =>
+            string.Format(statement, items) + " INTO :outId, :outUserId, :outAmount";
+
+        static DynamicParameters Outputs()
+        {
+            DynamicParameters parameters = new();
+            parameters.Add("outId", dbType: DbType.Int32, direction: ParameterDirection.Output);
+            parameters.Add(
+                "outUserId", dbType: DbType.Int32, direction: ParameterDirection.Output);
+            parameters.Add(
+                "outAmount", dbType: DbType.Decimal, direction: ParameterDirection.Output);
+            return parameters;
+        }
+    }
+
     [Fact]
     public void Sequence_NextvalCurrval_Executes()
     {

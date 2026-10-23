@@ -22,7 +22,10 @@ public abstract class TableReference : SqlPart
     /// <summary>
     /// The qualified star select item — <c>"alias".*</c> (a CTE/derived-table name
     /// is always quoted), or <c>table.*</c> for an unaliased <see cref="DbTableBase"/>.
-    /// Valid only in a <c>SELECT</c>, <c>RETURNING</c>, or <c>OUTPUT</c> list.
+    /// Valid in a <c>SELECT</c> list.
+    /// <para>Oracle rejects it before <c>INTO</c>, PostgreSQL's <c>RETURNING</c> takes it,
+    /// SQLite's rejects it, and SQL Server rejects the target's in an <c>OUTPUT</c> on a
+    /// statement that joins nothing.</para>
     /// </summary>
     public SqlPart Asterisk =>
         string.IsNullOrEmpty(CorrelationName)

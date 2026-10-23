@@ -306,6 +306,18 @@ refuse. A twin per shape asserts the rejection beside a control that runs (the
 `*_IsRejectedByTheEngine` twins #675 added). The other engines are not run for
 these: one that runs a shape, with any meaning, reopens it (#675's CI items).
 
+**An `OUTPUT` item reading the target bare, and a `*` before `INTO`, stay
+unguarded (decided — do not re-file):** on an `INSERT`, `UPDATE` or `DELETE`
+that joins nothing, SQL Server 2022 rejects an `OUTPUT` item that reads the
+target other than through `Inserted(...)` / `Deleted(...)` — a bare column (run
+on `UPDATE` and `INSERT`), `t.*` or `*` (both on all three) — and Oracle XE
+21.3.0 rejects `*` and `t.*` in `RETURNING ... INTO` on all three, even with one
+output parameter per column, a width `Into(...)` refuses for one `Returning(Asterisk)`
+item (`Output_*_IsRejectedByTheEngine`, `ReturningInto_Asterisk_IsRejectedByTheEngine`;
+#669, #675). Each is complete and fails loudly, the paragraph above's ground. The
+joined forms, whose `OUTPUT` reads a `FROM` table by name, and SQL Server 2025 and
+Oracle 23ai are not run.
+
 **A `GROUP BY` column ordinal stays permissive on the engines that refuse it
 (decided — do not re-file):** Oracle XE 21.3.0 and SQL Server 2022 reject a
 bare constant there while MySQL 8.0, PostgreSQL 16.13 and SQLite 3.50.4 group
