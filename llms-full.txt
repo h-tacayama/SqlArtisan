@@ -2023,7 +2023,7 @@ SqlArtisan also supports more advanced WITH clause scenarios:
 
 ## RETURNING Clause
 
-The `Returning()` method adds a `RETURNING` clause to `INSERT`, `UPDATE`, and `DELETE` statements, letting you read back the affected rows. It accepts the same items as a `SELECT` list, including `Asterisk` for `RETURNING *`. Build from the stage `Returning()` returns: building the stage before it throws rather than dropping the clause.
+The `Returning()` method adds a `RETURNING` clause to `INSERT`, `UPDATE`, and `DELETE` statements, letting you read back the affected rows. It accepts the same items as a `SELECT` list, including `Asterisk` for `RETURNING *`; which engines take each star there is under [SELECT * and Qualified Star](#select--and-qualified-star). Build from the stage `Returning()` returns: building the stage before it throws rather than dropping the clause.
 
 ```csharp
 UsersTable u = new();

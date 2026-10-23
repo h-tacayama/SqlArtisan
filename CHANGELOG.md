@@ -1000,7 +1000,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `docs/query-statements.md` no longer call `*` and `t.*` valid in every
   `RETURNING` and `OUTPUT` list. Oracle rejects either before `INTO`, SQLite's
   `RETURNING` rejects `t.*`, and SQL Server rejects `OUTPUT *` and the target's
-  `t.*` in `OUTPUT` on a statement that joins nothing. (#669, #685)
+  `t.*` in `OUTPUT` on a statement that joins nothing. (#669, #675, #685)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added
