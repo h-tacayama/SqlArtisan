@@ -35,9 +35,10 @@ dotnet add package SqlArtisan.ArrayBind --prerelease
 Build each row's statement through the ordinary fluent builder, keeping the
 same columns and clause shape across rows — only the bound values differ.
 Use `Sql.BindNull()` instead of a bare `null` literal for any value that can
-be null: a bare `null` inlines the `NULL` keyword directly into the SQL text
-(changing it row to row), while `BindNull()` reserves a real parameter, so a
-null row binds the same marker a non-null row does.
+be null: a bare `null` in a `VALUES` row inlines the `NULL` keyword directly
+into the SQL text (changing it row to row), and anywhere else throws, while
+`BindNull()` reserves a real parameter, so a null row binds the same marker a
+non-null row does.
 
 ```csharp
 UsersTable users = new();

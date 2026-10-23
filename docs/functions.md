@@ -326,7 +326,7 @@ SqlArtisan automatically converts C# literal values into bind parameters (to bin
 - **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
 - **Enum**: Any `enum` type, except the function-argument enums `DateTimePart`, `RegexpOptions` and `SearchModifier`, which throw `ArgumentException` in a value position. Passed there, one is a slip — an argument given at an arity with no slot of its type, as `RegexpCount(s, p, RegexpOptions.CaseInsensitive)` gives the options as the position — and bound, it is the value — through `SqlArtisan.Dapper`, its integer. To store or compare one deliberately, bind it with `Sql.Bind(value)`.
 
-`Sql.Bind(value)` rejects `null`. For a bound `NULL`, use `Sql.BindNull()`: `Sql.Null` inlines the `NULL` keyword into the SQL text — as does a bare C# `null` in a `VALUES` row, the one position that takes one; anywhere else it throws `A C# null is not SQL NULL; pass Sql.Null instead.` — while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
+`Sql.Bind(value)` rejects `null`. For a bound `NULL`, use `Sql.BindNull()`: `Sql.Null` inlines the `NULL` keyword into the SQL text — as does a bare C# `null` in a `VALUES` row, the one position that takes one; anywhere else it throws — while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
 
 Two kinds of string never become a bind parameter, and they behave differently:
 

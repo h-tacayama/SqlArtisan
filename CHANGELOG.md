@@ -1024,7 +1024,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     first call after `Build()`, not on the second `Build()`.
   - `docs/functions.md` exempts `PercentileCont` / `PercentileDisc` from
     "complete each window function with `.Over(...)`", says a bare C# `null` is
-    SQL `NULL` only in a `VALUES` row, narrows the forced-literal JSON path to
+    SQL `NULL` only in a `VALUES` row (as the Oracle array-bind guide now does), narrows the forced-literal JSON path to
     the JSON functions' path, gives `Position()` and `Strpos()` their dialects,
     and drops overload labels that named no overload.
   - `docs/expressions.md` gives SQL Server's `Concat` any arity, names the six

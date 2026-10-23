@@ -603,11 +603,11 @@ the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
 expression where the construct is used. Nineteen rules ship today — twelve reading
 the construct's surroundings, seven reading the DML statement a clause sits in.
-Every rejection below is live-verified on the pinned lanes, and so is every
+Every rejection below is live-verified on the pinned lanes — MySQL 8.0, Oracle
+XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022, the Oracle floors on
+Free 23ai, and `WHEN NOT MATCHED BY SOURCE` on PostgreSQL 17 — and so is every
 acceptance but MySQL's `LIMIT` in the scalar, `EXISTS`, CTE and derived-table
-positions, which no lane runs: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
-Server 2022 — the Oracle floors on Free 23ai, and `WHEN NOT MATCHED BY SOURCE` on
-PostgreSQL 17. A floor below a lane's
+positions, which no lane runs. A floor below a lane's
 version rests on the vendor's release notes, as the version-bound register's
 does.
 
@@ -1286,8 +1286,8 @@ var sql = InsertInto(t, t.Note).Values("x").Build();
 Only a column the class records as `HasDefault = false` is reported.
 TableClassGen records that for every column without a default on Oracle and
 SQLite. On PostgreSQL and SQL Server it records it only for an explicit
-`DEFAULT NULL`, and on MySQL never, so there only a hand-written class can state
-it: `information_schema` cannot tell no default from an identity column, so a
+`DEFAULT NULL` (PostgreSQL stores one only for a type with a length or
+precision), and on MySQL never, so there only a hand-written class can state it: `information_schema` cannot tell no default from an identity column, so a
 plain `NOT NULL` column with no default is left unknown and the rule stays
 silent. A column with a `DEFAULT`, an Oracle identity or virtual column and
 SQLite's rowid alias are recorded as defaulted and never reported; omitting one
@@ -1436,7 +1436,7 @@ bound values names no column, so neither reports.
 
 **All six are silent unless the fact was recorded.** An attribute the generator
 never wrote, a fact it could not determine (an absent named argument), a
-hand-written table class, or a column reached through
+hand-written table class without the attribute, or a column reached through
 `new DbTable("t").Column("x")` — which has no declaration to carry metadata —
 all produce nothing. Regenerate your table classes to opt in; nothing else
 changes. `SQLA0201` additionally reads only a select list it can see: a
@@ -1570,8 +1570,8 @@ for, not a bug in the matrix.
   argument, not its declared type or arity, is not modeled at all.**
   `Trunc(expr[, format])` is the example: a numeric argument is Oracle,
   PostgreSQL and SQLite 3.35+, a date/time argument is Oracle-only, and both shapes
-  compile to the exact same C# overload. It has no matrix entry and never
-  warns either way.
+  compile to the exact same C# overload. It has no matrix entry, so it warns
+  only under your own `sqlartisan_construct_trunc = unsupported`.
 - **`SQLA0104`'s lists don't model a source-type or column-type constraint.**
   Oracle's `EXTRACT` rejects `HOUR`/`MINUTE`/`SECOND` on a plain `DATE`
   source (it needs a `TIMESTAMP`) and the four `TIMEZONE_*` fields need
@@ -1602,8 +1602,8 @@ for, not a bug in the matrix.
   covers every referencable public method, property, field, and overloaded
   operator except a
   documented set of dialect-neutral members and `Trunc` above — gate-enforced by the
-  repository's tests — but a member in that excluded set never warns either
-  way. See
+  repository's tests — but a member in that excluded set warns only under
+  your own `unsupported` override. See
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)
   for what's entered.
 - **The dialect-independent rules need a configured target too.**
