@@ -156,7 +156,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
-    // #675 item 7: one output parameter per orders column, so only the * differs.
+    // #675 item 7. The library's width check refuses * against three outputs, so
+    // the width-matched form, which isolates the *, is raw text.
     [Fact]
     public void ReturningInto_Asterisk_IsRejectedByTheEngine()
     {
@@ -164,22 +165,38 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
-        DynamicParameters outputs = connection.ExecuteReturningInto(
-            DeleteFrom(o).Where(o.Id == 4).Returning(o.Id, o.UserId, o.Amount).Into(Outputs()),
+        DynamicParameters outputs = Outputs();
+        connection.Execute(
+            "DELETE FROM orders WHERE id = 4 RETURNING id, user_id, amount "
+                + "INTO :outId, :outUserId, :outAmount",
+            outputs,
             transaction);
 
         Assert.Equal(3, Convert.ToInt32(outputs.Get<object>("outUserId")!.ToString()));
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "DELETE FROM orders WHERE id = 1 RETURNING * INTO :outId, :outUserId, :outAmount",
+            Outputs(),
+            transaction));
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "DELETE FROM orders WHERE id = 2 RETURNING orders.* "
+                + "INTO :outId, :outUserId, :outAmount",
+            Outputs(),
+            transaction));
         Assert.ThrowsAny<DbException>(() => connection.ExecuteReturningInto(
-            DeleteFrom(o).Where(o.Id == 1).Returning(Asterisk).Into(Outputs()), transaction));
-        Assert.ThrowsAny<DbException>(() => connection.ExecuteReturningInto(
-            DeleteFrom(o).Where(o.Id == 2).Returning(o.Asterisk).Into(Outputs()), transaction));
+            DeleteFrom(o).Where(o.Id == 3).Returning(Asterisk)
+                .Into(new OutputParameter("outId", DbType.Int32)),
+            transaction));
 
-        static OutputParameter[] Outputs() =>
-            [
-                new("outId", DbType.Int32),
-                new("outUserId", DbType.Int32),
-                new("outAmount", DbType.Decimal),
-            ];
+        static DynamicParameters Outputs()
+        {
+            DynamicParameters parameters = new();
+            parameters.Add("outId", dbType: DbType.Int32, direction: ParameterDirection.Output);
+            parameters.Add(
+                "outUserId", dbType: DbType.Int32, direction: ParameterDirection.Output);
+            parameters.Add(
+                "outAmount", dbType: DbType.Decimal, direction: ParameterDirection.Output);
+            return parameters;
+        }
     }
 
     [Fact]
