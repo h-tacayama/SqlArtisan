@@ -1329,6 +1329,12 @@ MergeInto(t)
     .WhenMatched(s.Name.IsNotNull).ThenUpdateSet(t.Name == s.Name)
     .WhenMatched().ThenDelete()
     .Build(Dbms.SqlServer);
+
+// MERGE INTO users "t"
+// USING users "s"
+// ON ("t".id = "s".id)
+// WHEN MATCHED AND "s".name IS NOT NULL THEN UPDATE SET name = "s".name
+// WHEN MATCHED THEN DELETE;
 ```
 
 On Oracle, a matched update that also deletes some of the rows it touched is
@@ -1464,12 +1470,17 @@ For a one-off CTE you don't want to declare a typed class for, use the
 `Cte` and read its columns by name with `Column(name)`:
 
 ```csharp
+UsersTable users = new("users");
 Cte seniors = new("seniors");
 SqlStatement sql =
     With(seniors.As(Select(users.Id.As(seniors.Column("id"))).From(users).Where(users.Age > 40)))
     .Select(seniors.Column("id"))
     .From(seniors)
     .Build();
+
+// WITH "seniors" AS
+// (SELECT "users".id id FROM users "users" WHERE "users".age > :0)
+// SELECT "seniors".id FROM "seniors"
 ```
 
 When you reference a CTE's columns repeatedly, declare a typed `CteBase`

@@ -835,6 +835,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   baseline, no enum repeats a value, and the enums are the set `versioning.md`
   names. `CommentCapRatchetTests` reads a `//` header above a `///` block as a
   header, which drops one phantom entry from its baseline. (#614)
+- A MySQL twin runs the workaround the `LIMIT`-in-`IN` notes name — the limited
+  query through a CTE or a derived table — beside the two rejection twins
+  (#685).
 - Live twins pin the per-target results the reference pages now warn about,
   each on the lanes it names (#685).
 
@@ -1068,6 +1071,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     `ContainsScore`'s XML docs drop the default frame and the score range.
   - PostgreSQL's rejection of a `double precision` `Round(x, n)` / `Mod` and of
     a `DistinctOn(...)` whose `ORDER BY` leads with another key is noted.
+  - The register's sources list `sign()` as a SQLite core function, not part
+    of the math-functions extension; Bind Parameter Types says which listed
+    types `SqlArtisan.Dapper` and Npgsql cannot send; the `MERGE` branch and
+    `Cte` snippets show their SQL; and the expressions page's MySQL `LIMIT`
+    note names `NOT IN`.
 - The reference pages warn where one call returns another result per target
   (#685): `Length` counts bytes on MySQL; `RegexpReplace`'s 3- and 4-argument
   forms replace only the first match on PostgreSQL; `Greatest` / `Least` skip a

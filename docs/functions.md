@@ -344,6 +344,8 @@ SqlArtisan automatically converts C# literal values into bind parameters (to bin
 - **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
 - **Enum**: Any `enum` type, except the function-argument enums `DateTimePart`, `RegexpOptions` and `SearchModifier`, which throw `ArgumentException` in a value position. Passed there, one is a slip — an argument given at an arity with no slot of its type, as `RegexpCount(s, p, RegexpOptions.CaseInsensitive)` gives the options as the position — and bound, it is the value — through `SqlArtisan.Dapper`, its integer. To store or compare one deliberately, bind it with `Sql.Bind(value)`.
 
+That list is what SqlArtisan accepts as a bind value; whether a value reaches the database is the execution layer's and the provider's. Through `SqlArtisan.Dapper`, Dapper rejects `DateOnly`, `TimeOnly`, `nint`, `nuint` and `Complex` before the provider sees them (`NotSupportedException`, observed with Dapper 2.1.66), and the provider decides the rest — Npgsql rejects `sbyte`, `ushort`, `uint` and `ulong` (observed with Npgsql 9.0.3).
+
 `Sql.Bind(value)` rejects `null`. For a bound `NULL`, use `Sql.BindNull()`: `Sql.Null` inlines the `NULL` keyword into the SQL text — as does a bare C# `null` in a `VALUES` row, the one position that takes one; anywhere else it throws — while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
 
 Two kinds of string never become a bind parameter, and they behave differently:

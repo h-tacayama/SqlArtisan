@@ -1772,6 +1772,12 @@ MergeInto(t)
     .WhenMatched(s.Name.IsNotNull).ThenUpdateSet(t.Name == s.Name)
     .WhenMatched().ThenDelete()
     .Build(Dbms.SqlServer);
+
+// MERGE INTO users "t"
+// USING users "s"
+// ON ("t".id = "s".id)
+// WHEN MATCHED AND "s".name IS NOT NULL THEN UPDATE SET name = "s".name
+// WHEN MATCHED THEN DELETE;
 ```
 
 On Oracle, a matched update that also deletes some of the rows it touched is
@@ -1907,12 +1913,17 @@ For a one-off CTE you don't want to declare a typed class for, use the
 `Cte` and read its columns by name with `Column(name)`:
 
 ```csharp
+UsersTable users = new("users");
 Cte seniors = new("seniors");
 SqlStatement sql =
     With(seniors.As(Select(users.Id.As(seniors.Column("id"))).From(users).Where(users.Age > 40)))
     .Select(seniors.Column("id"))
     .From(seniors)
     .Build();
+
+// WITH "seniors" AS
+// (SELECT "users".id id FROM users "users" WHERE "users".age > :0)
+// SELECT "seniors".id FROM "seniors"
 ```
 
 When you reference a CTE's columns repeatedly, declare a typed `CteBase`
@@ -2527,7 +2538,7 @@ SqlStatement sql =
 // OR ("a".id NOT IN (SELECT "c".id FROM users "c"))
 ```
 
-On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is rejected — route the limited query through a CTE instead. See the [Pagination dialect caveat](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination) for the full per-position rule.
+On MySQL, `LIMIT` directly inside an `IN` / `NOT IN` / `ALL` / `ANY` / `SOME` subquery is rejected — route the limited query through a CTE instead. See the [Pagination dialect caveat](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination) for the full per-position rule.
 
 ### EXISTS Condition
 ```csharp
@@ -3685,6 +3696,8 @@ SqlArtisan automatically converts C# literal values into bind parameters (to bin
 - **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
 - **Enum**: Any `enum` type, except the function-argument enums `DateTimePart`, `RegexpOptions` and `SearchModifier`, which throw `ArgumentException` in a value position. Passed there, one is a slip — an argument given at an arity with no slot of its type, as `RegexpCount(s, p, RegexpOptions.CaseInsensitive)` gives the options as the position — and bound, it is the value — through `SqlArtisan.Dapper`, its integer. To store or compare one deliberately, bind it with `Sql.Bind(value)`.
 
+That list is what SqlArtisan accepts as a bind value; whether a value reaches the database is the execution layer's and the provider's. Through `SqlArtisan.Dapper`, Dapper rejects `DateOnly`, `TimeOnly`, `nint`, `nuint` and `Complex` before the provider sees them (`NotSupportedException`, observed with Dapper 2.1.66), and the provider decides the rest — Npgsql rejects `sbyte`, `ushort`, `uint` and `ulong` (observed with Npgsql 9.0.3).
+
 `Sql.Bind(value)` rejects `null`. For a bound `NULL`, use `Sql.BindNull()`: `Sql.Null` inlines the `NULL` keyword into the SQL text — as does a bare C# `null` in a `VALUES` row, the one position that takes one; anywhere else it throws — while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
 
 Two kinds of string never become a bind parameter, and they behave differently:
@@ -4284,9 +4297,10 @@ add `WHEN NOT MATCHED BY SOURCE` to `MERGE`.
 
 - [`NULLS FIRST` / `NULLS LAST`](https://sqlite.org/releaselog/3_30_0.html) — 3.30.0 (2019-10-04).
 - [`RETURNING`](https://sqlite.org/releaselog/3_35_0.html) — 3.35.0 (2021-03-12).
-- [The math-functions extension](https://sqlite.org/releaselog/3_35_0.html) (`ceil`, `ceiling`, `exp`, `floor`, `ln`, `log`, `log10`, `mod`, `power`, `sign`, `sqrt`) — 3.35.0, same release as `RETURNING`.
+- [The math-functions extension](https://sqlite.org/releaselog/3_35_0.html) (`ceil`, `ceiling`, `exp`, `floor`, `ln`, `log`, `log10`, `mod`, `power`, `sqrt`) — 3.35.0, same release as `RETURNING`.
 - [`RIGHT JOIN` / `FULL OUTER JOIN`](https://sqlite.org/releaselog/3_39_0.html) — 3.39.0 (2022-06-25).
 - `substring()` as a second name for `substr()` — 3.34.0 (2020-12-01), confirmed against the `aBuiltinFunc[]` table in `src/func.c` (absent at tag `version-3.33.0`, present at `version-3.34.0`).
+- `sign()`, a core function outside the math-functions extension — 3.35.0, confirmed against the `aBuiltinFunc[]` table in `src/func.c` (absent at tag `version-3.34.0`, present outside `SQLITE_ENABLE_MATH_FUNCTIONS` at `version-3.35.0`).
 - [`string_agg()` / `concat()` / `concat_ws()`](https://sqlite.org/releaselog/3_44_0.html) — 3.44.0 (2023-11-01).
 - [`UPDATE ... FROM`](https://sqlite.org/releaselog/3_33_0.html) — 3.33.0 (2020-08-14).
 - [`iif()`](https://sqlite.org/releaselog/3_32_0.html) — 3.32.0 (2020-05-22); `if()` was added as a second name for it in [3.48.0](https://sqlite.org/releaselog/3_48_0.html) (2025-01-14), confirmed against the `aBuiltinFunc[]` table in `src/func.c` (absent at tag `version-3.47.0`, present at `version-3.48.0`).
@@ -4314,8 +4328,8 @@ the construct's surroundings, seven reading the DML statement a clause sits in.
 Every rejection below is live-verified on the pinned lanes — MySQL 8.0, Oracle
 XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022, the Oracle floors on
 Free 23ai, and `WHEN NOT MATCHED BY SOURCE` on PostgreSQL 17 — and so is every
-acceptance but MySQL's `LIMIT` in the scalar, `EXISTS`, CTE and derived-table
-positions, which no lane runs. A floor below a lane's
+acceptance but MySQL's `LIMIT` in the scalar and `EXISTS` positions, which no
+lane runs. A floor below a lane's
 version rests on the vendor's release notes, as the version-bound register's
 does.
 
