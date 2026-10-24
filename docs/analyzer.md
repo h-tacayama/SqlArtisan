@@ -607,8 +607,8 @@ the construct's surroundings, seven reading the DML statement a clause sits in.
 Every rejection below is live-verified on the pinned lanes — MySQL 8.0, Oracle
 XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022, the Oracle floors on
 Free 23ai, and `WHEN NOT MATCHED BY SOURCE` on PostgreSQL 17 — and so is every
-acceptance but MySQL's `LIMIT` in the scalar, `EXISTS`, CTE and derived-table
-positions, which no lane runs. A floor below a lane's
+acceptance but MySQL's `LIMIT` in the scalar and `EXISTS` positions, which no
+lane runs. A floor below a lane's
 version rests on the vendor's release notes, as the version-bound register's
 does.
 

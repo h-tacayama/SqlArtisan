@@ -162,7 +162,7 @@ Oracle+PostgreSQL). Known sharp edges:
   `WITHIN GROUP`.
 - MySQL's default `sql_mode` parses `||` as **logical OR**, not concatenation —
   valid SQL with silently different semantics (#234).
-- MySQL rejects `LIMIT` inside `IN`/`ANY`/`ALL`/`SOME` subqueries while
+- MySQL rejects `LIMIT` inside `IN`/`NOT IN`/`ANY`/`ALL`/`SOME` subqueries while
   allowing it in scalar position — context-bounded, not matrix-expressible
   (#240).
 - T-SQL cannot alias the direct UPDATE/DELETE target (`UPDATE t AS x` is

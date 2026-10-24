@@ -835,6 +835,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   baseline, no enum repeats a value, and the enums are the set `versioning.md`
   names. `CommentCapRatchetTests` reads a `//` header above a `///` block as a
   header, which drops one phantom entry from its baseline. (#614)
+- A MySQL twin runs the workaround the `LIMIT`-in-`IN` notes name — the limited
+  query through a CTE or a derived table — beside the two rejection twins
+  (#685).
 
 ### Docs
 - `docs/versioning.md` states that a new rejection is breaking: a call, a
