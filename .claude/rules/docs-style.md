@@ -66,7 +66,9 @@ with availability left to the database"). ADR cross-references belong in
   don't claim the wrapping is literal ("verbatim").
 - Reference entries follow one shape: a one-line description → the C# snippet →
   the emitted SQL → (only when it differs by dialect) a dialect note that lists
-  DBMS in enum order.
+  DBMS in enum order. A heading that names the construct stands for the
+  description, so an entry under one may open with its snippet; the emitted
+  SQL is never left out (#685).
 - **Dialect caveat note** (a construct that is invalid or a trap on some
   DBMS): one sentence naming the affected DBMS (enum order) and, where one
   exists, the **sibling SqlArtisan API that emits that dialect's own
@@ -74,7 +76,9 @@ with availability left to the database"). ADR cross-references belong in
   `WithRecursive()` is rejected there." Where no sibling API exists, "not
   available there" is the complete answer: never a hand-written SQL rewrite,
   and never a claim that two constructs are interchangeable (ADR 0020 — that
-  is a portability claim, which ADR 0001 refuses in code).
+  is a portability claim, which ADR 0001 refuses in code). A context rule's
+  workaround is not a caveat note: it names SqlArtisan steps
+  (`dbms-differences.md`).
 - **Result semantics are the engine's** — duplicate handling, `NULL` matching,
   multiplicity, collation, precision. Link the engine's manual; do not restate
   it. A hazard in *SqlArtisan's own emitted SQL* is a different thing and stays

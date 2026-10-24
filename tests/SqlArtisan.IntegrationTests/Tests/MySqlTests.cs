@@ -287,6 +287,33 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
                 .Where(u.Id.NotIn(Select(o.UserId).From(o).OrderBy(o.UserId).Limit(2)))));
     }
 
+    // The acceptance half of the LIMIT-in-IN notes: the workaround they name, a CTE or a
+    // derived table holding the limited query, runs under the same IN.
+    [Fact]
+    public void ContextRule_LimitThroughCteOrDerivedTable_Executes()
+    {
+        UsersTable u = new();
+        OrdersTable o = new("o");
+        Cte c = new("c");
+        using IDbConnection connection = _fixture.OpenConnection();
+        ISelectBuilderLimitOffset Limited() =>
+            Select(o.UserId).From(o).OrderBy(o.UserId).Limit(2);
+        int[] expected = [.. connection.Query<int>(Limited()).Distinct().Order()];
+        SubqueryDerivedTable d = Limited().AsTable("d");
+
+        IEnumerable<int> viaCte = connection.Query<int>(
+            With(c.As(Select(o.UserId.As(c.Column("uid"))).From(o).OrderBy(o.UserId).Limit(2)))
+            .Select(u.Id)
+            .From(u)
+            .Where(u.Id.In(Select(c.Column("uid")).From(c)))
+            .OrderBy(u.Id));
+        IEnumerable<int> viaDerived = connection.Query<int>(
+            Select(u.Id).From(u).Where(u.Id.In(Select(d.Column(o.UserId)).From(d))).OrderBy(u.Id));
+
+        Assert.Equal(expected, viaCte);
+        Assert.Equal(expected, viaDerived);
+    }
+
     [Fact] // #264: SQLA0102's live proof. GROUPING() under WITH ROLLUP is proven by
            // the dialect sweep's MySQL branch; the missing suffix is the only difference.
     public void ContextRule_GroupingWithoutWithRollup_Rejected()
