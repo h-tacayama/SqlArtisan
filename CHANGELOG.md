@@ -657,6 +657,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   fields, the seconds field scaled, not the component the members name. A
   PostgreSQL twin now runs every `DateTimePart` member against both lists.
   (#684)
+- The analyzer no longer reports these shapes, each of which builds SQL that
+  does what was written (#684):
+  - `SQLA0102` on `Inserted(...)` / `Deleted(...)` wrapped in a function that
+    then passes through a variable, a helper, a lambda, a conditional or an
+    array, which may carry it into `Output(...)`; written straight into
+    another statement step, it still reports;
+  - `SQLA0100` / `SQLA0101` on a member named in `nameof(...)`;
+  - `SQLA0200` on a NULL test under `Rollup(...)`, `Cube(...)`,
+    `GroupingSets(...)` or `.WithRollup()`, whose subtotal rows carry NULL in a
+    NOT NULL grouping column, and in a correlated subquery whose outer query is
+    held in a variable, built by a helper, or written in another statement, or
+    which reaches it through a helper. A column of a table the rule cannot
+    trace to a local, parameter, field or property (an array element, a method
+    call) is no longer judged either;
+  - `SQLA0204` on an `ON CONFLICT ... DO UPDATE`'s `Where(...)`, which tests the
+    one conflicting row, and on `Cast(...)`, whose effect on an index depends
+    on the type it names;
+  - `SQLA0300` on a target held in a `readonly` field an `init` accessor can
+    reassign, on a subquery or column passed through a helper (which may build
+    it into a CTE body), and on an alias a constructor initializer rewrites
+    before forwarding it;
+  - `SQLA0302` on a sealed class of yours concatenated with a string, which
+    converts through its own `implicit operator string`;
+  - `SQLA0104` on a `RegexpOptions` value with a bit no member defines, which
+    the `Regexp*` call itself rejects on every dialect.
 - The analyzer no longer throws `AD0001` ("SyntaxTree is not part of the
   compilation") on a table class declared in a referenced project that reaches
   it as a compilation rather than a built assembly, as a project reference does

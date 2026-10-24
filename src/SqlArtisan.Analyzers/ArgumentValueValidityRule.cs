@@ -294,19 +294,24 @@ internal static class ArgumentValueValidityRule
         }
 
         List<string> names = [];
+        long defined = 0;
 
         foreach (ISymbol member in enumType.GetMembers())
         {
             if (member is IFieldSymbol { HasConstantValue: true, ConstantValue: { } fieldValue }
-                && ToBits(fieldValue) is { } fieldBits
-                && fieldBits != 0
-                && (bits & fieldBits) == fieldBits)
+                && ToBits(fieldValue) is { } fieldBits)
             {
-                names.Add(member.Name);
+                defined |= fieldBits;
+                if (fieldBits != 0 && (bits & fieldBits) == fieldBits)
+                {
+                    names.Add(member.Name);
+                }
             }
         }
 
-        return names;
+        // The factory call rejects a bit no member defines on every dialect, so
+        // naming a dialect's missing option would point at the wrong problem.
+        return (bits & ~defined) == 0 ? names : null;
     }
 
     // Every enum underlying type spelled out rather than Convert.ToInt64: an

@@ -201,13 +201,24 @@ internal static class ContextRules
 
         // Every enclosing host counts, not just the innermost: the clause binds the
         // pseudo-table through a wrapping function too (OUTPUT COALESCE(INSERTED.c, 0)).
-        for (IInvocationOperation? cursor =
-            host; cursor is not null; cursor = FindArgumentHost(cursor))
+        IInvocationOperation outermost = host;
+        for (IInvocationOperation? cursor = host; cursor is not null;
+            cursor = FindArgumentHost(cursor))
         {
             if (cursor.TargetMethod.Name == "Output")
             {
                 return;
             }
+
+            outermost = cursor;
+        }
+
+        // A climb that leaves a function through a variable, a helper or a lambda may
+        // still end in an Output; one written into another statement step cannot.
+        if (outermost.TargetMethod.ReturnType is not { TypeKind: TypeKind.Interface } stage
+            || !DialectUsageAnalyzer.IsFromSqlArtisan(stage.ContainingAssembly))
+        {
+            return;
         }
 
         context.ReportDiagnostic(Diagnostic.Create(

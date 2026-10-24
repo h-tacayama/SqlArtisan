@@ -105,7 +105,7 @@ still needs naming by ID.
 | `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
 | `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` or `Unnest(...).AsTable(...)` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
 | `SQLA0104` | Warning | A literal argument value a configured dialect rejects, or runs with another meaning, where the construct itself runs there: a `DateTimePart` the function's grammar does not accept or reads as another field, a `RegexpOptions` member outside that engine's match-parameter alphabet, a negative `Top`/`FetchFirst`/`FetchNext`/`Limit` count, or a `GroupBy` column ordinal on an engine that has no `GROUP BY` positions — see [Argument value validity](#argument-value-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
-| `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join on its own spine — past one, the anti-join makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
+| `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join or super-aggregate grouping on its own spine — past one, the anti-join or the grand-total row makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0201` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0202` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0203` | Info, **off by default** | `Count(column)` on a column the generated table class declares nullable, which counts values rather than rows. Advice on correct code, so it reports nothing until you turn it on — see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
@@ -699,7 +699,10 @@ var q = Select(Count(Distinct, u.Age).Over(PartitionBy(u.DepartmentId))).From(u)
 **`INSERTED` / `DELETED` outside an `OUTPUT` clause.** The pseudo-tables are
 bound by the `OUTPUT` clause itself, so `Inserted(...)` / `Deleted(...)`
 resolve against no table anywhere else — read the row images inside
-`Output(...)`, and filter on the target table's own columns instead.
+`Output(...)`, and filter on the target table's own columns instead. It is
+reported only where the expression is written into a statement step other than
+`Output(...)`; one held in a variable, or passed through a helper, a lambda or a
+conditional, may still reach an `Output(...)` and stays silent.
 
 ```csharp
 // sqlartisan_syntax_sqlserver = any
@@ -992,7 +995,9 @@ var q = Select(u.Name).From(u)
 
 `RegexpOptions` is a `[Flags]` enum, so the rule reads the combination: the
 letters an engine has stay silent and only the missing one reports, from the
-same argument.
+same argument. A cast-in value carrying a bit no member defines reports
+nothing: the `Regexp*` call itself throws on it, on every dialect, which is
+the problem to fix.
 
 ### A `GROUP BY` position an engine has no ordinals for
 
@@ -1127,7 +1132,8 @@ constructs the table class with an empty alias and which is never
 reassigned, and the correlated column reference must sit in a subquery
 written inline in the same fluent chain. Anything less certain — the table
 built by a helper, the alias passed as a variable, the builder split across
-statements, a chain head selected by a conditional expression, a table class
+statements, a subquery or column passed through a call into non-SqlArtisan
+code, a chain head selected by a conditional expression, a table class
 or target field declared in a referenced project or assembly — stays silent. A missing warning therefore never means the statement is safe;
 `Build()` remains the enforcement.
 
@@ -1196,7 +1202,9 @@ method, property, constructor or operator has just returned it
 (`Select(...).From(...)`, `Listagg(...)`, `u.Id == 1`). Any other static type
 stays silent — a subquery held in a variable, a value typed `SqlExpression`, or
 a value typed `DbTableBase`, which may hold a table class of yours that
-overrides `ToString()`. A missing warning therefore never means the operand is safe.
+overrides `ToString()`. Concatenated with a string, a sealed class of yours with
+an implicit user-defined conversion to `string` converts through it and stays silent;
+interpolated, it is formatted by `ToString()` and reports. A missing warning therefore never means the operand is safe.
 
 Suppression is per rule ID, the standard Roslyn way
 (`#pragma warning disable SQLA0301`, a `[SuppressMessage]` attribute, or
@@ -1239,7 +1247,11 @@ such join. That takes two conditions, both required:
   null-supplies is not worked out; any one of them on the spine silences the
   statement, while one inside a subquery does not silence the statement around
   it. (`InnerJoin` and `NaturalJoin` null-supply nothing and are not on the
-  list.)
+  list.) A **super-aggregate grouping** counts too — `Rollup(...)`,
+  `Cube(...)` or `GroupingSets(...)` in the `GroupBy(...)`, or `.WithRollup()`:
+  its subtotal rows carry NULL in a NOT NULL grouping column, and
+  `Having(col.IsNull)` is how they are selected. A `WHERE` filter, which runs
+  before grouping, falls silent with it.
 - The statement **builds its own query** — the chain starts at `Select` /
   `InsertInto` / `InsertIgnoreInto` (its feeding `SELECT`) / `Update` /
   `DeleteFrom` / `MergeInto` / `With` / `WithRecursive` right there.
@@ -1247,7 +1259,14 @@ such join. That takes two conditions, both required:
   passed through a call into non-SqlArtisan code (which may place its argument
   anywhere), or whose head is selected by a conditional expression
   (`(flag ? Select(...) : Select(...)).Where(...)`) is left alone: the join
-  that would decide the answer is somewhere this rule cannot read.
+  that would decide the answer is somewhere this rule cannot read. A
+  correlated predicate, on a table its own subquery does not read, reads the
+  joins of the outer query that does, so that query must be visible too: with a
+  held or helper-built chain, or a call into non-SqlArtisan code, between the
+  two, or no visible chain reading the table at all (a subquery held in a
+  variable), it is left alone. So is a column of a table held anywhere but a
+  local, a parameter, a field or a property (`ts[0].Code`, `Tbl().Code`), whose
+  table the rule cannot match to the one a chain reads.
 
 The trade is deliberate — the rule misses real constant predicates in order not
 to call a working anti-join a mistake.
@@ -1350,13 +1369,16 @@ a leading `%`, anchor the pattern where the search allows it.
 
 A `CASE` *branch* over the column is not reported: `Then(t.Key)` and
 `Else(t.Key)` carry it unwrapped, so both stay silent. A simple-`CASE` operand
-(`Case(t.Key, When(...))`) transforms the column as `Cast` does and is reported.
+(`Case(t.Key, When(...))`) transforms the column as a function does and is
+reported. `Cast(...)` is not: whether it keeps an index turns on the type it
+names, which the rule does not read.
 
 Only `WHERE` and `ON` are checked. The same call in a select list or an
 `ORDER BY` costs no index, and `HAVING` filters groups after any index has done
 its work. A `MERGE` action's `Where(...)` is not checked either: like
 `DeleteWhere(...)` and `WhenMatched(condition)`, it filters the rows `ON` has
-already sorted into its branch. A condition built apart from its clause is left alone: nothing at that
+already sorted into its branch. Nor is an `ON CONFLICT ... DO UPDATE`'s
+`Where(...)`, which tests the one row the conflict check has already found. A condition built apart from its clause is left alone: nothing at that
 point shows it will ever reach a `WHERE`. A call that *is* the predicate — full-text
 `Contains` / `Freetext`, the JSONB containment and existence predicates
 (`JsonbContains`, `JsonbExists*`), the array predicates (`ArrayOverlaps`,

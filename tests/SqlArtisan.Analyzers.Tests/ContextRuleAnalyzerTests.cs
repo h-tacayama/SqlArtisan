@@ -520,6 +520,56 @@ public class ContextRuleAnalyzerTests
             """, "sqlserver");
 
     [Fact]
+    public Task InsertedWrappedViaVariable_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var e = Coalesce(Inserted(t.Id), 0);
+            var q = Update(t).Set(t.Id == 1).Output(e);
+            """, "sqlserver");
+
+    [Fact]
+    public Task InsertedWrappedInTernary_SqlServer_StaysSilent() =>
+        RunSilent("""
+            bool f = true;
+            var q = Update(t).Set(t.Id == 1).Output(f ? Coalesce(Inserted(t.Id), 0) : t.Id);
+            """, "sqlserver");
+
+    [Fact]
+    public Task InsertedWrappedThroughHelper_SqlServer_StaysSilent() =>
+        RunSilent("""
+            static SqlExpression Keep(SqlExpression e) => e;
+            var q = Update(t).Set(t.Id == 1).Output(Keep(Coalesce(Inserted(t.Id), 0)));
+            """, "sqlserver");
+
+    [Fact]
+    public Task InsertedWrappedInLambda_SqlServer_StaysSilent() =>
+        RunSilent("""
+            System.Func<SqlExpression> f = () => Coalesce(Inserted(t.Id), 0);
+            var q = Update(t).Set(t.Id == 1).Output(f());
+            """, "sqlserver");
+
+    [Fact]
+    public Task InsertedWrappedInHeldArray_SqlServer_StaysSilent() =>
+        RunSilent("""
+            object[] items = [Coalesce(Inserted(t.Id), 0)];
+            var q = Update(t).Set(t.Id == 1).Output(items);
+            """, "sqlserver");
+
+    [Fact]
+    public Task InsertedWrappedInSelectList_SqlServer_ReportsSqla0102() =>
+        RunReporting("""
+            var q = Select(Coalesce({|#0:Inserted(t.Id)|}, 0)).From(t);
+            """, "sqlserver");
+
+    // Written straight into a statement step, the pseudo-table cannot reach an
+    // Output, however the builder before that step was held.
+    [Theory]
+    [InlineData("var u = Update(t).Set(t.Dep == 1); var q = u.Where({|#0:Inserted(t.Id)|} == 1);")]
+    [InlineData("var u = Update(t); var q = u.Set(t.Dep == {|#0:Inserted(t.Id)|});")]
+    [InlineData("""var u = Select(t.Id).From(t); var q = u.Where(t.Id == Coalesce({|#0:Deleted(t.Id)|}, 0));""")]
+    public Task PseudoTableIntoHeldBuilderStep_SqlServer_ReportsSqla0102(string statements) =>
+        RunReporting(statements, "sqlserver");
+
+    [Fact]
     public Task IntervalBareSelectItem_MySql_ReportsSqla0102() =>
         RunReporting("""
             var q = Select({|#0:Interval(30, DateTimePart.Day)|}).From(t);

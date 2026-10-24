@@ -133,7 +133,8 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships fifteen diagnostics:
   technique SQLA0205 uses for `DbTypeCategory`.
 - **SQLA0200** — Constant NULL predicate: `IS [NOT] NULL` on a column the
   generated table class declares NOT NULL. Reported only in a statement that
-  visibly builds its own query and has no outer join on its own spine.
+  visibly builds its own query and has no outer join or super-aggregate
+  grouping on its own spine.
 - **SQLA0201** — `NOT IN` over a subquery selecting a nullable column — one
   NULL and the query matches nothing.
 - **SQLA0202** — `INSERT` column list omitting a NOT NULL column with no

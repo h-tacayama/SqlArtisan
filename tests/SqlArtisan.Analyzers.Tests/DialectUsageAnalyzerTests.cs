@@ -628,6 +628,64 @@ public class DialectUsageAnalyzerTests
         await test.RunAsync();
     }
 
+    [Theory]
+    [InlineData("const string n = nameof(SqlExpression.NullsFirst);")]
+    [InlineData("var c = new DbColumn(null!, \"a\"); string n = nameof(c.NullsFirst);")]
+    public async Task NameofOperand_StaysSilent(string statement)
+    {
+        string source = $$"""
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    {{statement}}
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_sqlserver = any
+            sqlartisan_syntax_sqlite = 3.29
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task NullsFirst_SqlServer_ReportsSqla0100()
+    {
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new DbColumn(null!, "a");
+                    var x = {|#0:c.NullsFirst|};
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_sqlserver = any
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
     [Fact]
     public async Task RegexpLike_OnPostgreSql_StaysSilent()
     {
