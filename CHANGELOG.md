@@ -341,8 +341,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `Sql.Null` message. (#614)
 - An unaliased target of a joined `UPDATE` or `DELETE` throws at the `From(...)`,
   join or `Using(...)` call that joins it instead of at `Build()`; the alias is
-  fixed by then, and a `DELETE`'s `From(...)` already threw its re-list check.
-  (#614)
+  fixed by then. (#614)
 - **Breaking:** `DbmsResolver.RegisterProvider` throws
   `ArgumentOutOfRangeException` on `Dbms.Unknown` or an undefined value, as
   `SetDefaultDbms` does. It accepted them, and the first registration for a type
