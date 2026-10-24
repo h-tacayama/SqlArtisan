@@ -1303,6 +1303,66 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         transaction.Rollback();
     }
 
+    // docs/analyzer.md (SQLA0205): SQL Server converts the text side to a number, so a
+    // zero-padded text matches and a non-numeric one fails the query.
+    [Fact]
+    public void TextComparedToNumber_ConvertsTheText()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(2, connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM (VALUES ('01500001'), ('1500001')) t (z) WHERE z = @n",
+            new { n = 1500001 }));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM (VALUES ('01500001'), ('abc')) t (z) WHERE z = @n",
+            new { n = 1500001 }));
+    }
+
+    // docs/analyzer.md: DATETRUNC takes MICROSECOND on a datetime2 of scale 6 or 7.
+    [Theory]
+    [MemberData(
+        nameof(DatetruncMicrosecondScales.Accepted),
+        MemberType = typeof(DatetruncMicrosecondScales))]
+    public void Datetrunc_Microsecond_IsAcceptedByTheEngine(string type)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(Select(Datetrunc(
+            DateTimePart.Microsecond, Cast("2024-01-01 10:00:00.123", type))));
+    }
+
+    [Theory]
+    [MemberData(
+        nameof(DatetruncMicrosecondScales.Rejected),
+        MemberType = typeof(DatetruncMicrosecondScales))]
+    public void Datetrunc_Microsecond_IsRejectedByTheEngine(string type)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(Select(Datetrunc(
+            DateTimePart.Microsecond, Cast("2024-01-01 10:00:00.123", type)))));
+    }
+
+    // docs/query-statements.md: the MERGE example that puts the condition on the
+    // earlier of two matched branches.
+    [Fact]
+    public void Merge_ConditionalBranchBeforeUnconditional_Executes()
+    {
+        UsersTable t = new("t");
+        UsersTable s = new("s");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            MergeInto(t)
+                .Using(s)
+                .On(t.Id == s.Id)
+                .WhenMatched(s.Name.IsNotNull).ThenUpdateSet(t.Name == s.Name)
+                .WhenMatched().ThenDelete(),
+            transaction);
+        transaction.Rollback();
+    }
+
     // docs/functions.md: GREATEST and LEAST skip a NULL argument here.
     [Fact]
     public void GreatestAndLeast_NullArgument_SkipsANullArgument()

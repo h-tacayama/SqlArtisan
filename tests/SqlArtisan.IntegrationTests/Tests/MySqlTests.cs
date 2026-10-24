@@ -1028,6 +1028,74 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         }
     }
 
+    // docs/analyzer.md (SQLA0205): MySQL compares a text column to a number as
+    // numbers, so every text converting to it matches; a SELECT does not fail on a text
+    // that is no number, and a DELETE does under the default strict sql_mode.
+    [Fact]
+    public void TextColumnComparedToNumber_MatchesEveryTextConvertingToIt()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute("DROP TEMPORARY TABLE IF EXISTS zips");
+        connection.Execute("CREATE TEMPORARY TABLE zips (z VARCHAR(30))");
+        connection.Execute(
+            "INSERT INTO zips VALUES ('01500001'), ('1500001 Nowhere St'), ('abc')");
+
+        IEnumerable<string> matched = connection.Query<string>(
+            "SELECT z FROM zips WHERE z = @n ORDER BY z", new { n = 1500001 });
+
+        Assert.Equal(new[] { "01500001", "1500001 Nowhere St" }, matched);
+        connection.Execute("DROP TEMPORARY TABLE IF EXISTS words");
+        connection.Execute("CREATE TEMPORARY TABLE words (z VARCHAR(30))");
+        connection.Execute("INSERT INTO words VALUES ('01500001'), ('abc')");
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "DELETE FROM words WHERE z = @n", new { n = 1500001 }));
+    }
+
+    // docs/query-statements.md: MySQL rejects a DML subquery reading the target's own
+    // table (ER_UPDATE_TABLE_USED); the joined forms read it instead.
+    [Fact]
+    public void UpdateAndDelete_SubqueryReadingTheTarget_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        UsersTable t = new("t");
+        UsersTable i = new("i");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            DeleteFrom(u).Where(u.Id.In(Select(i.Id).From(i).Where(i.Name == "none"))),
+            transaction));
+        connection.Execute(
+            DeleteFrom(t).From(t).InnerJoin(i).On(t.Id == i.Id).Where(i.Name == "none"),
+            transaction);
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            Update(u).Set(u.Age == 0).Where(u.Id.In(Select(i.Id).From(i).Where(i.Name == "none"))),
+            transaction));
+        connection.Execute(
+            Update(t).InnerJoin(i).On(t.Id == i.Id).Set(t.Age == 0).Where(i.Name == "none"),
+            transaction);
+        transaction.Rollback();
+    }
+
+    // docs/query-statements.md: MySQL has no FULL JOIN, so after an unaliased table
+    // it reads FULL as that table's alias and runs an inner join.
+    [Fact]
+    public void FullJoin_UnaliasedLeftTable_ReadsFullAsItsAlias()
+    {
+        UsersTable u = new();
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        long viaFull = connection.ExecuteScalar<long>(
+            "SELECT COUNT(FULL.id) FROM orders FULL JOIN users ON FULL.user_id = users.id");
+        long inner = connection.ExecuteScalar<long>(
+            "SELECT COUNT(*) FROM orders INNER JOIN users ON orders.user_id = users.id");
+
+        Assert.Equal(inner, viaFull);
+        Assert.ThrowsAny<DbException>(() => connection.Query<string>(
+            Select(u.Name).From(o).FullJoin(u).On(o.UserId == u.Id)));
+    }
+
     // docs/functions.md: the RegexpReplace warning; occurrence 0 replaces every match.
     [Fact]
     public void RegexpReplace_ThreeArguments_ReplacesEveryMatch()

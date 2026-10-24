@@ -2,6 +2,7 @@ using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
 using Dapper;
+using Oracle.ManagedDataAccess.Client;
 using SqlArtisan;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
@@ -1366,6 +1367,52 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             "SELECT CASE WHEN 'a' LIKE ANY (SELECT 'a' FROM dual) ESCAPE '!' THEN 1 END "
                 + "FROM dual"));
+    }
+
+    // docs/analyzer.md (SQLA0205): Oracle converts the text side to a number, so a
+    // zero-padded text matches and a non-numeric one fails the query.
+    [Fact]
+    public void TextComparedToNumber_ConvertsTheText()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        const string Numeric =
+            "SELECT '01500001' z FROM DUAL UNION ALL SELECT '1500001' FROM DUAL";
+
+        Assert.Equal(2, connection.ExecuteScalar<int>(
+            $"SELECT COUNT(*) FROM ({Numeric}) t WHERE z = :n", new { n = 1500001 }));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            $"SELECT COUNT(*) FROM ({Numeric} UNION ALL SELECT 'abc' FROM DUAL) t WHERE z = :n",
+            new { n = 1500001 }));
+    }
+
+    // README Manual Execution: ODP.NET binds by position unless BindByName is set, and a
+    // statement repeating a marker ahead of another then does not run (on this lane it
+    // waits out the command timeout).
+    [Fact]
+    public void RepeatedMarkerAheadOfAnother_BindByPosition_DoesNotRun()
+    {
+        UsersTable u = new();
+        BindValue id = Bind(1);
+        SqlStatement statement =
+            Select(u.Name).From(u).Where(u.Id == id | u.Id > id | u.Name == "x").Build(Dbms.Oracle);
+        object? Run(bool byName)
+        {
+            using IDbConnection connection = _fixture.OpenConnection();
+            using OracleCommand command = ((OracleConnection)connection).CreateCommand();
+            command.BindByName = byName;
+            command.CommandTimeout = 5;
+            command.CommandText = statement.Text;
+            statement.Parameters.ForEach((name, value) => command.Parameters.Add(
+                new OracleParameter(name.TrimStart(':'), value.Value)));
+            return command.ExecuteScalar();
+        }
+
+        Run(byName: true);
+        Task<object?> byPosition = Task.Run(() => Run(byName: false));
+        Assert.True(
+            ((IAsyncResult)byPosition).AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(60)),
+            "Binding by position did not finish within 60 seconds.");
+        Assert.IsType<OracleException>(byPosition.Exception?.InnerException);
     }
 
     // docs/functions.md: the RegexpReplace warning; occurrence 0 replaces every match.

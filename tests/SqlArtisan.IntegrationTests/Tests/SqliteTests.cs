@@ -1151,6 +1151,20 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.Equal(99, connection.ExecuteScalar<int>("SELECT b FROM pr_t"));
     }
 
+    // docs/analyzer.md (SQLA0205): SQLite compares a text column to a number as text.
+    [Fact]
+    public void TextColumnComparedToNumber_ComparesAsText()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute("CREATE TEMP TABLE zips (z TEXT)");
+        connection.Execute("INSERT INTO zips VALUES ('01500001'), ('1500001'), ('abc')");
+
+        IEnumerable<string> matched = connection.Query<string>(
+            "SELECT z FROM zips WHERE z = @n", new { n = 1500001 });
+
+        Assert.Equal(new[] { "1500001" }, matched);
+    }
+
     // docs/functions.md: the Length warning.
     [Fact]
     public void Length_NonAsciiCharacter_CountsCharacters()

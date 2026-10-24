@@ -840,6 +840,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#685).
 - Live twins pin the per-target results the reference pages now warn about,
   each on the lanes it names (#685).
+- Live twins pin #685's engine notes (see Docs) on the MySQL, Oracle,
+  PostgreSQL, SQLite and SQL Server lanes, and the SQL Server `MERGE` example
+  that conditions the earlier matched branch (#685).
 
 ### Docs
 - `docs/versioning.md` states that a new rejection is breaking: a call, a
@@ -1085,6 +1088,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   keeps the backslash SqlArtisan doubles in a forced literal. The JSON operators
   note that MySQL takes only a path as the key, and that a path-shaped key is a
   plain key on PostgreSQL.
+- Engine notes from the integration lanes (#685): `SQLA0205`'s wrong-rows
+  sentence names Oracle and SQL Server, which convert the text side and fail on
+  a non-numeric row, SQLite, which compares as text, and MySQL's strict
+  `sql_mode`, under which a `DELETE` reaching a non-numeric text fails; SQL
+  Server's `DATETRUNC` takes `MICROSECOND` on a `datetime2` of scale 6 or 7 and
+  rejects it on a `datetime2(3)` and a `datetime`; MySQL rejects an `UPDATE` /
+  `DELETE` whose subquery reads its own target, with both joined forms named;
+  MySQL reads `FULL` after an unaliased table as its alias when no joined column
+  is ambiguous; MySQL's `LIMIT`-in-`IN` rejection names the version observed;
+  and the README says raw ADO.NET on Oracle needs `BindByName`.
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

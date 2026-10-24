@@ -216,6 +216,8 @@ dotnet add package SqlArtisan.ArrayBind --prerelease # optional: Oracle array-bi
 
     **Note:** the single-use rule above applies here too — calling `Build()` twice on the same instance throws.
 
+    On Oracle, set `OracleCommand.BindByName = true` when you bind `sql.Parameters` yourself: ODP.NET binds by position by default, so a statement that repeats a marker ahead of another (one `Bind(...)` value used twice) does not run (observed with ODP.NET 23.8 on Oracle XE 21.3.0).
+
 ---
 
 ## Configuration
@@ -690,6 +692,12 @@ On SQL Server, which has no `NATURAL JOIN`, write the match explicitly with
 unsupported too. SQLite gained `RIGHT JOIN` / `FULL JOIN` and their `NATURAL`
 forms in a specific release — see the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
+
+> [!NOTE]
+> On MySQL, `FullJoin()` after an unaliased table emits `FROM t FULL JOIN u`,
+> which MySQL reads as `t` aliased `FULL` and runs as an inner join, or rejects
+> for an ambiguous column (observed on MySQL 8.0.46). `SQLA0100` reports
+> `FullJoin` there.
 
 #### JOIN ... USING
 
@@ -1253,7 +1261,7 @@ SqlStatement sql =
 // WHERE "o".user_id = "u".id ORDER BY "o".amount LIMIT :0) "x"
 ```
 
-On MySQL, `LIMIT` directly inside an `IN` / `NOT IN` / `ALL` / `ANY` / `SOME` subquery is rejected ("This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'" — the same restriction covers `NOT IN`) — route the limited query through a CTE (`With(c.As(...))`) and select from that instead.
+On MySQL, `LIMIT` directly inside an `IN` / `NOT IN` / `ALL` / `ANY` / `SOME` subquery is rejected ("This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'" — the same restriction covers `NOT IN`; observed on MySQL 8.0.46) — route the limited query through a CTE (`With(c.As(...))`) and select from that instead.
 
 #### Reusing a builder chain
 
@@ -1417,6 +1425,12 @@ SqlStatement sql =
 // WHERE id IN
 // (SELECT "i".id FROM users "i" WHERE "i".name = :0)
 ```
+
+MySQL rejects an `UPDATE` or `DELETE` whose subquery reads the target's own table
+(`You can't specify target table ... for update in FROM clause`, observed on
+MySQL 8.0.46). There, join the second instance instead — the
+[joined forms](#joined-update--delete), `DeleteFrom(t).From(t).InnerJoin(i).On(...)`
+and `Update(t).InnerJoin(i).On(...).Set(...)`.
 
 | DBMS | Correlated `UPDATE` / `DELETE` |
 |------|--------------------------------|
@@ -2538,7 +2552,7 @@ SqlStatement sql =
 // OR ("a".id NOT IN (SELECT "c".id FROM users "c"))
 ```
 
-On MySQL, `LIMIT` directly inside an `IN` / `NOT IN` / `ALL` / `ANY` / `SOME` subquery is rejected — route the limited query through a CTE instead. See the [Pagination dialect caveat](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination) for the full per-position rule.
+On MySQL, `LIMIT` directly inside an `IN` / `NOT IN` / `ALL` / `ANY` / `SOME` subquery is rejected (observed on MySQL 8.0.46) — route the limited query through a CTE instead. See the [Pagination dialect caveat](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination) for the full per-position rule.
 
 ### EXISTS Condition
 ```csharp
@@ -3831,7 +3845,7 @@ still needs naming by ID.
 | `SQLA0202` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0203` | Info, **off by default** | `Count(column)` on a column the generated table class declares nullable, which counts values rather than rows. Advice on correct code, so it reports nothing until you turn it on — see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0204` | Warning | A `WHERE` or `ON` predicate wraps an indexed column in a function, or matches it with a leading-wildcard pattern, so no index on it can be used. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
-| `SQLA0205` | Warning | A column is compared to a value of another type category — a text column against a number, say. The engine reconciles the two for you, and on MySQL that changes which rows match. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
+| `SQLA0205` | Warning | A column is compared to a value of another type category — a text column against a number, say. The engine reconciles the two for you, and on MySQL, Oracle and SQL Server that changes which rows match. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0300` | Warning | A correlated UPDATE, DELETE, or MERGE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0300). |
 | `SQLA0301` | Warning | `==` or `!=` that C# resolves as reference equality, because the left operand is not a SqlArtisan expression, passed to a SqlArtisan member or operator — it binds a `bool` instead of comparing in SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
 | `SQLA0302` | Warning | A SqlArtisan object interpolated or concatenated into a string passed to a SqlArtisan member or operator — it binds the object's type name instead of SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
@@ -3850,7 +3864,9 @@ produce a false positive.
 One kind of entry reports SQL the engine runs: a spelling the dialect reads as
 something else — `||` as logical OR on MySQL, `<=>` as MySQL's NULL-safe
 equality, MySQL's and SQLite's own `FORMAT()`, SQL Server's value-first
-`LOG(x, b)`, and `MINUS`, which SQL Server reads as a table alias. Nothing fails
+`LOG(x, b)`, `MINUS`, which SQL Server reads as a table alias, and `FULL JOIN`
+after an unaliased table, which MySQL reads as that table's alias `FULL` before
+an inner `JOIN` when no column the join names is ambiguous. Nothing fails
 there, so the warning is the only signal; where you mean the dialect's own
 reading, suppress it at that call.
 
@@ -4336,7 +4352,7 @@ does.
 **`LIMIT` inside an `IN` / `NOT IN` / `ANY` / `ALL` / `SOME` subquery.** MySQL
 rejects a row-limited query directly under these positions ("This version of
 MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'" — the same
-restriction covers `NOT IN`) — route the limited query through a derived table
+restriction covers `NOT IN`; observed on MySQL 8.0.46) — route the limited query through a derived table
 or CTE instead. Every other position stays silent.
 
 ```csharp
@@ -5128,10 +5144,16 @@ var sql = Select(t.Id).From(t).Where(t.ZipCode == Bind(1500001)).Build();
 
 On MySQL that predicate also matches `'01500001'` and `'1500001 Nowhere St'`,
 because each converts to the same number — the query answers a question you did
-not ask. On PostgreSQL the same comparison is rejected outright (`operator does
-not exist: character varying = integer`), which is at least loud. The index on
-the column is unusable either way, but the wrong-rows half is why this is a
-warning rather than a note about speed.
+not ask, and a text that is no number at all does not fail a `SELECT` (under
+the default strict `sql_mode`, a `DELETE` reaching it fails).
+Oracle and SQL Server convert the text side to a number too, so `'01500001'`
+matches there, and a row whose text is no number fails the whole query. SQLite
+compares the two as text, so only `'1500001'` matches. PostgreSQL rejects the
+comparison outright (`operator does not exist: character varying = integer`).
+Observed on MySQL 8.0.46, Oracle XE 21.3.0, PostgreSQL 16.15, SQLite 3.50.4 and
+SQL Server 2022. The index on the column is unusable wherever the comparison
+runs, but the wrong-rows half is why this is a warning rather than a note about
+speed.
 
 The category is coarse on purpose — `Text`, `Numeric`, `Temporal`, `Binary`,
 `Boolean` — carrying no length, precision, or scale. A `numeric(10,2)` column
@@ -5299,9 +5321,10 @@ for, not a bug in the matrix.
   source (it needs a `TIMESTAMP`) and the four `TIMEZONE_*` fields need
   `TIMESTAMP WITH TIME ZONE` specifically — `SQLA0104` accepts all ten Oracle
   fields regardless of what `Extract`'s own source expression evaluates to.
-  SQL Server's `DATETRUNC` similarly rejects `MICROSECOND` on a `datetime2`
-  column while accepting it elsewhere; `SQLA0104` treats `Microsecond` as
-  valid there unconditionally. Both are staying-permissive gaps, not
+  SQL Server's `DATETRUNC` similarly takes `MICROSECOND` on a `datetime2` of
+  fractional-second scale 6 or 7 (the default) and rejects it on a
+  `datetime2(3)` and on a `datetime` (observed on SQL Server 2022 and 2025);
+  `SQLA0104` treats `Microsecond` as valid there unconditionally. Both are staying-permissive gaps, not
   false-positive risks: an argument this rule accepts can still fail at
   execution for a source-type reason it doesn't check.
 - **`SQLA0104` does not cover `Numtodsinterval` / `Numtoyminterval`.** Both

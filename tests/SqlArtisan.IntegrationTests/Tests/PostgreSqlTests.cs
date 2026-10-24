@@ -1759,6 +1759,19 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         transaction.Rollback();
     }
 
+    // docs/analyzer.md (SQLA0205): PostgreSQL rejects a text column compared to a number.
+    [Fact]
+    public void TextComparedToNumber_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        const string Query =
+            "SELECT COUNT(*) FROM (SELECT '01500001'::varchar AS z) t WHERE z = @n";
+
+        Assert.Equal(1, connection.ExecuteScalar<int>(Query, new { n = "01500001" }));
+        Assert.ThrowsAny<DbException>(
+            () => connection.ExecuteScalar<int>(Query, new { n = 1500001 }));
+    }
+
     // docs/functions.md: the RegexpReplace warning; occurrence 0 replaces every match.
     [Fact]
     public void RegexpReplace_ThreeArguments_ReplacesTheFirstMatchOnly()
