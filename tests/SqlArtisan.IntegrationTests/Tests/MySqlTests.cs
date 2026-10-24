@@ -1037,7 +1037,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
     // docs/query-statements.md: INTERSECT binds tighter than UNION and EXCEPT here.
     [Fact]
-    public void SetOperators_UnionThenIntersect_IntersectBindsFirst()
+    public void SetOperators_IntersectAfterUnionOrExcept_BindsFirst()
     {
         UsersTable a = new("a");
         UsersTable b = new("b");
@@ -1050,8 +1050,15 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             .Select(b.Id).From(b).Where(b.Id == 2)
             .Intersect
             .Select(c.Id).From(c).Where(c.Id == 3));
+        IEnumerable<int> exceptIds = connection.Query<int>(
+            Select(a.Id).From(a).Where(a.Id == 1)
+            .Except
+            .Select(b.Id).From(b).Where(b.Id == 1)
+            .Intersect
+            .Select(c.Id).From(c).Where(c.Id == 2));
 
         Assert.Equal(new[] { 1 }, ids);
+        Assert.Equal(new[] { 1 }, exceptIds);
     }
 
     // docs/expressions.md: a bound backslash escapes the next pattern character here
@@ -1088,7 +1095,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     }
 
     // docs/functions.md: under NO_BACKSLASH_ESCAPES the backslash SqlArtisan doubles
-    // in a forced literal stays doubled.
+    // in a forced literal stays doubled, and an ESCAPE character fails.
     [Fact]
     public void GroupConcat_BackslashSeparator_NoBackslashEscapes_KeepsBothBackslashes()
     {
@@ -1104,6 +1111,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         try
         {
             Assert.Equal(@"Alice\\Bob", connection.ExecuteScalar<string>(Query()));
+            Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+                Select(Count(u.Id)).From(u).Where(Bind("a").Like("a").Escape('\\'))));
         }
         finally
         {

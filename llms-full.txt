@@ -2637,8 +2637,8 @@ SqlStatement sql =
 
 > [!NOTE]
 > A path-shaped key such as `"$.name"` reads a path on MySQL and SQLite but is a
-> plain key on PostgreSQL, which returns NULL for it. On SQLite, a `->>` key
-> holding `\` returns NULL too.
+> plain key on PostgreSQL, which returns NULL for it. On SQLite, a `->` or `->>`
+> key holding `\` returns NULL too.
 
 Chaining is natural — the result is a `SqlExpression`:
 
@@ -3694,7 +3694,8 @@ Two kinds of string never become a bind parameter, and they behave differently:
 > [!WARNING]
 > **On MySQL with `NO_BACKSLASH_ESCAPES` in the session's `sql_mode`, a forced
 > literal holding `\` keeps both of the backslashes SqlArtisan writes for it.**
-> The value then carries two backslashes; an `ESCAPE` character fails instead.
+> The value then carries two backslashes; an `ESCAPE` character fails instead
+> (observed on MySQL 8.0.46).
 > SqlArtisan writes MySQL literals for the default mode, so run these statements
 > in a session without it.
 - **Identifiers** — an alias, a table or column name, a `Cast(...)` target type, and the sequence name in the Oracle (`Sequence("s").Nextval`) and SQL Server (`NextValueFor("s")`) spellings. These are emitted **exactly as written**, with no escaping: a type name like `DECIMAL(10,2)` is not a name that could be quoted, and rewriting an alias you spelled would break the guarantee that the SQL you write is the SQL that runs. `Sql.Hints(...)` is not an identifier but behaves the same way — it is a raw-SQL escape hatch, emitted verbatim by definition.

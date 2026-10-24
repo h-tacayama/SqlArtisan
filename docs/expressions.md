@@ -465,8 +465,8 @@ SqlStatement sql =
 
 > [!NOTE]
 > A path-shaped key such as `"$.name"` reads a path on MySQL and SQLite but is a
-> plain key on PostgreSQL, which returns NULL for it. On SQLite, a `->>` key
-> holding `\` returns NULL too.
+> plain key on PostgreSQL, which returns NULL for it. On SQLite, a `->` or `->>`
+> key holding `\` returns NULL too.
 
 Chaining is natural — the result is a `SqlExpression`:
 

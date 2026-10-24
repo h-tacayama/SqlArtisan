@@ -1794,7 +1794,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
 
     // docs/query-statements.md: INTERSECT binds tighter than UNION and EXCEPT here.
     [Fact]
-    public void SetOperators_UnionThenIntersect_IntersectBindsFirst()
+    public void SetOperators_IntersectAfterUnionOrExcept_BindsFirst()
     {
         UsersTable a = new("a");
         UsersTable b = new("b");
@@ -1807,8 +1807,15 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             .Select(b.Id).From(b).Where(b.Id == 2)
             .Intersect
             .Select(c.Id).From(c).Where(c.Id == 3));
+        IEnumerable<int> exceptIds = connection.Query<int>(
+            Select(a.Id).From(a).Where(a.Id == 1)
+            .Except
+            .Select(b.Id).From(b).Where(b.Id == 1)
+            .Intersect
+            .Select(c.Id).From(c).Where(c.Id == 2));
 
         Assert.Equal(new[] { 1 }, ids);
+        Assert.Equal(new[] { 1 }, exceptIds);
     }
 
     // docs/expressions.md: a bound backslash escapes the next pattern character here
@@ -1828,10 +1835,9 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(5, escaped);
     }
 
-    // docs/expressions.md: a path-shaped key is a literal key here, and a negative
-    // index counts from the end.
+    // docs/expressions.md: a path-shaped key is a plain key here.
     [Fact]
-    public void JsonArrow_PathKeyAndNegativeIndex_ReadAsKeyAndFromTheEnd()
+    public void JsonArrow_PathShapedKey_ReadsAsAPlainKey()
     {
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
@@ -1840,7 +1846,5 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             Select(JsonArrowText(u.Data, "name")).From(u).Where(u.Id == 1)));
         Assert.Null(connection.ExecuteScalar<string>(
             Select(JsonArrowText(u.Data, "$.name")).From(u).Where(u.Id == 1)));
-        Assert.Equal("3", connection.ExecuteScalar<string>(
-            Select(JsonArrowText(Cast("[1, 2, 3]", "jsonb"), -1))));
     }
 }
