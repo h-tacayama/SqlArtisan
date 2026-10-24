@@ -1385,10 +1385,10 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             new { n = 1500001 }));
     }
 
-    // README Manual Execution: ODP.NET binds by position unless BindByName is set, so a
-    // statement repeating a marker before a later one fails.
+    // README Manual Execution: ODP.NET binds by position unless BindByName is set, and a
+    // statement repeating a marker before a later one then waits out its timeout.
     [Fact]
-    public void RepeatedMarker_BindByPosition_IsRejectedByTheEngine()
+    public void RepeatedMarker_BindByPosition_WaitsUntilTheCommandTimesOut()
     {
         UsersTable u = new();
         BindValue id = Bind(1);
@@ -1399,7 +1399,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             using IDbConnection connection = _fixture.OpenConnection();
             using OracleCommand command = ((OracleConnection)connection).CreateCommand();
             command.BindByName = byName;
-            command.CommandTimeout = 30;
+            command.CommandTimeout = 5;
             command.CommandText = statement.Text;
             statement.Parameters.ForEach((name, value) => command.Parameters.Add(
                 new OracleParameter(name.TrimStart(':'), value.Value)));
@@ -1412,6 +1412,6 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             ((IAsyncResult)byPosition).AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(60)),
             "Binding by position did not finish within 60 seconds.");
         OracleException ex = Assert.IsType<OracleException>(byPosition.Exception?.InnerException);
-        Assert.StartsWith("ORA-01008", ex.Message);
+        Assert.StartsWith("ORA-03111", ex.Message);
     }
 }
