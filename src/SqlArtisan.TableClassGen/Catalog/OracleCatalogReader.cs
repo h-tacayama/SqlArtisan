@@ -149,9 +149,9 @@ internal sealed class OracleCatalogReader(
         || (!reader.IsDBNull(4)
             && string.Equals(reader.GetString(4), "YES", StringComparison.OrdinalIgnoreCase));
 
-    // A row trigger firing before an INSERT can fill a column the INSERT omits, which
-    // no default records, so on such a table no column is known to lack one (#684). A
-    // compound trigger counts too: its TRIGGER_TYPE hides a BEFORE EACH ROW section.
+    // A BEFORE EACH ROW section, a compound trigger's included, can fill a column the
+    // INSERT omits, which no default records, so on such a table no column is known to
+    // lack one (#684). A disabled trigger counts: it can be enabled again.
     private bool HasRowInsertTrigger(IDbConnection conn, string tableName)
     {
         using IDbCommand command = conn.CreateCommand();
@@ -161,7 +161,7 @@ internal sealed class OracleCatalogReader(
             FROM ALL_TRIGGERS
             WHERE TABLE_OWNER = :schema_name AND TABLE_NAME = :table_name
                 AND BASE_OBJECT_TYPE = 'TABLE' AND TRIGGERING_EVENT LIKE '%INSERT%'
-                AND TRIGGER_TYPE IN ('BEFORE EACH ROW', 'COMPOUND')
+                AND BEFORE_ROW = 'YES'
             """;
         CatalogCommand.AddParameter(command, ":schema_name", _connInfo.Schema.ToUpperInvariant());
         CatalogCommand.AddParameter(command, ":table_name", tableName.ToUpperInvariant());

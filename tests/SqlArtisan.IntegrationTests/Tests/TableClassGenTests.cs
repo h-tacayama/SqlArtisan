@@ -306,8 +306,8 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         }
     }
 
-    // #684: an INSTEAD OF INSERT trigger can fill a column the INSERT omits, so a table
-    // with one records no column as lacking a default, and SQLA0202 stays silent there.
+    // #684: an INSTEAD OF INSERT trigger, run in place of the INSERT, can fill a column
+    // it omits, so a table with one records no column as lacking a default, enabled or not.
     [Fact]
     public void GenerateTables_SqlServer_InsteadOfInsertTrigger_LeavesNoDefaultUnknown()
     {
@@ -322,7 +322,8 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
                     + "INSERT INTO trigger_probe (id, code) "
                     + "SELECT id, COALESCE(code, N'auto') FROM inserted");
             Execute("INSERT INTO trigger_probe (id) VALUES (1)");
-
+            Assert.Equal([null, null], HasDefaults());
+            Execute("DISABLE TRIGGER trigger_probe_fill ON trigger_probe");
             Assert.Equal([null, null], HasDefaults());
         }
         finally
@@ -723,8 +724,8 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
         }
     }
 
-    // #684: a row trigger firing before an INSERT can fill a column the INSERT omits, so
-    // a table with one records no column as lacking a default; a statement trigger cannot.
+    // #684: a row trigger firing before an INSERT can fill a column it omits, so a table
+    // with one records no column as lacking a default, enabled or not; a statement one cannot.
     [Fact]
     public void GenerateTables_PostgreSql_BeforeInsertRowTrigger_LeavesNoDefaultUnknown()
     {
@@ -748,7 +749,8 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
                 "CREATE TRIGGER trigger_probe_row BEFORE INSERT ON trigger_probe "
                     + "FOR EACH ROW EXECUTE FUNCTION trigger_probe_fill()");
             Execute("INSERT INTO trigger_probe (id) VALUES (1)");
-
+            Assert.Equal([null, null], HasDefaults());
+            Execute("ALTER TABLE trigger_probe DISABLE TRIGGER trigger_probe_row");
             Assert.Equal([null, null], HasDefaults());
         }
         finally
@@ -901,21 +903,28 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
         }
     }
 
-    // #684: a BEFORE EACH ROW trigger, or a compound one holding that section, can fill
-    // a column the INSERT omits, so a table with one records no column as lacking a
-    // default; a statement trigger cannot.
+    // #684: a BEFORE EACH ROW section, a compound trigger's included, can fill a column
+    // the INSERT omits, so a table with one records no column as lacking a default,
+    // enabled or not; a statement trigger or an AFTER-only compound one cannot.
     [Theory]
     [InlineData("""
         CREATE OR REPLACE TRIGGER trigger_probe_fill BEFORE INSERT ON trigger_probe
         FOR EACH ROW BEGIN IF :NEW.code IS NULL THEN :NEW.code := 'auto'; END IF; END;
-        """)]
+        """, true)]
     [InlineData("""
         CREATE OR REPLACE TRIGGER trigger_probe_fill FOR INSERT ON trigger_probe
         COMPOUND TRIGGER BEFORE EACH ROW IS BEGIN
         IF :NEW.code IS NULL THEN :NEW.code := 'auto'; END IF; END BEFORE EACH ROW;
         END trigger_probe_fill;
-        """)]
-    public void GenerateTables_Oracle_RowInsertTrigger_LeavesNoDefaultUnknown(string trigger)
+        """, true)]
+    [InlineData("""
+        CREATE OR REPLACE TRIGGER trigger_probe_fill FOR INSERT ON trigger_probe
+        COMPOUND TRIGGER AFTER EACH ROW IS BEGIN NULL; END AFTER EACH ROW;
+        END trigger_probe_fill;
+        """, false)]
+    public void GenerateTables_Oracle_RowInsertTrigger_LeavesNoDefaultUnknown(
+        string trigger,
+        bool fills)
     {
         Execute("CREATE TABLE trigger_probe (id NUMBER(10) NOT NULL, code VARCHAR2(10) NOT NULL)");
         try
@@ -926,8 +935,17 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
             Assert.Equal([false, false], HasDefaults());
 
             Execute(trigger);
-            Execute("INSERT INTO trigger_probe (id) VALUES (1)");
+            if (!fills)
+            {
+                Assert.ThrowsAny<OracleException>(
+                    () => Execute("INSERT INTO trigger_probe (id) VALUES (1)"));
+                Assert.Equal([false, false], HasDefaults());
+                return;
+            }
 
+            Execute("INSERT INTO trigger_probe (id) VALUES (1)");
+            Assert.Equal([null, null], HasDefaults());
+            Execute("ALTER TRIGGER trigger_probe_fill DISABLE");
             Assert.Equal([null, null], HasDefaults());
         }
         finally

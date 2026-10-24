@@ -137,9 +137,9 @@ internal sealed class InformationSchemaCatalogReader(
         return Convert.ToInt64(command.ExecuteScalar());
     }
 
-    // A per-row trigger ahead of the insert can fill a column the INSERT omits, which no
-    // default records (#684): PostgreSQL's BEFORE ... FOR EACH ROW and SQL Server's
-    // INSTEAD OF INSERT. MySQL records no column as lacking a default, so none is undone.
+    // A trigger ahead of each inserted row (PostgreSQL) or in place of the INSERT (SQL
+    // Server's INSTEAD OF) can fill a column it omits, enabled or not, since it can be
+    // enabled again (#684). MySQL records no column as lacking a default to undo.
     private bool HasRowInsertTrigger(IDbConnection conn, string tableName)
     {
         using IDbCommand command = conn.CreateCommand();
