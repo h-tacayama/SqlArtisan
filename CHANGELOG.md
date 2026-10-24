@@ -640,6 +640,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#654)
 
 ### Fixed
+- TableClassGen records no column as lacking a default on a table with a trigger
+  that can fill one an `INSERT` omits — an Oracle `BEFORE INSERT ... FOR EACH ROW`
+  or compound trigger, a PostgreSQL `BEFORE INSERT ... FOR EACH ROW` trigger, or a
+  SQL Server `INSTEAD OF INSERT` trigger — so `SQLA0202` no longer reports an
+  `INSERT` the trigger completes. (#684)
 - `SQLA0103` checks an `OutputParameter` name against Oracle's limit only,
   since only Oracle runs `RETURNING ... INTO` (`SQLA0100` reports `Into`
   elsewhere); with Oracle and PostgreSQL configured, a 64-character name no
