@@ -166,6 +166,28 @@ public class SchemaNullabilityAnalyzerTests
             var s = Select(r.Code).From(r).LeftJoin(t).On(t.Code == r.Code).Where(Exists(sub)).Build();
             """);
 
+    // A member on a column or a CTE handle wraps the subquery it takes; the
+    // statement around it is still visible.
+    [Theory]
+    [InlineData("""var s = Select(t.Code).From(t).Where(t.Code.In(Select(r.Code).From(r).Where({|#0:t.Code.IsNull|}))).Build();""")]
+    [InlineData("""var s = Select(t.Code).From(t).Where(t.Code.NotIn(Select(r.Code).From(r).Where({|#0:t.Code.IsNull|}))).Build();""")]
+    [InlineData("""Cte c = new("c"); var s = With(c.As(Select(t.Code).From(t).Where({|#0:t.Code.IsNull|}))).Select(c.Column("code")).From(c).Build();""")]
+    public Task IsNull_SubqueryUnderOperandMember_Warns(string statement) =>
+        RunReporting(
+            "T r = new T(\"r\");\n" + statement,
+            Expected("Code", "IsNull", "false"));
+
+    // A predicate on the subquery's own table reads no outer join, held or not.
+    [Fact]
+    public Task IsNull_OwnTableUnderHeldPrefix_Warns() =>
+        RunReporting(
+            """
+            T r = new T("r");
+            var held = Select(t.Code).From(t);
+            var s = held.Where(Exists(Select(r.Code).From(r).Where({|#0:r.Code.IsNull|}))).Build();
+            """,
+            Expected("Code", "IsNull", "false"));
+
     [Fact]
     public Task IsNull_CorrelatedUnderVisibleChain_Warns() =>
         RunReporting(

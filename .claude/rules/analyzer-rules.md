@@ -36,7 +36,9 @@ paths:
   grouping element fails the suite until it is placed.
 - **A climb that leaves through a variable, a helper, a lambda or a
   conditional proves nothing about what lies beyond it.** A rule that reports
-  the *absence* of an enclosing construct (an `Output(...)`, an outer join)
-  reports only where the climb ends at a visible statement chain, every
-  enclosing chain included, since a correlated subquery reads its outer
-  query's joins.
+  the *absence* of an enclosing construct reports only where the climb ends at
+  a SqlArtisan step that settles it: `SQLA0102` at a builder step other than
+  `Output(...)`, `SQLA0200` for a correlated column at a visible chain reading
+  its table with every chain in between visible. A member on an operand
+  (`col.In(...)`, `cte.As(...)`) or a static factory only wraps, and is
+  climbed through rather than read as a chain.

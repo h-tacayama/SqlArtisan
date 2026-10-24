@@ -94,7 +94,7 @@ public class ArgumentValueValidityAnalyzerTests
             """,
             AnalyzerVerifier.EditorConfig("postgresql"));
 
-    // A bit no member defines throws at Build() on every dialect, so the core's
+    // A bit no member defines throws at the call on every dialect, so the core's
     // guard owns it; the defined ExcludingWhiteSpace bit beside it does not report.
     [Fact]
     public Task RegexpLike_MySql_UndefinedBitBesideAGap_StaysSilent() =>

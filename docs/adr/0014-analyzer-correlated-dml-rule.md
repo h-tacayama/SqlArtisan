@@ -72,7 +72,9 @@ source. Walking a body would report one that reads the target as its own
 relation, which `Build()` accepts (#610); a body that correlates loses only
 the early report, since `Build()` throws. The rule reports once per
 statement, on a target column read inside a subquery. Descent stops at
-lambdas/local functions.
+lambdas/local functions, at a call into non-SqlArtisan code, and at a call
+returning a `CommonTableExpression` — a helper may build its argument into a
+CTE body, which `Build()` guards block by block.
 
 Accepted false negatives (the ADR 0003 direction — silence where the walk
 cannot prove the shape): a table class or target field declared outside the

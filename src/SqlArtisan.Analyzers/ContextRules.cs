@@ -213,9 +213,10 @@ internal static class ContextRules
             outermost = cursor;
         }
 
-        // A climb that leaves through a variable, a helper or a lambda may still end
-        // in an Output the walk cannot see; only a visible statement chain proves not.
-        if (!FluentChain.IsStatementHead(outermost))
+        // A climb that leaves a function through a variable, a helper or a lambda may
+        // still end in an Output; one written into another statement step cannot.
+        if (outermost.TargetMethod.ReturnType is not { TypeKind: TypeKind.Interface } stage
+            || !DialectUsageAnalyzer.IsFromSqlArtisan(stage.ContainingAssembly))
         {
             return;
         }

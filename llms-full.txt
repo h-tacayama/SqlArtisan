@@ -4435,7 +4435,7 @@ var q = Select(Count(Distinct, u.Age).Over(PartitionBy(u.DepartmentId))).From(u)
 bound by the `OUTPUT` clause itself, so `Inserted(...)` / `Deleted(...)`
 resolve against no table anywhere else — read the row images inside
 `Output(...)`, and filter on the target table's own columns instead. It is
-reported only where the expression visibly ends in a statement outside
+reported only where the expression is written into a statement step other than
 `Output(...)`; one held in a variable, or passed through a helper, a lambda or a
 conditional, may still reach an `Output(...)` and stays silent.
 
@@ -4731,7 +4731,8 @@ var q = Select(u.Name).From(u)
 `RegexpOptions` is a `[Flags]` enum, so the rule reads the combination: the
 letters an engine has stay silent and only the missing one reports, from the
 same argument. A cast-in value carrying a bit no member defines reports
-nothing: `Build()` rejects it on every dialect, which is the problem to fix.
+nothing: the `Regexp*` call itself throws on it, on every dialect, which is
+the problem to fix.
 
 ### A `GROUP BY` position an engine has no ordinals for
 
@@ -4935,8 +4936,9 @@ method, property, constructor or operator has just returned it
 (`Select(...).From(...)`, `Listagg(...)`, `u.Id == 1`). Any other static type
 stays silent — a subquery held in a variable, a value typed `SqlExpression`, or
 a value typed `DbTableBase`, which may hold a table class of yours that
-overrides `ToString()`. A sealed class of yours with a user-defined conversion
-to `string` formats as what that conversion returns, and stays silent too. A missing warning therefore never means the operand is safe.
+overrides `ToString()`. Concatenated with a string, a sealed class of yours with
+a user-defined conversion to `string` converts through it and stays silent;
+interpolated, it is formatted by `ToString()` and reports. A missing warning therefore never means the operand is safe.
 
 Suppression is per rule ID, the standard Roslyn way
 (`#pragma warning disable SQLA0301`, a `[SuppressMessage]` attribute, or
@@ -4991,11 +4993,12 @@ such join. That takes two conditions, both required:
   passed through a call into non-SqlArtisan code (which may place its argument
   anywhere), or whose head is selected by a conditional expression
   (`(flag ? Select(...) : Select(...)).Where(...)`) is left alone: the join
-  that would decide the answer is somewhere this rule cannot read. The same
-  holds for every query a subquery sits in, since a correlated column reads
-  the outer query's joins: a predicate in a subquery of such a chain is left
-  alone, and so is one on a table no visible chain around it reads, as in a
-  subquery held in a variable.
+  that would decide the answer is somewhere this rule cannot read. A
+  correlated predicate, on a table its own subquery does not read, reads the
+  joins of the outer query that does, so that query must be visible too: with a
+  held or helper-built chain, or a call into non-SqlArtisan code, between the
+  two, or no visible chain reading the table at all (a subquery held in a
+  variable), it is left alone.
 
 The trade is deliberate — the rule misses real constant predicates in order not
 to call a working anti-join a mistake.

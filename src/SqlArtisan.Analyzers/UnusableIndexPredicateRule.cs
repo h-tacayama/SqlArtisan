@@ -37,7 +37,7 @@ internal static class UnusableIndexPredicateRule
     internal static readonly HashSet<string> ExpressionCarriers = ["Else"];
 
     // Whether CAST keeps the index depends on the type string, which the rule does
-    // not read: to the column's own type it can, to another it cannot.
+    // not read.
     internal static readonly HashSet<string> TypeDependentWrappings = ["Cast"];
 
     public static void CheckFunctionCall(

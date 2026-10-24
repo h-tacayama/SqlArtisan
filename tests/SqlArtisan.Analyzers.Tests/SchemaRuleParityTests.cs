@@ -193,6 +193,12 @@ public class SchemaRuleParityTests
             """,
             ""
         },
+        {
+            """var s = Select(t.Code).From(t).Where(Exists(Embed(Select(r.Key).From(r).Where(t.Code.IsNull)))).Build();""",
+            """
+            static ISubquery Embed(ISubquery q) => q;
+            """
+        },
         // A compound subquery is inside its enclosing statement: the outer join
         // that silences the predicate sits above the set operator, not beside it.
         {

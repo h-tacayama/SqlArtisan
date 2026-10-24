@@ -309,7 +309,7 @@ internal static class ArgumentValueValidityRule
             }
         }
 
-        // The core rejects a bit no member defines at Build() on every dialect, so
+        // The factory call rejects a bit no member defines on every dialect, so
         // naming a dialect's missing option would point at the wrong problem.
         return (bits & ~defined) == 0 ? names : null;
     }

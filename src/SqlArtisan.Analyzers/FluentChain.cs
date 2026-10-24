@@ -65,25 +65,23 @@ internal static class FluentChain
 
     /// <summary>
     /// Whether <paramref name="node"/> belongs to a chain whose statement head is
-    /// visible in the same statement, as is every chain that query is nested in —
-    /// the precondition for reading the query's shape off that statement.
+    /// visible in the same statement — the precondition for reading the query's
+    /// shape off that statement.
     /// </summary>
     /// <remarks>
     /// A chain assembled across statements, in a helper method, or in a field
-    /// hides the joins that decide a column's nullability (#266), and a correlated
-    /// subquery reads the joins of every chain it sits in.
+    /// hides the joins that decide a column's nullability, so a rule that judges
+    /// one must first establish it can see the whole query (#266).
     /// </remarks>
     public static bool HasVisibleStatementHead(IOperation node)
     {
         IOperation current = node;
-        bool headed = false;
 
         while (current.Parent is { } parent and not IBlockOperation)
         {
-            // Past a complete statement, foreign code only executes or holds it.
             if (IsForeignInvocation(parent))
             {
-                return headed;
+                return false;
             }
 
             if (parent is IInvocationOperation step
@@ -91,12 +89,13 @@ internal static class FluentChain
             {
                 if (IsStatementHead(step))
                 {
-                    headed = true;
+                    return true;
                 }
-                else if (step.Instance is not null)
+
+                // A static factory (e.g. Not) only wraps the node — the chain it feeds
+                // is further out; a step with a receiver is the chain, head unresolved.
+                if (step.Instance is not null)
                 {
-                    // A static factory (e.g. Not) only wraps the node — the chain it
-                    // feeds is further out; a step with a receiver is the chain.
                     return false;
                 }
             }
@@ -104,17 +103,18 @@ internal static class FluentChain
             current = parent;
         }
 
-        return headed;
+        return false;
     }
 
     /// <summary>
-    /// Whether <paramref name="table"/> is a table some visible chain around
-    /// <paramref name="node"/> reads — its own query block's or an enclosing one's.
+    /// Whether <paramref name="table"/> is read by the query block around
+    /// <paramref name="node"/>, or by one enclosing it with every chain in between
+    /// visible — a correlated column reads the joins of the query that reads it.
     /// </summary>
     /// <remarks>
-    /// A column of any other table is correlated to a query this cannot see, whose
-    /// joins decide its nullability. A table not held in a local, parameter, field
-    /// or property is unknown, and so not read.
+    /// A held or helper-built chain, or a call into foreign code, ends the climb: a
+    /// join beyond it is unseen. A table not held in a local, parameter, field or
+    /// property is unknown, and so not read.
     /// </remarks>
     public static bool IsReadByVisibleChain(IOperation node, IOperation table)
     {
@@ -127,31 +127,59 @@ internal static class FluentChain
             current is not null and not IBlockOperation;
             current = current.Parent)
         {
+            if (IsForeignInvocation(current))
+            {
+                return false;
+            }
+
             if (current is not IInvocationOperation step
-                || !DialectUsageAnalyzer.IsFromSqlArtisan(step.TargetMethod.ContainingAssembly))
+                || !DialectUsageAnalyzer.IsFromSqlArtisan(step.TargetMethod.ContainingAssembly)
+                || IsWrapping(step))
             {
                 continue;
             }
 
-            for (IOperation? link = step;
-                link is IInvocationOperation invocation;
-                link = invocation.Instance is null ? null : Unwrap(invocation.Instance))
+            if (!IsStatementHead(step))
             {
-                foreach (IArgumentOperation argument in invocation.Arguments)
+                return false;
+            }
+
+            if (ChainReads(step, symbol))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // A static factory (Exists, Not) or a member on an operand (col.In, cte.As)
+    // only wraps the node; the chain it feeds is further out.
+    private static bool IsWrapping(IInvocationOperation step) =>
+        step.Instance is not { } receiver
+        || IsExpression(receiver.Type)
+        || IsCondition(receiver.Type)
+        || IsTableReference(receiver.Type);
+
+    private static bool ChainReads(IInvocationOperation step, ISymbol table)
+    {
+        for (IOperation? link = step;
+            link is IInvocationOperation invocation;
+            link = invocation.Instance is null ? null : Unwrap(invocation.Instance))
+        {
+            foreach (IArgumentOperation argument in invocation.Arguments)
+            {
+                // A params table list arrives as an implicit array.
+                IEnumerable<IOperation> values =
+                    argument.Value is IArrayCreationOperation { Initializer: { } list }
+                        ? list.ElementValues
+                        : ImmutableArray.Create(argument.Value);
+                foreach (IOperation value in values)
                 {
-                    // A params table list arrives as an implicit array.
-                    IEnumerable<IOperation> values =
-                        argument.Value is IArrayCreationOperation { Initializer: { } list }
-                            ? list.ElementValues
-                            : ImmutableArray.Create(argument.Value);
-                    foreach (IOperation value in values)
+                    if (IsTableReference(Unwrap(value).Type)
+                        && SymbolEqualityComparer.Default.Equals(ReferencedSymbol(value), table))
                     {
-                        if (IsTableReference(Unwrap(value).Type)
-                            && SymbolEqualityComparer.Default.Equals(
-                                ReferencedSymbol(value), symbol))
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
@@ -339,11 +367,7 @@ internal static class FluentChain
         return false;
     }
 
-    /// <summary>
-    /// Whether <paramref name="step"/>'s receiver chain starts at a statement
-    /// factory (or a set operator) written in the same expression.
-    /// </summary>
-    public static bool IsStatementHead(IInvocationOperation step)
+    private static bool IsStatementHead(IInvocationOperation step)
     {
         IOperation current = step;
 

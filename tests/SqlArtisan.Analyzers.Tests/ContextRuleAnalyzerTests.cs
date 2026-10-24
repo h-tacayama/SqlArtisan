@@ -560,6 +560,15 @@ public class ContextRuleAnalyzerTests
             var q = Select(Coalesce({|#0:Inserted(t.Id)|}, 0)).From(t);
             """, "sqlserver");
 
+    // Written straight into a statement step, the pseudo-table cannot reach an
+    // Output, however the builder before that step was held.
+    [Theory]
+    [InlineData("var u = Update(t).Set(t.Dep == 1); var q = u.Where({|#0:Inserted(t.Id)|} == 1);")]
+    [InlineData("var u = Update(t); var q = u.Set(t.Dep == {|#0:Inserted(t.Id)|});")]
+    [InlineData("""var u = Select(t.Id).From(t); var q = u.Where(t.Id == Coalesce({|#0:Deleted(t.Id)|}, 0));""")]
+    public Task PseudoTableIntoHeldBuilderStep_SqlServer_ReportsSqla0102(string statements) =>
+        RunReporting(statements, "sqlserver");
+
     [Fact]
     public Task IntervalBareSelectItem_MySql_ReportsSqla0102() =>
         RunReporting("""

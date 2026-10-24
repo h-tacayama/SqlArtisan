@@ -82,6 +82,14 @@ public class CountNullableColumnAnalyzerTests
                 + "> 0).Build();",
             "Note");
 
+    // A subquery bound through a member on a column is inside a visible statement.
+    [Fact]
+    public Task Count_InSubqueryUnderIn_Warns() =>
+        RunReporting(
+            "T r = new T(); var sql = Select(r.Id).From(r)"
+                + ".Where(r.Id.In(Select({|#0:Count(t.Note)|}).From(t))).Build();",
+            "Note");
+
     // An expression wrapping the count does not hide the query it sits in.
     [Fact]
     public Task Count_WrappedInCoalesce_Warns() =>

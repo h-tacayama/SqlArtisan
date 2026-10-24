@@ -196,6 +196,13 @@ public class CSharpFallbackAnalyzerTests
             var q = Select(t.Id).From(t).Where(t.Name.Like("%" + s + "%"));
             """);
 
+    // Interpolation calls ToString(), not the conversion operator.
+    [Fact]
+    public Task SealedTableClassWithStringConversionInterpolated_ReportsSqla0302() =>
+        RunReporting(
+            "S s = new S(); var q = Select(t.Id).From(t).Where(t.Name.Like($\"%{|#0:{s}|}%\"));",
+            "SQLA0302");
+
     // A DbTableBase- or SqlPart-typed value may hold a user table class overriding ToString.
     [Fact]
     public Task ExtensibleBaseTypedValue_StaysSilent() =>
