@@ -81,9 +81,9 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The value evaluated for each row of the window.</param>
     /// <returns>A window function emitting <c>LAST_VALUE(expr)</c>.</returns>
-    /// <remarks>The default frame ends at the current row, so an explicit frame
-    /// (e.g. <c>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</c>) is
-    /// usually intended.</remarks>
+    /// <remarks>Frame-sensitive, and the frame without an explicit one is the engine's, so
+    /// an explicit frame (e.g. <c>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED
+    /// FOLLOWING</c>) is usually intended.</remarks>
     public static ValueAnalyticFunction LastValue(object expr) =>
         new AnalyticLastValueFunction(Resolve(expr));
 

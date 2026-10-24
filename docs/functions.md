@@ -30,15 +30,15 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Ln()` for `LN` (not supported by SQL Server — its `LOG(x)` is the natural logarithm)
 - `Log(x)` for `LOG(x)`; `Log(base, x)` for `LOG(base, x)` — **the base differs per dialect, see below**
 - `Log10()` for `LOG10` (not supported by Oracle — spell it `Log(10, x)` there)
-- `Mod()` for `MOD` (not supported by SQL Server — use the `%` operator there)
+- `Mod()` for `MOD` (not supported by SQL Server — use the `%` operator there; PostgreSQL rejects a `double precision` argument, taking `numeric` — observed on 16.15)
 - `Power()` for `POWER`
-- `Round()` for `ROUND` (single-argument `Round(expr)` is not supported by SQL Server — pass the scale explicitly there)
+- `Round()` for `ROUND` (single-argument `Round(expr)` is not supported by SQL Server — pass the scale explicitly there; PostgreSQL rejects `Round(x, n)` on a `double precision` `x`, taking `numeric` — observed on 16.15)
 - `Sign()` for `SIGN`
 - `Sqrt()` for `SQRT`
 - `Trunc()` for `TRUNC` (numeric argument; Oracle, PostgreSQL, SQLite — the two-argument scale form is Oracle/PostgreSQL only)
 
 > [!WARNING]
-> **`LOG` silently changes meaning with the target, in both forms.** `SQLA0100` catches Oracle's rejection of `Log(x)` and every 2-arg `Log` on SQL Server; every other cell below runs, right or silently wrong.
+> **`Log(x)` silently changes its base with the target.** `SQLA0100` catches Oracle's rejection of `Log(x)` and every 2-arg `Log` on SQL Server; every other cell below runs, right or silently wrong.
 >
 > | Call | MySQL | Oracle | PostgreSQL | SQLite | SQL Server |
 > |---|---|---|---|---|---|
@@ -83,7 +83,7 @@ not at the SqlArtisan layer.
 - `Substr()` for `SUBSTR` (not supported by SQL Server — use `Substring()` there)
 - `Substrb()` for `SUBSTRB` (Oracle)
 - `Substring()` for `SUBSTRING` (MySQL, PostgreSQL, SQLite, SQL Server; on Oracle use `Substr()`)
-- `Trim()` for `TRIM` (the two-argument trim-set form is not supported by SQLite — nest `Ltrim()`/`Rtrim()` there)
+- `Trim()` for `TRIM` (the two-argument trim-set form is not supported by SQLite)
 - `Upper()` for `UPPER`
 
 PostgreSQL and SQL Server gained the `REGEXP_*` family in specific releases — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
@@ -95,8 +95,8 @@ PostgreSQL and SQL Server gained the `REGEXP_*` family in specific releases — 
 > `.` matches a newline by default — so leave `NewLine` off there. See
 > [PostgreSQL: embedded options](https://www.postgresql.org/docs/current/functions-matching.html#POSIX-EMBEDDED-OPTIONS-TABLE).
 
-On Oracle, chain two-argument `Concat(a, b)` calls (`Concat(Concat(a, b), c)`)
-for three or more arguments, or use the `||` operator instead — see
+On Oracle, `Concat` takes two arguments; for three or more, use `DoublePipe(a, b, ...)`
+(the `||` operator) — see
 [Expressions: String Concatenation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-concatenation)
 for the full per-dialect guide, including a MySQL semantics trap `||` has that
 `Concat` doesn't.
@@ -104,16 +104,17 @@ for the full per-dialect guide, including a MySQL semantics trap `||` has that
 > [!NOTE]
 > `Position()` and `Strpos()` both give a substring's 1-based index, but take
 > their arguments in **reversed order** — `POSITION(substr IN str)` on MySQL and
-> PostgreSQL, `STRPOS(str, substr)` on PostgreSQL alone. On Oracle and SQLite,
-> use `Instr()` above instead.
+> PostgreSQL, `STRPOS(str, substr)` on PostgreSQL alone.
+
+On Oracle and SQLite, use `Instr()` above instead.
 
 ---
 
 ## Date and Time Functions
 
 - `AddMonths()` for `ADD_MONTHS` (Oracle)
-- `CurrentDate` for `CURRENT_DATE` (not supported by SQL Server — use `CurrentTimestamp()` there)
-- `CurrentTime()` for `CURRENT_TIME` (not supported by Oracle or SQL Server — use `CurrentTimestamp()` there); `CurrentTime(precision)` for `CURRENT_TIME(precision)` (MySQL, PostgreSQL)
+- `CurrentDate` for `CURRENT_DATE` (not supported by SQL Server)
+- `CurrentTime()` for `CURRENT_TIME` (not supported by Oracle or SQL Server); `CurrentTime(precision)` for `CURRENT_TIME(precision)` (MySQL, PostgreSQL)
 - `CurrentTimestamp()` for `CURRENT_TIMESTAMP`; `CurrentTimestamp(precision)` for `CURRENT_TIMESTAMP(precision)` (MySQL, Oracle, PostgreSQL — MySQL's bare form has whole-second precision)
 - `Date(timevalue[, modifier, ...])` for `DATE` (SQLite; 1-argument form also MySQL/PostgreSQL)
 - `DateAdd()` for `DATE_ADD` (MySQL — not `Dateadd()`, SQL Server's `DATEADD` below)
@@ -214,7 +215,7 @@ because they are infix operators, not function calls.
 Exposed per dialect (no unified rewrite); each emits its dialect-native syntax verbatim. Search text is parameterized; the PostgreSQL text-search configuration is emitted as an inline string literal.
 
 - `Match(columns...).Against(text[, modifier])` for `MATCH (...) AGAINST (... [modifier])` (MySQL, predicate); `.AgainstScore(...)` emits the same construct as the relevance score
-- `ContainsScore(column, query[, label])` for `CONTAINS(column, query[, label])` (Oracle, relevance score 0–100)
+- `ContainsScore(column, query[, label])` for `CONTAINS(column, query[, label])` (Oracle, relevance score)
 - `Score(label)` for `SCORE(label)` (Oracle)
 - `ToTsvector([config,] document)` for `TO_TSVECTOR` (PostgreSQL)
 - `ToTsquery([config,] text)` for `TO_TSQUERY` (PostgreSQL)
@@ -254,8 +255,7 @@ Chain `.Over(...)` to turn any of them into a window function (see
 > [!NOTE]
 > `COUNT(expr)` skips `NULL` values in `expr`; `COUNT(*)` counts every row.
 > Pick `Count(Asterisk)` for a row count and `Count(expr)` only when `NULL`-skipping is
-> the behavior you want — modern engines optimize `COUNT(*)` to the smallest
-> usable index rather than materializing every column.
+> the behavior you want.
 
 > [!WARNING]
 > **`STDDEV`/`VARIANCE` silently change which statistic they compute with the target.** All three engines accept the call and return a number, so `SQLA0100` cannot catch this — only the value differs:

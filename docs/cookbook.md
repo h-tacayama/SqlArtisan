@@ -491,8 +491,7 @@ MergeInto(t).Using(s).On(t.ProductId == s.Column("product_id"))
 
 `RETURNING` is not available on the MySQL, Oracle and SQL Server forms above —
 see [RETURNING](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#returning-clause).
-Mind the SQL Server `MERGE` caveats (auto-appended semicolon, `HOLDLOCK`,
-known engine quirks) — see the
+On SQL Server, `Build` appends the semicolon `MERGE` requires — see the
 [MERGE reference](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement).
 
 ### Synchronizing a table from staging
@@ -525,6 +524,5 @@ SqlStatement sql =
 // WHEN NOT MATCHED BY SOURCE THEN DELETE;
 ```
 
-Mind the SQL Server `MERGE` caveats (auto-appended semicolon, `HOLDLOCK`,
-known engine quirks) — see the
+On SQL Server, `Build` appends the semicolon `MERGE` requires — see the
 [MERGE reference](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement).

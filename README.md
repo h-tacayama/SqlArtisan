@@ -247,7 +247,7 @@ Faithful emission is the foundation of a broader mission: SqlArtisan is a determ
 
 ## Documentation
 
-Type-safe C# emits the SQL you write, for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server** — each example shows the C# you write and the exact SQL it produces. The full reference lives in [`docs/`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md); signatures and emitted SQL are also visible inline via IntelliSense.
+Type-safe C# emits the SQL you write, for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server** — each example shows the C# you write and the SQL it produces. The full reference lives in [`docs/`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md); signatures and emitted SQL are also visible inline via IntelliSense.
 
 | Reference | Covers |
 |---|---|

@@ -815,6 +815,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   bind the string with `Sql.Bind(...)` where its position takes a bound value.
 
 ### Tests
+- PostgreSQL twins pin the `docs/` rejections #685 added: `Round(x, n)` and
+  `Mod` on a `double precision` argument, and a `DistinctOn(...)` whose
+  `ORDER BY` leads with another key. `DocsCalloutTests` now fails on a callout
+  kind other than `[!WARNING]` / `[!NOTE]`. (#685)
 - `CookbookRecipeTests` runs every `docs/cookbook.md` recipe SQLite runs over
   repeated names, tied sort keys, a customer with no orders, an existing row
   for the UPSERTs and a timestamp late on a range's last day, from the same
@@ -1036,6 +1040,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     verdict, scopes "every verdict is live-verified" to what a lane runs,
     states which catalogs let `SQLA0202` report and drops its MySQL caveat,
     and no longer miscounts the sweep's exclusions.
+- The reference pages follow the docs rules they broke (#685):
+  - Version floors outside the analyzer's register are gone, or point at it,
+    as Oracle's multi-row `VALUES` now does.
+  - Hand-written recipes offered in place of an API are dropped: Oracle's
+    literal-row `MERGE` source, `NOT EXISTS` for `NOT IN`, a CTE of `IN` values,
+    `CurrentTimestamp()` for `CurrentDate` / `CurrentTime`, nested
+    `Ltrim(Rtrim(...))`, and nested `Concat` on Oracle, which names
+    `DoublePipe(...)` instead.
+  - Engine result semantics are linked to the engine's manual (`LastValue`'s
+    default frame, Oracle Text's score range, Oracle `MERGE` filter outcomes)
+    or dropped (the `COUNT(*)` optimizer claim, an empty `BindArray`'s rows).
+  - The SQL Server `MERGE` `[!IMPORTANT]` is prose stating the terminating
+    semicolon, with Microsoft's page for its concurrency behaviour; the `LOG`
+    warning names `Log(x)` as the silent form; the `GROUP_CONCAT` and
+    `Position()` notes keep only the hazard.
+  - Position lists are complete or gone: a row-limited query is embeddable as
+    any scalar subquery, a derived table, or an `ANY` / `ALL` / `SOME` or
+    `NOT EXISTS` operand; the scalar-subquery section no longer lists
+    positions; MySQL's `LIMIT` restriction names `NOT IN` and no longer lists
+    the positions it accepts; and `JoinLateral()` takes `.Using(...)`.
+  - `WITH` / CTE is a section of its own; DBMS lists are in enum order; the
+    pages no longer call the wrapped comment SQL "exact"; the cookbook's
+    `MERGE` pointers name only the terminating semicolon; and `LastValue`'s and
+    `ContainsScore`'s XML docs drop the default frame and the score range.
+  - PostgreSQL's rejection of a `double precision` `Round(x, n)` / `Mod` and of
+    a `DistinctOn(...)` whose `ORDER BY` leads with another key is noted.
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

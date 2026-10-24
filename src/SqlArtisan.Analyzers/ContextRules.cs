@@ -33,9 +33,8 @@ internal static class ContextRules
     }
 
     /// <summary>
-    /// MySQL rejects <c>LIMIT</c> directly inside an <c>IN</c>/<c>ANY</c>/<c>ALL</c>/<c>SOME</c>
-    /// subquery (ER_NOT_SUPPORTED_YET), though scalar, <c>EXISTS</c>, CTE, and
-    /// derived-table positions accept it.
+    /// MySQL rejects <c>LIMIT</c> directly inside an <c>IN</c>/<c>NOT IN</c>/<c>ANY</c>/<c>ALL</c>/
+    /// <c>SOME</c> subquery (ER_NOT_SUPPORTED_YET).
     /// </summary>
     public static void CheckLimitInQuantifiedSubquery(
         OperationAnalysisContext context, IInvocationOperation limit, string dialectName)

@@ -153,7 +153,7 @@ Not using Dapper after all? Call `.Build(Dbms.X)` yourself and feed
 From here it is the reference material:
 
 - [Query Statements](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md) —
-  every statement and clause, with the exact SQL each call emits.
+  every statement and clause, with the SQL each call emits.
 - [Expressions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md) and
   [Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md) —
   conditions, operators, and the built-in function catalog.

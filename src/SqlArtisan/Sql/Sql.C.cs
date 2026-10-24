@@ -605,9 +605,9 @@ public static partial class Sql
         new ContainsCondition(Resolve(column), Resolve(searchCondition));
 
     /// <summary>
-    /// The Oracle Text <c>CONTAINS(column, query)</c> operator: the relevance score
-    /// (0–100) of <paramref name="column"/> for <paramref name="query"/>, 0 when
-    /// there is no match. Compare it in <c>WHERE</c> (e.g.
+    /// The Oracle Text <c>CONTAINS(column, query)</c> operator: the relevance score of
+    /// <paramref name="column"/> for <paramref name="query"/>, as Oracle Text computes it.
+    /// Compare it in <c>WHERE</c> (e.g.
     /// <c>ContainsScore(...) &gt; 0</c>). Requires an Oracle Text index on the
     /// column.
     /// </summary>
