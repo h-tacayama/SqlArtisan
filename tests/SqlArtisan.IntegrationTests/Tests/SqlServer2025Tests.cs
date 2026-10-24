@@ -1,6 +1,10 @@
 using System.Data;
+using System.Data.Common;
 using Dapper;
+using SqlArtisan;
+using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
+using static SqlArtisan.Sql;
 
 namespace SqlArtisan.IntegrationTests.Tests;
 
@@ -125,5 +129,23 @@ public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
         using IDbConnection connection = _fixture.OpenConnection();
 
         Assert.Equal(expected, connection.ExecuteScalar<string>(sql));
+    }
+
+    // docs/analyzer.md: DATETRUNC takes MICROSECOND on a source of fractional-second
+    // scale 6 or 7, and rejects it on a lower scale and on datetime.
+    [Fact]
+    public void Datetrunc_MicrosecondOnScaleBelow6_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        const string Value = "2024-01-01 10:00:00.123";
+
+        connection.ExecuteScalar(
+            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime2(6)"))));
+        connection.ExecuteScalar(
+            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime2"))));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime2(3)")))));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime")))));
     }
 }

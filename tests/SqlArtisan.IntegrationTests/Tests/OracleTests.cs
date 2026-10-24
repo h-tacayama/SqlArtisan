@@ -1385,24 +1385,28 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             new { n = 1500001 }));
     }
 
-    // README Manual Execution: without BindByName, ODP.NET binds by position, so a
-    // repeated marker takes the next parameter's value.
+    // README Manual Execution: ODP.NET binds by position unless BindByName is set, so a
+    // statement repeating a marker before a later one fails.
     [Fact]
-    public void RepeatedMarker_BindByPosition_TakesTheNextParameter()
+    public void RepeatedMarker_BindByPosition_IsRejectedByTheEngine()
     {
+        UsersTable u = new();
+        BindValue id = Bind(1);
+        SqlStatement statement =
+            Select(u.Name).From(u).Where(u.Id == id | u.Id > id | u.Name == "x").Build(Dbms.Oracle);
         using IDbConnection connection = _fixture.OpenConnection();
 
-        int Sum(bool byName)
+        object? Run(bool byName)
         {
             using OracleCommand command = ((OracleConnection)connection).CreateCommand();
             command.BindByName = byName;
-            command.CommandText = "SELECT :a + :a FROM DUAL";
-            command.Parameters.Add(new OracleParameter("a", 1));
-            command.Parameters.Add(new OracleParameter("b", 10));
-            return Convert.ToInt32(command.ExecuteScalar());
+            command.CommandText = statement.Text;
+            statement.Parameters.ForEach((name, value) => command.Parameters.Add(
+                new OracleParameter(name.TrimStart(':'), value.Value)));
+            return command.ExecuteScalar();
         }
 
-        Assert.Equal(2, Sum(byName: true));
-        Assert.Equal(11, Sum(byName: false));
+        Run(byName: true);
+        Assert.ThrowsAny<DbException>(() => Run(byName: false));
     }
 }

@@ -1318,7 +1318,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             new { n = 1500001 }));
     }
 
-    // docs/analyzer.md: DATETRUNC takes MICROSECOND on a datetime2 of scale 6 or more.
+    // docs/analyzer.md: DATETRUNC takes MICROSECOND on a source of fractional-second
+    // scale 6 or 7, and rejects it on a lower scale and on datetime.
     [Fact]
     public void Datetrunc_MicrosecondOnScaleBelow6_IsRejectedByTheEngine()
     {
@@ -1331,6 +1332,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime2"))));
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime2(3)")))));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime")))));
     }
 
     // docs/query-statements.md: the MERGE example that puts the condition on the

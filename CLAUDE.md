@@ -142,9 +142,9 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships fifteen diagnostics:
   than rows. Advice on correct code, so it is Info and off by default.
 - **SQLA0204** — a `WHERE`/`ON` predicate that wraps an indexed column in a
   function or leads its pattern with `%`, so no index on it can be used.
-- **SQLA0205** — a column compared to a value of another type category. MySQL
-  reconciles the two as floating point, so the mismatch changes which rows
-  match. The category is the public `DbTypeCategory` enum, which TableClassGen
+- **SQLA0205** — a column compared to a value of another type category. MySQL,
+  Oracle and SQL Server convert the text side to a number, so the mismatch
+  changes which rows match. The category is the public `DbTypeCategory` enum, which TableClassGen
   emits symbolically and the analyzer resolves by member name (never by the
   underlying integer), gated by `SchemaMetadataParityTests`.
 - **SQLA0300** — Correlated `UPDATE`/`DELETE`/`MERGE` with an unaliased target — the

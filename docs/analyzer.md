@@ -131,7 +131,7 @@ something else — `||` as logical OR on MySQL, `<=>` as MySQL's NULL-safe
 equality, MySQL's and SQLite's own `FORMAT()`, SQL Server's value-first
 `LOG(x, b)`, `MINUS`, which SQL Server reads as a table alias, and `FULL JOIN`
 after an unaliased table, which MySQL reads as that table's alias `FULL` before
-an inner `JOIN`. Nothing fails
+an inner `JOIN` when no column the join names is ambiguous. Nothing fails
 there, so the warning is the only signal; where you mean the dialect's own
 reading, suppress it at that call.
 
@@ -1408,7 +1408,8 @@ var sql = Select(t.Id).From(t).Where(t.ZipCode == Bind(1500001)).Build();
 
 On MySQL that predicate also matches `'01500001'` and `'1500001 Nowhere St'`,
 because each converts to the same number — the query answers a question you did
-not ask, and a text that is no number at all does not fail the query.
+not ask, and a text that is no number at all does not fail a `SELECT` (under
+the default strict `sql_mode`, an `UPDATE` or `DELETE` with it fails).
 Oracle and SQL Server convert the text side to a number too, so `'01500001'`
 matches there, and a row whose text is no number fails the whole query. SQLite
 compares the two as text, so only `'1500001'` matches. PostgreSQL rejects the
@@ -1584,10 +1585,10 @@ for, not a bug in the matrix.
   source (it needs a `TIMESTAMP`) and the four `TIMEZONE_*` fields need
   `TIMESTAMP WITH TIME ZONE` specifically — `SQLA0104` accepts all ten Oracle
   fields regardless of what `Extract`'s own source expression evaluates to.
-  SQL Server's `DATETRUNC` similarly takes `MICROSECOND` on a `datetime2` of
-  fractional-second scale 6 or 7 (the default) and rejects it on a lower scale
-  and on `datetime` (observed on SQL Server 2022 and 2025); `SQLA0104` treats
-  `Microsecond` as valid there unconditionally. Both are staying-permissive gaps, not
+  SQL Server's `DATETRUNC` similarly takes `MICROSECOND` on a source of
+  fractional-second scale 6 or 7 (a default `datetime2`) and rejects it on any
+  other, such as a `datetime2(3)` or a `datetime` (observed on SQL Server 2022
+  and 2025); `SQLA0104` treats `Microsecond` as valid there unconditionally. Both are staying-permissive gaps, not
   false-positive risks: an argument this rule accepts can still fail at
   execution for a source-type reason it doesn't check.
 - **`SQLA0104` does not cover `Numtodsinterval` / `Numtoyminterval`.** Both

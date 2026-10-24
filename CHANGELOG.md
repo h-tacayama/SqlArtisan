@@ -835,8 +835,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   baseline, no enum repeats a value, and the enums are the set `versioning.md`
   names. `CommentCapRatchetTests` reads a `//` header above a `///` block as a
   header, which drops one phantom entry from its baseline. (#614)
-- Live twins pin those engine notes on the MySQL, Oracle, PostgreSQL, SQLite
-  and SQL Server lanes, and the SQL Server `MERGE` example that conditions the
+- Live twins pin #685's engine notes (see Docs) on the MySQL, Oracle,
+  PostgreSQL, SQLite and SQL Server lanes, and the SQL Server `MERGE` example that conditions the
   earlier matched branch (#685).
 
 ### Docs

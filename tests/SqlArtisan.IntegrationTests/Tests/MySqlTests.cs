@@ -1002,7 +1002,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     }
 
     // docs/analyzer.md (SQLA0205): MySQL compares a text column to a number as
-    // numbers, so every text converting to it matches and none fails.
+    // numbers, so every text converting to it matches; a SELECT does not fail on the
+    // rest, and a DELETE does under the default strict sql_mode.
     [Fact]
     public void TextColumnComparedToNumber_MatchesEveryTextConvertingToIt()
     {
@@ -1016,12 +1017,14 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             "SELECT z FROM zips WHERE z = @n ORDER BY z", new { n = 1500001 });
 
         Assert.Equal(new[] { "01500001", "1500001 Nowhere St" }, matched);
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "DELETE FROM zips WHERE z = @n", new { n = 1500001 }));
     }
 
     // docs/query-statements.md: MySQL rejects a DML subquery reading the target's own
-    // table (ER_UPDATE_TABLE_USED); the joined form reads it instead.
+    // table (ER_UPDATE_TABLE_USED); the joined forms read it instead.
     [Fact]
-    public void Delete_SubqueryReadingTheTarget_IsRejectedByTheEngine()
+    public void UpdateAndDelete_SubqueryReadingTheTarget_IsRejectedByTheEngine()
     {
         UsersTable u = new();
         UsersTable t = new("t");
@@ -1034,6 +1037,12 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             transaction));
         connection.Execute(
             DeleteFrom(t).From(t).InnerJoin(i).On(t.Id == i.Id).Where(i.Name == "none"),
+            transaction);
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            Update(u).Set(u.Age == 0).Where(u.Id.In(Select(i.Id).From(i).Where(i.Name == "none"))),
+            transaction));
+        connection.Execute(
+            Update(t).InnerJoin(i).On(t.Id == i.Id).Set(t.Age == 0).Where(i.Name == "none"),
             transaction);
         transaction.Rollback();
     }

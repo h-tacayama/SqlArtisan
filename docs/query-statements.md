@@ -976,7 +976,8 @@ SqlStatement sql =
 MySQL rejects an `UPDATE` or `DELETE` whose subquery reads the target's own table
 (`You can't specify target table ... for update in FROM clause`, observed on
 MySQL 8.0.46). There, join the second instance instead — the
-[joined form](#joined-update--delete), `DeleteFrom(t).From(t).InnerJoin(i).On(...)`.
+[joined forms](#joined-update--delete), `DeleteFrom(t).From(t).InnerJoin(i).On(...)`
+and `Update(t).InnerJoin(i).On(...).Set(...)`.
 
 | DBMS | Correlated `UPDATE` / `DELETE` |
 |------|--------------------------------|
