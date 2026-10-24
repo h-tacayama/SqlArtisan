@@ -183,9 +183,8 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
-    // Names no dialect, though MySQL outside strict mode substitutes an implicit
-    // default instead of failing — a docs caveat, not a reason to stay silent
-    // where the same statement is rejected everywhere else.
+    // Names no dialect: the column list leaves a NOT NULL column with no default
+    // unfilled, a fact of the schema rather than of any engine.
     public static readonly DiagnosticDescriptor InsertMissingRequiredColumn = new(
         id: "SQLA0202",
         title: "INSERT omits a column that is NOT NULL with no default",
@@ -222,9 +221,9 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
-    // A defect diagnostic rather than a performance opinion: MySQL compares a string
-    // to a number as floating point, so rows the author did not mean can match. That
-    // the index also goes unused is the lesser half.
+    // A defect diagnostic rather than a performance opinion: MySQL 8.0.46 compares a
+    // string to a number as floating point, so rows the author did not mean can match.
+    // That the index also goes unused is the lesser half.
     public static readonly DiagnosticDescriptor TypeCategoryMismatch = new(
         id: "SQLA0205",
         title: "Column compared to a value of another type category",

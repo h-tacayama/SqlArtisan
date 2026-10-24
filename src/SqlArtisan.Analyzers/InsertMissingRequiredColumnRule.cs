@@ -8,8 +8,8 @@ namespace SqlArtisan.Analyzers;
 
 /// <summary>
 /// Reports SQLA0202 when an <c>INSERT</c>'s column list omits a column the
-/// schema declares NOT NULL with no default — a row the engine rejects unless
-/// something outside the catalog, such as a trigger, supplies the value (#266).
+/// schema declares NOT NULL with no default, so the row carries no value the
+/// schema can fill it with (#266).
 /// </summary>
 /// <remarks>
 /// Both facts must be known before a column counts as required, and the whole

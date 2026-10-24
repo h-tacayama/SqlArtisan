@@ -61,9 +61,9 @@ internal static class TypeCategoryMismatchRule
             otherCategory.ToString().ToLowerInvariant()));
     }
 
-    // A truth value and a number are one category in practice: T-SQL offers no
-    // boolean literal, so `bit = 1` is its only spelling, and MySQL's BOOLEAN is
-    // TINYINT(1); an engine that rejects the pair does so loudly.
+    // A truth value and a number are one category in practice: T-SQL has no boolean
+    // literal, so `bit = 1` is its only spelling, and MySQL's BOOLEAN is TINYINT(1),
+    // so a number compared to either asks the question the author meant.
     private static bool Compatible(TypeCategory left, TypeCategory right) =>
         left == right
         || (IsTruthy(left) && IsTruthy(right));

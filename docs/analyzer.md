@@ -110,7 +110,7 @@ still needs naming by ID.
 | `SQLA0202` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0203` | Info, **off by default** | `Count(column)` on a column the generated table class declares nullable, which counts values rather than rows. Advice on correct code, so it reports nothing until you turn it on — see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0204` | Warning | A `WHERE` or `ON` predicate wraps an indexed column in a function, or matches it with a leading-wildcard pattern, so no index on it can be used. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
-| `SQLA0205` | Warning | A column is compared to a value of another type category — a text column against a number, say. The engine reconciles the two for you, and on MySQL, Oracle and SQL Server that changes which rows match. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
+| `SQLA0205` | Warning | A column is compared to a value of another type category — a text column against a number, say. The engine reconciles the two its own way, which can change which rows match (a text column against a number does on MySQL, Oracle and SQL Server) or fail the query. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0300` | Warning | A correlated UPDATE, DELETE, or MERGE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0300). |
 | `SQLA0301` | Warning | `==` or `!=` that C# resolves as reference equality, because the left operand is not a SqlArtisan expression, passed to a SqlArtisan member or operator — it binds a `bool` instead of comparing in SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
 | `SQLA0302` | Warning | A SqlArtisan object interpolated or concatenated into a string passed to a SqlArtisan member or operator — it binds the object's type name instead of SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
@@ -1252,8 +1252,12 @@ var sql = Select(t.Code).From(t).Where(t.Code.IsNull).Build();
 ```
 
 `IS NOT NULL` on the same column reports the mirror image — always `true`.
-Neither is a dialect fact: the column's own declaration decides it on every
-engine.
+Neither is a dialect fact, with one exception. MySQL reads `IS NULL` on a NOT
+NULL `DATE` or `DATETIME` column, at the top of a `WHERE` or under its `AND`, as
+a test for the zero date `'0000-00-00'`, which the default `sql_mode` rejects
+but `INSERT IGNORE` or a non-strict mode stores; on a MySQL database holding
+such rows the predicate finds them, and the warning is wrong there (MySQL
+8.0.46).
 
 Past an **outer join** a NOT NULL column is legitimately NULL on the
 null-supplied side, and `.Where(r.Id.IsNull)` after a `LeftJoin` is the
@@ -1439,8 +1443,8 @@ what production will do with the same query.
 
 The sixth can change which rows come back, not just how fast they come back. A
 column compared to a value of another type category leaves the engine to
-reconcile the two, and MySQL reconciles by turning both sides into
-floating-point numbers:
+reconcile the two. For a text column against a number, MySQL reconciles by
+turning both sides into floating-point numbers:
 
 ```csharp
 var sql = Select(t.Id).From(t).Where(t.ZipCode == Bind(1500001)).Build();
@@ -1460,6 +1464,12 @@ Observed on MySQL 8.0.46, Oracle XE 21.3.0, PostgreSQL 16.15, SQLite 3.50.4 and
 SQL Server 2022. The index on the column is unusable wherever the comparison
 runs, but the wrong-rows half is why this is a warning rather than a note about
 speed.
+
+A temporal column against text is reconciled each engine's own way too, and the
+result can be other rows than the ones meant: SQL Server reads a string compared
+to a `DATETIME` column by the session's language, so under `british`
+`'2020-03-05'` is 3 May (SQL Server 2022). Pass a `DateTime` to say which you
+mean.
 
 The category is coarse on purpose — `Text`, `Numeric`, `Temporal`, `Binary`,
 `Boolean` — carrying no length, precision, or scale. A `numeric(10,2)` column

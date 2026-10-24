@@ -1352,6 +1352,31 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             new { n = 1500001 }));
     }
 
+    // docs/analyzer.md (SQLA0205): SQL Server reads a string compared to a DATETIME
+    // column by the session's language, so under british '2020-03-05' is 3 May.
+    [Fact]
+    public void DatetimeColumnComparedToText_ReadsTheTextByTheSessionLanguage()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute("CREATE TABLE #stamps (id INT, at DATETIME)");
+        connection.Execute(
+            "INSERT INTO #stamps VALUES (1, '20200305 10:30:00'), (2, '20200503 10:30:00')");
+        IEnumerable<int> Matching() => connection.Query<int>(
+            "SELECT id FROM #stamps WHERE at = @s", new { s = "2020-03-05 10:30" });
+
+        try
+        {
+            Assert.Equal(new[] { 1 }, Matching());
+            connection.Execute("SET LANGUAGE british");
+            Assert.Equal(new[] { 2 }, Matching());
+        }
+        finally
+        {
+            connection.Execute("SET LANGUAGE us_english");
+            connection.Execute("DROP TABLE #stamps");
+        }
+    }
+
     // docs/analyzer.md: DATETRUNC takes MICROSECOND on a datetime2 of scale 6 or 7.
     [Theory]
     [MemberData(
