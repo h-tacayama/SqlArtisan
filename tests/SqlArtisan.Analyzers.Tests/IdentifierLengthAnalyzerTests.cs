@@ -280,6 +280,45 @@ public class IdentifierLengthAnalyzerTests
         await test.RunAsync();
     }
 
+    // The variable renders only in Oracle's RETURNING ... INTO, so another
+    // configured dialect's shorter limit does not apply to it.
+    [Theory]
+    [InlineData(64, false)]
+    [InlineData(129, true)]
+    public async Task OutputParameterVariable_OracleAndPostgreSql_ChecksOracleOnly(
+        int length, bool reports)
+    {
+        string name = Repeat('a', length);
+        string source = $$"""
+            using System.Data;
+            using SqlArtisan;
+
+            class C
+            {
+                void M()
+                {
+                    var p = new OutputParameter({|#0:"{{name}}"|}, DbType.Int32);
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_oracle = any
+            sqlartisan_syntax_postgresql = any
+            """;
+        var test = AnalyzerVerifier.Create(
+            reports ? source : AnalyzerVerifier.Unmarked(source), editorConfig);
+        if (reports)
+        {
+            test.ExpectedDiagnostics.Add(
+                DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
+        }
+
+        await test.RunAsync();
+    }
+
     [Fact]
     public async Task ValuesAliasOverLimit_ReportsSqla0103()
     {

@@ -28,7 +28,7 @@ internal static class IdentifierLengthLimits
     public static int Measure(string identifier, LengthUnit unit) => unit switch
     {
         // Oracle and PostgreSQL cap identifiers in bytes, so a multi-byte name hits
-        // the limit earlier than its character count suggests.
+        // the limit earlier; UTF-8, since the database's encoding is not visible here.
         LengthUnit.Bytes => Encoding.UTF8.GetByteCount(identifier),
         _ => identifier.Length,
     };

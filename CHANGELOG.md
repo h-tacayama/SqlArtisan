@@ -640,6 +640,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#654)
 
 ### Fixed
+- `SQLA0103` checks an `OutputParameter` name against Oracle's limit only,
+  since only Oracle runs `RETURNING ... INTO` (`SQLA0100` reports `Into`
+  elsewhere); with Oracle and PostgreSQL configured, a 64-character name no
+  longer reports PostgreSQL's 63-byte limit. (#684)
+- `SQLA0104` shows a fractional `GroupBy` key as the core emits it:
+  `GroupBy(2.0)` reports `'2.0'`, not the ordinal `'2'`, and a non-finite key,
+  which the call rejects, reports nothing. (#684)
 - `DoUpdateSet(...)` and its `Where(...)` qualify a column of an unaliased
   `INSERT` target by the table name (`users.id`). PostgreSQL rejected the bare
   name as ambiguous with `EXCLUDED`'s (`column reference "id" is ambiguous`,
@@ -839,6 +846,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   bind the string with `Sql.Bind(...)` where its position takes a bound value.
 
 ### Tests
+- Contract tests pin the interfaces inheriting each stage a DML-shape rule keys
+  on, and the members that take an `IntervalExpression`; the schema parity
+  catalog takes thirteen silent shapes from the per-rule suites. SQLite twins
+  run the correlated `UPDATE` / `DELETE` the joined-DML notes name. (#684)
 - A SQL Server twin pins the rejection of a column listed twice in
   `ORDER BY`, beside an Oracle twin pinning its acceptance (#686).
 - PostgreSQL twins pin the `docs/` rejections #685 added: `Round(x, n)` and
@@ -871,6 +882,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   that conditions the earlier matched branch (#685).
 
 ### Docs
+- `docs/analyzer.md` records that `SQLA0103` counts Oracle and PostgreSQL
+  identifiers in UTF-8 bytes (a PostgreSQL 16.15 `EUC_JP` database keeps a name
+  it reports), lists a method group among the known limitations, and names a
+  correlated subquery as the way to filter an `UPDATE` / `DELETE` target by
+  another table where the engine takes no joined form. (#684)
 - The cookbook's search recipe adds its `customer_id` tie-breaker only when
   the sort key is another column: SQL Server rejects a column listed twice in
   `ORDER BY` (#686).

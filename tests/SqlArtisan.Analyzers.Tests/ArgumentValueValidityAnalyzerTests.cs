@@ -426,6 +426,21 @@ public class ArgumentValueValidityAnalyzerTests
             AnalyzerVerifier.EditorConfig("postgresql"),
             "GroupBy", "2.5", "group key", "PostgreSQL");
 
+    // The message shows the key as the core emits it, never as the ordinal 2.
+    [Fact]
+    public Task GroupBy_PostgreSql_WholeFractionalKey_ReportsAsEmitted() =>
+        RunReporting(
+            """var q = Select(t.Id).From(t).GroupBy({|#0:2.0|});""",
+            AnalyzerVerifier.EditorConfig("postgresql"),
+            "GroupBy", "2.0", "group key", "PostgreSQL");
+
+    // The core rejects a non-finite key at the call on every dialect.
+    [Fact]
+    public Task GroupBy_PostgreSql_NonFiniteKey_StaysSilent() =>
+        RunSilent(
+            """var q = Select(t.Id).From(t).GroupBy(double.NaN);""",
+            AnalyzerVerifier.EditorConfig("postgresql"));
+
     [Fact]
     public Task GroupBy_Sqlite_FractionalKey_StaysSilent() =>
         RunSilent(

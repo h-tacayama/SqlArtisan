@@ -36,6 +36,18 @@ internal sealed class DialectTargetSet
 
     public bool Contains(TargetDbms dbms) => _present[(int)dbms];
 
+    // The subset of this set a construct emitted on one dialect alone can reach.
+    public DialectTargetSet Only(TargetDbms dbms)
+    {
+        DialectTargetSet only = new();
+        if (Contains(dbms))
+        {
+            only.Add(dbms, VersionFor(dbms));
+        }
+
+        return only;
+    }
+
     public EngineVersion? VersionFor(TargetDbms dbms) => _versions[(int)dbms];
 
     // Enum declaration order — the DBMS listing order docs-style.md fixes — so

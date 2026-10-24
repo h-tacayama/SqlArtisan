@@ -50,11 +50,15 @@ internal static class IdentifierLengthRule
         if (DialectUsageAnalyzer.IsFromSqlArtisan(member.ContainingAssembly)
             && ResolveIdentifierParams(member) is { } identifierParams)
         {
+            // Only Oracle runs RETURNING ... INTO; SQLA0100 reports Into elsewhere.
+            DialectTargetSet scope = member.ContainingType.Name == "OutputParameter"
+                ? targets.Only(TargetDbms.Oracle)
+                : targets;
             foreach (IdentifierParam identifier in identifierParams)
             {
                 if (FindArgument(arguments, identifier.Name) is { } argument)
                 {
-                    CheckArgument(context, argument.Value, identifier.IsList, targets);
+                    CheckArgument(context, argument.Value, identifier.IsList, scope);
                 }
             }
 
