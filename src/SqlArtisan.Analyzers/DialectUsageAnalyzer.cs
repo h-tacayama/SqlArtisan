@@ -65,66 +65,59 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     {
         var targetCache = new ConcurrentDictionary<SyntaxTree, DialectTargetSet>();
 
+        // An operand of nameof is never evaluated, so it builds no SQL to report on.
+        void Register(
+            Action<OperationAnalysisContext, ConcurrentDictionary<SyntaxTree, DialectTargetSet>>
+                analyze,
+            OperationKind kind) =>
+            context.RegisterOperationAction(
+                c =>
+                {
+                    if (!IsInsideNameOf(c.Operation))
+                    {
+                        analyze(c, targetCache);
+                    }
+                },
+                kind);
+
         // Generic walkers first (they serve SQLA0100/0101 and key on operation kind),
         // then one dispatcher per rule in ID order, then the compilation-end action.
-        context.RegisterOperationAction(
-            c => AnalyzeInvocation(c, targetCache),
-            OperationKind.Invocation);
-        context.RegisterOperationAction(
-            c => AnalyzePropertyReference(c, targetCache),
-            OperationKind.PropertyReference);
-        context.RegisterOperationAction(
-            c => AnalyzeFieldReference(c, targetCache),
-            OperationKind.FieldReference);
-        context.RegisterOperationAction(
-            c => AnalyzeBinaryOperator(c, targetCache),
-            OperationKind.Binary);
-        context.RegisterOperationAction(
-            c => AnalyzeCompoundAssignment(c, targetCache),
-            OperationKind.CompoundAssignment);
-        context.RegisterOperationAction(
-            c => AnalyzeContextRules(c, targetCache),
-            OperationKind.Invocation);
-        context.RegisterOperationAction(
-            c => AnalyzeIdentifierLength(c, targetCache),
-            OperationKind.Invocation);
-        context.RegisterOperationAction(
-            c => AnalyzeIdentifierLength(c, targetCache),
-            OperationKind.ObjectCreation);
-        context.RegisterOperationAction(
-            c => AnalyzeDatepartValidity(c, targetCache),
-            OperationKind.Invocation);
-        context.RegisterOperationAction(
-            c => AnalyzeArgumentValueValidity(c, targetCache),
-            OperationKind.Invocation);
-        context.RegisterOperationAction(
-            c => AnalyzeSchemaNullability(c, targetCache),
-            OperationKind.PropertyReference);
-        context.RegisterOperationAction(
-            c => AnalyzeNotInSubquery(c, targetCache),
-            OperationKind.Invocation);
-        context.RegisterOperationAction(
-            c => AnalyzeInsertColumns(c, targetCache),
-            OperationKind.Invocation);
-        context.RegisterOperationAction(
-            c => AnalyzeCountArgument(c, targetCache),
-            OperationKind.Invocation);
-        context.RegisterOperationAction(
-            c => AnalyzeIndexedColumnFilter(c, targetCache),
-            OperationKind.Invocation);
-        context.RegisterOperationAction(
-            c => AnalyzeTypeCategoryMismatch(c, targetCache),
-            OperationKind.Binary);
-        context.RegisterOperationAction(
-            c => AnalyzeCorrelatedDml(c, targetCache),
-            OperationKind.Invocation);
-        context.RegisterOperationAction(
-            c => AnalyzeCSharpFallback(c, targetCache),
-            OperationKind.Binary);
-        context.RegisterOperationAction(
-            c => AnalyzeInterpolation(c, targetCache),
-            OperationKind.InterpolatedString);
+        Register(AnalyzeInvocation, OperationKind.Invocation);
+        Register(AnalyzePropertyReference, OperationKind.PropertyReference);
+        Register(AnalyzeFieldReference, OperationKind.FieldReference);
+        Register(AnalyzeBinaryOperator, OperationKind.Binary);
+        Register(AnalyzeCompoundAssignment, OperationKind.CompoundAssignment);
+        Register(AnalyzeContextRules, OperationKind.Invocation);
+        Register(AnalyzeIdentifierLength, OperationKind.Invocation);
+        Register(AnalyzeIdentifierLength, OperationKind.ObjectCreation);
+        Register(AnalyzeDatepartValidity, OperationKind.Invocation);
+        Register(AnalyzeArgumentValueValidity, OperationKind.Invocation);
+        Register(AnalyzeSchemaNullability, OperationKind.PropertyReference);
+        Register(AnalyzeNotInSubquery, OperationKind.Invocation);
+        Register(AnalyzeInsertColumns, OperationKind.Invocation);
+        Register(AnalyzeCountArgument, OperationKind.Invocation);
+        Register(AnalyzeIndexedColumnFilter, OperationKind.Invocation);
+        Register(AnalyzeTypeCategoryMismatch, OperationKind.Binary);
+        Register(AnalyzeCorrelatedDml, OperationKind.Invocation);
+        Register(AnalyzeCSharpFallback, OperationKind.Binary);
+        Register(AnalyzeInterpolation, OperationKind.InterpolatedString);
         context.RegisterCompilationEndAction(ValidateConfiguration);
+    }
+
+    private static bool IsInsideNameOf(IOperation operation)
+    {
+        // A nameof operand holds no block, so the walk ends at the first one.
+        for (IOperation? current = operation.Parent;
+            current is not null and not IBlockOperation;
+            current = current.Parent)
+        {
+            if (current is INameOfOperation)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static DialectTargetSet GetTargets(

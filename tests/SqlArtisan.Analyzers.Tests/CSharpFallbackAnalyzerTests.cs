@@ -22,6 +22,12 @@ public class CSharpFallbackAnalyzerTests
             public string ToString(string format, System.IFormatProvider provider) => "f";
         }
 
+        sealed class S : DbTableBase
+        {
+            public S() : base("s", "") { }
+            public static implicit operator string(S s) => "s_text";
+        }
+
         class C
         {
             void M(object o, SqlPart p, string name)
@@ -180,6 +186,21 @@ public class CSharpFallbackAnalyzerTests
     public Task SealedTableClassConcatenatedIntoLike_ReportsSqla0302() =>
         RunReporting(
             "var q = Select(t.Id).From(t).Where(t.Name.Like(\"%\" + {|#0:t|} + \"%\"));",
+            "SQLA0302");
+
+    // A user-defined conversion to string is what binds (%s_text%), not the type name.
+    [Fact]
+    public Task SealedTableClassWithStringConversion_StaysSilent() =>
+        RunSilent("""
+            S s = new S();
+            var q = Select(t.Id).From(t).Where(t.Name.Like("%" + s + "%"));
+            """);
+
+    // Interpolation calls ToString(), not the conversion operator.
+    [Fact]
+    public Task SealedTableClassWithStringConversionInterpolated_ReportsSqla0302() =>
+        RunReporting(
+            "S s = new S(); var q = Select(t.Id).From(t).Where(t.Name.Like($\"%{|#0:{s}|}%\"));",
             "SQLA0302");
 
     // A DbTableBase- or SqlPart-typed value may hold a user table class overriding ToString.

@@ -117,6 +117,87 @@ public class SchemaNullabilityAnalyzerTests
             """,
             Expected("Code", "IsNull", "false"));
 
+    // HAVING col IS NULL is how the ROLLUP grand-total row is selected.
+    [Fact]
+    public Task IsNull_HavingUnderRollup_Silent() =>
+        RunSilent(
+            "var s = Select(t.Code, Count(t.Code)).From(t).GroupBy(Rollup(t.Code))"
+                + ".Having(t.Code.IsNull).Build();");
+
+    [Fact]
+    public Task IsNull_HavingUnderPlainGroupBy_Warns() =>
+        RunReporting(
+            "var s = Select(t.Code, Count(t.Code)).From(t).GroupBy(t.Code)"
+                + ".Having({|#0:t.Code.IsNull|}).Build();",
+            Expected("Code", "IsNull", "false"));
+
+    [Fact]
+    public Task IsNull_RollupOnlyInsideSubquery_Warns() =>
+        RunReporting(
+            """
+            T r = new T("r");
+            var s = Select(t.Code).From(t).Where({|#0:t.Code.IsNull|}
+                & Exists(Select(r.Code).From(r).GroupBy(Rollup(r.Code)))).Build();
+            """,
+            Expected("Code", "IsNull", "false"));
+
+    // A correlated column reads the outer query's joins, so the outer chain must
+    // be as visible as the subquery's own.
+    [Fact]
+    public Task IsNull_CorrelatedUnderHeldPrefix_Silent() =>
+        RunSilent("""
+            T r = new T("r");
+            var prefix = Select(r.Code).From(r).LeftJoin(t).On(t.Code == r.Code);
+            var s = prefix.Where(Exists(Select(r.Code).From(r).Where(t.Code.IsNull))).Build();
+            """);
+
+    [Fact]
+    public Task IsNull_CorrelatedUnderHelperChain_Silent() =>
+        RunSilent("""
+            T r = new T("r");
+            var s = Joined(r, t).Where(Exists(Select(r.Code).From(r).Where(t.Code.IsNull))).Build();
+            """);
+
+    [Fact]
+    public Task IsNull_CorrelatedSubqueryHeldInLocal_Silent() =>
+        RunSilent("""
+            T r = new T("r");
+            var sub = Select(r.Code).From(r).Where(t.Code.IsNull);
+            var s = Select(r.Code).From(r).LeftJoin(t).On(t.Code == r.Code).Where(Exists(sub)).Build();
+            """);
+
+    // A member on a column or a CTE handle wraps the subquery it takes; the
+    // statement around it is still visible.
+    [Theory]
+    [InlineData("""var s = Select(t.Code).From(t).Where(t.Code.In(Select(r.Code).From(r).Where({|#0:t.Code.IsNull|}))).Build();""")]
+    [InlineData("""var s = Select(t.Code).From(t).Where(t.Code.NotIn(Select(r.Code).From(r).Where({|#0:t.Code.IsNull|}))).Build();""")]
+    [InlineData("""Cte c = new("c"); var s = With(c.As(Select(t.Code).From(t).Where({|#0:t.Code.IsNull|}))).Select(c.Column("code")).From(c).Build();""")]
+    public Task IsNull_SubqueryUnderOperandMember_Warns(string statement) =>
+        RunReporting(
+            "T r = new T(\"r\");\n" + statement,
+            Expected("Code", "IsNull", "false"));
+
+    // A predicate on the subquery's own table reads no outer join, held or not.
+    [Fact]
+    public Task IsNull_OwnTableUnderHeldPrefix_Warns() =>
+        RunReporting(
+            """
+            T r = new T("r");
+            var held = Select(t.Code).From(t);
+            var s = held.Where(Exists(Select(r.Code).From(r).Where({|#0:r.Code.IsNull|}))).Build();
+            """,
+            Expected("Code", "IsNull", "false"));
+
+    [Fact]
+    public Task IsNull_CorrelatedUnderVisibleChain_Warns() =>
+        RunReporting(
+            """
+            T r = new T("r");
+            var s = Select(t.Code).From(t).Where(Exists(Select(r.Code).From(r)
+                .Where({|#0:t.Code.IsNull|}))).Build();
+            """,
+            Expected("Code", "IsNull", "false"));
+
     // The LEFT JOIN anti-join: past an outer join the NOT NULL column is
     // null-supplied, so the predicate is exactly not constant there.
     [Fact]

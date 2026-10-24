@@ -217,9 +217,11 @@ internal static class CSharpFallbackRule
     private static bool IsNullConstant(IOperation operand) =>
         Unconverted(operand).ConstantValue is { HasValue: true, Value: null };
 
+    // A user-defined conversion yields another value, which formats as itself.
     private static IOperation Unconverted(IOperation operation)
     {
-        while (operation is IConversionOperation { IsImplicit: true } conversion)
+        while (operation is IConversionOperation { IsImplicit: true, OperatorMethod: null }
+            conversion)
         {
             operation = conversion.Operand;
         }

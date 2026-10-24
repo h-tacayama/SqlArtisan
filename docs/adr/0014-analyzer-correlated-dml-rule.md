@@ -57,8 +57,8 @@ define the rule class:
 
 Scope whitelist (everything else is silent): a local with a visible
 provably-unaliased initializer and no textual reassignment in the enclosing
-member, or a `readonly` field with such an initializer and no constructor
-assignment. The subquery boundary is the source image of the runtime's
+member, or a `readonly` field with such an initializer and no constructor or
+`init`-accessor assignment. The subquery boundary is the source image of the runtime's
 `EncloseInParentheses(ISubquery)`: a Select-headed chain bound as an
 argument of a SqlArtisan call, scanned only in the arguments of the chain
 *after* the DML head — `With(...)` CTE bodies sit on the receiver side and
@@ -72,7 +72,9 @@ source. Walking a body would report one that reads the target as its own
 relation, which `Build()` accepts (#610); a body that correlates loses only
 the early report, since `Build()` throws. The rule reports once per
 statement, on a target column read inside a subquery. Descent stops at
-lambdas/local functions.
+lambdas/local functions, at a call into non-SqlArtisan code, and at a call
+returning a `CommonTableExpression` — a helper may build its argument into a
+CTE body, which `Build()` guards block by block.
 
 Accepted false negatives (the ADR 0003 direction — silence where the walk
 cannot prove the shape): a table class or target field declared outside the

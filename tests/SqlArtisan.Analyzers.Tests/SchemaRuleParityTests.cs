@@ -84,6 +84,29 @@ public class SchemaRuleParityTests
         { "OuterApply(Select(t.Code).From(t), d)", "sqlserver" },
     };
 
+    // Each entry is (statement, the target it is supported on). A super-aggregate
+    // row carries NULL in the grouping column, which a HAVING or a correlated
+    // subquery tests.
+    public static TheoryData<string, string> NullSupplyingGroupings => new()
+    {
+        {
+            """var s = Select(t.Code, Count(t.Code)).From(t).GroupBy(Rollup(t.Code)).Having(t.Code.IsNull).Build();""",
+            "postgresql"
+        },
+        {
+            """var s = Select(t.Code, Count(t.Code)).From(t).GroupBy(Cube(t.Code)).Having(t.Code.IsNull).Build();""",
+            "postgresql"
+        },
+        {
+            """var s = Select(t.Code, Count(t.Code)).From(t).GroupBy(GroupingSets(Group(t.Code), Group())).Having(t.Code.IsNull).Build();""",
+            "postgresql"
+        },
+        {
+            """var s = Select(t.Code, Select(Count(r.Code)).From(r).Where(t.Code.IsNull)).From(t).GroupBy(t.Code).WithRollup().Build();""",
+            "mysql"
+        },
+    };
+
     // A chain the reporting statement cannot see the whole of: the join that
     // decides the answer — or the predicate that would silence the rule — is one
     // statement, one method, or one field away.
@@ -146,6 +169,35 @@ public class SchemaRuleParityTests
             var s = Select(x.Column(t.Key)).From(x).Where(x.Column(t.Key) == "k").Build();
             """,
             ""
+        },
+        // A correlated predicate reads the outer query's joins: the outer chain held,
+        // returned by a helper, or the subquery held while the join is elsewhere.
+        {
+            """
+            var prefix = Select(r.Code).From(r).LeftJoin(t).On(t.Code == r.Code);
+            var s = prefix.Where(Exists(Select(r.Key).From(r).Where(t.Code.IsNull))).Build();
+            """,
+            ""
+        },
+        {
+            """var s = Joined(t, r).Where(Exists(Select(t.Key).From(t).Where(r.Code.IsNull))).Build();""",
+            """
+            static ISelectBuilderFrom Joined(T t, T r) =>
+                Select(t.Code).From(t).LeftJoin(r).On(t.Code == r.Code);
+            """
+        },
+        {
+            """
+            var sub = Select(r.Key).From(r).Where(t.Code.IsNull);
+            var s = Select(r.Code).From(r).LeftJoin(t).On(t.Code == r.Code).Where(Exists(sub)).Build();
+            """,
+            ""
+        },
+        {
+            """var s = Select(t.Code).From(t).Where(Exists(Embed(Select(r.Key).From(r).Where(t.Code.IsNull)))).Build();""",
+            """
+            static ISubquery Embed(ISubquery q) => q;
+            """
         },
         // A compound subquery is inside its enclosing statement: the outer join
         // that silences the predicate sits above the set operator, not beside it.
@@ -264,6 +316,29 @@ public class SchemaRuleParityTests
         Assert.Equal(classified, joinSteps);
     }
 
+    // A GROUP BY element and a GROUP BY suffix each add super-aggregate rows.
+    [Fact]
+    public void EveryCoreNullSupplyingGrouping_IsClassified()
+    {
+        System.Type element = Core.GetTypes().Single(t => t.Name == "GroupingElement");
+        IEnumerable<string> factories = typeof(Sql)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Where(m => ConstructsAny(m, element))
+            .Select(m => m.Name);
+        IEnumerable<string> suffixes = typeof(ISelectBuilderGroupBy).GetMethods()
+            .Where(m => m.ReturnType.Name.StartsWith(
+                "ISelectBuilderWith", System.StringComparison.Ordinal))
+            .Select(m => m.Name);
+        string[] groupings = [.. factories.Concat(suffixes)
+            .Distinct()
+            .OrderBy(name => name, System.StringComparer.Ordinal)];
+
+        string[] classified = [.. FluentChain.NullSupplyingGroupings
+            .OrderBy(name => name, System.StringComparer.Ordinal)];
+
+        Assert.Equal(classified, groupings);
+    }
+
     [Fact]
     public void EveryCoreSetOperator_IsClassified()
     {
@@ -341,17 +416,28 @@ public class SchemaRuleParityTests
             .Distinct()
             .OrderBy(name => name, System.StringComparer.Ordinal)];
 
-        // A simple CASE operand and CAST transform the column exactly as a function
-        // does; Bind takes a value, never a column reference.
-        string[] wrappings = ["Case", "Cast"];
+        // A simple CASE operand transforms the column exactly as a function does;
+        // Bind takes a value, never a column reference.
+        string[] wrappings = ["Case"];
         string[] nonColumn = ["Bind"];
 
         Assert.Equal(
             UnusableIndexPredicateRule.ExpressionCarriers
+                .Concat(UnusableIndexPredicateRule.TypeDependentWrappings)
                 .Concat(wrappings)
                 .Concat(nonColumn)
                 .OrderBy(n => n, System.StringComparer.Ordinal),
             unclassified);
+    }
+
+    // The index rule exempts the upsert action's Where by its declaring stage.
+    [Fact]
+    public void UpsertActionWhere_IsDeclaredOnTheExemptStage()
+    {
+        System.Type stage = Assert.Single(Core.GetExportedTypes()
+            .Where(t => t.Name == UnusableIndexPredicateRule.UpsertActionStage));
+
+        Assert.Contains(stage.GetMethods(), m => m.Name == "Where");
     }
 
     [Fact]
@@ -411,6 +497,12 @@ public class SchemaRuleParityTests
         RunSilent(
             $"var s = Select(t.Code, Count(t.Note)).From(t).{join}.GroupBy(t.Code).Build();",
             dbms);
+
+    [Theory]
+    [MemberData(nameof(NullSupplyingGroupings))]
+    public Task ConstantNullPredicate_UnderSuperAggregateGrouping_Silent(
+        string statement, string dbms) =>
+        RunSilent(statement, dbms);
 
     [Theory]
     [MemberData(nameof(HiddenChains))]
@@ -487,6 +579,22 @@ public class SchemaRuleParityTests
 
     // The factories share a few return types, so the node a call builds is what names
     // its kind: the last constructor the factory's IL calls that yields its return type.
+    private static bool ConstructsAny(MethodInfo factory, System.Type baseType)
+    {
+        byte[] il = factory.GetMethodBody()!.GetILAsByteArray()!;
+        for (int i = 0; i + 4 < il.Length; i++)
+        {
+            if (il[i] == 0x73 // newobj
+                && Resolve(factory.Module, System.BitConverter.ToInt32(il, i + 1)) is { } ctor
+                && baseType.IsAssignableFrom(ctor.DeclaringType))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static System.Type BuiltNode(MethodInfo factory)
     {
         byte[] il = factory.GetMethodBody()!.GetILAsByteArray()!;
