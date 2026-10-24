@@ -1103,36 +1103,42 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             "DELETE FROM words WHERE z = @n", new { n = 1500001 }));
     }
 
-    // docs/analyzer.md (SQLA0200): a zero date, which a sql_mode without NO_ZERO_DATE
-    // stores, strict or not, is what IS NULL on a NOT NULL DATE or DATETIME column finds
-    // at a WHERE's top level or under its AND, whatever the reading session's mode.
+    // docs/analyzer.md (SQLA0200): the default sql_mode rejects a zero date, but INSERT
+    // IGNORE and a non-strict mode store one, and IS NULL on a NOT NULL DATE or DATETIME
+    // column finds it at a WHERE's top level or under its AND.
     [Fact]
     public void IsNullOnNotNullDate_FindsTheZeroDate()
     {
-        using IDbConnection lenient = _fixture.OpenConnection();
-        lenient.Execute("DROP TABLE IF EXISTS zero_dates");
-        lenient.Execute(
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute("DROP TABLE IF EXISTS zero_dates");
+        connection.Execute(
             "CREATE TABLE zero_dates (id INT, d DATE NOT NULL, dt DATETIME NOT NULL)");
         try
         {
-            lenient.Execute("SET SESSION sql_mode = 'STRICT_TRANS_TABLES'");
-            lenient.Execute(
-                "INSERT INTO zero_dates VALUES (1, '0000-00-00', '0000-00-00 00:00:00'), "
-                + "(2, '2024-01-01', '2024-01-01 00:00:00')");
-            using IDbConnection strict = _fixture.OpenConnection();
-            IEnumerable<int> Ids(string where) => strict.Query<int>(
+            const string ZeroRow = "VALUES ({0}, '0000-00-00', '0000-00-00 00:00:00')";
+            IEnumerable<int> Ids(string where) => connection.Query<int>(
                 $"SELECT id FROM zero_dates WHERE {where} ORDER BY id");
 
-            Assert.ThrowsAny<DbException>(() => strict.Execute(
-                "INSERT INTO zero_dates VALUES (3, '0000-00-00', '2024-01-01 00:00:00')"));
-            Assert.Equal(new[] { 1 }, Ids("d IS NULL"));
-            Assert.Equal(new[] { 1 }, Ids("dt IS NULL"));
-            Assert.Equal(new[] { 1 }, Ids("d IS NULL AND id > 0"));
-            Assert.Equal(new[] { 1, 2 }, Ids("NOT (d IS NULL)"));
+            Assert.ThrowsAny<DbException>(() => connection.Execute(
+                "INSERT INTO zero_dates " + string.Format(ZeroRow, 9)));
+            connection.Execute("INSERT IGNORE INTO zero_dates " + string.Format(ZeroRow, 1));
+            using (IDbConnection lenient = _fixture.OpenConnection())
+            {
+                lenient.Execute("SET SESSION sql_mode = ''");
+                lenient.Execute("INSERT INTO zero_dates " + string.Format(ZeroRow, 2));
+            }
+
+            connection.Execute(
+                "INSERT INTO zero_dates VALUES (3, '2024-01-01', '2024-01-01 00:00:00')");
+
+            Assert.Equal(new[] { 1, 2 }, Ids("d IS NULL"));
+            Assert.Equal(new[] { 1, 2 }, Ids("dt IS NULL"));
+            Assert.Equal(new[] { 1, 2 }, Ids("d IS NULL AND id > 0"));
+            Assert.Equal(new[] { 1, 2, 3 }, Ids("NOT (d IS NULL)"));
         }
         finally
         {
-            lenient.Execute("DROP TABLE IF EXISTS zero_dates");
+            connection.Execute("DROP TABLE IF EXISTS zero_dates");
         }
     }
 

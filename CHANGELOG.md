@@ -904,10 +904,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   says Oracle groups by a constant key, and names Oracle 23ai's
   `group_by_position_enabled` setting. (#684)
 - `docs/analyzer.md`'s `SQLA0205` section limits MySQL's floating-point
-  reconciliation to a text column against a number, and says a temporal or
-  binary column against text is reconciled per engine and can match other rows
-  too (SQL Server reads a string against a `DATETIME` by the session's
-  language). Its `SQLA0200` section records MySQL's zero date, which `IS NULL` on
+  reconciliation to a text column against a number, and says a temporal column
+  against text is reconciled per engine and can match other rows too (SQL
+  Server reads a string against a `DATETIME` by the session's language). Its `SQLA0200` section records MySQL's zero date, which `IS NULL` on
   a NOT NULL `DATE` or `DATETIME` column finds. (#684)
 - The cookbook's search recipe adds its `customer_id` tie-breaker only when
   the sort key is another column: SQL Server rejects a column listed twice in

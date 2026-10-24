@@ -1254,9 +1254,10 @@ var sql = Select(t.Code).From(t).Where(t.Code.IsNull).Build();
 `IS NOT NULL` on the same column reports the mirror image — always `true`.
 Neither is a dialect fact, with one exception. MySQL reads `IS NULL` on a NOT
 NULL `DATE` or `DATETIME` column, at the top of a `WHERE` or under its `AND`, as
-a test for the zero date `'0000-00-00'`, which a `sql_mode` without
-`NO_ZERO_DATE` can store; on a MySQL database holding such rows the predicate
-finds them, and the warning is wrong there (MySQL 8.0.46).
+a test for the zero date `'0000-00-00'`, which the default `sql_mode` rejects
+but `INSERT IGNORE` or a non-strict mode stores; on a MySQL database holding
+such rows the predicate finds them, and the warning is wrong there (MySQL
+8.0.46).
 
 Past an **outer join** a NOT NULL column is legitimately NULL on the
 null-supplied side, and `.Where(r.Id.IsNull)` after a `LeftJoin` is the
@@ -1464,11 +1465,11 @@ SQL Server 2022. The index on the column is unusable wherever the comparison
 runs, but the wrong-rows half is why this is a warning rather than a note about
 speed.
 
-A temporal or a binary column against text is reconciled each engine's own way
-too, and the result can be other rows than the ones meant: SQL Server reads a
-string compared to a `DATETIME` column by the session's language, so under
-`british` `'2020-03-05'` is 3 May (SQL Server 2022). Pass a `DateTime` or a `byte[]`, or `Cast` the
-string, to say which you mean.
+A temporal column against text is reconciled each engine's own way too, and the
+result can be other rows than the ones meant: SQL Server reads a string compared
+to a `DATETIME` column by the session's language, so under `british`
+`'2020-03-05'` is 3 May (SQL Server 2022). Pass a `DateTime` to say which you
+mean.
 
 The category is coarse on purpose — `Text`, `Numeric`, `Temporal`, `Binary`,
 `Boolean` — carrying no length, precision, or scale. A `numeric(10,2)` column
