@@ -1504,4 +1504,17 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         Assert.Equal(5, matched);
     }
+
+    // docs/cookbook.md: Oracle takes a column listed twice in ORDER BY.
+    [Fact]
+    public void OrderBy_SameColumnTwice_IsAcceptedByTheEngine()
+    {
+        UsersTable u = new("u");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            Select(u.Id).From(u).OrderBy(u.Id.Desc, u.Id).OffsetRows(0).FetchNext(2));
+
+        Assert.Equal(new[] { 5, 4 }, ids);
+    }
 }
