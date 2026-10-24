@@ -134,6 +134,22 @@ public class CookbookTests
     }
 
     [Fact]
+    public void SearchScreen_DefaultSortKey_OrdersByTheKeyOnce()
+    {
+        CookbookCustomer c = new("c");
+        SqlCondition where = CookbookRecipes.SearchCondition(c, true, false, false);
+
+        SqlStatement page = CookbookRecipes.SearchPage(c, where, "", true, 0).Build();
+
+        Assert.Equal(
+            "SELECT \"c\".customer_id, \"c\".first_name, \"c\".last_name, \"c\".email "
+            + "FROM customer \"c\" WHERE (\"c\".last_name LIKE :0) "
+            + "ORDER BY \"c\".customer_id DESC LIMIT :1 OFFSET :2",
+            page.Text);
+        Assert.Equal("%son%", page.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
     public void SearchScreen_AllFiltersExcluded_ThrowsArgumentException()
     {
         CookbookCustomer c = new("c");

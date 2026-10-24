@@ -815,6 +815,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   bind the string with `Sql.Bind(...)` where its position takes a bound value.
 
 ### Tests
+- A SQL Server twin pins the rejection of a column listed twice in
+  `ORDER BY`, beside an Oracle twin pinning its acceptance (#686).
 - PostgreSQL twins pin the `docs/` rejections #685 added: `Round(x, n)` and
   `Mod` on a `double precision` argument, and a `DistinctOn(...)` whose
   `ORDER BY` leads with another key. `DocsCalloutTests` now fails on a callout
@@ -845,6 +847,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   that conditions the earlier matched branch (#685).
 
 ### Docs
+- The cookbook's search recipe adds its `customer_id` tie-breaker only when
+  the sort key is another column: SQL Server rejects a column listed twice in
+  `ORDER BY` (#686).
 - `docs/versioning.md` states that a new rejection is breaking: a call, a
   `Build()` or a TableClassGen run that newly fails on input the last release
   accepted, unless that release is known to have failed on it too. The entries

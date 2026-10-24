@@ -1411,4 +1411,18 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
 
         Assert.Equal(5, matched);
     }
+
+    // docs/cookbook.md: SQL Server rejects a column listed twice in ORDER BY, so the
+    // search recipe adds its tie-breaker only beside another sort key.
+    [Fact]
+    public void OrderBy_SameColumnTwice_IsRejectedByTheEngine()
+    {
+        UsersTable u = new("u");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>(
+            Select(u.Id).From(u).OrderBy(u.Name.Desc, u.Id).OffsetRows(0).FetchNext(2));
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.Id).From(u).OrderBy(u.Id.Desc, u.Id).OffsetRows(0).FetchNext(2)));
+    }
 }
