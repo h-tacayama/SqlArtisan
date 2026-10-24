@@ -1302,4 +1302,46 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Equal((100, 99), (inserted, joined));
         transaction.Rollback();
     }
+
+    // docs/functions.md: GREATEST and LEAST skip a NULL argument here.
+    [Fact]
+    public void GreatestAndLeast_NullArgument_SkipsANullArgument()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(3, connection.ExecuteScalar<int?>(Select(Greatest(Null, 3, 1))));
+        Assert.Equal(1, connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1))));
+    }
+
+    // docs/query-statements.md: INTERSECT binds tighter than UNION and EXCEPT here.
+    [Fact]
+    public void SetOperators_UnionThenIntersect_IntersectBindsFirst()
+    {
+        UsersTable a = new("a");
+        UsersTable b = new("b");
+        UsersTable c = new("c");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            Select(a.Id).From(a).Where(a.Id == 1)
+            .Union
+            .Select(b.Id).From(b).Where(b.Id == 2)
+            .Intersect
+            .Select(c.Id).From(c).Where(c.Id == 3));
+
+        Assert.Equal(new[] { 1 }, ids);
+    }
+
+    // docs/expressions.md: a bound backslash is an ordinary pattern character here.
+    [Fact]
+    public void Like_BoundBackslash_MatchesItself()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        long matched = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(Bind(@"a\b").Like(@"a\b"))));
+
+        Assert.Equal(5, matched);
+    }
 }

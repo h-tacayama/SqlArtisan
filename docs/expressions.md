@@ -278,6 +278,12 @@ literal is spelled per dialect so it stays valid on each (a backslash is `'\\'`
 on MySQL and `E'\\'` on PostgreSQL). On SQL Server a non-ASCII
 escape character is written `N'...'`, so the database's code page cannot replace it.
 
+> [!WARNING]
+> **A `\` in a bound `Like(...)` pattern escapes the next character on MySQL and
+> PostgreSQL, and matches itself on Oracle, SQLite and SQL Server.** To match a
+> backslash as itself on every target, name another escape character with
+> `.Escape(...)`.
+
 ### BETWEEN Condition
 ```csharp
 UsersTable u = new();
@@ -455,7 +461,12 @@ SqlStatement sql =
 // FROM users
 ```
 
-`JsonArrow` (`->`) returns the JSON type; `JsonArrowText` (`->>`) returns text. Both work on MySQL, PostgreSQL, and SQLite.
+`JsonArrow` (`->`) returns the JSON type; `JsonArrowText` (`->>`) returns text. Both work on MySQL, PostgreSQL, and SQLite. On MySQL the key is a JSON path (`"$.address"`, `"$[0]"`): MySQL rejects a bare key and an integer index (observed on MySQL 8.0.46).
+
+> [!NOTE]
+> A path-shaped key such as `"$.name"` reads a path on MySQL and SQLite but is a
+> plain key on PostgreSQL, which returns NULL for it. On SQLite, a `->>` key
+> holding `\` returns NULL too.
 
 Chaining is natural — the result is a `SqlExpression`:
 

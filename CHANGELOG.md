@@ -835,6 +835,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   baseline, no enum repeats a value, and the enums are the set `versioning.md`
   names. `CommentCapRatchetTests` reads a `//` header above a `///` block as a
   header, which drops one phantom entry from its baseline. (#614)
+- Live twins pin the per-target results the reference pages now warn about,
+  each on the lanes it names (#685).
 
 ### Docs
 - `docs/versioning.md` states that a new rejection is breaking: a call, a
@@ -1066,6 +1068,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     `ContainsScore`'s XML docs drop the default frame and the score range.
   - PostgreSQL's rejection of a `double precision` `Round(x, n)` / `Mod` and of
     a `DistinctOn(...)` whose `ORDER BY` leads with another key is noted.
+- The reference pages warn where one call returns another result per target
+  (#685): `Length` counts bytes on MySQL; `RegexpReplace`'s 3- and 4-argument
+  forms replace only the first match on PostgreSQL; `Greatest` / `Least` skip a
+  NULL on PostgreSQL and SQL Server; a chain mixing `Intersect` with `Union` or
+  `Except` groups differently on Oracle and SQLite; a bound `\` in a `LIKE`
+  pattern escapes on MySQL and PostgreSQL; and MySQL's `NO_BACKSLASH_ESCAPES`
+  keeps the backslash SqlArtisan doubles in a forced literal. The JSON operators
+  note that MySQL takes only a path as the key, and that a path-shaped key is a
+  plain key on PostgreSQL.
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

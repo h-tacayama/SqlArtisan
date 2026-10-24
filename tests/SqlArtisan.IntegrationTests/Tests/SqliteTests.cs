@@ -1150,4 +1150,70 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
                 + "(SELECT u.b FROM pr_u u WHERE u.a = excluded.a)");
         Assert.Equal(99, connection.ExecuteScalar<int>("SELECT b FROM pr_t"));
     }
+
+    // docs/functions.md: the Length warning.
+    [Fact]
+    public void Length_NonAsciiCharacter_CountsCharacters()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(1, Convert.ToInt32(connection.ExecuteScalar(Select(Length("\u00e9")))));
+    }
+
+    // docs/query-statements.md: set operators apply left to right here, so a
+    // derived table is what groups the INTERSECT first.
+    [Fact]
+    public void SetOperators_UnionThenIntersect_ApplyLeftToRight()
+    {
+        UsersTable a = new("a");
+        UsersTable b = new("b");
+        UsersTable c = new("c");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            Select(a.Id).From(a).Where(a.Id == 1)
+            .Union
+            .Select(b.Id).From(b).Where(b.Id == 2)
+            .Intersect
+            .Select(c.Id).From(c).Where(c.Id == 3));
+        SubqueryDerivedTable x =
+            Select(b.Id).From(b).Where(b.Id == 2)
+            .Intersect
+            .Select(c.Id).From(c).Where(c.Id == 3)
+            .AsTable("x");
+        IEnumerable<int> grouped = connection.Query<int>(
+            Select(a.Id).From(a).Where(a.Id == 1).Union.Select(x.Column(b.Id)).From(x));
+
+        Assert.Empty(ids);
+        Assert.Equal(new[] { 1 }, grouped);
+    }
+
+    // docs/expressions.md: a bound backslash is an ordinary pattern character here.
+    [Fact]
+    public void Like_BoundBackslash_MatchesItself()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        long matched = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(Bind(@"a\b").Like(@"a\b"))));
+
+        Assert.Equal(5, matched);
+    }
+
+    // docs/expressions.md: a path-shaped key reads a path here, and a ->> key holding
+    // a backslash finds nothing.
+    [Fact]
+    public void JsonArrow_PathKeyAndBackslashKey_ReadAPathOrNothing()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal("Alice", connection.ExecuteScalar<string>(
+            Select(JsonArrowText(u.Data, "$.name")).From(u).Where(u.Id == 1)));
+        Assert.Equal("hit", connection.ExecuteScalar<string>(
+            Select(JsonArrowText(Bind("""{"a": "hit"}"""), "a"))));
+        Assert.Null(connection.ExecuteScalar<string>(
+            Select(JsonArrowText(Bind("""{"a\\b": "hit"}"""), @"a\b"))));
+    }
 }

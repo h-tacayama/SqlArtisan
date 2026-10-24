@@ -1000,4 +1000,114 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             connection.Execute("DROP TEMPORARY TABLE pr_t; DROP TEMPORARY TABLE pr_u");
         }
     }
+
+    // docs/functions.md: the RegexpReplace warning; occurrence 0 replaces every match.
+    [Fact]
+    public void RegexpReplace_ThreeArguments_ReplacesEveryMatch()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal("x00x0", connection.ExecuteScalar<string>(
+            Select(RegexpReplace("xooxo", "o", "0"))));
+        Assert.Equal("x00x0", connection.ExecuteScalar<string>(
+            Select(RegexpReplace("xooxo", "o", "0", 1))));
+        Assert.Equal("x00x0", connection.ExecuteScalar<string>(
+            Select(RegexpReplace("xooxo", "o", "0", 1, 0))));
+    }
+
+    // docs/functions.md: the Length warning.
+    [Fact]
+    public void Length_NonAsciiCharacter_CountsBytes()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(2, Convert.ToInt32(connection.ExecuteScalar(Select(Length("\u00e9")))));
+        Assert.Equal(1, Convert.ToInt32(connection.ExecuteScalar(Select(CharLength("\u00e9")))));
+    }
+
+    // docs/functions.md: GREATEST and LEAST return NULL for a NULL argument here.
+    [Fact]
+    public void GreatestAndLeast_NullArgument_ReturnsNull()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Null(connection.ExecuteScalar<int?>(Select(Greatest(Null, 3, 1))));
+        Assert.Null(connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1))));
+    }
+
+    // docs/query-statements.md: INTERSECT binds tighter than UNION and EXCEPT here.
+    [Fact]
+    public void SetOperators_UnionThenIntersect_IntersectBindsFirst()
+    {
+        UsersTable a = new("a");
+        UsersTable b = new("b");
+        UsersTable c = new("c");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            Select(a.Id).From(a).Where(a.Id == 1)
+            .Union
+            .Select(b.Id).From(b).Where(b.Id == 2)
+            .Intersect
+            .Select(c.Id).From(c).Where(c.Id == 3));
+
+        Assert.Equal(new[] { 1 }, ids);
+    }
+
+    // docs/expressions.md: a bound backslash escapes the next pattern character here
+    // unless ESCAPE names another escape character.
+    [Fact]
+    public void Like_BoundBackslash_EscapesTheNextCharacter()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        long plain = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(Bind(@"a\b").Like(@"a\b"))));
+        long escaped = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(Bind(@"a\b").Like(@"a\b").Escape('!'))));
+
+        Assert.Equal(0, plain);
+        Assert.Equal(5, escaped);
+    }
+
+    // docs/expressions.md: MySQL's -> / ->> take a JSON path; a bare key or an
+    // integer index is rejected.
+    [Fact]
+    public void JsonArrow_KeyOrIndexWithoutAPath_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal("Alice", connection.ExecuteScalar<string>(
+            Select(JsonArrowText(u.Data, "$.name")).From(u).Where(u.Id == 1)));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(JsonArrowText(u.Data, "name")).From(u).Where(u.Id == 1)));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(JsonArrow(u.Data, 0)).From(u).Where(u.Id == 1)));
+    }
+
+    // docs/functions.md: under NO_BACKSLASH_ESCAPES the backslash SqlArtisan doubles
+    // in a forced literal stays doubled.
+    [Fact]
+    public void GroupConcat_BackslashSeparator_NoBackslashEscapes_KeepsBothBackslashes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        ISqlBuilder Query() =>
+            Select(GroupConcat(u.Name, Sql.OrderBy(u.Id), Separator(@"\")))
+            .From(u)
+            .Where(u.Id <= 2);
+
+        Assert.Equal(@"Alice\Bob", connection.ExecuteScalar<string>(Query()));
+        connection.Execute("SET SESSION sql_mode = CONCAT(@@sql_mode, ',NO_BACKSLASH_ESCAPES')");
+        try
+        {
+            Assert.Equal(@"Alice\\Bob", connection.ExecuteScalar<string>(Query()));
+        }
+        finally
+        {
+            connection.Execute("SET SESSION sql_mode = @@GLOBAL.sql_mode");
+        }
+    }
 }

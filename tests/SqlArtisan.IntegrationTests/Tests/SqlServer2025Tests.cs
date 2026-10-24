@@ -1,6 +1,8 @@
 using System.Data;
 using Dapper;
+using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
+using static SqlArtisan.Sql;
 
 namespace SqlArtisan.IntegrationTests.Tests;
 
@@ -125,5 +127,19 @@ public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
         using IDbConnection connection = _fixture.OpenConnection();
 
         Assert.Equal(expected, connection.ExecuteScalar<string>(sql));
+    }
+
+    // docs/functions.md: the RegexpReplace warning; occurrence 0 replaces every match.
+    [Fact]
+    public void RegexpReplace_ThreeArguments_ReplacesEveryMatch()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal("x00x0", connection.ExecuteScalar<string>(
+            Select(RegexpReplace("xooxo", "o", "0"))));
+        Assert.Equal("x00x0", connection.ExecuteScalar<string>(
+            Select(RegexpReplace("xooxo", "o", "0", 1))));
+        Assert.Equal("x00x0", connection.ExecuteScalar<string>(
+            Select(RegexpReplace("xooxo", "o", "0", 1, 0))));
     }
 }
