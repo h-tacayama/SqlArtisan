@@ -2,6 +2,7 @@ using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
 using Dapper;
+using Oracle.ManagedDataAccess.Client;
 using SqlArtisan;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
@@ -1366,5 +1367,42 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             "SELECT CASE WHEN 'a' LIKE ANY (SELECT 'a' FROM dual) ESCAPE '!' THEN 1 END "
                 + "FROM dual"));
+    }
+
+    // docs/analyzer.md (SQLA0205): Oracle converts the text side to a number, so a
+    // zero-padded text matches and a non-numeric one fails the query.
+    [Fact]
+    public void TextComparedToNumber_ConvertsTheText()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        const string Numeric =
+            "SELECT '01500001' z FROM DUAL UNION ALL SELECT '1500001' FROM DUAL";
+
+        Assert.Equal(2, connection.ExecuteScalar<int>(
+            $"SELECT COUNT(*) FROM ({Numeric}) t WHERE z = :n", new { n = 1500001 }));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            $"SELECT COUNT(*) FROM ({Numeric} UNION ALL SELECT 'abc' FROM DUAL) t WHERE z = :n",
+            new { n = 1500001 }));
+    }
+
+    // README Manual Execution: without BindByName, ODP.NET binds by position, so a
+    // repeated marker takes the next parameter's value.
+    [Fact]
+    public void RepeatedMarker_BindByPosition_TakesTheNextParameter()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        int Sum(bool byName)
+        {
+            using OracleCommand command = ((OracleConnection)connection).CreateCommand();
+            command.BindByName = byName;
+            command.CommandText = "SELECT :a + :a FROM DUAL";
+            command.Parameters.Add(new OracleParameter("a", 1));
+            command.Parameters.Add(new OracleParameter("b", 10));
+            return Convert.ToInt32(command.ExecuteScalar());
+        }
+
+        Assert.Equal(2, Sum(byName: true));
+        Assert.Equal(11, Sum(byName: false));
     }
 }

@@ -1302,4 +1302,54 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Equal((100, 99), (inserted, joined));
         transaction.Rollback();
     }
+
+    // docs/analyzer.md (SQLA0205): SQL Server converts the text side to a number, so a
+    // zero-padded text matches and a non-numeric one fails the query.
+    [Fact]
+    public void TextComparedToNumber_ConvertsTheText()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(2, connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM (VALUES ('01500001'), ('1500001')) t (z) WHERE z = @n",
+            new { n = 1500001 }));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM (VALUES ('01500001'), ('abc')) t (z) WHERE z = @n",
+            new { n = 1500001 }));
+    }
+
+    // docs/analyzer.md: DATETRUNC takes MICROSECOND on a datetime2 of scale 6 or more.
+    [Fact]
+    public void Datetrunc_MicrosecondOnScaleBelow6_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        const string Value = "2024-01-01 10:00:00.123";
+
+        connection.ExecuteScalar(
+            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime2(6)"))));
+        connection.ExecuteScalar(
+            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime2"))));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime2(3)")))));
+    }
+
+    // docs/query-statements.md: the MERGE example that puts the condition on the
+    // earlier of two matched branches.
+    [Fact]
+    public void Merge_ConditionalBranchBeforeUnconditional_Executes()
+    {
+        UsersTable t = new("t");
+        UsersTable s = new("s");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            MergeInto(t)
+                .Using(s)
+                .On(t.Id == s.Id)
+                .WhenMatched(s.Name.IsNotNull).ThenUpdateSet(t.Name == s.Name)
+                .WhenMatched().ThenDelete(),
+            transaction);
+        transaction.Rollback();
+    }
 }

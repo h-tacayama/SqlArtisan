@@ -835,6 +835,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   baseline, no enum repeats a value, and the enums are the set `versioning.md`
   names. `CommentCapRatchetTests` reads a `//` header above a `///` block as a
   header, which drops one phantom entry from its baseline. (#614)
+- Live twins pin those engine notes on the MySQL, Oracle, PostgreSQL, SQLite
+  and SQL Server lanes, and the SQL Server `MERGE` example that conditions the
+  earlier matched branch (#685).
 
 ### Docs
 - `docs/versioning.md` states that a new rejection is breaking: a call, a
@@ -1066,6 +1069,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     `ContainsScore`'s XML docs drop the default frame and the score range.
   - PostgreSQL's rejection of a `double precision` `Round(x, n)` / `Mod` and of
     a `DistinctOn(...)` whose `ORDER BY` leads with another key is noted.
+- Engine notes from the integration lanes (#685): `SQLA0205`'s wrong-rows
+  sentence names Oracle and SQL Server, which convert the text side and fail on
+  a non-numeric row, and SQLite, which compares as text; SQL Server's `DATETRUNC`
+  takes `MICROSECOND` on a `datetime2` of scale 6 or 7; MySQL rejects an
+  `UPDATE` / `DELETE` whose subquery reads its own target, with the joined form
+  named; MySQL reads `FULL` after an unaliased table as its alias; MySQL's
+  `LIMIT`-in-`IN` rejection names the version observed; and the README says raw
+  ADO.NET on Oracle needs `BindByName`.
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

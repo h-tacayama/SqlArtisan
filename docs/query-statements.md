@@ -248,6 +248,12 @@ unsupported too. SQLite gained `RIGHT JOIN` / `FULL JOIN` and their `NATURAL`
 forms in a specific release — see the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
+> [!NOTE]
+> On MySQL, `FullJoin()` after an unaliased table emits `FROM t FULL JOIN u`,
+> which MySQL reads as `t` aliased `FULL` and runs as an inner join, or rejects
+> for an ambiguous column (observed on MySQL 8.0.46). `SQLA0100` reports
+> `FullJoin` there.
+
 #### JOIN ... USING
 
 `.Using(column, ...)` follows `InnerJoin()` / `LeftJoin()` / `RightJoin()` /
@@ -802,7 +808,7 @@ SqlStatement sql =
 // WHERE "o".user_id = "u".id ORDER BY "o".amount LIMIT :0) "x"
 ```
 
-On MySQL, `LIMIT` directly inside an `IN` / `NOT IN` / `ALL` / `ANY` / `SOME` subquery is rejected ("This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'" — the same restriction covers `NOT IN`) — route the limited query through a CTE (`With(c.As(...))`) and select from that instead.
+On MySQL, `LIMIT` directly inside an `IN` / `NOT IN` / `ALL` / `ANY` / `SOME` subquery is rejected ("This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'" — the same restriction covers `NOT IN`; observed on MySQL 8.0.46) — route the limited query through a CTE (`With(c.As(...))`) and select from that instead.
 
 #### Reusing a builder chain
 
@@ -966,6 +972,11 @@ SqlStatement sql =
 // WHERE id IN
 // (SELECT "i".id FROM users "i" WHERE "i".name = :0)
 ```
+
+MySQL rejects an `UPDATE` or `DELETE` whose subquery reads the target's own table
+(`You can't specify target table ... for update in FROM clause`, observed on
+MySQL 8.0.46). There, join the second instance instead — the
+[joined form](#joined-update--delete), `DeleteFrom(t).From(t).InnerJoin(i).On(...)`.
 
 | DBMS | Correlated `UPDATE` / `DELETE` |
 |------|--------------------------------|
