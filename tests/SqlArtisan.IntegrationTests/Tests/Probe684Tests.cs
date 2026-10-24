@@ -228,7 +228,67 @@ public sealed class MySqlProbe684 : IClassFixture<MySqlFixture>
             log.Add(Probe684.X(c, "zero.drop", "DROP TABLE pz684"));
         }
 
+        log.AddRange(Rerun(_f.ConnectionString));
         Probe684.Report("MySql", log);
+    }
+
+    // Second run: the alias column name each engine returns, and the trigger as root.
+    private static IEnumerable<string> Rerun(string connectionString)
+    {
+        List<string> log = new();
+        using (IDbConnection c = new MySqlConnector.MySqlConnection(connectionString))
+        {
+            c.Open();
+            foreach (int n in new[] { 64, 256, 257, 300, 1000 })
+            {
+                foreach (char ch in new[] { 'a', 'あ' })
+                {
+                    string label = $"alias_name.{(ch == 'a' ? "ascii" : "kana")}.{n}";
+                    try
+                    {
+                        IDictionary<string, object> row =
+                            (IDictionary<string, object>)c.Query($"SELECT 1 AS `{new string(ch, n)}`").First();
+                        string key = row.Keys.Single();
+                        log.Add($"{label}: returned name length {key.Length}, same={key == new string(ch, n)}");
+                    }
+                    catch (Exception e)
+                    {
+                        log.Add($"{label}: ERROR {e.GetType().Name}: {e.Message.Split('\n')[0]}");
+                    }
+
+                    log.Add(Probe684.Q(c, label + ".warnings", "SHOW WARNINGS"));
+                }
+            }
+        }
+
+        MySqlConnector.MySqlConnectionStringBuilder root = new(connectionString) { UserID = "root" };
+        using (IDbConnection c = new MySqlConnector.MySqlConnection(root.ConnectionString))
+        {
+            try
+            {
+                c.Open();
+                log.Add("root.open: ok");
+            }
+            catch (Exception e)
+            {
+                log.Add($"root.open: ERROR {e.GetType().Name}: {e.Message.Split('\n')[0]}");
+                return log;
+            }
+
+            log.Add(Probe684.Q(c, "root.mode", "SELECT @@sql_mode, DATABASE()"));
+            log.Add(Probe684.X(
+                c, "trigger2.create_table", "CREATE TABLE pt684 (id INT PRIMARY KEY, code VARCHAR(10) NOT NULL)"));
+            log.Add(Probe684.X(
+                c, "trigger2.create",
+                "CREATE TRIGGER pt684_bi BEFORE INSERT ON pt684 FOR EACH ROW "
+                + "SET NEW.code = COALESCE(NEW.code, 'auto')"));
+            log.Add(Probe684.X(c, "trigger2.insert_omitted", "INSERT INTO pt684 (id) VALUES (1)"));
+            log.Add(Probe684.X(c, "trigger2.insert_null", "INSERT INTO pt684 (id, code) VALUES (2, NULL)"));
+            log.Add(Probe684.Q(c, "trigger2.rows", "SELECT id, code FROM pt684 ORDER BY id"));
+            log.Add(Probe684.X(c, "trigger2.drop", "DROP TABLE pt684"));
+        }
+
+        return log;
     }
 
     private static IEnumerable<string> ZeroDateReads(IDbConnection c, string mode)
