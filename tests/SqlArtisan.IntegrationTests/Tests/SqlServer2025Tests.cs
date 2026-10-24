@@ -11,7 +11,7 @@ namespace SqlArtisan.IntegrationTests.Tests;
 /// <summary>
 /// SQL Server 2025 facts beside its bound sweep (#614): the <c>REGEXP_*</c> match-parameter
 /// alphabet, what a database kept at compatibility level 160 still accepts, and the 2022
-/// lane's DISTINCT-window rejections re-run (#662).
+/// lane's DISTINCT-window rejections (#662) and DATETRUNC microsecond scales re-run.
 /// </summary>
 [Trait("Engine", "SqlServer2025")]
 public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
@@ -131,21 +131,28 @@ public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
         Assert.Equal(expected, connection.ExecuteScalar<string>(sql));
     }
 
-    // docs/analyzer.md: DATETRUNC takes MICROSECOND on a source of fractional-second
-    // scale 6 or 7, and rejects it on a lower scale and on datetime.
-    [Fact]
-    public void Datetrunc_MicrosecondOnScaleBelow6_IsRejectedByTheEngine()
+    // docs/analyzer.md: DATETRUNC takes MICROSECOND on a datetime2 of scale 6 or 7.
+    [Theory]
+    [MemberData(
+        nameof(DatetruncMicrosecondScales.Accepted),
+        MemberType = typeof(DatetruncMicrosecondScales))]
+    public void Datetrunc_Microsecond_IsAcceptedByTheEngine(string type)
     {
         using IDbConnection connection = _fixture.OpenConnection();
-        const string Value = "2024-01-01 10:00:00.123";
 
-        connection.ExecuteScalar(
-            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime2(6)"))));
-        connection.ExecuteScalar(
-            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime2"))));
-        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
-            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime2(3)")))));
-        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
-            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime")))));
+        connection.ExecuteScalar(Select(Datetrunc(
+            DateTimePart.Microsecond, Cast("2024-01-01 10:00:00.123", type))));
+    }
+
+    [Theory]
+    [MemberData(
+        nameof(DatetruncMicrosecondScales.Rejected),
+        MemberType = typeof(DatetruncMicrosecondScales))]
+    public void Datetrunc_Microsecond_IsRejectedByTheEngine(string type)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(Select(Datetrunc(
+            DateTimePart.Microsecond, Cast("2024-01-01 10:00:00.123", type)))));
     }
 }

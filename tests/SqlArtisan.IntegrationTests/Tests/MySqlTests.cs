@@ -1002,8 +1002,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     }
 
     // docs/analyzer.md (SQLA0205): MySQL compares a text column to a number as
-    // numbers, so every text converting to it matches; a SELECT does not fail on the
-    // rest, and a DELETE does under the default strict sql_mode.
+    // numbers, so every text converting to it matches; a SELECT does not fail on a text
+    // that is no number, and a DELETE does under the default strict sql_mode.
     [Fact]
     public void TextColumnComparedToNumber_MatchesEveryTextConvertingToIt()
     {
@@ -1017,8 +1017,11 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             "SELECT z FROM zips WHERE z = @n ORDER BY z", new { n = 1500001 });
 
         Assert.Equal(new[] { "01500001", "1500001 Nowhere St" }, matched);
+        connection.Execute("DROP TEMPORARY TABLE IF EXISTS words");
+        connection.Execute("CREATE TEMPORARY TABLE words (z VARCHAR(30))");
+        connection.Execute("INSERT INTO words VALUES ('01500001'), ('abc')");
         Assert.ThrowsAny<DbException>(() => connection.Execute(
-            "DELETE FROM zips WHERE z = @n", new { n = 1500001 }));
+            "DELETE FROM words WHERE z = @n", new { n = 1500001 }));
     }
 
     // docs/query-statements.md: MySQL rejects a DML subquery reading the target's own

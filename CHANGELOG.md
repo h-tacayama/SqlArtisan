@@ -1071,12 +1071,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     a `DistinctOn(...)` whose `ORDER BY` leads with another key is noted.
 - Engine notes from the integration lanes (#685): `SQLA0205`'s wrong-rows
   sentence names Oracle and SQL Server, which convert the text side and fail on
-  a non-numeric row, and SQLite, which compares as text; SQL Server's `DATETRUNC`
-  takes `MICROSECOND` on a `datetime2` of scale 6 or 7; MySQL rejects an
-  `UPDATE` / `DELETE` whose subquery reads its own target, with the joined form
-  named; MySQL reads `FULL` after an unaliased table as its alias; MySQL's
-  `LIMIT`-in-`IN` rejection names the version observed; and the README says raw
-  ADO.NET on Oracle needs `BindByName`.
+  a non-numeric row, SQLite, which compares as text, and MySQL's strict
+  `sql_mode`, under which a `DELETE` reaching a non-numeric text fails; SQL
+  Server's `DATETRUNC` takes `MICROSECOND` on a `datetime2` of scale 6 or 7 and
+  rejects it on a `datetime2(3)` and a `datetime`; MySQL rejects an `UPDATE` /
+  `DELETE` whose subquery reads its own target, with both joined forms named;
+  MySQL reads `FULL` after an unaliased table as its alias when no joined column
+  is ambiguous; MySQL's `LIMIT`-in-`IN` rejection names the version observed;
+  and the README says raw ADO.NET on Oracle needs `BindByName`.
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

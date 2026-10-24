@@ -205,7 +205,7 @@ dotnet add package SqlArtisan.ArrayBind --prerelease # optional: Oracle array-bi
 
     **Note:** the single-use rule above applies here too — calling `Build()` twice on the same instance throws.
 
-    On Oracle, set `OracleCommand.BindByName = true` when you bind `sql.Parameters` yourself: ODP.NET binds by position by default, so a statement that repeats a marker (one `Bind(...)` value used twice) does not run: it waits until the command times out (observed with ODP.NET 23.8 on Oracle XE 21.3.0).
+    On Oracle, set `OracleCommand.BindByName = true` when you bind `sql.Parameters` yourself: ODP.NET binds by position by default, so a statement that repeats a marker ahead of another (one `Bind(...)` value used twice) does not run (observed with ODP.NET 23.8 on Oracle XE 21.3.0).
 
 ---
 

@@ -1318,22 +1318,29 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             new { n = 1500001 }));
     }
 
-    // docs/analyzer.md: DATETRUNC takes MICROSECOND on a source of fractional-second
-    // scale 6 or 7, and rejects it on a lower scale and on datetime.
-    [Fact]
-    public void Datetrunc_MicrosecondOnScaleBelow6_IsRejectedByTheEngine()
+    // docs/analyzer.md: DATETRUNC takes MICROSECOND on a datetime2 of scale 6 or 7.
+    [Theory]
+    [MemberData(
+        nameof(DatetruncMicrosecondScales.Accepted),
+        MemberType = typeof(DatetruncMicrosecondScales))]
+    public void Datetrunc_Microsecond_IsAcceptedByTheEngine(string type)
     {
         using IDbConnection connection = _fixture.OpenConnection();
-        const string Value = "2024-01-01 10:00:00.123";
 
-        connection.ExecuteScalar(
-            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime2(6)"))));
-        connection.ExecuteScalar(
-            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime2"))));
-        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
-            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime2(3)")))));
-        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
-            Select(Datetrunc(DateTimePart.Microsecond, Cast(Value, "datetime")))));
+        connection.ExecuteScalar(Select(Datetrunc(
+            DateTimePart.Microsecond, Cast("2024-01-01 10:00:00.123", type))));
+    }
+
+    [Theory]
+    [MemberData(
+        nameof(DatetruncMicrosecondScales.Rejected),
+        MemberType = typeof(DatetruncMicrosecondScales))]
+    public void Datetrunc_Microsecond_IsRejectedByTheEngine(string type)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(Select(Datetrunc(
+            DateTimePart.Microsecond, Cast("2024-01-01 10:00:00.123", type)))));
     }
 
     // docs/query-statements.md: the MERGE example that puts the condition on the

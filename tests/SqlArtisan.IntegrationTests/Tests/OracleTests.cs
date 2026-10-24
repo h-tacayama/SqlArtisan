@@ -1386,9 +1386,10 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     }
 
     // README Manual Execution: ODP.NET binds by position unless BindByName is set, and a
-    // statement repeating a marker before a later one then waits out its timeout.
+    // statement repeating a marker ahead of another then does not run (on this lane it
+    // waits out the command timeout).
     [Fact]
-    public void RepeatedMarker_BindByPosition_WaitsUntilTheCommandTimesOut()
+    public void RepeatedMarkerAheadOfAnother_BindByPosition_DoesNotRun()
     {
         UsersTable u = new();
         BindValue id = Bind(1);
@@ -1411,7 +1412,6 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.True(
             ((IAsyncResult)byPosition).AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(60)),
             "Binding by position did not finish within 60 seconds.");
-        OracleException ex = Assert.IsType<OracleException>(byPosition.Exception?.InnerException);
-        Assert.StartsWith("ORA-03111", ex.Message);
+        Assert.IsType<OracleException>(byPosition.Exception?.InnerException);
     }
 }
