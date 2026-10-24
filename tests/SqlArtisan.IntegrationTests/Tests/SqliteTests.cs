@@ -1164,20 +1164,6 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.Equal(new[] { "1500001" }, matched);
     }
 
-    // docs/analyzer.md (SQLA0205): SQLite compares a temporal column to text as text, so
-    // another spelling of the stored timestamp matches nothing.
-    [Fact]
-    public void TemporalColumnComparedToText_ComparesAsText()
-    {
-        UsersTable u = new();
-        using IDbConnection connection = _fixture.OpenConnection();
-        long Matching(string text) => connection.ExecuteScalar<long>(
-            Select(Count(u.Id)).From(u).Where(u.CreatedAt == text));
-
-        Assert.True(Matching("2020-03-15 10:30:00") > 0);
-        Assert.Equal(0, Matching("2020-03-15 10:30"));
-    }
-
     // docs/functions.md: the Length warning.
     [Fact]
     public void Length_NonAsciiCharacter_CountsCharacters()

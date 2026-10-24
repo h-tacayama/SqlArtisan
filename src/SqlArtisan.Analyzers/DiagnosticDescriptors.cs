@@ -183,9 +183,8 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
-    // Names no dialect: the row leaves a column with no value the schema can supply,
-    // and a server mode that substitutes one is a docs caveat, not a reason to stay
-    // silent where the same statement is rejected everywhere else.
+    // Names no dialect: the column list leaves a NOT NULL column with no default
+    // unfilled, a fact of the schema rather than of any engine.
     public static readonly DiagnosticDescriptor InsertMissingRequiredColumn = new(
         id: "SQLA0202",
         title: "INSERT omits a column that is NOT NULL with no default",

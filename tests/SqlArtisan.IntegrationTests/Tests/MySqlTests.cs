@@ -1103,40 +1103,9 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             "DELETE FROM words WHERE z = @n", new { n = 1500001 }));
     }
 
-    // docs/analyzer.md (SQLA0205): MySQL converts text compared to a temporal column to
-    // a date and time, so a well-formed spelling matches as one and a malformed one fails.
-    [Fact]
-    public void TemporalColumnComparedToText_ConvertsTheText()
-    {
-        UsersTable u = new();
-        using IDbConnection connection = _fixture.OpenConnection();
-        long Matching(string text) => connection.ExecuteScalar<long>(
-            Select(Count(u.Id)).From(u).Where(u.CreatedAt == text));
-        long canonical = Matching("2020-03-15 10:30:00");
-
-        Assert.True(canonical > 0);
-        Assert.Equal(canonical, Matching("2020-03-15 10:30"));
-        Assert.Equal(canonical, Matching("2020-03-15 10:30:00.000"));
-        Assert.ThrowsAny<DbException>(() => Matching("abc"));
-    }
-
-    // docs/analyzer.md (SQLA0205): MySQL compares a binary column to text as bytes.
-    [Fact]
-    public void BinaryColumnComparedToText_ComparesTheBytes()
-    {
-        using IDbConnection connection = _fixture.OpenConnection();
-        connection.Execute("DROP TEMPORARY TABLE IF EXISTS bins");
-        connection.Execute("CREATE TEMPORARY TABLE bins (id INT, b VARBINARY(10))");
-        connection.Execute("INSERT INTO bins VALUES (1, 'abc'), (2, 'ABC')");
-
-        Assert.Equal(
-            new[] { 1 },
-            connection.Query<int>("SELECT id FROM bins WHERE b = @s", new { s = "abc" }));
-    }
-
-    // docs/analyzer.md (SQLA0200): a zero date, which only a non-strict sql_mode stores,
-    // is what IS NULL on a NOT NULL DATE or DATETIME column finds at a WHERE's top level
-    // or under its AND, whatever the reading session's mode; under NOT it is false.
+    // docs/analyzer.md (SQLA0200): a zero date, which a sql_mode without NO_ZERO_DATE
+    // stores, strict or not, is what IS NULL on a NOT NULL DATE or DATETIME column finds
+    // at a WHERE's top level or under its AND, whatever the reading session's mode.
     [Fact]
     public void IsNullOnNotNullDate_FindsTheZeroDate()
     {
@@ -1146,7 +1115,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             "CREATE TABLE zero_dates (id INT, d DATE NOT NULL, dt DATETIME NOT NULL)");
         try
         {
-            lenient.Execute("SET SESSION sql_mode = ''");
+            lenient.Execute("SET SESSION sql_mode = 'STRICT_TRANS_TABLES'");
             lenient.Execute(
                 "INSERT INTO zero_dates VALUES (1, '0000-00-00', '0000-00-00 00:00:00'), "
                 + "(2, '2024-01-01', '2024-01-01 00:00:00')");

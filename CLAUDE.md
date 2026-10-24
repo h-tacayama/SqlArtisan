@@ -145,8 +145,9 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships fifteen diagnostics:
   function or leads its pattern with `%`, so no index on it can be used.
 - **SQLA0205** — a column compared to a value of another type category. For a
   text column against a number, MySQL, Oracle and SQL Server convert the text
-  side to a number, so the mismatch changes which rows match; each other pair is
-  reconciled per engine (`docs/analyzer.md`). The category is the public `DbTypeCategory` enum, which TableClassGen
+  side to a number, so the mismatch changes which rows match; a temporal or
+  binary column against text is reconciled per engine and can match other rows
+  too (`docs/analyzer.md`). The category is the public `DbTypeCategory` enum, which TableClassGen
   emits symbolically and the analyzer resolves by member name (never by the
   underlying integer), gated by `SchemaMetadataParityTests`.
 - **SQLA0300** — Correlated `UPDATE`/`DELETE`/`MERGE` with an unaliased target — the
