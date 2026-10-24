@@ -74,7 +74,7 @@ internal static class ArgumentValueValidityRule
                 continue;
             }
 
-            if (ArgumentValueValidity.RejectsOrdinalGroupBy(dbms))
+            if (ArgumentValueValidity.ReadsNoGroupByOrdinal(dbms))
             {
                 (invalidOn ??= []).Add(TargetDbmsNames.Display(dbms));
             }
@@ -232,8 +232,8 @@ internal static class ArgumentValueValidityRule
         string memberName,
         string parameterName)
     {
-        // Only a negative constant is a fact: `LIMIT 0` runs, and a count the
-        // analyzer cannot see stays the database's business (ADR 0004).
+        // Only a negative constant is a fact: zero is inside a count's domain, and a
+        // count the analyzer cannot see stays the database's business (ADR 0004).
         if (FindArgument(invocation.Arguments, parameterName) is not { } argument
             || argument.Value.ConstantValue is not { HasValue: true, Value: int count }
             || count >= 0

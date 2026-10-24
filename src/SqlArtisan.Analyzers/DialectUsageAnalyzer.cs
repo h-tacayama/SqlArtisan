@@ -422,8 +422,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     private static readonly TargetDbms[] s_groupedLockUnsupported =
         [TargetDbms.Oracle, TargetDbms.PostgreSql];
 
-    // Oracle alone: PostgreSQL runs the pairing, and on the rest the matrix already
-    // calls either the row-limiting step or ForUpdate unsupported.
+    // Oracle alone (XE 21.3.0 raises ORA-02014; PostgreSQL 16 runs the pairing), and on
+    // the rest the matrix already calls either the row-limiting step or ForUpdate unsupported.
     private static readonly TargetDbms[] s_rowLimitedLockUnsupported = [TargetDbms.Oracle];
 
     private static readonly TargetDbms[] s_joinedDmlUnsupported =
@@ -438,7 +438,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     private static readonly TargetDbms[] s_updateFromUnsupported =
         [TargetDbms.MySql, TargetDbms.Oracle, TargetDbms.Sqlite];
 
-    // Oracle 21c rejects the table value constructor 23ai added (#87).
+    // Oracle XE 21.3.0 rejects the table value constructor 23.26.3 runs (#87).
     private static readonly TargetDbms[] s_valuesRowUnsupported = [TargetDbms.Oracle];
 
     private static readonly TargetDbms[] s_insertSelectWithUnsupported = [TargetDbms.SqlServer];

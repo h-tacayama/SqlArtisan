@@ -64,9 +64,9 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task AliasOverMySqlCharLimit_ReportsSqla0103()
+    public async Task AliasOverMySqlByteLimit_ReportsSqla0103()
     {
-        // MySQL's alias limit is 256 characters (its 64-char limit is for table/column
+        // MySQL's alias limit is 256 bytes (its 64-char limit is for table/column
         // names, not aliases), so an alias only warns past 256.
         var test = AnalyzerVerifier.Create(
             AliasUsage(Repeat('a', 257)),
@@ -76,10 +76,31 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task AliasAtMySqlCharLimit_StaysSilent()
+    public async Task AliasAtMySqlByteLimit_StaysSilent()
     {
         var test = AnalyzerVerifier.Create(
             AnalyzerVerifier.Unmarked(AliasUsage(Repeat('a', 256))),
+            AnalyzerVerifier.EditorConfig("mysql"));
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task MultiByteAliasOverMySqlByteLimit_ReportsSqla0103()
+    {
+        // 86 three-byte characters = 258 bytes, which MySQL 8.0.46 truncates to 85.
+        var test = AnalyzerVerifier.Create(
+            AliasUsage(Repeat('あ', 86)),
+            AnalyzerVerifier.EditorConfig("mysql"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task MultiByteAliasAtMySqlByteLimit_StaysSilent()
+    {
+        // 85 three-byte characters = 255 bytes.
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(AliasUsage(Repeat('あ', 85))),
             AnalyzerVerifier.EditorConfig("mysql"));
         await test.RunAsync();
     }

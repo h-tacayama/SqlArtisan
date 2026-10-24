@@ -318,18 +318,20 @@ item (`Output_*_IsRejectedByTheEngine`, `ReturningInto_Asterisk_IsRejectedByTheE
 joined forms, whose `OUTPUT` reads a `FROM` table by name, and SQL Server 2025 and
 Oracle 23ai are not run.
 
-**A `GROUP BY` column ordinal stays permissive on the engines that refuse it
-(decided — do not re-file):** Oracle XE 21.3.0 and SQL Server 2022 reject a
-bare constant there while MySQL 8.0, PostgreSQL 16.13 and SQLite 3.50.4 group
-by the position, so `Build(Dbms)` could throw the way `OrderBy`'s non-integer
-sort key does — and deliberately does not. ADR 0011's bar is an analyzer blind
-spot **and** no valid spelling, and both halves fail: a call-site constant is
-exactly what `SQLA0104` reads, and on the rejecting engines `GroupBy(column)`
-spells the same intent. A *non-constant* ordinal is a blind spot, but the valid
-spelling is still there, so the second condition fails for it too and the
-database stays the arbiter. The ordinal **below 1** is a different question and
-does guard — every engine refuses it, so ADR 0012's three conditions hold
-(#521).
+**A `GROUP BY` column ordinal stays permissive on the engines that do not read
+it (decided — do not re-file):** SQL Server 2022 rejects a bare constant there
+and Oracle XE 21.3.0 and 23.26.3 group by it as one constant, while MySQL
+8.0.46, PostgreSQL 16.15 and SQLite 3.50.4 group by the position, so
+`Build(Dbms)` could throw the way `OrderBy`'s non-integer sort key does — and
+deliberately does not. ADR 0011's bar is an analyzer blind spot **and** no valid
+spelling, and both halves fail: a call-site constant is exactly what `SQLA0104`
+reads, and on those two engines `GroupBy(column)` spells the same intent. A
+*non-constant* ordinal is a blind spot, but the valid spelling is still there,
+so the second condition fails for it too and the database stays the arbiter.
+The ordinal **below 1** is a different question and guards, since it names no
+select-list position. ADR 0012's condition 1 no longer holds for it: MySQL
+8.0.46 reads `-1`, and Oracle `0` and `-1`, as one constant group (#684), so
+whether the guard stays is #679's (#521).
 
 **A negative row count and a negative `Lag`/`Lead` offset stay permissive
 (decided — do not re-file):** `Top(-1)`, `FetchFirst(-1)` and `Limit(-1)`

@@ -33,8 +33,8 @@ internal static class ContextRules
     }
 
     /// <summary>
-    /// MySQL rejects <c>LIMIT</c> directly inside an <c>IN</c>/<c>NOT IN</c>/<c>ANY</c>/<c>ALL</c>/
-    /// <c>SOME</c> subquery (ER_NOT_SUPPORTED_YET).
+    /// MySQL 8.0.46 rejects <c>LIMIT</c> directly inside an <c>IN</c>/<c>NOT IN</c>/<c>ANY</c>/
+    /// <c>ALL</c>/<c>SOME</c> subquery (ER_NOT_SUPPORTED_YET).
     /// </summary>
     public static void CheckLimitInQuantifiedSubquery(
         OperationAnalysisContext context, IInvocationOperation limit, string dialectName)
@@ -97,9 +97,9 @@ internal static class ContextRules
     ];
 
     /// <summary>
-    /// SQL Server requires an <c>ORDER BY</c> in the window of a value analytic
-    /// function, so the empty and partition-only windows the other four engines
-    /// accept have no spelling there.
+    /// SQL Server 2022 requires an <c>ORDER BY</c> in the window of a value analytic
+    /// function, so the empty and partition-only windows the other four lanes run have
+    /// no spelling there; the rule fires at every SQL Server version.
     /// </summary>
     /// <remarks>
     /// Only a receiver the visible factory call builds reports: the three share one
@@ -153,8 +153,9 @@ internal static class ContextRules
     }
 
     /// <summary>
-    /// SQL Server exposes the percentiles only as window functions, so the bare
-    /// <c>WITHIN GROUP</c> form Oracle and PostgreSQL accept has no spelling there.
+    /// SQL Server 2022 exposes the percentiles only as window functions, so the bare
+    /// <c>WITHIN GROUP</c> form Oracle and PostgreSQL accept has no spelling there; the
+    /// rule fires at every SQL Server version.
     /// </summary>
     public static void CheckPercentileRequiresOver(
         OperationAnalysisContext context, IInvocationOperation percentile, string dialectName)

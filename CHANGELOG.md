@@ -644,6 +644,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   since only Oracle runs `RETURNING ... INTO` (`SQLA0100` reports `Into`
   elsewhere); with Oracle and PostgreSQL configured, a 64-character name no
   longer reports PostgreSQL's 63-byte limit. (#684)
+- `SQLA0103` measures a MySQL alias in UTF-8 bytes, not characters: MySQL
+  8.0.46 truncates one past 256 bytes with only a warning, so a 256-character
+  `あ` alias came back as 85 characters unreported. (#684)
+- `SQLA0104` no longer reports a non-integer `GroupBy` key on Oracle, which
+  reads one as a single group (XE 21.3.0 and 23ai). `GroupBy(1)` still reports
+  there: Oracle groups by the constant rather than the position. (#684)
 - `SQLA0104` shows a fractional `GroupBy` key as the core emits it:
   `GroupBy(2.0)` reports `'2.0'`, not the ordinal `'2'`, and a non-finite key,
   which the call rejects, reports nothing. (#684)
@@ -850,6 +856,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   on, and the members that take an `IntervalExpression`; the schema parity
   catalog takes thirteen silent shapes from the per-rule suites. SQLite twins
   run the correlated `UPDATE` / `DELETE` the joined-DML notes name. (#684)
+- MySQL and SQL Server twins run every `DateTimePart` member against `SQLA0104`'s
+  datepart lists, and each dialect but SQLite pins `SQLA0103`'s identifier limit
+  at and one character past it. The `GroupBy` constant twins use an
+  aggregate-only select list, so a key read as one constant group no longer
+  fails for an ungrouped column. (#684)
 - A SQL Server twin pins the rejection of a column listed twice in
   `ORDER BY`, beside an Oracle twin pinning its acceptance (#686).
 - PostgreSQL twins pin the `docs/` rejections #685 added: `Round(x, n)` and
@@ -882,11 +893,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   that conditions the earlier matched branch (#685).
 
 ### Docs
-- `docs/analyzer.md` records that `SQLA0103` counts Oracle and PostgreSQL
+- `docs/analyzer.md` records that `SQLA0103` counts MySQL, Oracle and PostgreSQL
   identifiers in UTF-8 bytes (a PostgreSQL 16.15 `EUC_JP` database keeps a name
   it reports), lists a method group among the known limitations, and names a
   correlated subquery as the way to filter an `UPDATE` / `DELETE` target by
-  another table where the engine takes no joined form. (#684)
+  another table where the engine takes no joined form. Its `GroupBy` section
+  says Oracle groups by a constant key, and names Oracle 23ai's
+  `group_by_position_enabled` setting. (#684)
 - The cookbook's search recipe adds its `customer_id` tie-breaker only when
   the sort key is another column: SQL Server rejects a column listed twice in
   `ORDER BY` (#686).

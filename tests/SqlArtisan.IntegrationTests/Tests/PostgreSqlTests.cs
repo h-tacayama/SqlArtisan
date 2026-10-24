@@ -442,25 +442,24 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             "SELECT DATE_TRUNC('epoch', created_at) FROM users"));
     }
 
-    public static TheoryData<DateTimePart> EveryDateTimePart
+    // SQLA0103 (#684): an alias at the analyzer's limit comes back whole, and one
+    // character past it comes back cut short, with no error.
+    [Theory]
+    [MemberData(nameof(IdentifierLimits.Characters), MemberType = typeof(IdentifierLimits))]
+    public void Alias_PastTheIdentifierLimit_IsTruncated(char character)
     {
-        get
-        {
-            TheoryData<DateTimePart> data = new();
-            foreach (DateTimePart part in Enum.GetValues<DateTimePart>())
-            {
-                data.Add(part);
-            }
+        using IDbConnection connection = _fixture.OpenConnection();
+        string atLimit = IdentifierLimits.AtTheLimit(TargetDbms.PostgreSql, character);
 
-            return data;
-        }
+        Assert.Equal(atLimit, IdentifierLimits.ReturnedAlias(connection, atLimit));
+        Assert.Equal(atLimit, IdentifierLimits.ReturnedAlias(connection, atLimit + character));
     }
 
     // SQLA0104 (#684): every member against both PostgreSQL cells, the two Extract reads
     // as another field aside (they run and stay out). A timestamptz source keeps the
     // time-zone fields from failing on the column's type alone.
     [Theory]
-    [MemberData(nameof(EveryDateTimePart))]
+    [MemberData(nameof(DatepartCells.EveryMember), MemberType = typeof(DatepartCells))]
     public void DatepartCells_EveryMember_MatchTheEngine(DateTimePart part)
     {
         UsersTable u = new();
@@ -472,10 +471,10 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             readsAnotherField
                 || DatepartValidity.For("Extract", TargetDbms.PostgreSql)!.Contains(
                     part.ToString()),
-            Runs(connection, Select(Extract(part, ts)).From(u)));
+            DatepartCells.Runs(connection, Select(Extract(part, ts)).From(u)));
         Assert.Equal(
             DatepartValidity.For("DateTrunc", TargetDbms.PostgreSql)!.Contains(part.ToString()),
-            Runs(connection, Select(DateTrunc(part, ts)).From(u)));
+            DatepartCells.Runs(connection, Select(DateTrunc(part, ts)).From(u)));
     }
 
     // The other meaning SQLA0104 reports: the plural field, seconds scaled, where the
@@ -491,19 +490,6 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(45123456m, Field("MICROSECONDS"));
         Assert.Equal(45123.456m, Field("MILLISECOND"));
         Assert.Equal(45123.456m, Field("MILLISECONDS"));
-    }
-
-    private static bool Runs(IDbConnection connection, ISqlBuilder query)
-    {
-        try
-        {
-            connection.ExecuteScalar(query);
-            return true;
-        }
-        catch (DbException)
-        {
-            return false;
-        }
     }
 
     // ADR 0012 (#661): anchors the open-domain example; the field is rejected here, the
@@ -955,7 +941,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
 
     // #521 item 2: the GROUP BY constant verdicts here — the position works, an
     // out-of-range one does not, and a fractional key is refused outright
-    // unlike on MySQL and SQLite.
+    // unlike on MySQL, Oracle and SQLite.
     [Fact]
     public void GroupByOrdinal_IsAcceptedByTheEngine()
     {
@@ -977,7 +963,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         using IDbConnection connection = _fixture.OpenConnection();
 
         Assert.ThrowsAny<DbException>(() => connection.Execute(
-            $"SELECT department_id FROM users GROUP BY {constant}"));
+            $"SELECT COUNT(*) FROM users GROUP BY {constant}"));
     }
 
     // The live twins of DistinctOnItemResolver's ordinal guard (#673): PostgreSQL,

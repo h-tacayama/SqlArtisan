@@ -984,9 +984,8 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
                 "SELECT COUNT(*) FROM (SELECT id FROM users LIMIT -1 OFFSET -1)"));
     }
 
-    // #521 item 2: SQLite takes the position, and -- like MySQL -- reads a
-    // fractional constant as one group rather than refusing it. Its rejection
-    // of an out-of-range ordinal is what the eager guard's fifth cell rests on.
+    // #521 item 2: SQLite takes the position, rejects one out of range, and --
+    // like MySQL and Oracle -- reads a fractional constant as one group.
     [Fact]
     public void GroupByOrdinal_IsAcceptedByTheEngine()
     {
