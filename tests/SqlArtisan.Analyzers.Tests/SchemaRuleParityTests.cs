@@ -577,8 +577,6 @@ public class SchemaRuleParityTests
         dotnet_diagnostic.SQLA0203.severity = suggestion
         """;
 
-    // The factories share a few return types, so the node a call builds is what names
-    // its kind: the last constructor the factory's IL calls that yields its return type.
     private static bool ConstructsAny(MethodInfo factory, System.Type baseType)
     {
         byte[] il = factory.GetMethodBody()!.GetILAsByteArray()!;
@@ -595,6 +593,8 @@ public class SchemaRuleParityTests
         return false;
     }
 
+    // The factories share a few return types, so the node a call builds is what names
+    // its kind: the last constructor the factory's IL calls that yields its return type.
     private static System.Type BuiltNode(MethodInfo factory)
     {
         byte[] il = factory.GetMethodBody()!.GetILAsByteArray()!;

@@ -310,7 +310,7 @@ internal static class CorrelatedDmlRule
         // A helper may build a CTE body from its argument, and a body is Build()'s
         // to guard (below); so may a CommonTableExpression made inline.
         if (node is IAnonymousFunctionOperation
-            or ILocalFunctionOperation or IDelegateCreationOperation
+            or ILocalFunctionOperation or IDelegateCreationOperation or INameOfOperation
             || FluentChain.IsForeignInvocation(node)
             || node is IInvocationOperation { TargetMethod.ReturnType: var returned }
                 && IsSqlArtisanNamedType(returned, "CommonTableExpression"))

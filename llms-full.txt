@@ -4867,7 +4867,8 @@ constructs the table class with an empty alias and which is never
 reassigned, and the correlated column reference must sit in a subquery
 written inline in the same fluent chain. Anything less certain — the table
 built by a helper, the alias passed as a variable, the builder split across
-statements, a chain head selected by a conditional expression, a table class
+statements, a subquery or column passed through a call into non-SqlArtisan
+code, a chain head selected by a conditional expression, a table class
 or target field declared in a referenced project or assembly — stays silent. A missing warning therefore never means the statement is safe;
 `Build()` remains the enforcement.
 
@@ -4937,7 +4938,7 @@ method, property, constructor or operator has just returned it
 stays silent — a subquery held in a variable, a value typed `SqlExpression`, or
 a value typed `DbTableBase`, which may hold a table class of yours that
 overrides `ToString()`. Concatenated with a string, a sealed class of yours with
-a user-defined conversion to `string` converts through it and stays silent;
+an implicit user-defined conversion to `string` converts through it and stays silent;
 interpolated, it is formatted by `ToString()` and reports. A missing warning therefore never means the operand is safe.
 
 Suppression is per rule ID, the standard Roslyn way

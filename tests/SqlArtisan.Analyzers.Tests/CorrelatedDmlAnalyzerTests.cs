@@ -364,6 +364,13 @@ public class CorrelatedDmlAnalyzerTests
                 new Cte("c"), Select(r.Id).From(r).Where(r.Dep == t.Dep))));
             """);
 
+    // A nameof operand is never rendered, so it correlates nothing.
+    [Fact]
+    public Task Delete_TargetColumnInNameof_StaysSilent() =>
+        RunSilent("""
+            var q = DeleteFrom(t).Where(Exists(Select(r.Id).From(r).Where(r.Dep == nameof(t.Dep))));
+            """);
+
     // A forwarded alias the same initializer rewrites first is no longer the
     // caller's empty one.
     [Fact]
