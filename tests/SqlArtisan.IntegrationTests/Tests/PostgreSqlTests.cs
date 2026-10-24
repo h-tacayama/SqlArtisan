@@ -1032,6 +1032,9 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             Select(Round(Cast(u.Age, "double precision"), 1)).From(u)));
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             Select(Mod(Cast(u.Age, "double precision"), 3)).From(u)));
+        connection.ExecuteScalar(Select(Mod(Cast(u.Age, "numeric"), Cast(3, "numeric"))).From(u));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(Mod(Cast(u.Age, "numeric"), Cast(3, "double precision"))).From(u)));
     }
 
     // The live twin of SelectBuilder's non-integer sort-key guard (ADR 0011).

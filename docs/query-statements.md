@@ -251,7 +251,7 @@ forms in a specific release — see the
 #### JOIN ... USING
 
 `.Using(column, ...)` follows `InnerJoin()` / `LeftJoin()` / `RightJoin()` /
-`FullJoin()` / `JoinLateral()` in place of `.On(...)`, matching where the named columns are equal
+`FullJoin()` in place of `.On(...)`, matching where the named columns are equal
 (they must exist, unqualified, on both sides):
 
 ```csharp
@@ -273,6 +273,8 @@ SqlStatement sql =
 
 MySQL, Oracle, PostgreSQL, and SQLite support this (standard SQL); on SQL Server,
 which has no `JOIN ... USING`, write the match explicitly with `On(...)`.
+`JoinLateral()` takes `.Using(...)` too; SQLite and SQL Server have no `LATERAL`
+([Correlated joins](#correlated-joins-apply--lateral)).
 
 #### Correlated joins: APPLY / LATERAL
 
@@ -776,7 +778,7 @@ SqlStatement sql =
 
 #### Row-limited queries as subqueries
 
-A query ending in a row-limiting clause is still a subquery: embed it as an aliased scalar value (`.As("alias")`), an `IN` / `NOT IN` / `EXISTS` operand, a CTE body, a derived table (`.AsTable("alias")`), or a `LATERAL` / `APPLY` operand. The canonical per-group top-N:
+A query ending in a row-limiting clause is still a subquery: embed it as an aliased scalar value (`.As("alias")`), an `IN` / `NOT IN` / `EXISTS` / `NOT EXISTS` operand, an `ANY` / `ALL` / `SOME` operand, a CTE body, a derived table (`.AsTable("alias")`), or a `LATERAL` / `APPLY` operand. The canonical per-group top-N:
 
 ```csharp
 UsersTable u = new("u");
@@ -1099,7 +1101,7 @@ SqlStatement sql =
 // (:0, :1), (:2, :3), (:4, :5)
 ```
 
-**Note:** Multi-row `VALUES` is supported by MySQL, PostgreSQL, SQLite, and SQL Server. Oracle support depends on the engine version, which the analyzer does not model; the integration suite pins both outcomes. For Oracle batch loads on any version, [`SqlArtisan.ArrayBind`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) runs N single-row statements in one round trip.
+**Note:** Multi-row `VALUES` is supported by MySQL, PostgreSQL, SQLite, and SQL Server. Oracle takes a second row from a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs); below it, `SQLA0102` reports one. For Oracle batch loads on any version, [`SqlArtisan.ArrayBind`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) runs N single-row statements in one round trip.
 
 When the rows come from data rather than fixed literals, pass the whole collection to `Values(...)` in one call — a `List<object[]>`, an `object[][]` (e.g. from `.Select(...).ToArray()`), or any `IEnumerable<object[]>` — instead of a `Values(...)` call per row:
 

@@ -1041,14 +1041,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     states which catalogs let `SQLA0202` report and drops its MySQL caveat,
     and no longer miscounts the sweep's exclusions.
 - The reference pages follow the docs rules they broke (#685):
-  - Version floors outside the analyzer's register are gone, or point at it.
+  - Version floors outside the analyzer's register are gone, or point at it,
+    as Oracle's multi-row `VALUES` now does.
   - Hand-written recipes offered in place of an API are dropped: Oracle's
     literal-row `MERGE` source, `NOT EXISTS` for `NOT IN`, a CTE of `IN` values,
     `CurrentTimestamp()` for `CurrentDate` / `CurrentTime`, nested
     `Ltrim(Rtrim(...))`, and nested `Concat` on Oracle, which names
     `DoublePipe(...)` instead.
-  - Engine result semantics restated without a gate now link the engine's
-    manual: the `COUNT(*)` optimizer claim, `LastValue`'s default frame,
+  - Engine result semantics now link the engine's manual instead of
+    restating them: the `COUNT(*)` optimizer claim, `LastValue`'s default frame,
     Oracle Text's score range, an empty `BindArray`'s rows, and Oracle `MERGE`
     filter outcomes.
   - The SQL Server `MERGE` `[!IMPORTANT]` is prose stating the terminating
@@ -1057,9 +1058,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     `Position()` notes keep only the hazard.
   - Lists name every position: a row-limited query as a derived table, a
     scalar subquery as a `SET` value, a `VALUES` value or a function argument,
+    a row-limited query as an `ANY` / `ALL` / `SOME` or `NOT EXISTS` operand,
     and `JoinLateral()` before `.Using(...)`.
-  - `WITH` / CTE is a section of its own; DBMS lists are in enum order; and the
-    pages no longer call the wrapped comment SQL "exact".
+  - `WITH` / CTE is a section of its own; DBMS lists are in enum order; the
+    pages no longer call the wrapped comment SQL "exact"; the cookbook's
+    `MERGE` pointers name only the terminating semicolon; and `LastValue`'s and
+    `ContainsScore`'s XML docs drop the default frame and the score range.
   - PostgreSQL's rejection of a `double precision` `Round(x, n)` / `Mod` and of
     a `DistinctOn(...)` whose `ORDER BY` leads with another key is noted.
 

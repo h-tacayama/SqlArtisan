@@ -694,7 +694,7 @@ forms in a specific release — see the
 #### JOIN ... USING
 
 `.Using(column, ...)` follows `InnerJoin()` / `LeftJoin()` / `RightJoin()` /
-`FullJoin()` / `JoinLateral()` in place of `.On(...)`, matching where the named columns are equal
+`FullJoin()` in place of `.On(...)`, matching where the named columns are equal
 (they must exist, unqualified, on both sides):
 
 ```csharp
@@ -716,6 +716,8 @@ SqlStatement sql =
 
 MySQL, Oracle, PostgreSQL, and SQLite support this (standard SQL); on SQL Server,
 which has no `JOIN ... USING`, write the match explicitly with `On(...)`.
+`JoinLateral()` takes `.Using(...)` too; SQLite and SQL Server have no `LATERAL`
+([Correlated joins](#correlated-joins-apply--lateral)).
 
 #### Correlated joins: APPLY / LATERAL
 
@@ -1219,7 +1221,7 @@ SqlStatement sql =
 
 #### Row-limited queries as subqueries
 
-A query ending in a row-limiting clause is still a subquery: embed it as an aliased scalar value (`.As("alias")`), an `IN` / `NOT IN` / `EXISTS` operand, a CTE body, a derived table (`.AsTable("alias")`), or a `LATERAL` / `APPLY` operand. The canonical per-group top-N:
+A query ending in a row-limiting clause is still a subquery: embed it as an aliased scalar value (`.As("alias")`), an `IN` / `NOT IN` / `EXISTS` / `NOT EXISTS` operand, an `ANY` / `ALL` / `SOME` operand, a CTE body, a derived table (`.AsTable("alias")`), or a `LATERAL` / `APPLY` operand. The canonical per-group top-N:
 
 ```csharp
 UsersTable u = new("u");
@@ -1542,7 +1544,7 @@ SqlStatement sql =
 // (:0, :1), (:2, :3), (:4, :5)
 ```
 
-**Note:** Multi-row `VALUES` is supported by MySQL, PostgreSQL, SQLite, and SQL Server. Oracle support depends on the engine version, which the analyzer does not model; the integration suite pins both outcomes. For Oracle batch loads on any version, [`SqlArtisan.ArrayBind`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) runs N single-row statements in one round trip.
+**Note:** Multi-row `VALUES` is supported by MySQL, PostgreSQL, SQLite, and SQL Server. Oracle takes a second row from a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs); below it, `SQLA0102` reports one. For Oracle batch loads on any version, [`SqlArtisan.ArrayBind`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) runs N single-row statements in one round trip.
 
 When the rows come from data rather than fixed literals, pass the whole collection to `Values(...)` in one call — a `List<object[]>`, an `object[][]` (e.g. from `.Select(...).ToArray()`), or any `IEnumerable<object[]>` — instead of a `Values(...)` call per row:
 
@@ -2807,7 +2809,7 @@ SqlStatement sql =
 
 ## Scalar Subquery
 
-A `SELECT` builder can be used directly as a scalar value — in a `SELECT` list, a `WHERE` comparison, or arithmetic. Chain `.As("alias")` for an aliased column.
+A `SELECT` builder can be used directly as a scalar value — in a `SELECT` list, a `WHERE` comparison, arithmetic, a `SET` or `VALUES` value, or a function argument. Chain `.As("alias")` for an aliased column.
 
 ```csharp
 UsersTable u = new("u");
@@ -4017,7 +4019,7 @@ kinds exist:
   the overload with exactly `N` declared parameters. Use this when the
   matrix (or your own knowledge) says only one shape of an overloaded member
   differs — e.g. `StringAgg`'s 2-argument form runs on PostgreSQL, SQLite
-  (from the release in the register below), and SQL Server, but its 3-argument inline-`ORDER BY` form has no
+  (from the release in the [register](#version-bound-constructs)), and SQL Server, but its 3-argument inline-`ORDER BY` form has no
   SQL Server spelling (there it's `WITHIN GROUP (ORDER BY ...)` instead):
 
   ```ini
@@ -4067,7 +4069,7 @@ file) only — there is no MSBuild property for them.
 
 Some constructs are only newer than *some* engine versions on an otherwise
 supported dialect — `MERGE` on PostgreSQL and `DATETRUNC` on SQL Server, each
-before the release that added it (the register below names it). Declare your engine's version as `sqlartisan_syntax_<dbms>`'s
+before the release that added it (the [register](#version-bound-constructs) names it). Declare your engine's version as `sqlartisan_syntax_<dbms>`'s
 value and the matrix's version bounds warn on those too, as `SQLA0101` — the
 same "this could break in production" fact `SQLA0100` reports for a dialect
 mismatch, just for a version shortfall instead:
@@ -4640,8 +4642,8 @@ members name.
 (`REGEXP_LIKE(x, p, 'ci')`), and the alphabets are the engines' own. MySQL has
 no letter for `ExcludingWhiteSpace` and rejects the call; SQL Server 2025 has
 none for `NewLine` or `ExcludingWhiteSpace`; Oracle and PostgreSQL accept every
-letter the enum can emit. SQLite, and SQL Server before the release the register
-names, have no `REGEXP_*` functions at all, so `SQLA0100` or `SQLA0101` answers for them.
+letter the enum can emit. SQLite, and SQL Server before the release the
+[register](#version-bound-constructs) names, have no `REGEXP_*` functions at all, so `SQLA0100` or `SQLA0101` answers for them.
 
 ```csharp
 // sqlartisan_syntax_mysql = any
@@ -5781,8 +5783,7 @@ MergeInto(t).Using(s).On(t.ProductId == s.Column("product_id"))
 
 `RETURNING` is not available on the MySQL, Oracle and SQL Server forms above —
 see [RETURNING](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#returning-clause).
-Mind the SQL Server `MERGE` caveats (auto-appended semicolon, `HOLDLOCK`,
-known engine quirks) — see the
+On SQL Server, `Build` appends the semicolon `MERGE` requires — see the
 [MERGE reference](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement).
 
 ### Synchronizing a table from staging
@@ -5815,8 +5816,7 @@ SqlStatement sql =
 // WHEN NOT MATCHED BY SOURCE THEN DELETE;
 ```
 
-Mind the SQL Server `MERGE` caveats (auto-appended semicolon, `HOLDLOCK`,
-known engine quirks) — see the
+On SQL Server, `Build` appends the semicolon `MERGE` requires — see the
 [MERGE reference](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement).
 
 <!-- ============================================================ -->

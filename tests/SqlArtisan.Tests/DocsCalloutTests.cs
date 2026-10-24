@@ -3,8 +3,8 @@ using System.Text.RegularExpressions;
 namespace SqlArtisan.Tests;
 
 // docs-style.md bounds `[!WARNING]` to 10 `> ` lines and `[!NOTE]` to 5 with
-// no table inside a NOTE (#458 found nothing enforcing it); the 10-line cap
-// binds every callout kind so a hazard cannot dodge it by picking another.
+// no table inside a NOTE (#458 found nothing enforcing it), and admits no other
+// kind, so a hazard cannot dodge the caps by picking one.
 public class DocsCalloutTests
 {
     private const int WarningMaxLines = 10;

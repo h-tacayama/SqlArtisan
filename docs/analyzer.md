@@ -355,7 +355,7 @@ kinds exist:
   the overload with exactly `N` declared parameters. Use this when the
   matrix (or your own knowledge) says only one shape of an overloaded member
   differs — e.g. `StringAgg`'s 2-argument form runs on PostgreSQL, SQLite
-  (from the release in the register below), and SQL Server, but its 3-argument inline-`ORDER BY` form has no
+  (from the release in the [register](#version-bound-constructs)), and SQL Server, but its 3-argument inline-`ORDER BY` form has no
   SQL Server spelling (there it's `WITHIN GROUP (ORDER BY ...)` instead):
 
   ```ini
@@ -405,7 +405,7 @@ file) only — there is no MSBuild property for them.
 
 Some constructs are only newer than *some* engine versions on an otherwise
 supported dialect — `MERGE` on PostgreSQL and `DATETRUNC` on SQL Server, each
-before the release that added it (the register below names it). Declare your engine's version as `sqlartisan_syntax_<dbms>`'s
+before the release that added it (the [register](#version-bound-constructs) names it). Declare your engine's version as `sqlartisan_syntax_<dbms>`'s
 value and the matrix's version bounds warn on those too, as `SQLA0101` — the
 same "this could break in production" fact `SQLA0100` reports for a dialect
 mismatch, just for a version shortfall instead:
@@ -978,8 +978,8 @@ members name.
 (`REGEXP_LIKE(x, p, 'ci')`), and the alphabets are the engines' own. MySQL has
 no letter for `ExcludingWhiteSpace` and rejects the call; SQL Server 2025 has
 none for `NewLine` or `ExcludingWhiteSpace`; Oracle and PostgreSQL accept every
-letter the enum can emit. SQLite, and SQL Server before the release the register
-names, have no `REGEXP_*` functions at all, so `SQLA0100` or `SQLA0101` answers for them.
+letter the enum can emit. SQLite, and SQL Server before the release the
+[register](#version-bound-constructs) names, have no `REGEXP_*` functions at all, so `SQLA0100` or `SQLA0101` answers for them.
 
 ```csharp
 // sqlartisan_syntax_mysql = any
