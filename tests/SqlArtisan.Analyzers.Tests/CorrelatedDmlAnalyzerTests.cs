@@ -354,6 +354,72 @@ public class CorrelatedDmlAnalyzerTests
             }
             """, AnalyzerVerifier.EditorConfig("postgresql"), expectWarning: false);
 
+    // A helper may make its argument a CTE body, which Build() guards block by block.
+    [Fact]
+    public Task Delete_CteBodyFromHelperMethod_Silent() =>
+        RunSilent("""
+            static ISubquery FromCte(Cte c, ISubquery body) =>
+                With(c.As(body)).Select(c.Column("id")).From(c);
+            var q = DeleteFrom(t).Where(t.Id.In(FromCte(
+                new Cte("c"), Select(r.Id).From(r).Where(r.Dep == t.Dep))));
+            """);
+
+    // A forwarded alias the same initializer rewrites first is no longer the
+    // caller's empty one.
+    [Fact]
+    public Task Delete_ForwardedAliasRewrittenByInitializer_StaysSilent() =>
+        RunAsync("""
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class T : DbTableBase
+            {
+                public DbColumn Id;
+                public DbColumn Dep;
+                public T(string alias = "") : base(Name(out alias), alias) { Id = new DbColumn(this, "id"); Dep = new DbColumn(this, "dep"); }
+                static string Name(out string alias) { alias = "x"; return "t"; }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    T t = new T();
+                    T r = new T("r");
+                    var q = DeleteFrom(t).Where(Exists(Select(r.Id).From(r).Where(r.Dep == t.Dep)));
+                }
+            }
+            """, AnalyzerVerifier.EditorConfig("postgresql"), expectWarning: false);
+
+    // An init accessor writes a readonly field after its initializer, as a
+    // constructor does: new C { Table = new T("a") } aliases the target.
+    [Fact]
+    public Task Delete_ReadonlyFieldAssignedInInitAccessor_StaysSilent() =>
+        RunAsync("""
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class T : DbTableBase
+            {
+                public DbColumn Id;
+                public DbColumn Dep;
+                public T(string alias = "") : base("t", alias) { Id = new DbColumn(this, "id"); Dep = new DbColumn(this, "dep"); }
+            }
+
+            class C
+            {
+                private readonly T _t = new T();
+
+                public T Table { init { _t = value; } }
+
+                void M()
+                {
+                    T r = new T("r");
+                    var q = DeleteFrom(_t).Where(Exists(Select(r.Id).From(r).Where(r.Dep == _t.Dep)));
+                }
+            }
+            """, AnalyzerVerifier.EditorConfig("postgresql"), expectWarning: false);
+
     [Fact]
     public Task Update_ReadonlyFieldAssignedInConstructor_StaysSilent() =>
         RunAsync("""

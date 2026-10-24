@@ -102,7 +102,7 @@ internal static class CorrelatedDmlRule
 
         return target is ILocalSymbol
             ? HasNoWrites(EnclosingMemberScope(declarator), target.Name)
-            : ConstructorsDoNotWrite(compilation, (IFieldSymbol)target);
+            : WritersDoNotWrite(compilation, (IFieldSymbol)target);
     }
 
     // A zero-argument shortcut would false-positive on a ctor hardcoding an alias
@@ -167,13 +167,43 @@ internal static class CorrelatedDmlRule
             }
             else if (previous is not null
                 && value is IParameterReferenceOperation reference
-                && previous.TryGetValue(reference.Parameter, out object? known))
+                && previous.TryGetValue(reference.Parameter, out object? known)
+                && !IsRewrittenIn(arguments, reference.Parameter))
             {
                 values[parameter] = known;
             }
         }
 
         return values;
+    }
+
+    // `base(Set(out alias), "t", alias)` rewrites the forwarded value before the
+    // later argument reads it, so a ref, out or assignment makes it unknown.
+    private static bool IsRewrittenIn(
+        ImmutableArray<IArgumentOperation> arguments,
+        IParameterSymbol parameter)
+    {
+        foreach (IArgumentOperation argument in arguments)
+        {
+            foreach (IOperation node in argument.DescendantsAndSelf())
+            {
+                IOperation? written = node switch
+                {
+                    IArgumentOperation { Parameter.RefKind: not RefKind.None } byRef
+                        => byRef.Value,
+                    IAssignmentOperation assignment => assignment.Target,
+                    IIncrementOrDecrementOperation step => step.Target,
+                    _ => null,
+                };
+                if (written is IParameterReferenceOperation target
+                    && SymbolEqualityComparer.Default.Equals(target.Parameter, parameter))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     // Text-level scan; a shadowing name in a nested scope over-counts writes,
@@ -241,9 +271,9 @@ internal static class CorrelatedDmlRule
             : member;
     }
 
-    // readonly bounds all writes to the initializer and constructors, so a
-    // constructor scan is complete.
-    private static bool ConstructorsDoNotWrite(Compilation compilation, IFieldSymbol field)
+    // readonly bounds all writes to the initializer, constructors and init
+    // accessors, so scanning those is complete.
+    private static bool WritersDoNotWrite(Compilation compilation, IFieldSymbol field)
     {
         if (SourceDeclaration.All(compilation, field.ContainingType) is not { } parts)
         {
@@ -259,8 +289,10 @@ internal static class CorrelatedDmlRule
 
             foreach (SyntaxNode node in type.DescendantNodes())
             {
-                if (node is ConstructorDeclarationSyntax constructor
-                    && !HasNoWrites(constructor, field.Name))
+                bool mayWrite = node is ConstructorDeclarationSyntax
+                    || (node is AccessorDeclarationSyntax accessor
+                        && accessor.Keyword.IsKind(SyntaxKind.InitKeyword));
+                if (mayWrite && !HasNoWrites(node, field.Name))
                 {
                     return false;
                 }
@@ -275,8 +307,13 @@ internal static class CorrelatedDmlRule
         ISymbol target,
         IOperation root)
     {
+        // A helper may build a CTE body from its argument, and a body is Build()'s
+        // to guard (below); so may a CommonTableExpression made inline.
         if (node is IAnonymousFunctionOperation
-            or ILocalFunctionOperation or IDelegateCreationOperation)
+            or ILocalFunctionOperation or IDelegateCreationOperation
+            || FluentChain.IsForeignInvocation(node)
+            || node is IInvocationOperation { TargetMethod.ReturnType: var returned }
+                && IsSqlArtisanNamedType(returned, "CommonTableExpression"))
         {
             return null;
         }

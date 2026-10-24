@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -15,6 +16,13 @@ internal static class FluentChain
     [
         "LeftJoin", "LeftJoinLateral", "RightJoin", "FullJoin", "OuterApply",
         "NaturalLeftJoin", "NaturalRightJoin", "NaturalFullJoin"
+    ];
+
+    // A super-aggregate row carries NULL in a NOT NULL grouping column, so these
+    // null-supply as an outer join does. Internal for the parity gate.
+    internal static readonly HashSet<string> NullSupplyingGroupings =
+    [
+        "Cube", "GroupingSets", "Rollup", "WithRollup"
     ];
 
     private static readonly HashSet<string> StatementHeads =
@@ -57,23 +65,25 @@ internal static class FluentChain
 
     /// <summary>
     /// Whether <paramref name="node"/> belongs to a chain whose statement head is
-    /// visible in the same statement — the precondition for reading the query's
-    /// shape off that statement.
+    /// visible in the same statement, as is every chain that query is nested in —
+    /// the precondition for reading the query's shape off that statement.
     /// </summary>
     /// <remarks>
     /// A chain assembled across statements, in a helper method, or in a field
-    /// hides the joins that decide a column's nullability, so a rule that judges
-    /// one must first establish it can see the whole query (#266).
+    /// hides the joins that decide a column's nullability (#266), and a correlated
+    /// subquery reads the joins of every chain it sits in.
     /// </remarks>
     public static bool HasVisibleStatementHead(IOperation node)
     {
         IOperation current = node;
+        bool headed = false;
 
         while (current.Parent is { } parent and not IBlockOperation)
         {
+            // Past a complete statement, foreign code only executes or holds it.
             if (IsForeignInvocation(parent))
             {
-                return false;
+                return headed;
             }
 
             if (parent is IInvocationOperation step
@@ -81,13 +91,12 @@ internal static class FluentChain
             {
                 if (IsStatementHead(step))
                 {
-                    return true;
+                    headed = true;
                 }
-
-                // A static factory (e.g. Not) only wraps the node — the chain it feeds
-                // is further out; a step with a receiver is the chain, head unresolved.
-                if (step.Instance is not null)
+                else if (step.Instance is not null)
                 {
+                    // A static factory (e.g. Not) only wraps the node — the chain it
+                    // feeds is further out; a step with a receiver is the chain.
                     return false;
                 }
             }
@@ -95,8 +104,70 @@ internal static class FluentChain
             current = parent;
         }
 
+        return headed;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="table"/> is a table some visible chain around
+    /// <paramref name="node"/> reads — its own query block's or an enclosing one's.
+    /// </summary>
+    /// <remarks>
+    /// A column of any other table is correlated to a query this cannot see, whose
+    /// joins decide its nullability. A table not held in a local, parameter, field
+    /// or property is unknown, and so not read.
+    /// </remarks>
+    public static bool IsReadByVisibleChain(IOperation node, IOperation table)
+    {
+        if (ReferencedSymbol(table) is not { } symbol)
+        {
+            return false;
+        }
+
+        for (IOperation? current = node.Parent;
+            current is not null and not IBlockOperation;
+            current = current.Parent)
+        {
+            if (current is not IInvocationOperation step
+                || !DialectUsageAnalyzer.IsFromSqlArtisan(step.TargetMethod.ContainingAssembly))
+            {
+                continue;
+            }
+
+            for (IOperation? link = step;
+                link is IInvocationOperation invocation;
+                link = invocation.Instance is null ? null : Unwrap(invocation.Instance))
+            {
+                foreach (IArgumentOperation argument in invocation.Arguments)
+                {
+                    // A params table list arrives as an implicit array.
+                    IEnumerable<IOperation> values =
+                        argument.Value is IArrayCreationOperation { Initializer: { } list }
+                            ? list.ElementValues
+                            : ImmutableArray.Create(argument.Value);
+                    foreach (IOperation value in values)
+                    {
+                        if (IsTableReference(Unwrap(value).Type)
+                            && SymbolEqualityComparer.Default.Equals(
+                                ReferencedSymbol(value), symbol))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
         return false;
     }
+
+    private static ISymbol? ReferencedSymbol(IOperation operation) => Unwrap(operation) switch
+    {
+        ILocalReferenceOperation local => local.Local,
+        IParameterReferenceOperation parameter => parameter.Parameter,
+        IFieldReferenceOperation field => field.Field,
+        IPropertyReferenceOperation property => property.Property,
+        _ => null,
+    };
 
     /// <summary>
     /// Whether the statement containing <paramref name="node"/> null-supplies any
@@ -107,7 +178,23 @@ internal static class FluentChain
     /// only where <see cref="HasVisibleStatementHead"/> holds: a chain reaching
     /// beyond the statement can join outside what this walks.
     /// </remarks>
-    public static bool HasOuterJoin(IOperation node)
+    public static bool HasOuterJoin(IOperation node) =>
+        HasSpineStep(node, OuterJoinSteps.Contains);
+
+    /// <summary>
+    /// Whether the statement containing <paramref name="node"/> can return NULL in
+    /// a NOT NULL column: an outer join, or a grouping that adds super-aggregate rows.
+    /// </summary>
+    /// <remarks>
+    /// Read like <see cref="HasOuterJoin"/>, so a <c>ROLLUP</c> silences a predicate
+    /// <c>WHERE</c> evaluates before grouping too.
+    /// </remarks>
+    public static bool HasNullSupplier(IOperation node) =>
+        HasSpineStep(
+            node,
+            name => OuterJoinSteps.Contains(name) || NullSupplyingGroupings.Contains(name));
+
+    private static bool HasSpineStep(IOperation node, System.Func<string, bool> isStep)
     {
         // The outer statement's own spine: every invocation ancestor of the
         // reported node plus each ancestor's receiver chain down to the head.
@@ -158,7 +245,7 @@ internal static class FluentChain
                     continue;
                 }
 
-                if (OuterJoinSteps.Contains(invocation.TargetMethod.Name))
+                if (isStep(invocation.TargetMethod.Name))
                 {
                     return true;
                 }
@@ -252,7 +339,11 @@ internal static class FluentChain
         return false;
     }
 
-    private static bool IsStatementHead(IInvocationOperation step)
+    /// <summary>
+    /// Whether <paramref name="step"/>'s receiver chain starts at a statement
+    /// factory (or a set operator) written in the same expression.
+    /// </summary>
+    public static bool IsStatementHead(IInvocationOperation step)
     {
         IOperation current = step;
 

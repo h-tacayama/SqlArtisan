@@ -11,8 +11,8 @@ namespace SqlArtisan.Analyzers;
 /// </summary>
 /// <remarks>
 /// Only a statement that visibly builds its own query is judged, and only when
-/// that query has no outer join: past one the column is legitimately NULL, and a
-/// chain assembled elsewhere can carry a join this never sees.
+/// that query has no outer join or super-aggregate grouping: past either the column
+/// is legitimately NULL, and a chain assembled elsewhere can carry one unseen.
 /// </remarks>
 internal static class ConstantNullPredicateRule
 {
@@ -24,7 +24,9 @@ internal static class ConstantNullPredicateRule
         // to be false: a nullable column makes both predicates meaningful.
         if (SchemaMetadata.Fact(predicate.Instance, SchemaMetadata.NullableArgument) is not false
             || !FluentChain.HasVisibleStatementHead(predicate)
-            || FluentChain.HasOuterJoin(predicate))
+            || FluentChain.HasNullSupplier(predicate)
+            || predicate.Instance is not IPropertyReferenceOperation { Instance: { } table }
+            || !FluentChain.IsReadByVisibleChain(predicate, table))
         {
             return;
         }
@@ -34,7 +36,7 @@ internal static class ConstantNullPredicateRule
         context.ReportDiagnostic(Diagnostic.Create(
             DiagnosticDescriptors.ConstantNullPredicate,
             predicate.Syntax.GetLocation(),
-            ((IPropertyReferenceOperation)predicate.Instance!).Property.Name,
+            ((IPropertyReferenceOperation)predicate.Instance).Property.Name,
             predicate.Property.Name,
             isNull ? "false" : "true"));
     }

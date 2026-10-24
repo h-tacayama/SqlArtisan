@@ -227,6 +227,20 @@ public class UnusableIndexPredicateAnalyzerTests
         RunSilent(
             """var s = InsertInto(t, t.Name).Values("x").OnConflict(t.Name).DoUpdateSet(t.Name == Excluded(t.Name)).Where(Excluded(t.Name) != t.Name).Build();""");
 
+    // The upsert action's Where tests the one row the conflict check found.
+    [Fact]
+    public Task Where_WrappedIndexedColumnOnUpsertAction_Silent() =>
+        RunSilent(
+            """
+            var s = InsertInto(t, t.Name).Values("x").OnConflict(t.Name)
+                .DoUpdateSet(t.Plain == Excluded(t.Plain)).Where(Upper(t.Name) != "X").Build();
+            """);
+
+    // Whether CAST keeps the index turns on the type string the rule does not read.
+    [Fact]
+    public Task Where_IndexedColumnInCast_Silent() =>
+        RunSilent("""var s = Select(t.Id).From(t).Where(Cast(t.Name, "text") == "a").Build();""");
+
     // A MERGE action's Where is not a filtering step, like its DeleteWhere sibling.
     [Fact]
     public Task Where_WrappedIndexedColumnOnMergeAction_Silent() =>
@@ -274,7 +288,7 @@ public class UnusableIndexPredicateAnalyzerTests
         RunSilent(
             """var s = Select(t.Id).From(t).Where(Case(When(t.Plain == "a").Then(t.Name), Else("z")) == "z").Build();""");
 
-    // The simple-CASE operand transforms the column the way Cast does.
+    // The simple-CASE operand transforms the column as a function does.
     [Fact]
     public Task Where_IndexedColumnAsSimpleCaseOperand_Warns() =>
         RunReporting(

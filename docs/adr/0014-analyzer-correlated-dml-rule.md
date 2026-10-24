@@ -57,8 +57,8 @@ define the rule class:
 
 Scope whitelist (everything else is silent): a local with a visible
 provably-unaliased initializer and no textual reassignment in the enclosing
-member, or a `readonly` field with such an initializer and no constructor
-assignment. The subquery boundary is the source image of the runtime's
+member, or a `readonly` field with such an initializer and no constructor or
+`init`-accessor assignment. The subquery boundary is the source image of the runtime's
 `EncloseInParentheses(ISubquery)`: a Select-headed chain bound as an
 argument of a SqlArtisan call, scanned only in the arguments of the chain
 *after* the DML head — `With(...)` CTE bodies sit on the receiver side and

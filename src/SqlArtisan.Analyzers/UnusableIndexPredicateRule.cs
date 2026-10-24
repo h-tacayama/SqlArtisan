@@ -21,6 +21,10 @@ internal static class UnusableIndexPredicateRule
     // computed after any index has already done its work.
     private static readonly HashSet<string> FilteringSteps = ["Where", "On"];
 
+    // Internal for the contract gate, which pins that the upsert action's Where
+    // is declared there.
+    internal const string UpsertActionStage = "IInsertBuilderDoUpdateSet";
+
     // The pseudo-row factories reference the column's proposed or affected
     // value; they wrap nothing, so `Excluded(t.Key)` in an upsert's WHERE is a
     // plain column reference. Internal for the parity gate.
@@ -29,8 +33,12 @@ internal static class UnusableIndexPredicateRule
 
     // Expression carriers hand a bare column on without wrapping it in a function:
     // a CASE branch marker is not the wrapping (the simple-CASE operand is, and
-    // reports like Cast). Internal for the parity gate.
+    // reports). Internal for the parity gate.
     internal static readonly HashSet<string> ExpressionCarriers = ["Else"];
+
+    // Whether CAST keeps the index depends on the type string, which the rule does
+    // not read: to the column's own type it can, to another it cannot.
+    internal static readonly HashSet<string> TypeDependentWrappings = ["Cast"];
 
     public static void CheckFunctionCall(
         OperationAnalysisContext context,
@@ -42,6 +50,7 @@ internal static class UnusableIndexPredicateRule
             || !IsWrapping(call.TargetMethod.ReturnType)
             || PseudoRowReferences.Contains(call.TargetMethod.Name)
             || ExpressionCarriers.Contains(call.TargetMethod.Name)
+            || TypeDependentWrappings.Contains(call.TargetMethod.Name)
             || IndexedArgument(call) is not { } column
             || !IsInsideFilter(call))
         {
@@ -125,10 +134,11 @@ internal static class UnusableIndexPredicateRule
                 && !FluentChain.IsCondition(step.Instance.Type))
             {
                 // A MERGE action's Where filters rows ON already sorted into its branch,
-                // as DeleteWhere and WhenMatched(cond) do; neither is in the step set.
+                // and an upsert action's Where the one row its conflict check found.
                 return FilteringSteps.Contains(step.TargetMethod.Name)
                     && ContextRules.ClassifyDmlShape(step)
-                        != ContextRules.DmlShape.MergeActionWhere;
+                        != ContextRules.DmlShape.MergeActionWhere
+                    && step.TargetMethod.ContainingType.Name != UpsertActionStage;
             }
 
             current = parent;

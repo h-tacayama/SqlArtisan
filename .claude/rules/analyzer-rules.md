@@ -19,3 +19,24 @@ paths:
   `RuleGuardCoverageTests.NoRule_ReadsDeclarationSyntaxOutsideSourceDeclaration`
   holds the routing, and `SchemaRuleParityTests` runs its whole catalog a
   second time with the table class in a referenced project.
+- **An operation that is not evaluated is not a usage.** An operand of `nameof`
+  builds no SQL, so no rule reports on it: `DialectUsageAnalyzer` registers
+  every operation action through one wrapper that skips them. A context that
+  names a member without calling it is the same case, whichever rule reads it.
+- **A constant the core rejects at the call or at `Build()` belongs to the
+  core's guard.** A dialect rule stays silent on it, so the message never
+  points at the wrong problem: a `GroupBy` ordinal below 1, a cast-in
+  undefined `DateTimePart`, and a `RegexpOptions` value with a bit no member
+  defines.
+- **Every null-supplying construct is classified.** A schema rule silenced
+  past an outer join is silenced past a super-aggregate grouping too
+  (`FluentChain.NullSupplyingGroupings`), and the parity gate reflects both
+  sets from the core (`SchemaRuleParityTests.EveryCoreJoinStep_IsClassified`,
+  `EveryCoreNullSupplyingGrouping_IsClassified`), so a new join step or
+  grouping element fails the suite until it is placed.
+- **A climb that leaves through a variable, a helper, a lambda or a
+  conditional proves nothing about what lies beyond it.** A rule that reports
+  the *absence* of an enclosing construct (an `Output(...)`, an outer join)
+  reports only where the climb ends at a visible statement chain, every
+  enclosing chain included, since a correlated subquery reads its outer
+  query's joins.

@@ -94,6 +94,14 @@ public class ArgumentValueValidityAnalyzerTests
             """,
             AnalyzerVerifier.EditorConfig("postgresql"));
 
+    // A bit no member defines throws at Build() on every dialect, so the core's
+    // guard owns it; the defined ExcludingWhiteSpace bit beside it does not report.
+    [Fact]
+    public Task RegexpLike_MySql_UndefinedBitBesideAGap_StaysSilent() =>
+        RunSilent(
+            """SqlCondition c = RegexpLike(t.Name, "ab", (RegexpOptions)48);""",
+            AnalyzerVerifier.EditorConfig("mysql"));
+
     // The enum is [Flags], so the rule reads a combination: the letter MySQL
     // has is silent and the letter it lacks still reports, from one argument.
     [Fact]
