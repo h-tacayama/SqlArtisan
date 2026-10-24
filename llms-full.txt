@@ -5747,12 +5747,15 @@ DbColumn sortCol = sortKey switch
     _ => c.CustomerId,
 };
 object orderItem = sortDesc ? sortCol.Desc : sortCol;
+object[] orderBy = sortKey is "last_name" or "created_at"
+    ? [orderItem, c.CustomerId]   // customer_id breaks ties
+    : [orderItem];
 
 SqlStatement page =
     Select(c.CustomerId, c.FirstName, c.LastName, c.Email)
     .From(c)
     .Where(where)
-    .OrderBy(orderItem, c.CustomerId)
+    .OrderBy(orderBy)
     .Limit(20).Offset(40)
     .Build();
 
@@ -5772,6 +5775,11 @@ SqlStatement count =
 // WHERE ("c".last_name LIKE :0) AND ("c".region = :1)
 //   AND (("c".created_at >= :2) AND ("c".created_at < :3))
 ```
+
+The tie-breaker is added only when the sort key is not `customer_id` itself:
+SQL Server rejects a column listed twice in `ORDER BY` (observed on SQL Server
+2022). On Oracle and SQL Server, page with `.OffsetRows(40).FetchNext(20)` in
+place of `.Limit(20).Offset(40)`.
 
 When *every* `ConditionIf` is excluded, `Build()` throws rather than run an
 unintended full-table read — see

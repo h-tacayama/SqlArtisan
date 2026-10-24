@@ -198,12 +198,15 @@ internal static class CookbookRecipes
             _ => c.CustomerId,
         };
         object orderItem = sortDesc ? sortCol.Desc : sortCol;
+        object[] orderBy = sortKey is "last_name" or "created_at"
+            ? [orderItem, c.CustomerId]
+            : [orderItem];
 
         return
             Select(c.CustomerId, c.FirstName, c.LastName, c.Email)
             .From(c)
             .Where(where)
-            .OrderBy(orderItem, c.CustomerId)
+            .OrderBy(orderBy)
             .Limit(20).Offset(offset);
     }
 
