@@ -1352,6 +1352,35 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             new { n = 1500001 }));
     }
 
+    // docs/analyzer.md (SQLA0205): SQL Server converts text compared to a temporal column
+    // to a date and time, so a well-formed spelling matches as one and a malformed one fails.
+    [Fact]
+    public void TemporalColumnComparedToText_ConvertsTheText()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        long Matching(string text) => connection.ExecuteScalar<long>(
+            Select(Count(u.Id)).From(u).Where(u.CreatedAt == text));
+        long canonical = Matching("2020-03-15 10:30:00");
+
+        Assert.True(canonical > 0);
+        Assert.Equal(canonical, Matching("2020-03-15 10:30"));
+        Assert.ThrowsAny<DbException>(() => Matching("abc"));
+    }
+
+    // docs/analyzer.md (SQLA0205): SQL Server matches a binary column against no bound
+    // string, its own bytes included.
+    [Fact]
+    public void BinaryColumnComparedToText_MatchesNothing()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        const string Query =
+            "SELECT id FROM (VALUES (1, 0x616263), (2, 0x414243)) t (id, b) WHERE b = @s";
+
+        Assert.Empty(connection.Query<int>(Query, new { s = "abc" }));
+        Assert.Empty(connection.Query<int>(Query, new { s = "ABC" }));
+    }
+
     // docs/analyzer.md: DATETRUNC takes MICROSECOND on a datetime2 of scale 6 or 7.
     [Theory]
     [MemberData(

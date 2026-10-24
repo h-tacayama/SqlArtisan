@@ -1103,6 +1103,70 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             "DELETE FROM words WHERE z = @n", new { n = 1500001 }));
     }
 
+    // docs/analyzer.md (SQLA0205): MySQL converts text compared to a temporal column to
+    // a date and time, so a well-formed spelling matches as one and a malformed one fails.
+    [Fact]
+    public void TemporalColumnComparedToText_ConvertsTheText()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        long Matching(string text) => connection.ExecuteScalar<long>(
+            Select(Count(u.Id)).From(u).Where(u.CreatedAt == text));
+        long canonical = Matching("2020-03-15 10:30:00");
+
+        Assert.True(canonical > 0);
+        Assert.Equal(canonical, Matching("2020-03-15 10:30"));
+        Assert.Equal(canonical, Matching("2020-03-15 10:30:00.000"));
+        Assert.ThrowsAny<DbException>(() => Matching("abc"));
+    }
+
+    // docs/analyzer.md (SQLA0205): MySQL compares a binary column to text as bytes.
+    [Fact]
+    public void BinaryColumnComparedToText_ComparesTheBytes()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute("DROP TEMPORARY TABLE IF EXISTS bins");
+        connection.Execute("CREATE TEMPORARY TABLE bins (id INT, b VARBINARY(10))");
+        connection.Execute("INSERT INTO bins VALUES (1, 'abc'), (2, 'ABC')");
+
+        Assert.Equal(
+            new[] { 1 },
+            connection.Query<int>("SELECT id FROM bins WHERE b = @s", new { s = "abc" }));
+    }
+
+    // docs/analyzer.md (SQLA0200): a zero date, which only a non-strict sql_mode stores,
+    // is what IS NULL on a NOT NULL DATE or DATETIME column finds at a WHERE's top level
+    // or under its AND, whatever the reading session's mode; under NOT it is false.
+    [Fact]
+    public void IsNullOnNotNullDate_FindsTheZeroDate()
+    {
+        using IDbConnection lenient = _fixture.OpenConnection();
+        lenient.Execute("DROP TABLE IF EXISTS zero_dates");
+        lenient.Execute(
+            "CREATE TABLE zero_dates (id INT, d DATE NOT NULL, dt DATETIME NOT NULL)");
+        try
+        {
+            lenient.Execute("SET SESSION sql_mode = ''");
+            lenient.Execute(
+                "INSERT INTO zero_dates VALUES (1, '0000-00-00', '0000-00-00 00:00:00'), "
+                + "(2, '2024-01-01', '2024-01-01 00:00:00')");
+            using IDbConnection strict = _fixture.OpenConnection();
+            IEnumerable<int> Ids(string where) => strict.Query<int>(
+                $"SELECT id FROM zero_dates WHERE {where} ORDER BY id");
+
+            Assert.ThrowsAny<DbException>(() => strict.Execute(
+                "INSERT INTO zero_dates VALUES (3, '0000-00-00', '2024-01-01 00:00:00')"));
+            Assert.Equal(new[] { 1 }, Ids("d IS NULL"));
+            Assert.Equal(new[] { 1 }, Ids("dt IS NULL"));
+            Assert.Equal(new[] { 1 }, Ids("d IS NULL AND id > 0"));
+            Assert.Equal(new[] { 1, 2 }, Ids("NOT (d IS NULL)"));
+        }
+        finally
+        {
+            lenient.Execute("DROP TABLE IF EXISTS zero_dates");
+        }
+    }
+
     // docs/query-statements.md: MySQL rejects a DML subquery reading the target's own
     // table (ER_UPDATE_TABLE_USED); the joined forms read it instead.
     [Fact]

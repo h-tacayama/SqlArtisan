@@ -861,6 +861,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   at and one character past it. The `GroupBy` constant twins use an
   aggregate-only select list, so a key read as one constant group no longer
   fails for an ungrouped column. (#684)
+- Live twins pin what each engine does with `SQLA0205`'s temporal and binary
+  pairs against text, and a MySQL twin pins the zero date that `IS NULL` finds
+  on a NOT NULL `DATE` or `DATETIME` column. (#684)
 - A SQL Server twin pins the rejection of a column listed twice in
   `ORDER BY`, beside an Oracle twin pinning its acceptance (#686).
 - PostgreSQL twins pin the `docs/` rejections #685 added: `Round(x, n)` and
@@ -900,6 +903,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   another table where the engine takes no joined form. Its `GroupBy` section
   says Oracle groups by a constant key, and names Oracle 23ai's
   `group_by_position_enabled` setting. (#684)
+- `docs/analyzer.md`'s `SQLA0205` section limits MySQL's floating-point
+  reconciliation to a text column against a number and states how each engine
+  reconciles a temporal or binary column against text: on MySQL and SQL Server a
+  well-formed date string matches as a date, so the warning names code that runs
+  as meant there. Its `SQLA0200` section records MySQL's zero date, which
+  `IS NULL` on a NOT NULL `DATE` or `DATETIME` column finds. (#684)
 - The cookbook's search recipe adds its `customer_id` tie-breaker only when
   the sort key is another column: SQL Server rejects a column listed twice in
   `ORDER BY` (#686).

@@ -1412,6 +1412,39 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             new { n = 1500001 }));
     }
 
+    // docs/analyzer.md (SQLA0205): Oracle converts text compared to a temporal column by
+    // the session's NLS_DATE_FORMAT, so under the default DD-MON-RR an ISO spelling fails.
+    [Fact]
+    public void TemporalColumnComparedToText_ConvertsByTheSessionDateFormat()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal("DD-MON-RR", connection.ExecuteScalar<string>(
+            "SELECT value FROM nls_session_parameters WHERE parameter = 'NLS_DATE_FORMAT'"));
+        Assert.Equal(
+            connection.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM users WHERE created_at >= DATE '2020-03-15'"),
+            connection.ExecuteScalar<long>(
+                Select(Count(u.Id)).From(u).Where(u.CreatedAt >= "15-MAR-20")));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<long>(
+            Select(Count(u.Id)).From(u).Where(u.CreatedAt == "2020-03-15 10:30:00")));
+    }
+
+    // docs/analyzer.md (SQLA0205): Oracle reads text compared to a binary column as
+    // hexadecimal, so 'abc' matches nothing and '616263' matches the bytes abc.
+    [Fact]
+    public void BinaryColumnComparedToText_ReadsTheTextAsHex()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        const string Query =
+            "SELECT id FROM (SELECT 1 id, HEXTORAW('616263') b FROM DUAL UNION ALL "
+            + "SELECT 2, HEXTORAW('414243') FROM DUAL) t WHERE b = :s";
+
+        Assert.Empty(connection.Query<int>(Query, new { s = "abc" }));
+        Assert.Equal(new[] { 1 }, connection.Query<int>(Query, new { s = "616263" }));
+    }
+
     // README Manual Execution: ODP.NET binds by position unless BindByName is set, and a
     // statement repeating a marker ahead of another then does not run (on this lane it
     // waits out the command timeout).

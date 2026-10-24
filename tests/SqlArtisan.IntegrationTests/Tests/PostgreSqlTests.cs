@@ -1758,6 +1758,21 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             () => connection.ExecuteScalar<int>(Query, new { n = 1500001 }));
     }
 
+    // docs/analyzer.md (SQLA0205): PostgreSQL rejects a temporal column compared to text.
+    [Fact]
+    public void TemporalColumnComparedToText_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar<long>(
+            Select(Count(u.Id))
+            .From(u)
+            .Where(u.CreatedAt == Cast("2020-03-15 10:30:00", "timestamp")));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<long>(
+            Select(Count(u.Id)).From(u).Where(u.CreatedAt == "2020-03-15 10:30:00")));
+    }
+
     // docs/functions.md: the RegexpReplace warning; occurrence 0 replaces every match.
     [Fact]
     public void RegexpReplace_ThreeArguments_ReplacesTheFirstMatchOnly()
