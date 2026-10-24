@@ -838,6 +838,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - A MySQL twin runs the workaround the `LIMIT`-in-`IN` notes name — the limited
   query through a CTE or a derived table — beside the two rejection twins
   (#685).
+- Live twins pin the per-target results the reference pages now warn about,
+  each on the lanes it names (#685).
 
 ### Docs
 - `docs/versioning.md` states that a new rejection is breaking: a call, a
@@ -1074,6 +1076,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     types `SqlArtisan.Dapper` and Npgsql cannot send; the `MERGE` branch and
     `Cte` snippets show their SQL; and the expressions page's MySQL `LIMIT`
     note names `NOT IN`.
+- The reference pages warn where one call returns another result per target
+  (#685): `Length` counts bytes on MySQL; `RegexpReplace`'s 3- and 4-argument
+  forms replace only the first match on PostgreSQL; `Greatest` / `Least` skip a
+  NULL on PostgreSQL and SQL Server; a chain mixing `Intersect` with `Union` or
+  `Except` groups differently on Oracle and SQLite; a bound `\` in a `LIKE`
+  pattern escapes on MySQL and PostgreSQL; and MySQL's `NO_BACKSLASH_ESCAPES`
+  keeps the backslash SqlArtisan doubles in a forced literal. The JSON operators
+  note that MySQL takes only a path as the key, and that a path-shaped key is a
+  plain key on PostgreSQL.
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

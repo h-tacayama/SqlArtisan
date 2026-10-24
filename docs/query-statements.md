@@ -578,6 +578,14 @@ arrived in a specific engine release; the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)
 lists each one, and the analyzer reports it against a declared target version.
 
+> [!WARNING]
+> **A chain mixing `Intersect` with `Union` or `Except` groups differently by
+> target: MySQL, PostgreSQL and SQL Server apply `INTERSECT` first, Oracle and
+> SQLite apply the operators left to right.** `a.Union.b.Intersect.c` is
+> `a ∪ (b ∩ c)` on the first three and `(a ∪ b) ∩ c` on the other two. To fix
+> the grouping, put the part that runs first in a derived table — `.AsTable(...)`
+> on that chain, selected from in the outer one.
+
 ---
 
 ### FOR UPDATE Clause

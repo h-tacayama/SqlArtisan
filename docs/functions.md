@@ -89,6 +89,18 @@ not at the SqlArtisan layer.
 PostgreSQL and SQL Server gained the `REGEXP_*` family in specific releases — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 > [!WARNING]
+> **`Length(x)` counts bytes on MySQL and characters on Oracle, PostgreSQL and
+> SQLite.** A non-ASCII character counts more than once on MySQL; use
+> `CharLength(x)` there to count characters.
+
+> [!WARNING]
+> **`RegexpReplace(source, pattern, replacement)` and its `position` form replace
+> the first match on PostgreSQL and every match on MySQL, Oracle and SQL Server.**
+> To replace every match on each, pass an occurrence of `0`:
+> `RegexpReplace(source, pattern, replacement, 1, 0)`. See
+> [PostgreSQL: `regexp_replace`](https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-POSIX-REGEXP).
+
+> [!WARNING]
 > **On PostgreSQL, `RegexpOptions.NewLine` and `RegexpOptions.MultipleLines` both
 > stop `.` from matching a newline.** There `'n'` and `'m'` mean newline-sensitive
 > matching, the opposite of `NewLine`'s meaning on MySQL and Oracle, and PostgreSQL's
@@ -192,6 +204,12 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 
 - `Greatest()` for `GREATEST` (MySQL, Oracle, PostgreSQL, SQL Server)
 - `Least()` for `LEAST` (MySQL, Oracle, PostgreSQL, SQL Server)
+
+> [!WARNING]
+> **`Greatest(...)` and `Least(...)` skip a NULL argument on PostgreSQL and SQL
+> Server, and return NULL on MySQL and Oracle.** Where an argument can be NULL,
+> give it a value with `Coalesce(...)` so every target compares the same
+> arguments.
 
 ---
 
@@ -333,6 +351,14 @@ That list is what SqlArtisan accepts as a bind value; whether a value reaches th
 Two kinds of string never become a bind parameter, and they behave differently:
 
 - **Forced literals** — positions that need a literal, because the dialect rejects a bind marker there or because a marker would change how the engine resolves or plans the statement: the `LIKE ... ESCAPE` character, MySQL's `GROUP_CONCAT ... SEPARATOR` and the `STRING_AGG` separator (SQL Server rejects a bound one over a `varchar` input), `IntervalLiteral` text, a JSON function's path (`JSON_EXTRACT` / `JSON_VALUE` / `JSON_QUERY`), a `JsonArrow` / `JsonArrowText` string key, a PostgreSQL text-search configuration, and the sequence name in `NEXTVAL('seq')` / `CURRVAL('seq')`. These are emitted inline as single-quoted literals with the quote character escaped (and the backslash too, on MySQL; on PostgreSQL a literal holding a backslash is written `E'...'` with it doubled, so it reads the same whatever the session's `standard_conforming_strings`). On SQL Server a literal holding a non-ASCII character is written `N'...'`, so the database's code page cannot replace it; the `STRING_AGG` separator stays plain, since SQL Server rejects `N'...'` there over a `varchar` input, so a separator character the code page lacks arrives as `?`. On SQL Server a backslash before a line break in such a literal gets a spare backslash and line break between the backslash and the line break, which SQL Server drops as a line continuation, so the literal keeps both characters.
+
+> [!WARNING]
+> **On MySQL with `NO_BACKSLASH_ESCAPES` in the session's `sql_mode`, a forced
+> literal holding `\` keeps both of the backslashes SqlArtisan writes for it.**
+> The value then carries two backslashes; an `ESCAPE` character fails instead
+> (observed on MySQL 8.0.46).
+> SqlArtisan writes MySQL literals for the default mode, so run these statements
+> in a session without it.
 - **Identifiers** — an alias, a table or column name, a `Cast(...)` target type, and the sequence name in the Oracle (`Sequence("s").Nextval`) and SQL Server (`NextValueFor("s")`) spellings. These are emitted **exactly as written**, with no escaping: a type name like `DECIMAL(10,2)` is not a name that could be quoted, and rewriting an alias you spelled would break the guarantee that the SQL you write is the SQL that runs. `Sql.Hints(...)` is not an identifier but behaves the same way — it is a raw-SQL escape hatch, emitted verbatim by definition.
 
 So automatic parameterization prevents injection **through values**. Build identifiers from constants or an allowlist you control — never straight from request input.
