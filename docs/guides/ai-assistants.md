@@ -26,7 +26,7 @@ This page is the setup that makes those checks bite.
 
 The repository ships an `llms.txt` index built for AI tools — a one-paragraph
 model of the library plus links to every reference page, each entry paired
-with the exact SQL it emits:
+with the SQL it emits:
 
 ```
 https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/llms.txt

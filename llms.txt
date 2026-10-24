@@ -5,7 +5,7 @@
 > that runs — cross-database portability is a deliberate non-goal. Supported
 > dialects: MySQL, Oracle, PostgreSQL, SQLite, SQL Server (default: PostgreSQL).
 
-Each reference page pairs the C# you write with the exact SQL it emits. When
+Each reference page pairs the C# you write with the SQL it emits. When
 generating code, pick the API for the target DBMS; do not expect a single call to
 be rewritten across dialects.
 

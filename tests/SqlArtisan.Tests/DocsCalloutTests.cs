@@ -46,6 +46,9 @@ public class DocsCalloutTests
 
             string kind = header.Groups[1].Value;
             int start = i;
+            Assert.True(
+                kind is "WARNING" or "NOTE",
+                $"{page}: [!{kind}] at line {start + 1} is outside the WARNING / NOTE taxonomy.");
 
             while (i < lines.Length && lines[i].StartsWith(">", StringComparison.Ordinal))
             {

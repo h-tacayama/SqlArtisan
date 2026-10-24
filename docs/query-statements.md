@@ -21,7 +21,8 @@
 - [UPDATE](#update-statement)
   - [Correlated UPDATE / DELETE](#correlated-update--delete) · [Joined UPDATE / DELETE](#joined-update--delete)
 - [INSERT](#insert-statement)
-  - [Standard](#standard-syntax) · [Multiple Rows](#multiple-rows) · [SET-like](#alternative-syntax-set-like) · [INSERT … SELECT](#insert-select-syntax) · [UPSERT](#upsert-insert-update-or-skip) · [MERGE](#merge-statement) · [WITH / CTE](#with-clause-common-table-expressions)
+  - [Standard](#standard-syntax) · [Multiple Rows](#multiple-rows) · [SET-like](#alternative-syntax-set-like) · [INSERT … SELECT](#insert-select-syntax) · [UPSERT](#upsert-insert-update-or-skip) · [MERGE](#merge-statement)
+- [WITH / CTE](#with-clause-common-table-expressions)
 - [RETURNING](#returning-clause)
   - [RETURNING INTO (Oracle)](#returning-into-oracle)
 - [OUTPUT (SQL Server)](#output-clause-sql-server)
@@ -102,7 +103,7 @@ SqlStatement sql =
 // FROM users "u"
 // ORDER BY "u".department_id, "u".salary DESC
 ```
-PostgreSQL syntax; emitted faithfully on every dialect, with availability left to the database.
+PostgreSQL syntax; emitted faithfully on every dialect, with availability left to the database. PostgreSQL rejects an `ORDER BY` that does not lead with the `DistinctOn(...)` expressions (observed on 16.15).
 
 An integer is a select-list position, as in `OrderBy(1)`: `DistinctOn(1)` emits
 `DISTINCT ON (1)`. A position below 1 throws at the call, and so does a string,
@@ -250,7 +251,7 @@ forms in a specific release — see the
 #### JOIN ... USING
 
 `.Using(column, ...)` follows `InnerJoin()` / `LeftJoin()` / `RightJoin()` /
-`FullJoin()` in place of `.On(...)`, matching where the named columns are equal
+`FullJoin()` / `JoinLateral()` in place of `.On(...)`, matching where the named columns are equal
 (they must exist, unqualified, on both sides):
 
 ```csharp
@@ -618,7 +619,7 @@ SqlStatement sql =
 ```
 
 #### Example locking one side of a join
-PostgreSQL and MySQL name the tables to lock, not a column: `Of(u)` renders the
+MySQL and PostgreSQL name the tables to lock, not a column: `Of(u)` renders the
 table's alias, or, when it has none, its name without the schema qualifier —
 PostgreSQL rejects a qualified name there. Further tables go in as `Of(u, o)`;
 the joined tables it leaves out stay unlocked.
@@ -645,7 +646,7 @@ SqlStatement sql =
 
 On PostgreSQL an outer join needs this form: a plain `ForUpdate()` there is
 rejected, while `Of(...)` naming the preserved side runs (observed on PostgreSQL
-16.13). `Of(u.Id)` is Oracle's column form and `Of(u)` the PostgreSQL/MySQL table
+16.13). `Of(u.Id)` is Oracle's column form and `Of(u)` the MySQL/PostgreSQL table
 form; `SQLA0100` reports either one on the other engines.
 
 #### Example claiming one row from a queue
@@ -686,7 +687,7 @@ SqlStatement sql =
 ```
 
 #### Supported Options
-- `Of(column)` for Oracle's `OF column`; `Of(table, ...)` for PostgreSQL's and MySQL's `OF table, ...`
+- `Of(column)` for Oracle's `OF column`; `Of(table, ...)` for MySQL's and PostgreSQL's `OF table, ...`
 - `Nowait` for `NOWAIT`
 - `SkipLocked` for `SKIP LOCKED`
 - `Wait()` for `WAIT`
@@ -775,7 +776,7 @@ SqlStatement sql =
 
 #### Row-limited queries as subqueries
 
-A query ending in a row-limiting clause is still a subquery: embed it as an aliased scalar value (`.As("alias")`), an `IN` / `NOT IN` / `EXISTS` operand, a CTE body, or a `LATERAL` / `APPLY` operand. The canonical per-group top-N:
+A query ending in a row-limiting clause is still a subquery: embed it as an aliased scalar value (`.As("alias")`), an `IN` / `NOT IN` / `EXISTS` operand, a CTE body, a derived table (`.AsTable("alias")`), or a `LATERAL` / `APPLY` operand. The canonical per-group top-N:
 
 ```csharp
 UsersTable u = new("u");
@@ -800,7 +801,7 @@ SqlStatement sql =
 // WHERE "o".user_id = "u".id ORDER BY "o".amount LIMIT :0) "x"
 ```
 
-On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is rejected ("This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'") — route the limited query through a CTE (`With(c.As(...))`) and select from that instead. Every other subquery position — scalar, `EXISTS`, CTE body, `LATERAL` — accepts `LIMIT` on MySQL.
+On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is rejected ("This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'") — route the limited query through a CTE (`With(c.As(...))`) and select from that instead. Every other subquery position — scalar, `EXISTS`, CTE body, derived table, `LATERAL` — accepts `LIMIT` on MySQL.
 
 #### Reusing a builder chain
 
@@ -1098,7 +1099,7 @@ SqlStatement sql =
 // (:0, :1), (:2, :3), (:4, :5)
 ```
 
-**Note:** Multi-row `VALUES` is supported by MySQL, PostgreSQL, SQLite, and SQL Server. Oracle support depends on the engine version — the integration suite live-verifies 21c rejecting it and 23ai accepting it. For Oracle batch loads on any version, [`SqlArtisan.ArrayBind`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) runs N single-row statements in one round trip.
+**Note:** Multi-row `VALUES` is supported by MySQL, PostgreSQL, SQLite, and SQL Server. Oracle support depends on the engine version, which the analyzer does not model; the integration suite pins both outcomes. For Oracle batch loads on any version, [`SqlArtisan.ArrayBind`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) runs N single-row statements in one round trip.
 
 When the rows come from data rather than fixed literals, pass the whole collection to `Values(...)` in one call — a `List<object[]>`, an `object[][]` (e.g. from `.Select(...).ToArray()`), or any `IEnumerable<object[]>` — instead of a `Values(...)` call per row:
 
@@ -1309,7 +1310,7 @@ either kind is `ORA-00905` (observed on Oracle XE 21.3.0). SQL Server bounds the
 action, so a matched `UPDATE SET` and a matched `DELETE` can coexist, and
 PostgreSQL bounds them not at all — but **both refuse a branch that follows an
 unconditional branch of the same kind**, because nothing could reach it
-(observed on SQL Server 2022 and PostgreSQL 16.13). Put the condition on the
+(observed on PostgreSQL 16.13 and SQL Server 2022). Put the condition on the
 earlier branch:
 
 ```csharp
@@ -1357,10 +1358,10 @@ MergeInto(t)
 // WHEN NOT MATCHED THEN INSERT (id, name) VALUES ("s".id, "s".name) WHERE "s".name IS NOT NULL
 ```
 
-A matched row the `UPDATE`'s filter turns away is left as it is — neither
-updated nor inserted. The filter goes before `DELETE WHERE`, which then reaches
-only the rows it let through: in `.Where(t.Age < 45).DeleteWhere(t.Age >= 35)`,
-a matched row aged 50 is neither updated nor deleted. The `INSERT`'s filter may
+The `UPDATE`'s filter is emitted before `DELETE WHERE`; which matched rows each
+one reaches is Oracle's, in its
+[MERGE reference](https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/MERGE.html).
+The `INSERT`'s filter may
 name only source columns — an unmatched row has no target row, and Oracle
 rejects a target column there (observed on Oracle XE 21.3.0). Only an
 unconditioned `WhenMatched()` / `WhenNotMatched()` branch offers the filters,
@@ -1418,13 +1419,12 @@ MergeInto(t)
 
 The alias renders without `AS` — `(…) "s"`, the derived-table spelling every
 dialect accepts. The literal-row source is PostgreSQL and SQL Server only —
-Oracle has no `VALUES` row constructor in `USING`; on Oracle, wrap the rows in a
-subquery source (`… .AsTable("s")`) instead.
+Oracle has no `VALUES` row constructor in `USING`, so it is not available there.
 
 **Per-dialect branches and pitfalls:**
 
 ```csharp
-// WHEN MATCHED AND <cond> THEN ...   (filtered branch: PostgreSQL 15+ / SQL Server; Oracle has no AND on WHEN)
+// WHEN MATCHED AND <cond> THEN ...   (filtered branch: PostgreSQL / SQL Server; Oracle has no AND on WHEN)
 .WhenMatched(s.Status == "active").ThenUpdateSet(t.Name == s.Name)
 
 // Oracle's filtered branch: WHEN MATCHED THEN UPDATE SET ... WHERE ...
@@ -1442,20 +1442,14 @@ subquery source (`… .AsTable("s")`) instead.
 .WhenNotMatchedBySource(t.Name.IsNull).ThenDelete()
 ```
 
-> [!IMPORTANT]
-> **SQL Server `MERGE` caveats.** SqlArtisan appends the **required terminating
-> semicolon** automatically when you `Build(Dbms.SqlServer)` (other dialects omit
-> it). `MERGE` performs its `INSERT`/`UPDATE`/`DELETE` actions independently, so
-> for concurrency safety you should take a serializable lock on the target —
-> `MERGE target WITH (HOLDLOCK) ...` (add the hint to your target table source;
-> SqlArtisan does not inject it). SQL Server's `MERGE` also has a history of
-> bugs and surprising behavior; Microsoft and the community recommend caution,
-> especially with a `DELETE` action or temporal tables. Prefer separate
-> statements if you do not need atomic UPSERT semantics.
+On SQL Server, `Build(Dbms.SqlServer)` appends the semicolon T-SQL requires to
+end a `MERGE`; other dialects omit it. For how SQL Server runs `MERGE` under
+concurrent writes, see Microsoft's
+[MERGE reference](https://learn.microsoft.com/en-us/sql/t-sql/statements/merge-transact-sql).
 
 ---
 
-### WITH Clause (Common Table Expressions)
+## WITH Clause (Common Table Expressions)
 
 For a one-off CTE you don't want to declare a typed class for, use the
 `Cte` and read its columns by name with `Column(name)`:

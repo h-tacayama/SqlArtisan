@@ -1006,6 +1006,34 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             $"SELECT DISTINCT ON ({ordinal}) department_id, name FROM users"));
     }
 
+    // docs/query-statements.md: the ORDER BY must lead with the DISTINCT ON keys.
+    [Fact]
+    public void DistinctOn_OrderByLeadingAnotherKey_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>(
+            Select(DistinctOn(u.DepartmentId), u.Id).From(u).OrderBy(u.DepartmentId, u.Id));
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(DistinctOn(u.DepartmentId), u.Id).From(u).OrderBy(u.Id, u.DepartmentId)));
+    }
+
+    // docs/functions.md: PostgreSQL's ROUND(x, n) and MOD take numeric, not double.
+    [Fact]
+    public void RoundAndMod_DoublePrecisionArgument_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(Select(Round(Cast(u.Age, "numeric"), 1)).From(u));
+        connection.ExecuteScalar(Select(Mod(Cast(u.Age, "numeric"), 3)).From(u));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(Round(Cast(u.Age, "double precision"), 1)).From(u)));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(Mod(Cast(u.Age, "double precision"), 3)).From(u)));
+    }
+
     // The live twin of SelectBuilder's non-integer sort-key guard (ADR 0011).
     [Fact]
     public void OrderByNonIntegerConstant_IsRejectedByTheEngine()

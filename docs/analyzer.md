@@ -355,7 +355,7 @@ kinds exist:
   the overload with exactly `N` declared parameters. Use this when the
   matrix (or your own knowledge) says only one shape of an overloaded member
   differs — e.g. `StringAgg`'s 2-argument form runs on PostgreSQL, SQLite
-  (3.44+), and SQL Server, but its 3-argument inline-`ORDER BY` form has no
+  (from the release in the register below), and SQL Server, but its 3-argument inline-`ORDER BY` form has no
   SQL Server spelling (there it's `WITHIN GROUP (ORDER BY ...)` instead):
 
   ```ini
@@ -404,8 +404,8 @@ file) only — there is no MSBuild property for them.
 ## Version-aware warnings (SQLA0101)
 
 Some constructs are only newer than *some* engine versions on an otherwise
-supported dialect — `MERGE` before PostgreSQL 15, `DATETRUNC` before SQL
-Server 2022. Declare your engine's version as `sqlartisan_syntax_<dbms>`'s
+supported dialect — `MERGE` on PostgreSQL and `DATETRUNC` on SQL Server, each
+before the release that added it (the register below names it). Declare your engine's version as `sqlartisan_syntax_<dbms>`'s
 value and the matrix's version bounds warn on those too, as `SQLA0101` — the
 same "this could break in production" fact `SQLA0100` reports for a dialect
 mismatch, just for a version shortfall instead:
@@ -978,8 +978,8 @@ members name.
 (`REGEXP_LIKE(x, p, 'ci')`), and the alphabets are the engines' own. MySQL has
 no letter for `ExcludingWhiteSpace` and rejects the call; SQL Server 2025 has
 none for `NewLine` or `ExcludingWhiteSpace`; Oracle and PostgreSQL accept every
-letter the enum can emit. SQLite and SQL Server before 2025 have no `REGEXP_*`
-functions at all, so `SQLA0100` or `SQLA0101` answers for them.
+letter the enum can emit. SQLite, and SQL Server before the release the register
+names, have no `REGEXP_*` functions at all, so `SQLA0100` or `SQLA0101` answers for them.
 
 ```csharp
 // sqlartisan_syntax_mysql = any
@@ -1264,8 +1264,8 @@ var sql =
 // when the subquery yields a NULL
 ```
 
-Reach for `NOT EXISTS` instead, or filter the NULLs out of the subquery —
-adding `.Where(s.Ref.IsNotNull)` also silences the warning. Only that
+Filtering the NULLs out of the subquery — adding `.Where(s.Ref.IsNotNull)` —
+silences the warning. Only that
 predicate (or `Not(s.Ref.IsNull)`) on the selected column counts as the
 filter: a comparison or `IN` on the same column also excludes `NULL`, but
 the rule reads the column's own facts, not what another predicate implies.
@@ -1569,7 +1569,7 @@ for, not a bug in the matrix.
 - **A construct whose dialect support depends on the runtime value of an
   argument, not its declared type or arity, is not modeled at all.**
   `Trunc(expr[, format])` is the example: a numeric argument is Oracle,
-  PostgreSQL and SQLite 3.35+, a date/time argument is Oracle-only, and both shapes
+  PostgreSQL and SQLite, a date/time argument is Oracle-only, and both shapes
   compile to the exact same C# overload. It has no matrix entry, so no dialect
   verdict reports it unless you set `sqlartisan_construct_trunc` (or an
   `_arity<N>` key) to `unsupported`.

@@ -323,12 +323,12 @@ SqlStatement sql =
     .Where(u.Id.In(ids))
     .Build();
 
-// WHERE id IN (:0, :1, ...)   — one bind per element
+// WHERE id IN (:0, :1, ...) — one bind per element
 ```
 
 The overload takes `IReadOnlyCollection<T>` rather than `IEnumerable<T>` deliberately: a `string` is an `IEnumerable<char>` but *not* an `IReadOnlyCollection<char>`, so `col.In("abc")` stays a single-value predicate (`IN (:0)`) instead of silently expanding into one bind per character. An empty collection throws at the call site — an empty `IN ()` is invalid SQL — so build the chain with or without the predicate keyed on whether the list has any elements.
 
-Each element is a **separate** bind parameter, so the parameter count grows with the list, and a very large `IN` list runs into per-engine bind-parameter ceilings — see your engine's manual for its limit. On PostgreSQL, an equality-against-array — `col = ANY(:param)`, a single array-valued bind whose plan is stable across list sizes — sidesteps both the parameter count and the ceiling; SqlArtisan's `In(...)` emits the per-element list form on every dialect, so reach for the bound-array form (`Any(BindArray(...))` — see [ANY / ALL with a Bound Array](#any--all-with-a-bound-array-postgresql)) or a CTE of the values when the list is both large and size-varying on PostgreSQL.
+Each element is a **separate** bind parameter, so the parameter count grows with the list, and a very large `IN` list runs into per-engine bind-parameter ceilings — see your engine's manual for its limit. On PostgreSQL, an equality-against-array — `col = ANY(:param)`, a single array-valued bind whose plan is stable across list sizes — sidesteps both the parameter count and the ceiling; SqlArtisan's `In(...)` emits the per-element list form on every dialect, so reach for the bound-array form (`Any(BindArray(...))` — see [ANY / ALL with a Bound Array](#any--all-with-a-bound-array-postgresql)) when the list is both large and size-varying on PostgreSQL.
 
 ### IN Condition with Subquery
 ```csharp
@@ -577,7 +577,7 @@ SqlStatement sql =
 
 ### CONTAINS / SCORE (Oracle)
 
-`ContainsScore(column, query)` emits Oracle Text's `CONTAINS`, which returns a relevance score (0–100; 0 = no match) — compare it in `WHERE`. Pass a `label` to read the score elsewhere via `Score(label)`.
+`ContainsScore(column, query)` emits Oracle Text's `CONTAINS`, which returns a relevance score ([Oracle Text: CONTAINS](https://docs.oracle.com/en/database/oracle/oracle-database/26/ccref/contains.html)) — compare it in `WHERE`. Pass a `label` to read the score elsewhere via `Score(label)`.
 
 ```csharp
 SqlStatement sql =
@@ -750,7 +750,7 @@ SqlStatement sql =
 // WHERE "u".id = ANY (:0)
 ```
 
-PostgreSQL only. Unlike `In(values)` — one bind per element — the SQL text is identical for every list length, and an empty collection is legal: it binds normally and matches no rows, where `In(...)` rejects an empty list at the call site. Element types follow the [bind-parameter types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types); the quantifier also accepts any other array expression — an `ARRAY[...]` constructor or an array-typed column.
+PostgreSQL only. Unlike `In(values)` — one bind per element — the SQL text is identical for every list length, and an empty collection is legal: it binds normally, where `In(...)` rejects an empty list at the call site. Element types follow the [bind-parameter types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types); the quantifier also accepts any other array expression — an `ARRAY[...]` constructor or an array-typed column.
 
 Executing through SqlArtisan.Dapper preserves the array as a single ADO.NET parameter (it is exempt from Dapper's list expansion); Npgsql maps the .NET array to the PostgreSQL array type natively.
 
@@ -905,7 +905,7 @@ SqlStatement sql =
 // FROM users
 ```
 
-- `LastValue` is frame-sensitive: the default frame ends at the current row, so pair it with an explicit frame such as `RowsBetween(UnboundedPreceding, UnboundedFollowing)` to read the last row of the whole partition.
+- `LastValue` is frame-sensitive, so pair it with an explicit frame such as `RowsBetween(UnboundedPreceding, UnboundedFollowing)` to read the last row of the whole partition; the frame without one is the engine's (PostgreSQL's [window function calls](https://www.postgresql.org/docs/current/sql-expressions.html#SYNTAX-WINDOW-FUNCTIONS)).
 - `NthValue`'s position is positive, emitted as an integer literal, and **not supported by SQL Server**.
 
 A bare `PartitionBy(...)` is also a window, giving a value from each partition with no ordering imposed:
@@ -1104,7 +1104,10 @@ MySQL's grammar requires the `SEPARATOR` value to be a string literal (a bind pa
 > **`GroupConcat(expr, sep)` silently changes meaning on MySQL.** MySQL reads the second positional argument as another concatenated value per row, not a separator, so the call runs and returns each element with `sep` appended, joined by the default comma. On MySQL, spell the separator with `GroupConcat(expr, Separator(sep))`; the positional form is SQLite's.
 
 > [!NOTE]
-> MySQL silently truncates `GROUP_CONCAT` output at `group_concat_max_len` (1024 bytes by default). Raise that session/global variable (e.g. `SET SESSION group_concat_max_len = 1000000;`) when a group can exceed it.
+> MySQL silently truncates `GROUP_CONCAT` output at `group_concat_max_len`.
+
+Raise that variable when a group can exceed it — see MySQL's
+[`group_concat_max_len`](https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_group_concat_max_len).
 
 ---
 
