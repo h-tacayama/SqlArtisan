@@ -249,6 +249,14 @@ public class UnusableIndexPredicateAnalyzerTests
             "Name",
             "wrapped in Upper");
 
+    // A CAST over no indexed column leaves the later arguments to be read.
+    [Fact]
+    public Task Where_IndexedColumnAfterCastOfAnother_Warns() =>
+        RunReporting(
+            """var s = Select(t.Id).From(t).Where({|#0:Coalesce(Cast(t.Plain, "text"), t.Name)|} == "A").Build();""",
+            "Name",
+            "wrapped in Coalesce");
+
     // A MERGE action's Where is not a filtering step, like its DeleteWhere sibling.
     [Fact]
     public Task Where_WrappedIndexedColumnOnMergeAction_Silent() =>

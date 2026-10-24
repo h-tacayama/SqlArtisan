@@ -106,9 +106,10 @@ internal static class UnusableIndexPredicateRule
             // A function over a CAST still wraps the column, whatever the type.
             if (value is IInvocationOperation inner
                 && TypeDependentWrappings.Contains(inner.TargetMethod.Name)
-                && DialectUsageAnalyzer.IsFromSqlArtisan(inner.TargetMethod.ContainingAssembly))
+                && DialectUsageAnalyzer.IsFromSqlArtisan(inner.TargetMethod.ContainingAssembly)
+                && IndexedArgument(inner) is { } cast)
             {
-                return IndexedArgument(inner);
+                return cast;
             }
 
             if (value is IPropertyReferenceOperation column
