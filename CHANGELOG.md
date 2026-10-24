@@ -835,9 +835,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   baseline, no enum repeats a value, and the enums are the set `versioning.md`
   names. `CommentCapRatchetTests` reads a `//` header above a `///` block as a
   header, which drops one phantom entry from its baseline. (#614)
+- A MySQL twin runs the workaround the `LIMIT`-in-`IN` notes name — the limited
+  query through a CTE or a derived table — beside the two rejection twins
+  (#685).
+- Live twins pin the per-target results the reference pages now warn about,
+  each on the lanes it names (#685).
 - Live twins pin #685's engine notes (see Docs) on the MySQL, Oracle,
-  PostgreSQL, SQLite and SQL Server lanes, and the SQL Server `MERGE` example that conditions the
-  earlier matched branch (#685).
+  PostgreSQL, SQLite and SQL Server lanes, and the SQL Server `MERGE` example
+  that conditions the earlier matched branch (#685).
 
 ### Docs
 - `docs/versioning.md` states that a new rejection is breaking: a call, a
@@ -1069,6 +1074,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     `ContainsScore`'s XML docs drop the default frame and the score range.
   - PostgreSQL's rejection of a `double precision` `Round(x, n)` / `Mod` and of
     a `DistinctOn(...)` whose `ORDER BY` leads with another key is noted.
+  - The register's sources list `sign()` as a SQLite core function, not part
+    of the math-functions extension; Bind Parameter Types says which listed
+    types `SqlArtisan.Dapper` and Npgsql cannot send; the `MERGE` branch and
+    `Cte` snippets show their SQL; and the expressions page's MySQL `LIMIT`
+    note names `NOT IN`.
+- The reference pages warn where one call returns another result per target
+  (#685): `Length` counts bytes on MySQL; `RegexpReplace`'s 3- and 4-argument
+  forms replace only the first match on PostgreSQL; `Greatest` / `Least` skip a
+  NULL on PostgreSQL and SQL Server; a chain mixing `Intersect` with `Union` or
+  `Except` groups differently on Oracle and SQLite; a bound `\` in a `LIKE`
+  pattern escapes on MySQL and PostgreSQL; and MySQL's `NO_BACKSLASH_ESCAPES`
+  keeps the backslash SqlArtisan doubles in a forced literal. The JSON operators
+  note that MySQL takes only a path as the key, and that a path-shaped key is a
+  plain key on PostgreSQL.
 - Engine notes from the integration lanes (#685): `SQLA0205`'s wrong-rows
   sentence names Oracle and SQL Server, which convert the text side and fail on
   a non-numeric row, SQLite, which compares as text, and MySQL's strict

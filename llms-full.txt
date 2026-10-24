@@ -1029,6 +1029,14 @@ arrived in a specific engine release; the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)
 lists each one, and the analyzer reports it against a declared target version.
 
+> [!WARNING]
+> **A chain mixing `Intersect` with `Union` or `Except` groups differently by
+> target: MySQL, PostgreSQL and SQL Server apply `INTERSECT` first, Oracle and
+> SQLite apply the operators left to right.** `a.Union.b.Intersect.c` is
+> `a ∪ (b ∩ c)` on the first three and `(a ∪ b) ∩ c` on the other two. To fix
+> the grouping, put the part that runs first in a derived table — `.AsTable(...)`
+> on that chain, selected from in the outer one.
+
 ---
 
 ### FOR UPDATE Clause
@@ -1778,6 +1786,12 @@ MergeInto(t)
     .WhenMatched(s.Name.IsNotNull).ThenUpdateSet(t.Name == s.Name)
     .WhenMatched().ThenDelete()
     .Build(Dbms.SqlServer);
+
+// MERGE INTO users "t"
+// USING users "s"
+// ON ("t".id = "s".id)
+// WHEN MATCHED AND "s".name IS NOT NULL THEN UPDATE SET name = "s".name
+// WHEN MATCHED THEN DELETE;
 ```
 
 On Oracle, a matched update that also deletes some of the rows it touched is
@@ -1913,12 +1927,17 @@ For a one-off CTE you don't want to declare a typed class for, use the
 `Cte` and read its columns by name with `Column(name)`:
 
 ```csharp
+UsersTable users = new("users");
 Cte seniors = new("seniors");
 SqlStatement sql =
     With(seniors.As(Select(users.Id.As(seniors.Column("id"))).From(users).Where(users.Age > 40)))
     .Select(seniors.Column("id"))
     .From(seniors)
     .Build();
+
+// WITH "seniors" AS
+// (SELECT "users".id id FROM users "users" WHERE "users".age > :0)
+// SELECT "seniors".id FROM "seniors"
 ```
 
 When you reference a CTE's columns repeatedly, declare a typed `CteBase`
@@ -2456,6 +2475,12 @@ literal is spelled per dialect so it stays valid on each (a backslash is `'\\'`
 on MySQL and `E'\\'` on PostgreSQL). On SQL Server a non-ASCII
 escape character is written `N'...'`, so the database's code page cannot replace it.
 
+> [!WARNING]
+> **A `\` in a bound `Like(...)` pattern escapes the next character on MySQL and
+> PostgreSQL, and matches itself on Oracle, SQLite and SQL Server.** To match a
+> backslash as itself on every target, name another escape character with
+> `.Escape(...)`.
+
 ### BETWEEN Condition
 ```csharp
 UsersTable u = new();
@@ -2633,7 +2658,12 @@ SqlStatement sql =
 // FROM users
 ```
 
-`JsonArrow` (`->`) returns the JSON type; `JsonArrowText` (`->>`) returns text. Both work on MySQL, PostgreSQL, and SQLite.
+`JsonArrow` (`->`) returns the JSON type; `JsonArrowText` (`->>`) returns text. Both work on MySQL, PostgreSQL, and SQLite. On MySQL the key is a JSON path (`"$.address"`, `"$[0]"`): MySQL rejects a bare key and an integer index (observed on MySQL 8.0.46).
+
+> [!NOTE]
+> A path-shaped key such as `"$.name"` reads a path on MySQL and SQLite but is a
+> plain key on PostgreSQL, which returns NULL for it. On SQLite, a `->` or `->>`
+> key holding `\` returns NULL too.
 
 Chaining is natural — the result is a `SqlExpression`:
 
@@ -3425,6 +3455,18 @@ not at the SqlArtisan layer.
 PostgreSQL and SQL Server gained the `REGEXP_*` family in specific releases — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 > [!WARNING]
+> **`Length(x)` counts bytes on MySQL and characters on Oracle, PostgreSQL and
+> SQLite.** A non-ASCII character counts more than once on MySQL; use
+> `CharLength(x)` there to count characters.
+
+> [!WARNING]
+> **`RegexpReplace(source, pattern, replacement)` and its `position` form replace
+> the first match on PostgreSQL and every match on MySQL, Oracle and SQL Server.**
+> To replace every match on each, pass an occurrence of `0`:
+> `RegexpReplace(source, pattern, replacement, 1, 0)`. See
+> [PostgreSQL: `regexp_replace`](https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-POSIX-REGEXP).
+
+> [!WARNING]
 > **On PostgreSQL, `RegexpOptions.NewLine` and `RegexpOptions.MultipleLines` both
 > stop `.` from matching a newline.** There `'n'` and `'m'` mean newline-sensitive
 > matching, the opposite of `NewLine`'s meaning on MySQL and Oracle, and PostgreSQL's
@@ -3528,6 +3570,12 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 
 - `Greatest()` for `GREATEST` (MySQL, Oracle, PostgreSQL, SQL Server)
 - `Least()` for `LEAST` (MySQL, Oracle, PostgreSQL, SQL Server)
+
+> [!WARNING]
+> **`Greatest(...)` and `Least(...)` skip a NULL argument on PostgreSQL and SQL
+> Server, and return NULL on MySQL and Oracle.** Where an argument can be NULL,
+> give it a value with `Coalesce(...)` so every target compares the same
+> arguments.
 
 ---
 
@@ -3662,11 +3710,21 @@ SqlArtisan automatically converts C# literal values into bind parameters (to bin
 - **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
 - **Enum**: Any `enum` type, except the function-argument enums `DateTimePart`, `RegexpOptions` and `SearchModifier`, which throw `ArgumentException` in a value position. Passed there, one is a slip — an argument given at an arity with no slot of its type, as `RegexpCount(s, p, RegexpOptions.CaseInsensitive)` gives the options as the position — and bound, it is the value — through `SqlArtisan.Dapper`, its integer. To store or compare one deliberately, bind it with `Sql.Bind(value)`.
 
+That list is what SqlArtisan accepts as a bind value; whether a value reaches the database is the execution layer's and the provider's. Through `SqlArtisan.Dapper`, Dapper rejects `DateOnly`, `TimeOnly`, `nint`, `nuint` and `Complex` before the provider sees them (`NotSupportedException`, observed with Dapper 2.1.66), and the provider decides the rest — Npgsql rejects `sbyte`, `ushort`, `uint` and `ulong` (observed with Npgsql 9.0.3).
+
 `Sql.Bind(value)` rejects `null`. For a bound `NULL`, use `Sql.BindNull()`: `Sql.Null` inlines the `NULL` keyword into the SQL text — as does a bare C# `null` in a `VALUES` row, the one position that takes one; anywhere else it throws — while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
 
 Two kinds of string never become a bind parameter, and they behave differently:
 
 - **Forced literals** — positions that need a literal, because the dialect rejects a bind marker there or because a marker would change how the engine resolves or plans the statement: the `LIKE ... ESCAPE` character, MySQL's `GROUP_CONCAT ... SEPARATOR` and the `STRING_AGG` separator (SQL Server rejects a bound one over a `varchar` input), `IntervalLiteral` text, a JSON function's path (`JSON_EXTRACT` / `JSON_VALUE` / `JSON_QUERY`), a `JsonArrow` / `JsonArrowText` string key, a PostgreSQL text-search configuration, and the sequence name in `NEXTVAL('seq')` / `CURRVAL('seq')`. These are emitted inline as single-quoted literals with the quote character escaped (and the backslash too, on MySQL; on PostgreSQL a literal holding a backslash is written `E'...'` with it doubled, so it reads the same whatever the session's `standard_conforming_strings`). On SQL Server a literal holding a non-ASCII character is written `N'...'`, so the database's code page cannot replace it; the `STRING_AGG` separator stays plain, since SQL Server rejects `N'...'` there over a `varchar` input, so a separator character the code page lacks arrives as `?`. On SQL Server a backslash before a line break in such a literal gets a spare backslash and line break between the backslash and the line break, which SQL Server drops as a line continuation, so the literal keeps both characters.
+
+> [!WARNING]
+> **On MySQL with `NO_BACKSLASH_ESCAPES` in the session's `sql_mode`, a forced
+> literal holding `\` keeps both of the backslashes SqlArtisan writes for it.**
+> The value then carries two backslashes; an `ESCAPE` character fails instead
+> (observed on MySQL 8.0.46).
+> SqlArtisan writes MySQL literals for the default mode, so run these statements
+> in a session without it.
 - **Identifiers** — an alias, a table or column name, a `Cast(...)` target type, and the sequence name in the Oracle (`Sequence("s").Nextval`) and SQL Server (`NextValueFor("s")`) spellings. These are emitted **exactly as written**, with no escaping: a type name like `DECIMAL(10,2)` is not a name that could be quoted, and rewriting an alias you spelled would break the guarantee that the SQL you write is the SQL that runs. `Sql.Hints(...)` is not an identifier but behaves the same way — it is a raw-SQL escape hatch, emitted verbatim by definition.
 
 So automatic parameterization prevents injection **through values**. Build identifiers from constants or an allowlist you control — never straight from request input.
@@ -4255,9 +4313,10 @@ add `WHEN NOT MATCHED BY SOURCE` to `MERGE`.
 
 - [`NULLS FIRST` / `NULLS LAST`](https://sqlite.org/releaselog/3_30_0.html) — 3.30.0 (2019-10-04).
 - [`RETURNING`](https://sqlite.org/releaselog/3_35_0.html) — 3.35.0 (2021-03-12).
-- [The math-functions extension](https://sqlite.org/releaselog/3_35_0.html) (`ceil`, `ceiling`, `exp`, `floor`, `ln`, `log`, `log10`, `mod`, `power`, `sign`, `sqrt`) — 3.35.0, same release as `RETURNING`.
+- [The math-functions extension](https://sqlite.org/releaselog/3_35_0.html) (`ceil`, `ceiling`, `exp`, `floor`, `ln`, `log`, `log10`, `mod`, `power`, `sqrt`) — 3.35.0, same release as `RETURNING`.
 - [`RIGHT JOIN` / `FULL OUTER JOIN`](https://sqlite.org/releaselog/3_39_0.html) — 3.39.0 (2022-06-25).
 - `substring()` as a second name for `substr()` — 3.34.0 (2020-12-01), confirmed against the `aBuiltinFunc[]` table in `src/func.c` (absent at tag `version-3.33.0`, present at `version-3.34.0`).
+- `sign()`, a core function outside the math-functions extension — 3.35.0, confirmed against the `aBuiltinFunc[]` table in `src/func.c` (absent at tag `version-3.34.0`, present outside `SQLITE_ENABLE_MATH_FUNCTIONS` at `version-3.35.0`).
 - [`string_agg()` / `concat()` / `concat_ws()`](https://sqlite.org/releaselog/3_44_0.html) — 3.44.0 (2023-11-01).
 - [`UPDATE ... FROM`](https://sqlite.org/releaselog/3_33_0.html) — 3.33.0 (2020-08-14).
 - [`iif()`](https://sqlite.org/releaselog/3_32_0.html) — 3.32.0 (2020-05-22); `if()` was added as a second name for it in [3.48.0](https://sqlite.org/releaselog/3_48_0.html) (2025-01-14), confirmed against the `aBuiltinFunc[]` table in `src/func.c` (absent at tag `version-3.47.0`, present at `version-3.48.0`).
@@ -4285,8 +4344,8 @@ the construct's surroundings, seven reading the DML statement a clause sits in.
 Every rejection below is live-verified on the pinned lanes — MySQL 8.0, Oracle
 XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022, the Oracle floors on
 Free 23ai, and `WHEN NOT MATCHED BY SOURCE` on PostgreSQL 17 — and so is every
-acceptance but MySQL's `LIMIT` in the scalar, `EXISTS`, CTE and derived-table
-positions, which no lane runs. A floor below a lane's
+acceptance but MySQL's `LIMIT` in the scalar and `EXISTS` positions, which no
+lane runs. A floor below a lane's
 version rests on the vendor's release notes, as the version-bound register's
 does.
 

@@ -578,9 +578,10 @@ add `WHEN NOT MATCHED BY SOURCE` to `MERGE`.
 
 - [`NULLS FIRST` / `NULLS LAST`](https://sqlite.org/releaselog/3_30_0.html) — 3.30.0 (2019-10-04).
 - [`RETURNING`](https://sqlite.org/releaselog/3_35_0.html) — 3.35.0 (2021-03-12).
-- [The math-functions extension](https://sqlite.org/releaselog/3_35_0.html) (`ceil`, `ceiling`, `exp`, `floor`, `ln`, `log`, `log10`, `mod`, `power`, `sign`, `sqrt`) — 3.35.0, same release as `RETURNING`.
+- [The math-functions extension](https://sqlite.org/releaselog/3_35_0.html) (`ceil`, `ceiling`, `exp`, `floor`, `ln`, `log`, `log10`, `mod`, `power`, `sqrt`) — 3.35.0, same release as `RETURNING`.
 - [`RIGHT JOIN` / `FULL OUTER JOIN`](https://sqlite.org/releaselog/3_39_0.html) — 3.39.0 (2022-06-25).
 - `substring()` as a second name for `substr()` — 3.34.0 (2020-12-01), confirmed against the `aBuiltinFunc[]` table in `src/func.c` (absent at tag `version-3.33.0`, present at `version-3.34.0`).
+- `sign()`, a core function outside the math-functions extension — 3.35.0, confirmed against the `aBuiltinFunc[]` table in `src/func.c` (absent at tag `version-3.34.0`, present outside `SQLITE_ENABLE_MATH_FUNCTIONS` at `version-3.35.0`).
 - [`string_agg()` / `concat()` / `concat_ws()`](https://sqlite.org/releaselog/3_44_0.html) — 3.44.0 (2023-11-01).
 - [`UPDATE ... FROM`](https://sqlite.org/releaselog/3_33_0.html) — 3.33.0 (2020-08-14).
 - [`iif()`](https://sqlite.org/releaselog/3_32_0.html) — 3.32.0 (2020-05-22); `if()` was added as a second name for it in [3.48.0](https://sqlite.org/releaselog/3_48_0.html) (2025-01-14), confirmed against the `aBuiltinFunc[]` table in `src/func.c` (absent at tag `version-3.47.0`, present at `version-3.48.0`).
@@ -608,8 +609,8 @@ the construct's surroundings, seven reading the DML statement a clause sits in.
 Every rejection below is live-verified on the pinned lanes — MySQL 8.0, Oracle
 XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022, the Oracle floors on
 Free 23ai, and `WHEN NOT MATCHED BY SOURCE` on PostgreSQL 17 — and so is every
-acceptance but MySQL's `LIMIT` in the scalar, `EXISTS`, CTE and derived-table
-positions, which no lane runs. A floor below a lane's
+acceptance but MySQL's `LIMIT` in the scalar and `EXISTS` positions, which no
+lane runs. A floor below a lane's
 version rests on the vendor's release notes, as the version-bound register's
 does.
 
