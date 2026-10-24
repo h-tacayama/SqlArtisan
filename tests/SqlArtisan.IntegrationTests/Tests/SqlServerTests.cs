@@ -1412,8 +1412,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Equal(5, matched);
     }
 
-    // docs/cookbook.md: the search recipe's default sort key repeats its tie-breaker,
-    // and SQL Server rejects a column listed twice in ORDER BY (Msg 169).
+    // docs/cookbook.md: SQL Server rejects a column listed twice in ORDER BY, so the
+    // search recipe adds its tie-breaker only beside another sort key.
     [Fact]
     public void OrderBy_SameColumnTwice_IsRejectedByTheEngine()
     {
