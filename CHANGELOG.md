@@ -659,15 +659,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#684)
 - The analyzer no longer reports these shapes, each of which builds SQL that
   does what was written (#684):
-  - `SQLA0102` on `Inserted(...)` / `Deleted(...)` wrapped in a function held in
-    a variable, a helper, a lambda, a conditional or an array before it reaches
-    `Output(...)`;
+  - `SQLA0102` on `Inserted(...)` / `Deleted(...)` wrapped in a function that
+    then passes through a variable, a helper, a lambda, a conditional or an
+    array, which may carry it into `Output(...)`; written straight into
+    another statement step, it still reports;
   - `SQLA0100` / `SQLA0101` on a member named in `nameof(...)`;
   - `SQLA0200` on a NULL test under `Rollup(...)`, `Cube(...)`,
     `GroupingSets(...)` or `.WithRollup()`, whose subtotal rows carry NULL in a
     NOT NULL grouping column, and in a correlated subquery whose outer query is
     held in a variable, built by a helper, or written in another statement, or
-    which reaches it through a helper;
+    which reaches it through a helper. A column of a table the rule cannot
+    trace to a local, parameter, field or property (an array element, a method
+    call) is no longer judged either;
   - `SQLA0204` on an `ON CONFLICT ... DO UPDATE`'s `Where(...)`, which tests the
     one conflicting row, and on `Cast(...)`, whose effect on an index depends
     on the type it names;

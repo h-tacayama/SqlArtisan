@@ -1263,7 +1263,9 @@ such join. That takes two conditions, both required:
   joins of the outer query that does, so that query must be visible too: with a
   held or helper-built chain, or a call into non-SqlArtisan code, between the
   two, or no visible chain reading the table at all (a subquery held in a
-  variable), it is left alone.
+  variable), it is left alone. So is a column of a table held anywhere but a
+  local, a parameter, a field or a property (`ts[0].Code`, `Tbl().Code`), whose
+  table the rule cannot match to the one a chain reads.
 
 The trade is deliberate — the rule misses real constant predicates in order not
 to call a working anti-join a mistake.

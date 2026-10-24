@@ -241,6 +241,14 @@ public class UnusableIndexPredicateAnalyzerTests
     public Task Where_IndexedColumnInCast_Silent() =>
         RunSilent("""var s = Select(t.Id).From(t).Where(Cast(t.Name, "text") == "a").Build();""");
 
+    // The function around the CAST defeats the index whatever type the CAST names.
+    [Fact]
+    public Task Where_FunctionOverCastOfIndexedColumn_Warns() =>
+        RunReporting(
+            """var s = Select(t.Id).From(t).Where({|#0:Upper(Cast(t.Name, "text"))|} == "A").Build();""",
+            "Name",
+            "wrapped in Upper");
+
     // A MERGE action's Where is not a filtering step, like its DeleteWhere sibling.
     [Fact]
     public Task Where_WrappedIndexedColumnOnMergeAction_Silent() =>

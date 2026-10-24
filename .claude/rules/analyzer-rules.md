@@ -28,9 +28,10 @@ paths:
   points at the wrong problem: a `GroupBy` ordinal below 1, a cast-in
   undefined `DateTimePart`, and a `RegexpOptions` value with a bit no member
   defines.
-- **Every null-supplying construct is classified.** A schema rule silenced
-  past an outer join is silenced past a super-aggregate grouping too
-  (`FluentChain.NullSupplyingGroupings`), and the parity gate reflects both
+- **Every null-supplying construct is classified.** `SQLA0200`, silenced past
+  an outer join, is silenced past a super-aggregate grouping too
+  (`FluentChain.NullSupplyingGroupings`); `SQLA0203` is not, since a `COUNT`
+  under `ROLLUP` still reads the base rows. The parity gate reflects both
   sets from the core (`SchemaRuleParityTests.EveryCoreJoinStep_IsClassified`,
   `EveryCoreNullSupplyingGrouping_IsClassified`), so a new join step or
   grouping element fails the suite until it is placed.

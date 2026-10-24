@@ -101,7 +101,17 @@ internal static class UnusableIndexPredicateRule
     {
         foreach (IArgumentOperation argument in call.Arguments)
         {
-            if (Unwrap(argument.Value) is IPropertyReferenceOperation column
+            IOperation? value = Unwrap(argument.Value);
+
+            // A function over a CAST still wraps the column, whatever the type.
+            if (value is IInvocationOperation inner
+                && TypeDependentWrappings.Contains(inner.TargetMethod.Name)
+                && DialectUsageAnalyzer.IsFromSqlArtisan(inner.TargetMethod.ContainingAssembly))
+            {
+                return IndexedArgument(inner);
+            }
+
+            if (value is IPropertyReferenceOperation column
                 && SchemaMetadata.Fact(column, SchemaMetadata.IndexedArgument) is true)
             {
                 return column;
