@@ -176,7 +176,11 @@ pagination construct cannot join them by being forgotten.
 #537 (from #521) added a `GROUP BY` key: `GroupBy(1)` is a select-list
 position, which Oracle XE 21.3.0 and SQL Server 2022 refuse, and a non-integer
 constant, which Oracle, PostgreSQL 16.13 and SQL Server reject — every cell
-twinned on all five lanes. It reports under `SQLA0104` for the reasons above,
+twinned on all five lanes. #684 corrected two cells: Oracle XE 21.3.0 and
+23.26.3 read both keys as one constant group, so the ordinal cell stays as a
+value run with another meaning and Oracle leaves the non-integer set (the
+earlier twins selected an ungrouped column, which fails whatever the key).
+It reports under `SQLA0104` for the reasons above,
 and its cells live in `ArgumentValueValidity` beside the other two, so the
 three domains this ADR decided are four today; the decision is unchanged.
 

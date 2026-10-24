@@ -418,7 +418,8 @@ public class ArgumentValueValidityAnalyzerTests
             $$"""var q = Select(t.Id).From(t).GroupBy({{ordinal}});""",
             AnalyzerVerifier.EditorConfig("oracle"));
 
-    // A non-integer key is one group on MySQL and SQLite, rejected on the rest.
+    // A non-integer key is one group on MySQL, Oracle and SQLite, rejected on
+    // PostgreSQL and SQL Server.
     [Fact]
     public Task GroupBy_PostgreSql_FractionalKey_ReportsSqla0104() =>
         RunReporting(
@@ -446,6 +447,12 @@ public class ArgumentValueValidityAnalyzerTests
         RunSilent(
             """var q = Select(t.Id).From(t).GroupBy(2.5);""",
             AnalyzerVerifier.EditorConfig("sqlite"));
+
+    [Fact]
+    public Task GroupBy_Oracle_FractionalKey_StaysSilent() =>
+        RunSilent(
+            """var q = Select(t.Id).From(t).GroupBy(2.5);""",
+            AnalyzerVerifier.EditorConfig("oracle"));
 
     [Fact]
     public Task Limit_NoTargetConfigured_StaysSilent() =>

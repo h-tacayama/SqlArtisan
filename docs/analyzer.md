@@ -142,14 +142,14 @@ output variable — against each dialect's limit:
 
 | Dialect | Limit | Measured in |
 |---|---|---|
-| MySQL | 256 | characters |
+| MySQL | 256 | UTF-8 bytes |
 | Oracle | 128 | UTF-8 bytes |
 | PostgreSQL | 63 | UTF-8 bytes |
 | SQLite | unbounded (never warns) | — |
 | SQL Server | 128 | characters |
 
-The byte counts assume a UTF-8 database, since the analyzer cannot see a
-database's encoding. A PostgreSQL database in another encoding counts in its
+The byte counts assume UTF-8, since the analyzer cannot see a database's
+encoding. A PostgreSQL database in another encoding counts in its
 own: on PostgreSQL 16.15, an `EUC_JP` database keeps a 31-character `あ` alias
 (62 bytes there) whole, while the analyzer reports one from 22 characters (66
 UTF-8 bytes). The `RETURNING ... INTO` output variable is checked against
@@ -157,10 +157,12 @@ Oracle's limit alone: no other dialect runs `RETURNING ... INTO`, and `SQLA0100`
 already reports `Into` there.
 
 MySQL's 256 is its **alias** limit — the checked positions are aliases, which
-MySQL allows well past its 64-character table and column names. PostgreSQL is
-the sharpest edge: it does not error on an over-long identifier but silently
-truncates it (only a notice), so two long names can collide after truncation,
-and the analyzer is the only place this surfaces before the database does.
+MySQL allows well past its 64-character table and column names. MySQL and
+PostgreSQL are the sharpest edge: neither errors on an over-long alias, but
+each truncates it with only a warning or a notice — on MySQL 8.0.46 a
+256-character `あ` alias comes back as 85 characters — so two long names can
+collide after truncation, and the analyzer is the only place this surfaces
+before the database does.
 Only constant identifiers are checked; a name built at run time is left alone.
 Like `SQLA0100`, it is a per-usage diagnostic suppressible at one site
 (`#pragma warning disable SQLA0103`, a `[SuppressMessage]` attribute, or
@@ -980,9 +982,10 @@ var q = Select(Datetrunc(DateTimePart.Weekday, u.CreatedAt)).From(u);
 // warning SQLA0104: 'Weekday' is not a valid datepart for 'Datetrunc' on SQL Server
 ```
 
-Each list is built from the vendor's own reference, and six of the eight are
-spot-verified against a live engine (`SqlServerDateaddFields` and
-`MySqlTimestampUnits` have no lane anchor yet). PostgreSQL's `DateTrunc` list
+Each list is built from the vendor's own reference. Seven of the eight are run
+member by member against a live engine (MySQL 8.0.46, PostgreSQL 16.15 and SQL
+Server 2022); Oracle's `Extract` list is spot-verified, since which fields run
+there also depends on the source's type. PostgreSQL's `DateTrunc` list
 also takes `Microsecond` and `Millisecond`, which its manual omits and
 PostgreSQL 16 truncates as the plural spellings; its `Extract` list leaves them
 out, since PostgreSQL reads them as the plural fields, not the component those
@@ -1013,8 +1016,8 @@ the problem to fix.
 ### A `GROUP BY` position an engine has no ordinals for
 
 `GroupBy(1)` groups by the first select-list item. MySQL, PostgreSQL and SQLite
-read the position; Oracle and SQL Server refuse a bare constant there, loudly
-rather than by grouping everything into one row.
+read the position. Oracle groups by the constant itself, all rows in one group,
+so a select list naming a column fails; SQL Server refuses the constant.
 
 ```csharp
 // sqlartisan_syntax_oracle = any
@@ -1022,13 +1025,18 @@ var q = Select(u.Id, Count(u.Id)).From(u).GroupBy(1);
 // warning SQLA0104: '1' is not a valid column ordinal for 'GroupBy' on Oracle
 ```
 
-A non-integer key is reported the same way, on the three engines that refuse
-it: MySQL and SQLite read `GroupBy(2.5)` as a single group, while Oracle,
+A non-integer key is reported the same way, on the two engines that refuse
+it: MySQL, Oracle and SQLite read `GroupBy(2.5)` as a single group, while
 PostgreSQL and SQL Server reject the statement.
+
+Oracle 23ai reads the position once `group_by_position_enabled` is set to
+`TRUE` (it is `FALSE` by default); the analyzer cannot see the setting, so on a
+database that sets it, suppress `SQLA0104` where `GroupBy(1)` is meant.
 
 Only constants report: a column in the same list carries no key, so
 `GroupBy(u.Id, 2)` names just the `2`. A position below 1 is rejected at the
-call instead — no engine accepts one, so there is no dialect to advise about.
+call instead — it names no select-list item on any engine, so there is no
+dialect to advise about.
 
 ### A negative row count
 

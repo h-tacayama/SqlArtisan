@@ -102,31 +102,31 @@ internal static class ArgumentValueValidity
             ("Top", TargetDbms.SqlServer),
         };
 
-    // --- GROUP BY ordinals: where grouping by a select-list position is
-    // rejected outright (#521 item 2) ---
+    // --- GROUP BY ordinals: where a select-list position is not read as one
+    // (#521 item 2) ---
 
-    // The parameter SQLA0104 reads the group keys out of. An ordinal below 1 is
-    // refused by every engine, so the library rejects that at the call instead.
+    // The parameter SQLA0104 reads the group keys out of. An ordinal below 1 names
+    // no select-list position, so the library rejects that at the call instead.
     internal const string GroupByItemsParameterName = "groupByItems";
 
-    // MySQL 8.0, PostgreSQL 16.13 and SQLite 3.50.4 group by the select-list
-    // position; these two refuse a bare constant there, loudly rather than by
-    // grouping everything into one — all five live-verified.
-    private static readonly HashSet<TargetDbms> OrdinalGroupByRejected =
+    // MySQL 8.0.46, PostgreSQL 16.15 and SQLite 3.50.4 group by the position. SQL
+    // Server 2022 and 2025 refuse every constant key; Oracle XE 21.3.0 and 23.26.3
+    // group by the constant, one group, the other meaning a twin pins (#684).
+    private static readonly HashSet<TargetDbms> OrdinalGroupByUnread =
         [TargetDbms.Oracle, TargetDbms.SqlServer];
 
-    // MySQL 8.0 and SQLite 3.50.4 read a non-integer constant as one group;
-    // these three reject it (`non-integer constant in GROUP BY` on PostgreSQL
-    // 16.13) — all five live-verified.
+    // MySQL 8.0.46, Oracle XE 21.3.0 and 23.26.3 and SQLite 3.50.4 read a
+    // non-integer constant as one group; PostgreSQL 16.15 and SQL Server 2022 and
+    // 2025 reject it (`non-integer constant in GROUP BY` on PostgreSQL).
     private static readonly HashSet<TargetDbms> FractionalGroupKeyRejected =
-        [TargetDbms.Oracle, TargetDbms.PostgreSql, TargetDbms.SqlServer];
+        [TargetDbms.PostgreSql, TargetDbms.SqlServer];
 
     /// <summary>
-    /// Whether <paramref name="dbms"/> is measured to reject a <c>GROUP BY</c>
-    /// column ordinal.
+    /// Whether <paramref name="dbms"/> is measured not to read a <c>GROUP BY</c>
+    /// constant as a select-list position.
     /// </summary>
-    public static bool RejectsOrdinalGroupBy(TargetDbms dbms) =>
-        OrdinalGroupByRejected.Contains(dbms);
+    public static bool ReadsNoGroupByOrdinal(TargetDbms dbms) =>
+        OrdinalGroupByUnread.Contains(dbms);
 
     /// <summary>
     /// Whether <paramref name="dbms"/> is measured to reject a non-integer

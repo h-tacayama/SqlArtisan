@@ -51,8 +51,8 @@ internal static class GroupByItemResolver
 
     private static readonly char[] FractionMarks = ['.', 'E', 'e'];
 
-    // An ordinal below 1 names no select-list position and every engine refuses
-    // it, so ADR 0012's three conditions hold and the throw is eager.
+    // An ordinal below 1 names no select-list position on any engine (MySQL 8.0.46
+    // and Oracle XE 21.3.0 read some as a constant instead), so the throw is eager.
     private static NumericGroupKey ResolveNumericGroupKey(object value)
     {
         // Invariant, not ToString(): a comma-decimal culture would split "2.5"

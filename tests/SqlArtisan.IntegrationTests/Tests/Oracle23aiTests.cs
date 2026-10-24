@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using Dapper;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
@@ -20,6 +21,37 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
     public Oracle23aiTests(Oracle23aiFixture fixture)
     {
         _fixture = fixture;
+    }
+
+    // #684: 23ai groups by the constant as 21c does until group_by_position_enabled
+    // is set, the setting docs/analyzer.md names beside SQLA0104's Oracle cell.
+    [Fact]
+    public void GroupByOrdinal_IsReadOnlyWithThePositionSetting()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        const string ByPosition = "SELECT department_id, COUNT(*) FROM users GROUP BY 1";
+
+        Assert.Equal(
+            "FALSE",
+            connection.ExecuteScalar<string>(
+                "SELECT value FROM v$parameter WHERE name = 'group_by_position_enabled'"));
+        Assert.Equal(
+            connection.ExecuteScalar<long>("SELECT COUNT(*) FROM users"),
+            connection.Query<long>("SELECT COUNT(*) FROM users GROUP BY 1").Single());
+        Assert.ThrowsAny<DbException>(() => connection.Query(ByPosition).ToList());
+
+        connection.Execute("ALTER SESSION SET group_by_position_enabled = TRUE");
+        try
+        {
+            Assert.Equal(
+                connection.ExecuteScalar<long>(
+                    "SELECT COUNT(DISTINCT department_id) FROM users"),
+                connection.Query(ByPosition).Count());
+        }
+        finally
+        {
+            connection.Execute("ALTER SESSION SET group_by_position_enabled = FALSE");
+        }
     }
 
     // The accepting half of the query-statements doc note: 23ai added the

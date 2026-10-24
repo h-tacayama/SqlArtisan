@@ -432,14 +432,15 @@ SqlStatement sql =
 
 A group key may also be a **select-list position** — `GroupBy(1, 2)` emits
 `GROUP BY 1, 2`, and positions mix freely with columns (`GroupBy(u.Id, 2)`).
-MySQL, PostgreSQL and SQLite group by the position; Oracle and SQL Server
-refuse a bare constant there, which the analyzer reports as `SQLA0104`. A
-position below 1 names nothing on any engine and is rejected at the call.
+MySQL, PostgreSQL and SQLite group by the position; Oracle groups by the
+constant itself, all rows in one group, and SQL Server refuses it, which the
+analyzer reports as `SQLA0104`. A position below 1 names nothing on any engine
+and is rejected at the call.
 
 A non-integer group key is emitted as written and keeps its decimal point, so
-`GroupBy(2.0)` is `GROUP BY 2.0` rather than a position. MySQL and SQLite read
-such a constant as a single group; Oracle, PostgreSQL and SQL Server reject it,
-which the analyzer reports as `SQLA0104` — unlike `OrderBy`, which refuses a
+`GroupBy(2.0)` is `GROUP BY 2.0` rather than a position. MySQL, Oracle and
+SQLite read such a constant as a single group; PostgreSQL and SQL Server reject
+it, which the analyzer reports as `SQLA0104` — unlike `OrderBy`, which refuses a
 non-integer sort key at `Build(Dbms)` for the dialects that reject it.
 
 An element of `Rollup(...)` or `Cube(...)` is a column, an expression, a

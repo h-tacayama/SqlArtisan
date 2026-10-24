@@ -2,6 +2,7 @@ using System.Data;
 using System.Data.Common;
 using Dapper;
 using SqlArtisan;
+using SqlArtisan.Analyzers;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
@@ -369,6 +370,46 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         // SQL Server rejects.
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             "SELECT DATETRUNC(weekday, created_at) FROM users"));
+    }
+
+    // SQLA0103 (#684): an alias at the analyzer's limit runs, and one character
+    // past it is rejected.
+    [Theory]
+    [MemberData(nameof(IdentifierLimits.Characters), MemberType = typeof(IdentifierLimits))]
+    public void Alias_PastTheIdentifierLimit_IsRejectedByTheEngine(char character)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        string atLimit = IdentifierLimits.AtTheLimit(TargetDbms.SqlServer, character);
+
+        Assert.Equal(atLimit, IdentifierLimits.ReturnedAlias(connection, atLimit));
+        Assert.ThrowsAny<DbException>(
+            () => IdentifierLimits.ReturnedAlias(connection, atLimit + character));
+    }
+
+    // SQLA0104 (#684): every member against the four SQL Server cells, so a list
+    // holding a datepart SQL Server rejects, or missing one it runs, fails here.
+    [Theory]
+    [MemberData(nameof(DatepartCells.EveryMember), MemberType = typeof(DatepartCells))]
+    public void DatepartCells_EveryMember_MatchTheEngine(DateTimePart part)
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        bool Listed(string member) =>
+            DatepartValidity.For(member, TargetDbms.SqlServer)!.Contains(part.ToString());
+
+        Assert.Equal(
+            Listed("Datepart"),
+            DatepartCells.Runs(connection, Select(Datepart(part, u.CreatedAt)).From(u)));
+        Assert.Equal(
+            Listed("Dateadd"),
+            DatepartCells.Runs(connection, Select(Dateadd(part, 1, u.CreatedAt)).From(u)));
+        Assert.Equal(
+            Listed("Datediff"),
+            DatepartCells.Runs(
+                connection, Select(Datediff(part, u.CreatedAt, u.CreatedAt)).From(u)));
+        Assert.Equal(
+            Listed("Datetrunc"),
+            DatepartCells.Runs(connection, Select(Datetrunc(part, u.CreatedAt)).From(u)));
     }
 
     [Fact]
@@ -794,30 +835,23 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT TOP (1) WITH TIES id FROM users UNION SELECT id FROM users ORDER BY 1"));
     }
 
-    // #521 item 2: SQL Server is said to reject grouping by ordinal.
-    [Fact]
-    public void GroupByOrdinal_IsRejectedByTheEngine()
+    // #521 item 2: SQL Server refuses every constant key. A position would run the
+    // listed column and a constant group the aggregate, so each form fails only so.
+    [Theory]
+    [InlineData("1")]
+    [InlineData("2.5")]
+    [InlineData("0")]
+    [InlineData("-1")]
+    public void GroupByConstant_IsRejectedByTheEngine(string constant)
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
         connection.ExecuteScalar("SELECT department_id FROM users GROUP BY department_id");
 
-        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT department_id FROM users GROUP BY 1"));
-    }
-
-    // Not just the in-range ordinal: every bare constant is refused here, which
-    // is what a dialect-blind zero/negative guard rests on.
-    [Theory]
-    [InlineData("0")]
-    [InlineData("-1")]
-    [InlineData("2.5")]
-    public void GroupByConstant_IsRejectedByTheEngine(string constant)
-    {
-        using IDbConnection connection = _fixture.OpenConnection();
-
-        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             $"SELECT department_id FROM users GROUP BY {constant}"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            $"SELECT COUNT(*) FROM users GROUP BY {constant}"));
     }
 
     // The SQL Server half of #532's per-dialect offset verdict (OFFSET ... ROWS

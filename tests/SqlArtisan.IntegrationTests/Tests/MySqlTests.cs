@@ -3,6 +3,7 @@ using System.Data.Common;
 using Dapper;
 using MySqlConnector;
 using SqlArtisan;
+using SqlArtisan.Analyzers;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
@@ -423,6 +424,47 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             "SELECT EXTRACT(EPOCH FROM created_at) FROM users"));
     }
 
+    // SQLA0103 (#684): an alias at the analyzer's limit comes back whole, and one
+    // character past it comes back cut short, with no error.
+    [Theory]
+    [MemberData(nameof(IdentifierLimits.Characters), MemberType = typeof(IdentifierLimits))]
+    public void Alias_PastTheIdentifierLimit_IsTruncated(char character)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        string atLimit = IdentifierLimits.AtTheLimit(TargetDbms.MySql, character);
+
+        Assert.Equal(atLimit, IdentifierLimits.ReturnedAlias(connection, atLimit));
+        Assert.Equal(atLimit, IdentifierLimits.ReturnedAlias(connection, atLimit + character));
+    }
+
+    // SQLA0104 (#684): every member against the four MySQL cells, so a list
+    // holding a unit MySQL rejects, or missing one it runs, fails here.
+    [Theory]
+    [MemberData(nameof(DatepartCells.EveryMember), MemberType = typeof(DatepartCells))]
+    public void DatepartCells_EveryMember_MatchTheEngine(DateTimePart part)
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        bool Listed(string member) =>
+            DatepartValidity.For(member, TargetDbms.MySql)!.Contains(part.ToString());
+
+        Assert.Equal(
+            Listed("Extract"),
+            DatepartCells.Runs(connection, Select(Extract(part, u.CreatedAt)).From(u)));
+        Assert.Equal(
+            Listed("Interval"),
+            DatepartCells.Runs(
+                connection, Select(DateAdd(u.CreatedAt, Interval(1, part))).From(u)));
+        Assert.Equal(
+            Listed("Timestampadd"),
+            DatepartCells.Runs(
+                connection, Select(Timestampadd(part, 1, u.CreatedAt)).From(u)));
+        Assert.Equal(
+            Listed("Timestampdiff"),
+            DatepartCells.Runs(
+                connection, Select(Timestampdiff(part, u.CreatedAt, u.CreatedAt)).From(u)));
+    }
+
     // The live twin of SelectBuilder's bare-OFFSET guard (ADR 0011).
     [Fact]
     public void Pagination_OffsetWithoutLimit_IsRejectedByTheEngine()
@@ -660,15 +702,25 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
                 "SELECT COUNT(*) FROM (SELECT department_id FROM users GROUP BY 1) g"));
     }
 
-    [Theory]
-    [InlineData("0")]
-    [InlineData("-1")]
-    public void GroupByOutOfRangeOrdinal_IsRejectedByTheEngine(string ordinal)
+    // An aggregate-only list, so a constant read as one group would run (#684).
+    [Fact]
+    public void GroupByZero_IsRejectedByTheEngine()
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            $"SELECT department_id FROM users GROUP BY {ordinal}"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT COUNT(*) FROM users GROUP BY 0"));
+    }
+
+    // Unlike 0, a negative key is no position MySQL checks: one constant group (#684).
+    [Fact]
+    public void GroupByNegativeConstant_GroupsByTheConstant()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            connection.ExecuteScalar<long>("SELECT COUNT(*) FROM users"),
+            connection.Query<long>("SELECT COUNT(*) FROM users GROUP BY -1").Single());
     }
 
     // Diverges from PostgreSQL, which rejects a non-integer constant outright.

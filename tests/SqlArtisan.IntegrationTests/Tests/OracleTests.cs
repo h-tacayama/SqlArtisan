@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Dapper;
 using Oracle.ManagedDataAccess.Client;
 using SqlArtisan;
+using SqlArtisan.Analyzers;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
@@ -114,6 +115,41 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         Assert.ThrowsAny<Exception>(() => connection.Execute(
             InsertInto(u, u.Id, u.Name).Values(201, "A").Values(202, "B")));
+    }
+
+    // SQLA0103 (#684): an alias at the analyzer's limit runs, and one character
+    // past it is rejected.
+    [Theory]
+    [MemberData(nameof(IdentifierLimits.Characters), MemberType = typeof(IdentifierLimits))]
+    public void Alias_PastTheIdentifierLimit_IsRejectedByTheEngine(char character)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        string atLimit = IdentifierLimits.AtTheLimit(TargetDbms.Oracle, character);
+
+        Assert.Equal(atLimit, IdentifierLimits.ReturnedAlias(connection, atLimit));
+        Assert.ThrowsAny<DbException>(
+            () => IdentifierLimits.ReturnedAlias(connection, atLimit + character));
+    }
+
+    // The RETURNING ... INTO variable is the one name SQLA0103 checks on Oracle alone.
+    [Fact]
+    public void OutputParameter_PastTheIdentifierLimit_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        string atLimit = IdentifierLimits.AtTheLimit(TargetDbms.Oracle, 'r');
+        ISqlBuilder Returning(string name) =>
+            Update(u).Set(u.Age == u.Age).Where(u.Id == 1)
+                .Returning(u.Id).Into(new OutputParameter(name, DbType.Int32));
+
+        DynamicParameters outputs = connection.ExecuteReturningInto(
+            Returning(atLimit), transaction);
+
+        Assert.Equal(1, Convert.ToInt32(outputs.Get<object>(atLimit)!.ToString()));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteReturningInto(
+            Returning(atLimit + 'r'), transaction));
+        transaction.Rollback();
     }
 
     [Fact]
@@ -853,30 +889,21 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
-    // #521 item 2: Oracle is said to reject grouping by ordinal. The other
-    // possibility -- grouping by the constant -- would be silently wrong.
-    [Fact]
-    public void GroupByOrdinal_IsRejectedByTheEngine()
-    {
-        using IDbConnection connection = _fixture.OpenConnection();
-
-        connection.ExecuteScalar("SELECT department_id FROM users GROUP BY department_id");
-
-        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT department_id FROM users GROUP BY 1"));
-    }
-
-    // Not just the in-range ordinal: every bare constant is refused here, which
-    // is what a dialect-blind zero/negative guard rests on.
+    // #521 item 2, corrected by #684: Oracle groups by the constant itself, so an
+    // aggregate-only list gets one group and a listed column is not grouped by it.
     [Theory]
+    [InlineData("1")]
+    [InlineData("2.5")]
     [InlineData("0")]
     [InlineData("-1")]
-    [InlineData("2.5")]
-    public void GroupByConstant_IsRejectedByTheEngine(string constant)
+    public void GroupByConstant_GroupsByTheConstant(string constant)
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+        Assert.Equal(
+            connection.ExecuteScalar<long>("SELECT COUNT(*) FROM users"),
+            connection.Query<long>($"SELECT COUNT(*) FROM users GROUP BY {constant}").Single());
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             $"SELECT department_id FROM users GROUP BY {constant}"));
     }
 
