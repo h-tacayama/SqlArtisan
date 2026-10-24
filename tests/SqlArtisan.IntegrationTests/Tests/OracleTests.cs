@@ -1394,12 +1394,12 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         BindValue id = Bind(1);
         SqlStatement statement =
             Select(u.Name).From(u).Where(u.Id == id | u.Id > id | u.Name == "x").Build(Dbms.Oracle);
-        using IDbConnection connection = _fixture.OpenConnection();
-
         object? Run(bool byName)
         {
+            using IDbConnection connection = _fixture.OpenConnection();
             using OracleCommand command = ((OracleConnection)connection).CreateCommand();
             command.BindByName = byName;
+            command.CommandTimeout = 30;
             command.CommandText = statement.Text;
             statement.Parameters.ForEach((name, value) => command.Parameters.Add(
                 new OracleParameter(name.TrimStart(':'), value.Value)));
@@ -1407,6 +1407,11 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         }
 
         Run(byName: true);
-        Assert.ThrowsAny<DbException>(() => Run(byName: false));
+        Task<object?> byPosition = Task.Run(() => Run(byName: false));
+        Assert.True(
+            ((IAsyncResult)byPosition).AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(60)),
+            "Binding by position did not finish within 60 seconds.");
+        OracleException ex = Assert.IsType<OracleException>(byPosition.Exception?.InnerException);
+        Assert.StartsWith("ORA-01008", ex.Message);
     }
 }
