@@ -298,7 +298,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         using IDbConnection connection = _fixture.OpenConnection();
         ISelectBuilderLimitOffset Limited() =>
             Select(o.UserId).From(o).OrderBy(o.UserId).Limit(2);
-        int[] expected = connection.Query<int>(Limited()).Distinct().Order().ToArray();
+        int[] expected = [.. connection.Query<int>(Limited()).Distinct().Order()];
         SubqueryDerivedTable d = Limited().AsTable("d");
 
         IEnumerable<int> viaCte = connection.Query<int>(
