@@ -112,6 +112,11 @@ with availability left to the database"). ADR cross-references belong in
   **Added, Changed, Deprecated, Removed, Fixed, Security** — plus three this
   repo adds: **Docs, Tests, Build**. Not "Documentation": nothing gates these
   headings, and that one drifted in unnoticed.
+- An `[Unreleased]` entry describes its change against what the last release
+  shipped, never against an earlier unreleased state: a reader upgrading from
+  that tag never had the intermediate one. A change that revises another not
+  yet released edits that entry rather than adding one that says "already" or
+  "now" against it (#686).
 - From the first release after 1.0, an entry for a change that adds analyzer
   reports — a new rule, a new reason under an ID, a matrix correction or table
   cell that starts reporting — opens with **New warning:**, as a breaking one
