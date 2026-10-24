@@ -273,8 +273,7 @@ SqlStatement sql =
 
 MySQL, Oracle, PostgreSQL, and SQLite support this (standard SQL); on SQL Server,
 which has no `JOIN ... USING`, write the match explicitly with `On(...)`.
-`JoinLateral()` takes `.Using(...)` too; SQLite and SQL Server have no `LATERAL`
-([Correlated joins](#correlated-joins-apply--lateral)).
+`JoinLateral()` also takes `.Using(...)`.
 
 #### Correlated joins: APPLY / LATERAL
 
@@ -778,7 +777,7 @@ SqlStatement sql =
 
 #### Row-limited queries as subqueries
 
-A query ending in a row-limiting clause is still a subquery: embed it as an aliased scalar value (`.As("alias")`), an `IN` / `NOT IN` / `EXISTS` / `NOT EXISTS` operand, an `ANY` / `ALL` / `SOME` operand, a CTE body, a derived table (`.AsTable("alias")`), or a `LATERAL` / `APPLY` operand. The canonical per-group top-N:
+A query ending in a row-limiting clause is still a subquery: embed it as a [scalar subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#scalar-subquery), an `IN` / `NOT IN` / `EXISTS` / `NOT EXISTS` operand, an `ANY` / `ALL` / `SOME` operand, a CTE body, a derived table (`.AsTable("alias")`), or a `LATERAL` / `APPLY` operand. The canonical per-group top-N:
 
 ```csharp
 UsersTable u = new("u");

@@ -1048,18 +1048,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     `CurrentTimestamp()` for `CurrentDate` / `CurrentTime`, nested
     `Ltrim(Rtrim(...))`, and nested `Concat` on Oracle, which names
     `DoublePipe(...)` instead.
-  - Engine result semantics now link the engine's manual instead of
-    restating them: the `COUNT(*)` optimizer claim, `LastValue`'s default frame,
-    Oracle Text's score range, an empty `BindArray`'s rows, and Oracle `MERGE`
-    filter outcomes.
+  - Engine result semantics are linked to the engine's manual (`LastValue`'s
+    default frame, Oracle Text's score range, Oracle `MERGE` filter outcomes)
+    or dropped (the `COUNT(*)` optimizer claim, an empty `BindArray`'s rows).
   - The SQL Server `MERGE` `[!IMPORTANT]` is prose stating the terminating
     semicolon, with Microsoft's page for its concurrency behaviour; the `LOG`
     warning names `Log(x)` as the silent form; the `GROUP_CONCAT` and
     `Position()` notes keep only the hazard.
-  - Lists name every position: a row-limited query as a derived table, a
-    scalar subquery as a `SET` value, a `VALUES` value or a function argument,
-    a row-limited query as an `ANY` / `ALL` / `SOME` or `NOT EXISTS` operand,
-    and `JoinLateral()` before `.Using(...)`.
+  - Position lists are complete or gone: a row-limited query is embeddable as
+    any scalar subquery, a derived table, or an `ANY` / `ALL` / `SOME` or
+    `NOT EXISTS` operand; the scalar-subquery section no longer lists
+    positions; and `JoinLateral()` takes `.Using(...)`.
   - `WITH` / CTE is a section of its own; DBMS lists are in enum order; the
     pages no longer call the wrapped comment SQL "exact"; the cookbook's
     `MERGE` pointers name only the terminating semicolon; and `LastValue`'s and

@@ -644,7 +644,7 @@ SqlStatement sql =
 
 ## Scalar Subquery
 
-A `SELECT` builder can be used directly as a scalar value — in a `SELECT` list, a `WHERE` comparison, arithmetic, a `SET` or `VALUES` value, or a function argument. Chain `.As("alias")` for an aliased column.
+A `SELECT` builder can be used directly as a scalar value. Chain `.As("alias")` for an aliased column.
 
 ```csharp
 UsersTable u = new("u");
