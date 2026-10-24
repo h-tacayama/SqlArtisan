@@ -253,6 +253,54 @@ public class ContextRuleContractTests
         Assert.Equal(expected, declaring);
     }
 
+    // The MySQL INTERVAL rule stays silent only as a +/- operand or as DateAdd /
+    // DateSub's `interval` argument (`-` reaches it through an object operand); a
+    // new member or parameter name taking one would be reported as bare.
+    [Fact]
+    public void IntervalOperand_IsTakenOnlyByTheEscapingMembers()
+    {
+        string[] takers = [.. Core.GetExportedTypes()
+            .SelectMany(t => t.GetMethods(
+                BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance))
+            .SelectMany(m => m.GetParameters()
+                .Where(p => (p.ParameterType.IsArray
+                        ? p.ParameterType.GetElementType()
+                        : p.ParameterType) == typeof(IntervalExpression))
+                .Select(p => m.Name.StartsWith("op_", StringComparison.Ordinal)
+                    ? m.Name
+                    : $"{m.Name}({p.Name})"))
+            .Distinct()
+            .OrderBy(name => name, StringComparer.Ordinal)];
+
+        Assert.Equal(["DateAdd(interval)", "DateSub(interval)", "op_Addition"], takers);
+    }
+
+    // A call through an interface inheriting a classifying stage binds to the
+    // stage's own member, so it joins the verdict too: the inheritors are pinned.
+    [Theory]
+    [InlineData("IDeleteBuilderDelete", "IDeleteBuilderDeleteOutput", "IDeleteBuilderOutputInto")]
+    [InlineData("IUpdateBuilderSet", "IUpdateBuilderOutputInto", "IUpdateBuilderSetOutput")]
+    [InlineData("IUpdateBuilderUpdate")]
+    [InlineData("IUpdateBuilderJoined")]
+    [InlineData(
+        "IWithBuilder",
+        "IInsertBuilderColumns",
+        "IInsertBuilderColumnsOutput",
+        "IInsertIgnoreBuilderColumns")]
+    [InlineData("IMergeBuilderThenUpdateSet")]
+    [InlineData("IMergeBuilderValues")]
+    [InlineData("IInsertBuilderValues")]
+    public void DmlShapeStage_InheritorsAreExactlyThese(string stage, params string[] expected)
+    {
+        Type type = Assert.Single(Core.GetExportedTypes().Where(t => t.Name == stage));
+        List<string> inheritors = [.. Core.GetExportedTypes()
+            .Where(t => t.IsInterface && t != type && type.IsAssignableFrom(t))
+            .Select(t => t.Name)
+            .OrderBy(name => name, StringComparer.Ordinal)];
+
+        Assert.Equal(expected, inheritors);
+    }
+
     // DELETE ... USING is identified by its declaring interface alone, which is
     // sound only while that interface carries no second Using overload.
     [Fact]

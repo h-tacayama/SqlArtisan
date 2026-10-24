@@ -107,6 +107,82 @@ public class SchemaRuleParityTests
         },
     };
 
+    // Shapes one rule's suite proved silent, asserted silent on every rule (ADR 0010).
+    // Each entry is (statements, the target the shape runs on).
+    public static TheoryData<string, string> RuleSuiteSilentShapes => new()
+    {
+        {
+            """
+            bool flag = System.DateTime.Now.Ticks > 0;
+            var q = (flag ? Select(t.Code).From(t) : Select(t.Code).From(t)).Where(t.Code.IsNull);
+            """,
+            "postgresql"
+        },
+        {
+            """var s = Select(t.Code).From(t).LeftJoin(r).On(t.Code == r.Code).Where(r.Code.IsNull).Union.Select(t.Code).From(t).Build();""",
+            "postgresql"
+        },
+        {
+            """
+            SubqueryDerivedTable u = Select(t.Code).From(t).LeftJoin(r).On(t.Code == r.Code).Where(r.Code.IsNull).Union.Select(t.Code).From(t).AsTable("u");
+            var s = Select(u.Column(t.Code)).From(u).Build();
+            """,
+            "postgresql"
+        },
+        {
+            """
+            T x = new T("x");
+            var s = Select(t.Code).From(t).Where(Exists(Select(x.Code).From(x).LeftJoin(r).On(x.Code == r.Code).Where(r.Code.IsNull).Union.Select(x.Code).From(x))).Build();
+            """,
+            "postgresql"
+        },
+        {
+            """
+            T x = new T("x");
+            var s = Select(t.Code).From(t).LeftJoin(r).On(t.Code == r.Code).Where(Exists(Select(x.Code).From(x).Union.Select(x.Code).From(x).Where(r.Code.IsNull))).Build();
+            """,
+            "postgresql"
+        },
+        {
+            """
+            T x = new T("x");
+            var s = Select(t.Code).From(t).LeftJoin(r).On(t.Code == r.Code).Where(Exists(Select(Count(r.Note)).From(x).Union.Select(x.Code).From(x))).Build();
+            """,
+            "postgresql"
+        },
+        {
+            """var s = Select(t.Code).From(t).Where(Exists(Select(r.Code).From(r).Where(r.Key == t.Key))).Build();""",
+            "postgresql"
+        },
+        {
+            """
+            T m = new T("m");
+            var s = MergeInto(m).Using(r).On(m.Code == r.Code).WhenMatched().ThenUpdateSet(m.Note == r.Note).Where(Upper(m.Key) == "A").WhenNotMatched().ThenInsert(m.Code).Values(r.Code).Where(Upper(r.Key) == "B").Build();
+            """,
+            "oracle"
+        },
+        {
+            """var s = Select(t.Code).From(t).Where(Case(When(t.Note == "a").Then(t.Key), Else("z")) == "z").Build();""",
+            "postgresql"
+        },
+        {
+            """var s = MergeInto(t).Using(r).On(t.Code == r.Code).WhenMatched().ThenUpdateSet(t.Code == 1).Build();""",
+            "postgresql"
+        },
+        {
+            """var s = Update(t).Set(t.Code == 1).Build();""",
+            "postgresql"
+        },
+        {
+            """var s = InsertInto(t, t.Code).Values("x").OnConflict(t.Code).DoUpdateSet(t.Code == 1).Build();""",
+            "postgresql"
+        },
+        {
+            """var s = InsertInto(t, t.Code).Values("x").OnDuplicateKeyUpdate(t.Code == 1).Build();""",
+            "mysql"
+        },
+    };
+
     // A chain the reporting statement cannot see the whole of: the join that
     // decides the answer — or the predicate that would silence the rule — is one
     // statement, one method, or one field away.
@@ -503,6 +579,12 @@ public class SchemaRuleParityTests
     public Task ConstantNullPredicate_UnderSuperAggregateGrouping_Silent(
         string statement, string dbms) =>
         RunSilent(statement, dbms);
+
+    [Theory]
+    [MemberData(nameof(RuleSuiteSilentShapes))]
+    public Task SchemaRule_ShapeSilentInOneSuite_SilentOnEveryRule(
+        string statements, string dbms) =>
+        RunSilent(statements, dbms);
 
     [Theory]
     [MemberData(nameof(HiddenChains))]

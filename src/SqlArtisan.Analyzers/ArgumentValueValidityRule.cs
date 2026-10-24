@@ -110,9 +110,11 @@ internal static class ArgumentValueValidityRule
                     Report(context, element, memberName, value, OrdinalNoun, invalidOn);
                 }
             }
-            else if (IsFractionalType(key.Type) is true && fractionalInvalidOn is { Count: > 0 })
+            else if (IsFractionalType(key.Type) is true
+                && fractionalInvalidOn is { Count: > 0 }
+                && FractionalKeyText(value) is { } text)
             {
-                Report(context, element, memberName, value, GroupKeyNoun, fractionalInvalidOn);
+                Report(context, element, memberName, text, GroupKeyNoun, fractionalInvalidOn);
             }
         }
     }
@@ -131,6 +133,21 @@ internal static class ArgumentValueValidityRule
             Convert.ToString(value, CultureInfo.InvariantCulture),
             noun,
             TargetDbmsNames.JoinDisplayNames(invalidOn)));
+
+    // The key as the core emits it ("2" becomes "2.0", so a whole value reads as a
+    // key rather than the ordinal 2); a non-finite one the core rejects at the call.
+    private static string? FractionalKeyText(object value)
+    {
+        if (value is double d && (double.IsNaN(d) || double.IsInfinity(d))
+            || value is float f && (float.IsNaN(f) || float.IsInfinity(f))
+            || value is not IFormattable formattable)
+        {
+            return null;
+        }
+
+        string text = formattable.ToString(null, CultureInfo.InvariantCulture);
+        return text.IndexOfAny(['.', 'E', 'e']) < 0 ? text + ".0" : text;
+    }
 
     private static bool IsOrdinalType(ITypeSymbol? type) => type?.SpecialType is
         SpecialType.System_SByte or SpecialType.System_Byte or SpecialType.System_Int16

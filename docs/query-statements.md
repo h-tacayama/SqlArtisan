@@ -1064,7 +1064,11 @@ at `Build()`, and so does `DeleteFrom(t).Using(...)` on SQL Server, which has no
 by the database; with the analyzer configured it is named first — see
 [Context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102).
 Oracle and SQLite before the releases that added `UPDATE … FROM` take none of
-the joined forms above, and SQLite has no joined `DELETE` at any version.
+the joined forms above, and SQLite has no joined `DELETE` at any version. There,
+a [correlated subquery](#correlated-update--delete) filters the target by the
+other table: `DeleteFrom(t).Where(t.Id.In(Select(u.Id).From(u).Where(u.Id == t.Id)))`,
+with `t` aliased, and the same filter on `Update(t).Set(...)`, run in that shape
+on Oracle XE 21.3.0 and SQLite 3.50.4.
 
 The MySQL / SQL Server `DELETE ... FROM` and MySQL's join-before-`SET` stages
 do not offer `Returning(...)`, since neither engine has `RETURNING`; on an

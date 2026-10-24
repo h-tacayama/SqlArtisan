@@ -1247,4 +1247,49 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.Null(connection.ExecuteScalar<string>(
             Select(JsonArrow(Bind("""{"a\\b": "hit"}"""), @"a\b"))));
     }
+
+    // docs/analyzer.md: SQLite takes no joined DELETE, and no UPDATE ... FROM below
+    // 3.33; the correlated subquery is the workaround the joined-DML notes name.
+    [Fact]
+    public void CorrelatedDelete_AliasedTarget_Executes()
+    {
+        UsersTable cu = new("cu");
+        OrdersTable o = new("o");
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            DeleteFrom(cu)
+                .Where(cu.Id.In(Select(o.UserId).From(o).Where(o.UserId == cu.Id))),
+            transaction);
+
+        long remaining = connection.ExecuteScalar<long>(
+            Select(Count(u.Id)).From(u), transaction: transaction);
+
+        Assert.Equal(1, remaining);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void CorrelatedUpdate_AliasedTarget_Executes()
+    {
+        UsersTable cu = new("cu");
+        OrdersTable o = new("o");
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            Update(cu)
+                .Set(cu.DepartmentId == 999)
+                .Where(cu.Id.In(Select(o.UserId).From(o).Where(o.UserId == cu.Id))),
+            transaction);
+
+        long updated = connection.ExecuteScalar<long>(
+            Select(Count(u.Id)).From(u).Where(u.DepartmentId == 999), transaction: transaction);
+
+        Assert.Equal(4, updated);
+        transaction.Rollback();
+    }
 }

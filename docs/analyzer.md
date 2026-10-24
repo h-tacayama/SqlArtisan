@@ -148,6 +148,14 @@ output variable — against each dialect's limit:
 | SQLite | unbounded (never warns) | — |
 | SQL Server | 128 | characters |
 
+The byte counts assume a UTF-8 database, since the analyzer cannot see a
+database's encoding. A PostgreSQL database in another encoding counts in its
+own: on PostgreSQL 16.15, an `EUC_JP` database keeps a 31-character `あ` alias
+(62 bytes there) whole, while the analyzer reports one from 22 characters (66
+UTF-8 bytes). The `RETURNING ... INTO` output variable is checked against
+Oracle's limit alone: no other dialect runs `RETURNING ... INTO`, and `SQLA0100`
+already reports `Into` there.
+
 MySQL's 256 is its **alias** limit — the checked positions are aliases, which
 MySQL allows well past its 64-character table and column names. PostgreSQL is
 the sharpest edge: it does not error on an over-long identifier but silently
@@ -803,7 +811,8 @@ rules that read back up the chain stay silent there.
 bare alias (`DELETE t FROM ...`), the multi-table form only MySQL and SQL
 Server parse. On Oracle at or past its [floor](#version-bound-constructs), and
 on PostgreSQL, write the join as `Using(...)`; Oracle below that floor and
-SQLite take neither form.
+SQLite take neither form, and a [correlated subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#correlated-update--delete)
+on the aliased target takes its place there.
 
 ```csharp
 // sqlartisan_syntax_postgresql = any
@@ -815,7 +824,8 @@ var q = DeleteFrom(u).From(u, o).Where(u.Id == o.UserId);
 and `DELETE ... USING` — so its construct-level entry is their union, and
 Oracle reads "supported" on the strength of its `MERGE` alone. Its `DELETE`
 takes `USING` only at or past its [floor](#version-bound-constructs); below it
-the statement is ORA-00933. Oracle at or past that floor, and PostgreSQL, are
+the statement is ORA-00933, and a correlated subquery on the aliased target
+takes its place. Oracle at or past that floor, and PostgreSQL, are
 the dialects whose `DELETE` takes the clause. The entry already reads
 unsupported for MySQL and SQLite, so `SQLA0100` covers those two without a
 context rule, and SQL Server —
@@ -833,7 +843,7 @@ join precedes `SET`. No other dialect has it: PostgreSQL takes
 `Set(...).From(...)` instead, as do Oracle and SQLite at or past their
 [floors](#version-bound-constructs), and SQL Server re-lists the target in
 `From(...)`. Oracle and SQLite below their floors take none of these joined
-`UPDATE` forms.
+`UPDATE` forms; a correlated subquery on the aliased target takes their place.
 
 ```csharp
 // sqlartisan_syntax_sqlite = any
@@ -845,7 +855,8 @@ var q = Update(u).InnerJoin(o).On(u.Id == o.UserId).Set(u.Age == 30);
 a `FROM` clause on `UPDATE`, as do Oracle and SQLite at or past their
 [floors](#version-bound-constructs); MySQL does not, and nor do Oracle and
 SQLite below them. Use the join-before-`SET` form on MySQL; Oracle and SQLite
-below their floors take no joined `UPDATE` form.
+below their floors take no joined `UPDATE` form, and a correlated subquery on the
+aliased target takes its place.
 
 ```csharp
 // sqlartisan_syntax_mysql = any
@@ -1630,6 +1641,9 @@ for, not a bug in the matrix.
   declared in a referenced project or assembly, is not traced, so an over-long
   alias passed to it is missed. TableClassGen always emits the classic
   constructor form, so a generated table class in the same project is traced.
+- **A method group is not checked.** A SqlArtisan member passed as a
+  delegate rather than called, as in LINQ's `names.Select(Length)`, gets no
+  dialect verdict, while the call `Length("x")` does.
 - **Absence of an entry still means silence, not endorsement.** The matrix
   covers every referencable public method, property, field, and overloaded
   operator except a
