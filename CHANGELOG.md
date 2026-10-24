@@ -1066,6 +1066,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     `ContainsScore`'s XML docs drop the default frame and the score range.
   - PostgreSQL's rejection of a `double precision` `Round(x, n)` / `Mod` and of
     a `DistinctOn(...)` whose `ORDER BY` leads with another key is noted.
+  - The register's sources list `sign()` as a SQLite core function, not part
+    of the math-functions extension; Bind Parameter Types says which listed
+    types `SqlArtisan.Dapper` and Npgsql cannot send; the `MERGE` branch and
+    `Cte` snippets show their SQL; and the expressions page's MySQL `LIMIT`
+    note names `NOT IN`.
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

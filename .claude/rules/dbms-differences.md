@@ -102,14 +102,18 @@ the dialect layer nor a plain matrix entry (the first two identified in the
   `IDbmsDialect` member.
 - **Context-bounded validity → an analyzer context rule (SQLA0102, ADR
   0013).** A construct valid in one syntactic context and rejected in another
-  on the *same* engine — MySQL's `LIMIT` inside `IN`/`ANY`/`ALL`/`SOME`
+  on the *same* engine — MySQL's `LIMIT` inside `IN`/`NOT IN`/`ANY`/`ALL`/`SOME`
   subqueries, or a joined `UPDATE`/`DELETE` spelling written for the wrong
   engine — cannot be expressed by the construct-level matrix at all. Add a
   rule to `src/SqlArtisan.Analyzers/ContextRules.cs` with a primary source and a
   live rejection proof in the per-engine integration tests, plus the docs
-  note with the workaround. A dialect that accepts the position from some
-  version on gets a floor beside the rule's dialect list (ADR 0015, "Context
-  rules take the same floor"), never a second rule. A restriction with no API
+  note with the workaround. The workaround names SqlArtisan steps that move
+  the construct to a position the engine takes — a CTE, a derived table, a
+  second statement — never hand-written SQL, so ADR 0020's substitution
+  clause, which bars a recipe, does not reach it (#685). A dialect that
+  accepts the position from some version on gets a floor beside the rule's
+  dialect list (ADR 0015, "Context rules take the same floor"), never a
+  second rule. A restriction with no API
   surface to anchor on (Oracle's `PRIOR` outside `CONNECT BY` — CONNECT BY is
   wontfix per ADR 0010) stays a docs/ADR note only.
 - **Value-bounded validity → an analyzer value-domain rule (SQLA0104, ADR
