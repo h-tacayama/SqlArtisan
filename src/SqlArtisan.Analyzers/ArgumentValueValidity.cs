@@ -110,14 +110,14 @@ internal static class ArgumentValueValidity
     internal const string GroupByItemsParameterName = "groupByItems";
 
     // MySQL 8.0.46, PostgreSQL 16.15 and SQLite 3.50.4 group by the position. SQL
-    // Server 2022 and 2025 refuse every constant key; Oracle XE 21.3.0 and 23.26.3
-    // group by the constant, one group, the other meaning a twin pins (#684).
+    // Server 2022 refuses every constant key; Oracle XE 21.3.0 and 23.26.3 group by
+    // the constant, one group, the other meaning a twin pins (#684).
     private static readonly HashSet<TargetDbms> OrdinalGroupByUnread =
         [TargetDbms.Oracle, TargetDbms.SqlServer];
 
     // MySQL 8.0.46, Oracle XE 21.3.0 and 23.26.3 and SQLite 3.50.4 read a
-    // non-integer constant as one group; PostgreSQL 16.15 and SQL Server 2022 and
-    // 2025 reject it (`non-integer constant in GROUP BY` on PostgreSQL).
+    // non-integer constant as one group; PostgreSQL 16.15 and SQL Server 2022
+    // reject it (`non-integer constant in GROUP BY` on PostgreSQL).
     private static readonly HashSet<TargetDbms> FractionalGroupKeyRejected =
         [TargetDbms.PostgreSql, TargetDbms.SqlServer];
 

@@ -584,8 +584,7 @@ public class GroupByTests
             sql.Text);
     }
 
-    // Every engine refuses an ordinal below 1 — MySQL 8.0, Oracle XE 21.3.0,
-    // PostgreSQL 16.13, SQLite 3.50.4 and SQL Server 2022 alike.
+    // An ordinal below 1 names no select-list position on any engine.
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]

@@ -319,8 +319,8 @@ joined forms, whose `OUTPUT` reads a `FROM` table by name, and SQL Server 2025 a
 Oracle 23ai are not run.
 
 **A `GROUP BY` column ordinal stays permissive on the engines that do not read
-it (decided — do not re-file):** SQL Server 2022 and 2025 reject a bare constant
-there and Oracle XE 21.3.0 and 23.26.3 group by it as one constant, while MySQL
+it (decided — do not re-file):** SQL Server 2022 rejects a bare constant there
+and Oracle XE 21.3.0 and 23.26.3 group by it as one constant, while MySQL
 8.0.46, PostgreSQL 16.15 and SQLite 3.50.4 group by the position, so
 `Build(Dbms)` could throw the way `OrderBy`'s non-integer sort key does — and
 deliberately does not. ADR 0011's bar is an analyzer blind spot **and** no valid

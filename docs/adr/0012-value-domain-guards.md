@@ -88,9 +88,9 @@ permissive default stands. `Numtoyminterval`'s and `Numtodsinterval`'s
 function definitions accept; no other engine has either function, so any
 other value is invalid everywhere (#448). A `GROUP BY` column ordinal below
 1 (#521): it names no select-list position, and MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16.13, SQLite 3.50.4 and SQL Server
-2022 all refuse it — live-verified on each. Corrected by #684: those probes
-selected an ungrouped column, which fails whatever the key, and with an
-aggregate-only select list MySQL 8.0.46 reads `-1`, and Oracle XE 21.3.0 and
+2022 all refuse it — live-verified on each. Corrected by #684: the MySQL and
+Oracle probes selected an ungrouped column, which those two reject whatever the
+key, and with an aggregate-only select list MySQL 8.0.46 reads `-1`, and Oracle XE 21.3.0 and
 23.26.3 read `0` and `-1`, as one constant group, so condition 1 no longer
 holds; whether the guard stays is #679's. Note the contrast with `ORDER BY`,
 whose negative ordinal MySQL reads as a constant and accepts, which is why that

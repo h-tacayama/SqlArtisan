@@ -857,7 +857,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   catalog takes thirteen silent shapes from the per-rule suites. SQLite twins
   run the correlated `UPDATE` / `DELETE` the joined-DML notes name. (#684)
 - MySQL and SQL Server twins run every `DateTimePart` member against `SQLA0104`'s
-  datepart lists, and each lane but SQLite pins `SQLA0103`'s identifier limit
+  datepart lists, and each dialect but SQLite pins `SQLA0103`'s identifier limit
   at and one character past it. The `GroupBy` constant twins use an
   aggregate-only select list, so a key read as one constant group no longer
   fails for an ungrouped column. (#684)

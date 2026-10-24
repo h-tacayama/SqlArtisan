@@ -23,8 +23,26 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         _fixture = fixture;
     }
 
-    // #684: 23ai groups by the constant as 21c does until group_by_position_enabled
-    // is set, the setting docs/analyzer.md names beside SQLA0104's Oracle cell.
+    // #684: 23ai groups by a constant key as 21c does (OracleTests'
+    // GroupByConstant_GroupsByTheConstant), with the setting at its default.
+    [Theory]
+    [InlineData("1")]
+    [InlineData("2.5")]
+    [InlineData("0")]
+    [InlineData("-1")]
+    public void GroupByConstant_GroupsByTheConstant(string constant)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            connection.ExecuteScalar<long>("SELECT COUNT(*) FROM users"),
+            connection.Query<long>($"SELECT COUNT(*) FROM users GROUP BY {constant}").Single());
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            $"SELECT department_id FROM users GROUP BY {constant}"));
+    }
+
+    // Only group_by_position_enabled makes 23ai read the position, the setting
+    // docs/analyzer.md names beside SQLA0104's Oracle cell.
     [Fact]
     public void GroupByOrdinal_IsReadOnlyWithThePositionSetting()
     {
@@ -35,9 +53,6 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
             "FALSE",
             connection.ExecuteScalar<string>(
                 "SELECT value FROM v$parameter WHERE name = 'group_by_position_enabled'"));
-        Assert.Equal(
-            connection.ExecuteScalar<long>("SELECT COUNT(*) FROM users"),
-            connection.Query<long>("SELECT COUNT(*) FROM users GROUP BY 1").Single());
         Assert.ThrowsAny<DbException>(() => connection.Query(ByPosition).ToList());
 
         connection.Execute("ALTER SESSION SET group_by_position_enabled = TRUE");
