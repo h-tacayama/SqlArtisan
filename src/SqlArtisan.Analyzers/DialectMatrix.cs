@@ -330,8 +330,8 @@ internal static class DialectMatrix
         [new MatrixKey("NextValueFor")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("Sequence")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
 
-        // --- RETURNING (docs/query-statements.md: "supported by Oracle, PostgreSQL, and SQLite
-        // (3.35+). Not supported by SQL Server (uses OUTPUT) or MySQL.") ---
+        // --- RETURNING (Oracle requires INTO: ContextRules.CheckReturningRequiresInto;
+        // SQL Server uses OUTPUT) ---
         [new MatrixKey("Returning")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         // "Into" (the RETURNING ... INTO chain) is Oracle-specific — narrower than Returning
         // itself.
@@ -454,7 +454,7 @@ internal static class DialectMatrix
         [new MatrixKey("NotBetween")] = DbmsSupport.All,
         [new MatrixKey("Like")] = DbmsSupport.All,
         [new MatrixKey("NotLike")] = DbmsSupport.All,
-        // Escape: docs/expressions.md — "supported identically across all dialects".
+        // Escape: the ESCAPE literal is spelled per dialect, valid on each.
         [new MatrixKey("Escape")] = DbmsSupport.All,
         [new MatrixKey("IsNull")] = DbmsSupport.All,
         [new MatrixKey("IsNotNull")] = DbmsSupport.All,

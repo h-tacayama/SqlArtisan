@@ -35,7 +35,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Round()` for `ROUND` (single-argument `Round(expr)` is not supported by SQL Server — pass the scale explicitly there)
 - `Sign()` for `SIGN`
 - `Sqrt()` for `SQRT`
-- `Trunc()` for `TRUNC` (Numeric Overload; Oracle, PostgreSQL, SQLite — the two-argument scale form is Oracle/PostgreSQL only)
+- `Trunc()` for `TRUNC` (numeric argument; Oracle, PostgreSQL, SQLite — the two-argument scale form is Oracle/PostgreSQL only)
 
 > [!WARNING]
 > **`LOG` silently changes meaning with the target, in both forms.** `SQLA0100` catches Oracle's rejection of `Log(x)` and every 2-arg `Log` on SQL Server; every other cell below runs, right or silently wrong.
@@ -70,7 +70,7 @@ not at the SqlArtisan layer.
 - `Length()` for `LENGTH` (MySQL, Oracle, PostgreSQL, SQLite)
 - `Lengthb()` for `LENGTHB` (Oracle)
 - `Lower()` for `LOWER`
-- `Position()` for `POSITION(substr IN str)`
+- `Position()` for `POSITION(substr IN str)` (MySQL, PostgreSQL)
 - `Right()` for `RIGHT` (MySQL, PostgreSQL, SQL Server)
 - `Rpad()` for `RPAD` (MySQL, Oracle, PostgreSQL; the 2-argument form is Oracle/PostgreSQL only)
 - `Rtrim()` for `RTRIM` (two-argument trim-set form: Oracle, PostgreSQL, SQLite, SQL Server)
@@ -79,7 +79,7 @@ not at the SqlArtisan layer.
 - `RegexpReplace()` for `REGEXP_REPLACE` (MySQL, Oracle, PostgreSQL, SQL Server)
 - `RegexpSubstr()` for `REGEXP_SUBSTR` (MySQL, Oracle, PostgreSQL, SQL Server; the 6-argument `subPatternPos` form is Oracle/PostgreSQL/SQL Server only)
 - `Replace()` for `REPLACE`
-- `Strpos()` for `STRPOS`
+- `Strpos()` for `STRPOS` (PostgreSQL)
 - `Substr()` for `SUBSTR` (not supported by SQL Server — use `Substring()` there)
 - `Substrb()` for `SUBSTRB` (Oracle)
 - `Substring()` for `SUBSTRING` (MySQL, PostgreSQL, SQLite, SQL Server; on Oracle use `Substr()`)
@@ -125,7 +125,7 @@ for the full per-dialect guide, including a MySQL semantics trap `||` has that
 - `DateTrunc()` for `DATE_TRUNC` (PostgreSQL)
 - `Datetime(timevalue[, modifier, ...])` for `DATETIME` (SQLite)
 - `Datetrunc()` for `DATETRUNC` (SQL Server)
-- `Extract()` for `EXTRACT` (Date/Time Overload; MySQL, Oracle, PostgreSQL)
+- `Extract()` for `EXTRACT` (MySQL, Oracle, PostgreSQL)
 - `Julianday(timevalue[, modifier, ...])` for `JULIANDAY` (SQLite)
 - `LastDay()` for `LAST_DAY` (MySQL, Oracle)
 - `MonthsBetween()` for `MONTHS_BETWEEN` (Oracle)
@@ -134,7 +134,7 @@ for the full per-dialect guide, including a MySQL semantics trap `||` has that
 - `Systimestamp` for `SYSTIMESTAMP` (Oracle)
 - `Timestampadd()` for `TIMESTAMPADD` (MySQL)
 - `Timestampdiff()` for `TIMESTAMPDIFF` (MySQL)
-- `Trunc()` for `TRUNC` (Date/Time Overload; Oracle)
+- `Trunc()` for `TRUNC` (date argument; Oracle)
 
 `DateAdd()`/`DateSub()` above take their shift amount from an `INTERVAL`
 expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
@@ -308,7 +308,8 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 - `RowNumber()` for `ROW_NUMBER()`
 
 A window function is invalid without `OVER`, so complete each one with
-`.Over(...)` (see [Expressions: Window Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#window-functions)).
+`.Over(...)` — except `PercentileCont` / `PercentileDisc`, which
+`.WithinGroup(...)` completes, as their entries above say (see [Expressions: Window Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#window-functions)).
 The library enforces this: a bare `Rank()`, `RowNumber()`, etc. is not a usable
 expression, so passing one to `Select(...)` is rejected rather than emitting an
 `OVER`-less token the database would reject.
@@ -325,11 +326,11 @@ SqlArtisan automatically converts C# literal values into bind parameters (to bin
 - **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
 - **Enum**: Any `enum` type, except the function-argument enums `DateTimePart`, `RegexpOptions` and `SearchModifier`, which throw `ArgumentException` in a value position. Passed there, one is a slip — an argument given at an arity with no slot of its type, as `RegexpCount(s, p, RegexpOptions.CaseInsensitive)` gives the options as the position — and bound, it is the value — through `SqlArtisan.Dapper`, its integer. To store or compare one deliberately, bind it with `Sql.Bind(value)`.
 
-`Sql.Bind(value)` rejects `null`. For a bound `NULL`, use `Sql.BindNull()`: a bare `null` literal inlines the `NULL` keyword into the SQL text, while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
+`Sql.Bind(value)` rejects `null`. For a bound `NULL`, use `Sql.BindNull()`: `Sql.Null` inlines the `NULL` keyword into the SQL text — as does a bare C# `null` in a `VALUES` row, the one position that takes one; anywhere else it throws — while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
 
 Two kinds of string never become a bind parameter, and they behave differently:
 
-- **Forced literals** — positions that need a literal, because the dialect rejects a bind marker there or because a marker would change how the engine resolves or plans the statement: the `LIKE ... ESCAPE` character, MySQL's `GROUP_CONCAT ... SEPARATOR` and the `STRING_AGG` separator (SQL Server rejects a bound one over a `varchar` input), `IntervalLiteral` text, a JSON path, a `JsonArrow` / `JsonArrowText` string key, a PostgreSQL text-search configuration, and the sequence name in `NEXTVAL('seq')` / `CURRVAL('seq')`. These are emitted inline as single-quoted literals with the quote character escaped (and the backslash too, on MySQL; on PostgreSQL a literal holding a backslash is written `E'...'` with it doubled, so it reads the same whatever the session's `standard_conforming_strings`). On SQL Server a literal holding a non-ASCII character is written `N'...'`, so the database's code page cannot replace it; the `STRING_AGG` separator stays plain, since SQL Server rejects `N'...'` there over a `varchar` input, so a separator character the code page lacks arrives as `?`. On SQL Server a backslash before a line break in such a literal gets a spare backslash and line break between the backslash and the line break, which SQL Server drops as a line continuation, so the literal keeps both characters.
+- **Forced literals** — positions that need a literal, because the dialect rejects a bind marker there or because a marker would change how the engine resolves or plans the statement: the `LIKE ... ESCAPE` character, MySQL's `GROUP_CONCAT ... SEPARATOR` and the `STRING_AGG` separator (SQL Server rejects a bound one over a `varchar` input), `IntervalLiteral` text, a JSON function's path (`JSON_EXTRACT` / `JSON_VALUE` / `JSON_QUERY`), a `JsonArrow` / `JsonArrowText` string key, a PostgreSQL text-search configuration, and the sequence name in `NEXTVAL('seq')` / `CURRVAL('seq')`. These are emitted inline as single-quoted literals with the quote character escaped (and the backslash too, on MySQL; on PostgreSQL a literal holding a backslash is written `E'...'` with it doubled, so it reads the same whatever the session's `standard_conforming_strings`). On SQL Server a literal holding a non-ASCII character is written `N'...'`, so the database's code page cannot replace it; the `STRING_AGG` separator stays plain, since SQL Server rejects `N'...'` there over a `varchar` input, so a separator character the code page lacks arrives as `?`. On SQL Server a backslash before a line break in such a literal gets a spare backslash and line break between the backslash and the line break, which SQL Server drops as a line continuation, so the literal keeps both characters.
 - **Identifiers** — an alias, a table or column name, a `Cast(...)` target type, and the sequence name in the Oracle (`Sequence("s").Nextval`) and SQL Server (`NextValueFor("s")`) spellings. These are emitted **exactly as written**, with no escaping: a type name like `DECIMAL(10,2)` is not a name that could be quoted, and rewriting an alias you spelled would break the guarantee that the SQL you write is the SQL that runs. `Sql.Hints(...)` is not an identifier but behaves the same way — it is a raw-SQL escape hatch, emitted verbatim by definition.
 
 So automatic parameterization prevents injection **through values**. Build identifiers from constants or an allowlist you control — never straight from request input.

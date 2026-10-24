@@ -119,8 +119,8 @@ SqlStatement sql =
 // SELECT INTERVAL '123-11' YEAR(3) TO MONTH FROM DUAL
 ```
 
-Each field has a precision overload — `Year(3)`, `Day(2)`, …, `ToSecond(4)` —
-taking 0-9 (`ToSecond` any count from 0); the no-argument form leaves the
+Six fields have a precision overload — `Year(n)`, `Month(n)`, `Day(n)`, `Hour(n)`,
+`Minute(n)` and `ToSecond(n)` — taking 0-9 (`ToSecond` any count from 0); the no-argument form leaves the
 engine's own default. It is the
 leading-digit count on a sole or leading field (Oracle only), and the
 fractional-seconds count on `ToSecond` (Oracle and PostgreSQL). Only `ToSecond` may carry it as a *trailing* field;
@@ -165,7 +165,7 @@ SqlStatement sql =
 
 - **Oracle, PostgreSQL, SQLite (every version), and SQL Server (from a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs))** — `DoublePipe(a, b, ...)` for the native `||` operator, chaining any number of arguments without nesting.
 - **MySQL** — `Concat(a, b)` / `Concat(a, b, c, ...)` for the `CONCAT` function.
-- **SQL Server** — the existing `+` operator (`u.FirstName + " " + u.LastName`, or `"Dr. " + u.LastName` with the text first) for native concatenation, or the 2-argument `Concat(a, b)` function.
+- **SQL Server** — the existing `+` operator (`u.FirstName + " " + u.LastName`, or `"Dr. " + u.LastName` with the text first) for native concatenation, or the `Concat(a, b, ...)` function.
 - **Oracle's `CONCAT`** takes exactly two arguments — `Concat(a, b, c)` (three or more) is invalid there; use `DoublePipe(...)` for chains of three or more on Oracle.
 
 > [!NOTE]
@@ -257,7 +257,7 @@ SqlStatement sql =
 // OR (REGEXP_LIKE(name, :2))
 ```
 
-To match a wildcard (`%` or `_`) literally, chain `.Escape(...)` onto a `Like` / `NotLike` condition to emit a standard `ESCAPE` clause (supported identically across all dialects):
+To match a wildcard (`%` or `_`) literally, chain `.Escape(...)` onto a `Like` / `NotLike` condition to emit a standard `ESCAPE` clause (supported on every dialect):
 
 ```csharp
 UsersTable u = new();
@@ -274,7 +274,8 @@ SqlStatement sql =
 
 The escape character is emitted as an inline string literal rather than a bind
 parameter: `ESCAPE` takes a constant character fixed at the call site, and the
-literal spelling is valid identically on every dialect. On SQL Server a non-ASCII
+literal is spelled per dialect so it stays valid on each (a backslash is `'\\'`
+on MySQL and `E'\\'` on PostgreSQL). On SQL Server a non-ASCII
 escape character is written `N'...'`, so the database's code page cannot replace it.
 
 ### BETWEEN Condition

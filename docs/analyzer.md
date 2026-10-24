@@ -100,10 +100,10 @@ still needs naming by ID.
 | ID | Severity | Reports |
 |---|---|---|
 | `SQLA0001` | Warning | A SqlArtisan analyzer configuration problem: an unrecognized `sqlartisan_syntax_*` key name or value (a blank `.editorconfig` value, or a version in another engine's spelling, included), a `sqlartisan_construct_*` key naming no SqlArtisan member or declared parameter count, a `sqlartisan_construct_*` value that could not be recognized, a `sqlartisan_syntax_*` family that resolves to no dialect in any file, or a removed `sqlartisan_target_dbms` / `sqlartisan_target_version` key still set — see [Checking a set of dialects at once](#checking-a-set-of-dialects-at-once) and [Migrating from the legacy target key](#migrating-from-the-legacy-target-key). |
-| `SQLA0100` | Warning | A SqlArtisan construct is used against a configured dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. Checking more than one dialect joins every failing one into a single diagnostic. |
+| `SQLA0100` | Warning | A SqlArtisan construct is used against a configured dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it, or your own `unsupported` override says so. Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0101` | Warning | A construct is supported on a configured dialect, but not at its declared version — see [Version-aware warnings](#version-aware-warnings-sqla0101). Checking more than one dialect reports one diagnostic per failing dialect. |
 | `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
-| `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
+| `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` or `Unnest(...).AsTable(...)` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
 | `SQLA0104` | Warning | A literal argument value a configured dialect rejects, or runs with another meaning, where the construct itself runs there: a `DateTimePart` the function's grammar does not accept or reads as another field, a `RegexpOptions` member outside that engine's match-parameter alphabet, a negative `Top`/`FetchFirst`/`FetchNext`/`Limit` count, or a `GroupBy` column ordinal on an engine that has no `GROUP BY` positions — see [Argument value validity](#argument-value-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join on its own spine — past one, the anti-join makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0201` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
@@ -121,9 +121,10 @@ Build entries), but not in the editor's live analysis, which never runs
 compilation-end actions. `SQLA0100`, by contrast, is a per-usage diagnostic
 and shows up live as you type.
 
-`SQLA0100` only ever fires for a construct the matrix has confirmed — one
-without a matrix entry stays silent rather than guessed at, so an incomplete
-matrix can under-warn but never produce a false positive.
+Absent your own `unsupported` override, `SQLA0100` only ever fires for a
+construct the matrix has confirmed — one without a matrix entry stays silent
+rather than guessed at, so an incomplete matrix can under-warn but never
+produce a false positive.
 
 One kind of entry reports SQL the engine runs: a spelling the dialect reads as
 something else — `||` as logical OR on MySQL, `<=>` as MySQL's NULL-safe
@@ -133,8 +134,9 @@ there, so the warning is the only signal; where you mean the dialect's own
 reading, suppress it at that call.
 
 `SQLA0103` checks compile-time identifier literals — table and expression
-aliases (`.As(...)`), CTE and derived-table names, `VALUES` column names, and
-the Oracle `RETURNING ... INTO` output variable — against each dialect's limit:
+aliases (`.As(...)`), CTE and derived-table names, `VALUES` and
+`Unnest(...).AsTable(...)` column names, and the Oracle `RETURNING ... INTO`
+output variable — against each dialect's limit:
 
 | Dialect | Limit | Measured in |
 |---|---|---|
@@ -384,8 +386,8 @@ An arity-level key always wins over a member-level key for the same member,
 and any override always wins over the shipped matrix:
 
 ```ini
-sqlartisan_syntax_postgresql = 15
-sqlartisan_construct_merge_into = supported   # e.g. targeting PostgreSQL 15+, where MERGE landed
+sqlartisan_syntax_sqlite = 3.45
+sqlartisan_construct_log10 = unsupported   # e.g. a SQLite build without SQLITE_ENABLE_MATH_FUNCTIONS
 ```
 
 A key that names no SqlArtisan member, or no declared parameter count of one,
@@ -601,10 +603,11 @@ the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
 expression where the construct is used. Nineteen rules ship today — twelve reading
 the construct's surroundings, seven reading the DML statement a clause sits in.
-Every verdict below, rejection and acceptance alike, is live-verified on the
-pinned lanes: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
-Server 2022 — the Oracle floors on Free 23ai, and `WHEN NOT MATCHED BY SOURCE` on
-PostgreSQL 17. A floor below a lane's
+Every rejection below is live-verified on the pinned lanes — MySQL 8.0, Oracle
+XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022, the Oracle floors on
+Free 23ai, and `WHEN NOT MATCHED BY SOURCE` on PostgreSQL 17 — and so is every
+acceptance but MySQL's `LIMIT` in the scalar, `EXISTS`, CTE and derived-table
+positions, which no lane runs. A floor below a lane's
 version rests on the vendor's release notes, as the version-bound register's
 does.
 
@@ -1280,18 +1283,18 @@ var sql = InsertInto(t, t.Note).Values("x").Build();
 // this INSERT's column list
 ```
 
-A column the engine assigns itself — identity, auto-increment, generated, or
-one with a `DEFAULT` — is recorded as defaulted and never reported; omitting it
+Only a column the class records as `HasDefault = false` is reported.
+TableClassGen records that for every column without a default on Oracle and
+SQLite. On PostgreSQL and SQL Server it records it only for an explicit
+`DEFAULT NULL` (PostgreSQL stores one only for a type with a length or
+precision), and on MySQL never, so there only a hand-written class can state it: `information_schema` cannot tell no default from an identity column, so a
+plain `NOT NULL` column with no default is left unknown and the rule stays
+silent. A column with a `DEFAULT`, an Oracle identity or virtual column and
+SQLite's rowid alias are recorded as defaulted and never reported; omitting one
 is the normal thing to do. The explicit-column-list form and the `Set` form
 (whose assignments are its column list) are checked; the positional
 `InsertInto(t).Values(...)` supplies every column by construction, and
 `InsertIgnoreInto` asked for error-raising rows to be skipped.
-
-> **MySQL caveat.** Outside strict mode MySQL does not reject this statement —
-> it substitutes an implicit default (`0`, `''`) and warns. `STRICT_TRANS_TABLES`
-> is on by default from MySQL 5.7, so the warning matches what the default
-> configuration does; on a non-strict server, read it as flagging a column that
-> will silently receive an implicit default rather than the value you meant.
 
 The fourth is not a mistake at all, which is why it ships switched off.
 `COUNT(column)` counts the rows where that column is not NULL — correct SQL, and
@@ -1433,7 +1436,7 @@ bound values names no column, so neither reports.
 
 **All six are silent unless the fact was recorded.** An attribute the generator
 never wrote, a fact it could not determine (an absent named argument), a
-hand-written table class, or a column reached through
+hand-written table class without the attribute, or a column reached through
 `new DbTable("t").Column("x")` — which has no declaration to carry metadata —
 all produce nothing. Regenerate your table classes to opt in; nothing else
 changes. `SQLA0201` additionally reads only a select list it can see: a
@@ -1497,16 +1500,18 @@ construct (`SQLA0101`), a rejected position (`SQLA0102`), an over-long
 identifier (`SQLA0103`) and a rejected literal value (`SQLA0104`) as warnings.
 
 **Whitelist mode** — failing on any construct the matrix hasn't verified — is
-deliberately not offered. `SQLA0100` fires only on a *confirmed* mismatch (a
-construct the matrix doesn't know stays silent rather than guess), so there is
+deliberately not offered. Absent your own `unsupported` override, `SQLA0100`
+fires only on a *confirmed* mismatch (a construct the matrix doesn't know stays
+silent rather than guess), so there is
 no "unverified construct" diagnostic to promote: the matrix's completeness is
 the safety net, and this repository enforces it. A coverage test fails when any
 public method, property, field, or overloaded operator ships without a matrix
 entry or a documented dialect-neutral exclusion, and an integration-test sweep
 executes the entries against a live engine per dialect (the versions in the
 table below), asserting that accept/reject outcomes match the matrix both ways.
-Two entries are excluded by name, and a dozen more skip individual engines for
-a recorded reason: the shared runner or the container image cannot execute the
+The entries with no SQL of their own (the interval field markers and
+`ConditionIf`) and Oracle's `Into` are excluded by name, and some cases skip
+individual engines for a recorded reason: the shared runner or the container image cannot execute the
 statement — SQL Server's image ships without Full-Text Search, for example —
 the engine executes the text as a *different* construct, so its acceptance
 would prove nothing about the entry, or the driver rejects the statement
@@ -1565,8 +1570,9 @@ for, not a bug in the matrix.
   argument, not its declared type or arity, is not modeled at all.**
   `Trunc(expr[, format])` is the example: a numeric argument is Oracle,
   PostgreSQL and SQLite 3.35+, a date/time argument is Oracle-only, and both shapes
-  compile to the exact same C# overload. It has no matrix entry and never
-  warns either way.
+  compile to the exact same C# overload. It has no matrix entry, so no dialect
+  verdict reports it unless you set `sqlartisan_construct_trunc` (or an
+  `_arity<N>` key) to `unsupported`.
 - **`SQLA0104`'s lists don't model a source-type or column-type constraint.**
   Oracle's `EXTRACT` rejects `HOUR`/`MINUTE`/`SECOND` on a plain `DATE`
   source (it needs a `TIMESTAMP`) and the four `TIMEZONE_*` fields need
@@ -1596,10 +1602,9 @@ for, not a bug in the matrix.
 - **Absence of an entry still means silence, not endorsement.** The matrix
   covers every referencable public method, property, field, and overloaded
   operator except a
-  documented set of dialect-neutral plumbing (`Build`, the result and
-  configuration objects) and `Trunc` above — gate-enforced by the
-  repository's tests — but a member in that excluded set never warns either
-  way. See
+  documented set of dialect-neutral members and `Trunc` above — gate-enforced by the
+  repository's tests — but a member in that excluded set gets no dialect
+  verdict unless your own `unsupported` override gives it one. See
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)
   for what's entered.
 - **The dialect-independent rules need a configured target too.**

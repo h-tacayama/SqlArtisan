@@ -1012,6 +1012,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   cookbook's everyday patterns, the AI guide's feed and drift sections), and
   `context7.json` stops indexing `CHANGELOG.md`, whose history names removed
   APIs. `IntervalLiteral(value, field)` is listed for MySQL too. (#686)
+- Reference-page prose the code or the analyzer contradicted is corrected
+  (#685):
+  - `docs/query-statements.md` says the analyzer reports `ON CONFLICT`,
+    `ON DUPLICATE KEY UPDATE` and `Returning` on a dialect without them
+    (`SQLA0100`) and an Oracle `Returning(...)` with no `.Into(...)`
+    (`SQLA0102`), where it said SqlArtisan does not validate feature support;
+    an `INSERT ... SELECT` CTE body is emitted as written and is write-only;
+    `DeleteFrom(t).Using(...)` throws on SQL Server; `SQLA0102` reports MySQL's
+    `Grouping(...)` outside `WITH ROLLUP`; and a reused chain throws on the
+    first call after `Build()`, not on the second `Build()`.
+  - `docs/functions.md` exempts `PercentileCont` / `PercentileDisc` from
+    "complete each window function with `.Over(...)`", says a bare C# `null` is
+    SQL `NULL` only in a `VALUES` row (as the Oracle array-bind guide now does), narrows the forced-literal JSON path to
+    the JSON functions' path, gives `Position()` and `Strpos()` their dialects,
+    and drops overload labels that named no overload.
+  - `docs/expressions.md` gives SQL Server's `Concat` any arity, names the six
+    interval fields with a precision overload, and says the `ESCAPE` literal is
+    spelled per dialect.
+  - `docs/analyzer.md` says an `unsupported` override reports a construct
+    with no matrix entry too, lists `Unnest(...).AsTable(...)` column names
+    among `SQLA0103`'s positions, shows an override example that changes the
+    verdict, scopes "every verdict is live-verified" to what a lane runs,
+    states which catalogs let `SQLA0202` report and drops its MySQL caveat,
+    and no longer miscounts the sweep's exclusions.
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added
