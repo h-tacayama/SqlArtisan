@@ -615,8 +615,7 @@ does.
 rejects a row-limited query directly under these positions ("This version of
 MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'" — the same
 restriction covers `NOT IN`) — route the limited query through a derived table
-or CTE instead. Scalar, `EXISTS`, CTE, and derived-table positions accept
-`LIMIT` and stay silent.
+or CTE instead. Every other position stays silent.
 
 ```csharp
 // sqlartisan_syntax_mysql = any

@@ -1058,7 +1058,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   - Position lists are complete or gone: a row-limited query is embeddable as
     any scalar subquery, a derived table, or an `ANY` / `ALL` / `SOME` or
     `NOT EXISTS` operand; the scalar-subquery section no longer lists
-    positions; and `JoinLateral()` takes `.Using(...)`.
+    positions; MySQL's `LIMIT` restriction names `NOT IN` and no longer lists
+    the positions it accepts; and `JoinLateral()` takes `.Using(...)`.
   - `WITH` / CTE is a section of its own; DBMS lists are in enum order; the
     pages no longer call the wrapped comment SQL "exact"; the cookbook's
     `MERGE` pointers name only the terminating semicolon; and `LastValue`'s and

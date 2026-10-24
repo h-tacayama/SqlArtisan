@@ -802,7 +802,7 @@ SqlStatement sql =
 // WHERE "o".user_id = "u".id ORDER BY "o".amount LIMIT :0) "x"
 ```
 
-On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is rejected ("This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'") — route the limited query through a CTE (`With(c.As(...))`) and select from that instead. Every other subquery position — scalar, `EXISTS`, CTE body, derived table, `LATERAL` — accepts `LIMIT` on MySQL.
+On MySQL, `LIMIT` directly inside an `IN` / `NOT IN` / `ALL` / `ANY` / `SOME` subquery is rejected ("This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'" — the same restriction covers `NOT IN`) — route the limited query through a CTE (`With(c.As(...))`) and select from that instead.
 
 #### Reusing a builder chain
 
