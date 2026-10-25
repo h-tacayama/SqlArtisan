@@ -472,6 +472,53 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         transaction.Rollback();
     }
 
+    // #679: not re-listed, the lead keeps `DELETE FROM t AS x` before a second FROM;
+    // SQL Server 2022 refuses the alias there, so the text is written out.
+    [Fact]
+    public void DeleteFromNotRelisted_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "DELETE FROM orders AS \"o\" FROM users \"u\" "
+                    + "WHERE \"o\".user_id = \"u\".id AND \"u\".id = 3",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // #679: a target re-listed through a join, rather than in From(...), leads too.
+    [Fact]
+    public void UpdateAndDelete_TargetRelistedThroughJoin_Executes()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        OrdersTable read = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int updated = connection.Execute(
+            Update(o).Set(o.Amount == 7).From(u).InnerJoin(o).On(o.UserId == u.Id).Where(u.Id == 2),
+            transaction);
+        int deleted = connection.Execute(
+            DeleteFrom(o).From(u).InnerJoin(o).On(o.UserId == u.Id).Where(u.Id == 3),
+            transaction);
+        decimal[] amounts =
+        [
+            .. connection.Query<decimal>(
+                Select(read.Amount).From(read).Where(read.UserId == 2), transaction),
+        ];
+        long remaining = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(read.Id)).From(read).Where(read.UserId == 3), transaction));
+
+        Assert.Equal(1, updated);
+        Assert.Equal(1, deleted);
+        Assert.Equal([7m], amounts);
+        Assert.Equal(0, remaining);
+        transaction.Rollback();
+    }
+
     [Fact]
     public void OutputInto_ArchiveThenDelete_Executes()
     {

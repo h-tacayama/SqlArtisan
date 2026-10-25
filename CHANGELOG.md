@@ -380,11 +380,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   NULL rather than a NULL test, so PostgreSQL 16 and SQLite counted 0 rows
   where `IS NULL` counted 1. These messages report the caller's parameter name,
   and a null left operand's message names the operator. (#614)
-- Four call-site defects now throw at the call that writes them instead of at
+- Three call-site defects now throw at the call that writes them instead of at
   `Build()`: an `OUTPUT ... INTO` column list whose width differs from the
   `OUTPUT` list (at `Into(...)`), an `INSERT ... SELECT` select list whose
-  width differs from the column list (at the first `Select(...)`), a joined
-  `DELETE ... FROM` that does not re-list its target (at `From(...)`), and an
+  width differs from the column list (at the first `Select(...)`), and an
   `UPDATE` `SET` list assigning one column twice under one correlation name, or
   from two unaliased tables (at `Set(...)`). The builder is left as it was, so
   the corrected call can follow on the same chain. (#582)
@@ -646,6 +645,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#654)
 
 ### Fixed
+- A subquery that lists an unaliased `UPDATE`, `DELETE` or `MERGE` target in its
+  own `From(...)` or join builds, reading the target there as its own relation,
+  as a CTE body already did; it threw `The target of a correlated UPDATE,
+  DELETE, or MERGE must be aliased.`, and `SQLA0300` reported it. A block that
+  does not list the target still needs it aliased. (#679)
+- A joined `DELETE ... FROM` or `UPDATE ... FROM` that re-lists its target
+  through a join after `From(...)` counts as re-listed. On every dialect
+  `Build()` threw on `DeleteFrom(t).From(u).InnerJoin(t)`, which MySQL 8.0.46
+  and SQL Server 2022 run, and `Build(Dbms.SqlServer)` on the same `UPDATE`,
+  which SQL Server 2022 runs. That `UPDATE` now throws at `Build()` on every
+  other dialect, where it built with the target listed twice, as one that
+  re-lists the target in `From(...)` already did. A `DELETE ... FROM` that does
+  not re-list its target builds on Oracle, whose Free 23ai release runs it,
+  `RETURNING ... INTO` included, and still throws at `Build()` elsewhere.
+  On Oracle, `SQLA0102` reports a joined `DELETE`'s `From` below 23, whichever
+  lead it writes, and from 23 only a lead that re-lists the target, which
+  Oracle still rejects, where the expression passes the target's own local, or
+  a readonly field read through `this` or statically, to `From(...)` or a
+  join. (#679)
 - `Build(IDbConnection)`, and every `SqlArtisan.Dapper` call through it, said
   `Unsupported DBMS.` for a connection whose type is not registered, such as a
   wrapper around a supported provider. The message now names the connection
@@ -870,6 +888,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   bind the string with `Sql.Bind(...)` where its position takes a bound value.
 
 ### Tests
+- A MySQL twin pins that MySQL 8.0.46 inserts a row of defaults for
+  `() VALUES ()` and `VALUES ()`. The empty column-list and `VALUES`-row guards
+  still reject both on every dialect: an array computed empty is likelier a
+  slip than a defaults row, which MySQL would insert with no error. (#679)
 - Twins pin the engine claims #679 found with no version or twin: SQL Server
   2022 rejects an alias on the `OUTPUT ... INTO` destination, PostgreSQL 16
   rejects a qualified `SET` target on `UPDATE ... FROM` and runs two `ON`

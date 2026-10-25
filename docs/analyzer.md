@@ -517,7 +517,7 @@ verdict exactly; where the bound sits above the dialect's verified baseline
 | `Datetrunc`, `Greatest`, `Least`, the 2-argument `Ltrim`/`Rtrim` forms | SQL Server | 2022 | `DATETRUNC`, `GREATEST`/`LEAST`, and the `LTRIM`/`RTRIM` trim-characters overloads all landed in SQL Server 2022. |
 | `DoublePipe`, `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr`, `RegexpInstr` (every form) | SQL Server | 2025 | The `\|\|` concatenation operator and the `REGEXP_*` family landed in SQL Server 2025 — live-verified on the SQL Server 2025 lane. `REGEXP_LIKE` also needs the database at compatibility level 170: at 160, which an upgraded database can keep, SQL Server 2025 does not recognize it, and the declared version cannot tell the two apart. |
 
-Three `SQLA0102` DML rules carry the same kind of floor — a version from which
+Four `SQLA0102` DML rules carry the same kind of floor — a version from which
 a dialect stops rejecting the position (see
 [DML statement shapes](#dml-statement-shapes)). They read the declared version
 exactly as the table above does, but below the floor they report `SQLA0102`, not
@@ -529,6 +529,7 @@ exactly as the table above does, but below the floor they report `SQLA0102`, not
 | `From` | `UPDATE ... SET ... FROM` | SQLite | 3.33 |
 | `Values` | a second `VALUES` row | Oracle | 23 |
 | `Using` | `DELETE ... USING` | Oracle | 23 |
+| `From` | `DELETE ... FROM` not re-listing the target | Oracle | 23 |
 
 <details>
 <summary>Sources for these version bounds — the vendor documentation behind each version</summary>
@@ -573,7 +574,10 @@ both are live-verified on Free 23ai, and their rejection on XE 21.3.0.
 whose `from_using_clause` opens with `FROM` or `USING`. That page is the 26
 edition, so the 23 comes from live runs: XE 21.3.0 rejects the statement, and
 Free 23ai deleted the joined rows on a one-off 23.4 run and on 23.26.3, the
-release the Free 23ai lane's floating tag resolved to then.
+release the Free 23ai lane's floating tag resolved to then. The same page's
+`FROM` opener rests on live runs alone: XE 21.3.0 rejects it, and Free 23ai
+23.26.3 deletes the joined rows when the target is not re-listed and rejects the
+re-listed lead (ORA-00942).
 
 **PostgreSQL** — the
 [version 15 release notes](https://www.postgresql.org/docs/15/release-15.html)
@@ -799,7 +803,7 @@ on a `MERGE` action, or a second `VALUES` row has a different grammar on some
 engines, and SqlArtisan emits whichever one you write. The seven rules below
 name the engines that reject the spelling; where a spelling has no valid form
 at all on the resolved dialect, `Build(Dbms)` throws instead and no warning is
-needed. Three of them have a version from which a dialect accepts the position
+needed. Four of them have a version from which a dialect accepts the position
 (the [context-rule floors](#version-bound-constructs)): declaring that version
 or a later one silences the warning, and declaring none reads the engine at its
 verified baseline, as the version-bound register does.
@@ -807,13 +811,21 @@ verified baseline, as the version-bound register does.
 These seven are settled by the builder stage the call binds to rather than by
 reading the chain, so they still warn when the builder is held in a variable —
 as the `RETURNING` rule does, since it reads only what follows the call; the
-rules that read back up the chain stay silent there.
+rules that read back up the chain stay silent there. The joined `DELETE` rule
+reads the chain past Oracle's floor alone, as the next paragraph says.
 
 **A joined `DELETE`.** `DeleteFrom(t).From(t, ...)` leads with the target's
 bare alias (`DELETE t FROM ...`), the multi-table form only MySQL and SQL
-Server parse. On Oracle at or past its [floor](#version-bound-constructs), and
-on PostgreSQL, write the join as `Using(...)`; Oracle below that floor and
-SQLite take neither form, and a [correlated subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#correlated-update--delete)
+Server parse. A `From(...)` that does not re-list the target keeps
+`DELETE FROM t` ahead of a second `FROM`, which Oracle alone takes, at or past
+its [floor](#version-bound-constructs). `Build(Dbms)` emits that lead on Oracle
+at any version and throws for it on every other dialect. So past that floor
+the rule reports on Oracle only where the same expression passes the target's
+own local, or a readonly field read through `this` or statically, to
+`From(...)` or a later join, and stays silent where it cannot see that, such
+as a parameter or another instance's field. On PostgreSQL write the join as
+`Using(...)`, as Oracle at or past its floor also takes; Oracle below that floor and
+SQLite take no joined form, and a [correlated subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#correlated-update--delete)
 on the aliased target takes its place there.
 
 ```csharp
@@ -1102,8 +1114,8 @@ value does.
 ## Correlated DML target (SQLA0300)
 
 An UPDATE, DELETE, or MERGE whose subquery — or, for MERGE, whose `USING`
-source — references a column of the **unaliased** target table can be
-silently wrong: the bare outer column can resolve to the inner table, and
+source — references a column of the **unaliased** target table, without
+listing the target in its own `From(...)` or join, can be silently wrong: the bare outer column can resolve to the inner table, and
 then the subquery no longer depends on the outer row and the statement acts
 on the wrong rows or, from a `SET` subquery, writes the wrong values.
 `Build()` rejects this statement at run time; `SQLA0300` is the same finding
@@ -1137,7 +1149,9 @@ report a statement that builds. Known cases include:
 - a `readonly` target rewritten through `Unsafe.AsRef`.
 
 The warning is reported once per statement, on a target column read inside a
-subquery. CTE bodies are not walked, whether the `With(...)` chain heads the
+subquery that does not list the target. A subquery that passes the target's
+own local or readonly field to its `From(...)` or a join reads the target as
+its own relation, which `Build()` accepts, so it stays silent. CTE bodies are not walked, whether the `With(...)` chain heads the
 statement or sits in a subquery or a MERGE `USING` source: a target column
 read there stays silent and is left to `Build()`, which accepts a body that
 reads the target as its own relation and rejects one that correlates.

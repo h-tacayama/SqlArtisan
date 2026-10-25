@@ -69,13 +69,28 @@ public class CorrelatedDmlParityTests
     }
 
     [Fact]
-    public void DeleteFrom_SameInstanceInInnerSelect_ThrowsArgumentException()
+    public void DeleteFrom_SameInstanceInInnerSelect_Builds()
     {
         PTable t = new();
 
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+        SqlStatement sql =
             DeleteFrom(t)
             .Where(t.Id.In(Select(t.Id).From(t)))
+            .Build();
+
+        Assert.Equal("DELETE FROM p WHERE id IN (SELECT id FROM p)", sql.Text);
+    }
+
+    [Fact]
+    public void DeleteFrom_SubqueryNestedInListingSubquery_ThrowsArgumentException()
+    {
+        PTable t = new();
+        PTable r = new("r");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t)
+            .Where(t.Id.In(
+                Select(t.Id).From(t).Where(Exists(Select(r.Id).From(r).Where(r.Dep == t.Dep)))))
             .Build());
 
         Assert.Equal(GuardMessage, ex.Message);

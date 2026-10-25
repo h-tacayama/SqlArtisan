@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -498,6 +499,61 @@ internal static class ContextRules
             ("Values", "IInsertBuilderValues") => DmlShape.InsertValuesRow,
             _ => DmlShape.None,
         };
+
+    /// <summary>
+    /// Whether a joined DELETE's <c>From</c> call, or a join after it, lists the
+    /// instance the statement's <c>DeleteFrom</c> deletes from.
+    /// </summary>
+    /// <remarks>
+    /// Identity is read off the symbol, as SQLA0300 reads it (ADR 0014): a local or
+    /// a readonly field on both sides. Anything else is no proof, so it stays silent.
+    /// </remarks>
+    public static bool ProvablyRelistsDeleteTarget(IInvocationOperation from)
+    {
+        // Back past an OUTPUT detour, which returns the same stage, to the head.
+        IInvocationOperation? head = from;
+        do
+        {
+            head = head.Instance is { } receiver
+                ? UnwrapConversions(receiver) as IInvocationOperation
+                : null;
+        }
+        while (head is not null && head.TargetMethod.Name != "DeleteFrom");
+
+        if (head is not { Arguments.Length: 1 }
+            || !DialectUsageAnalyzer.IsFromSqlArtisan(head.TargetMethod.ContainingAssembly)
+            || CorrelatedDmlRule.ResolveTargetSymbol(head.Arguments[0].Value) is not { } target)
+        {
+            return false;
+        }
+
+        IInvocationOperation? current = from;
+        while (current is not null)
+        {
+            if ((current == from
+                    || current.TargetMethod.Name is "InnerJoin" or "LeftJoin" or "RightJoin"
+                        or "FullJoin")
+                && current.Arguments.Any(
+                    argument => CorrelatedDmlRule.Lists(argument.Value, target)))
+            {
+                return true;
+            }
+
+            current = FluentChain.Parent(current);
+        }
+
+        return false;
+    }
+
+    private static IOperation UnwrapConversions(IOperation operation)
+    {
+        while (operation is IConversionOperation conversion)
+        {
+            operation = conversion.Operand;
+        }
+
+        return operation;
+    }
 
     /// <summary>Reports the DML shape <paramref name="invocation"/> sits in.</summary>
     public static void ReportDmlShape(

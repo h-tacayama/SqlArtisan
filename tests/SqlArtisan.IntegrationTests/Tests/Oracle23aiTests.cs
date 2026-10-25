@@ -275,6 +275,8 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         transaction.Rollback();
     }
 
+    // The re-listed lead, in FROM's list or through a join (#679), is ORA-00942 on
+    // 23.26.3, where the lead that does not re-list runs (DeleteFromNotRelisted_Executes).
     [Fact]
     public void JoinedDeleteLead_IsRejectedByTheEngine()
     {
@@ -285,6 +287,11 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
             connection.Execute(
                 "DELETE \"u\" FROM users \"u\" "
                     + "INNER JOIN orders \"o\" ON \"o\".user_id = \"u\".id",
+                transaction: transaction));
+        Assert.ThrowsAny<Exception>(() =>
+            connection.Execute(
+                "DELETE \"u\" FROM orders \"o\" "
+                    + "INNER JOIN users \"u\" ON \"o\".user_id = \"u\".id",
                 transaction: transaction));
         transaction.Rollback();
     }
@@ -313,6 +320,61 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         Assert.Equal(2, deleted);
         Assert.Equal([3, 4, 5], remaining);
         transaction.Rollback();
+    }
+
+    // #679: 23.26.3 takes DELETE's FROM opener as it takes USING, so the joined
+    // DELETE ... FROM that does not re-list its target builds on Oracle and runs.
+    [Fact]
+    public void DeleteFromNotRelisted_Executes()
+    {
+        OrdersTable o = new("o");
+        UsersTable u = new("u");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int deleted = connection.Execute(
+            DeleteFrom(o).From(u).Where((o.UserId == u.Id) & (u.Name == "Alice")),
+            transaction);
+        int[] remaining =
+        [
+            .. connection.Query<int>(
+                "SELECT id FROM orders ORDER BY id",
+                transaction: transaction),
+        ];
+
+        Assert.Equal(2, deleted);
+        Assert.Equal([3, 4, 5], remaining);
+        transaction.Rollback();
+    }
+
+    // #679: the joined forms 23.26.3 runs take RETURNING ... INTO too, reached on
+    // DELETE ... FROM by a held stage, since the typestate offers it after Using(...).
+    [Fact]
+    public void JoinedDmlNotRelisted_ReturningInto_BindsOutputParameter()
+    {
+        OrdersTable o = new("o");
+        UsersTable u = new("u");
+        IDeleteBuilderDeleteOutput deleteFrom = DeleteFrom(o);
+        deleteFrom.From(u).Where((o.UserId == u.Id) & (u.Id == 2));
+        ISqlBuilder[] statements =
+        [
+            deleteFrom.Returning(o.Id).Into(new OutputParameter("rid", DbType.Int32)),
+            DeleteFrom(o).Using(u).Where((o.UserId == u.Id) & (u.Id == 2))
+                .Returning(o.Id).Into(new OutputParameter("rid", DbType.Int32)),
+            Update(o).Set(o.Amount == 7).From(u).Where((o.UserId == u.Id) & (u.Id == 2))
+                .Returning(o.Id).Into(new OutputParameter("rid", DbType.Int32)),
+        ];
+
+        foreach (ISqlBuilder statement in statements)
+        {
+            using IDbConnection connection = _fixture.OpenConnection();
+            using IDbTransaction transaction = connection.BeginTransaction();
+
+            DynamicParameters outputs = connection.ExecuteReturningInto(statement, transaction);
+
+            Assert.Equal(3, Convert.ToInt32(outputs.Get<object>("rid")!.ToString()));
+            transaction.Rollback();
+        }
     }
 
     [Fact]

@@ -338,7 +338,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DialectTargetSet targets = GetTargets(context, cache);
         if (shape != ContextRules.DmlShape.None)
         {
-            if (RejectingDmlTargets(targets, shape) is { } names)
+            if (RejectingDmlTargets(targets, shape, invocation) is { } names)
             {
                 ContextRules.ReportDmlShape(context, invocation, shape, names);
             }
@@ -470,7 +470,15 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             (ContextRules.DmlShape.JoinedUpdateFrom, TargetDbms.Sqlite, DialectMatrix.V("3.33")),
             (ContextRules.DmlShape.InsertValuesRow, TargetDbms.Oracle, DialectMatrix.V("23")),
             (ContextRules.DmlShape.DeleteUsing, TargetDbms.Oracle, DialectMatrix.V("23")),
+            (ContextRules.DmlShape.JoinedDeleteLead, TargetDbms.Oracle, DialectMatrix.V("23")),
         ];
+
+    // Oracle 23.26.3 runs the DELETE ... FROM lead that does not re-list the target and
+    // rejects the one that does (ORA-00942), so past its floor only a provable re-list reports.
+    private static bool RelistedDeleteLead(
+        ContextRules.DmlShape shape, IInvocationOperation invocation) =>
+        shape == ContextRules.DmlShape.JoinedDeleteLead
+        && ContextRules.ProvablyRelistsDeleteTarget(invocation);
 
     private static EngineVersion? AcceptedFrom(ContextRules.DmlShape shape, TargetDbms dbms)
     {
@@ -488,7 +496,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     private static string? RejectingDmlTargets(
         DialectTargetSet targets,
-        ContextRules.DmlShape shape)
+        ContextRules.DmlShape shape,
+        IInvocationOperation invocation)
     {
         List<string>? names = null;
         foreach (TargetDbms dbms in RejectingDialects(shape))
@@ -499,7 +508,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             }
 
             if (AcceptedFrom(shape, dbms) is { } floor
-                && (targets.VersionFor(dbms) ?? DialectMatrix.BaselineVersion[dbms]) >= floor)
+                && (targets.VersionFor(dbms) ?? DialectMatrix.BaselineVersion[dbms]) >= floor
+                && !RelistedDeleteLead(shape, invocation))
             {
                 continue;
             }

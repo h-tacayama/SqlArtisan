@@ -79,7 +79,7 @@ internal static class CorrelatedDmlRule
     // Only shapes whose runtime identity the symbol decides: a local, or a
     // readonly field read through this/statically (another instance's field is
     // a different table object).
-    private static ISymbol? ResolveTargetSymbol(IOperation value) =>
+    internal static ISymbol? ResolveTargetSymbol(IOperation value) =>
         UnwrapConversion(value) switch
         {
             ILocalReferenceOperation local => local.Local,
@@ -318,7 +318,10 @@ internal static class CorrelatedDmlRule
             return null;
         }
 
-        if (IsTargetColumn(node, target) && IsInsideSubquery(node, root))
+        // A block listing the target reads it as its own relation, as Build() does (#679).
+        if (IsTargetColumn(node, target)
+            && EnclosingSubquery(node, root) is { } block
+            && !ChainLists(block, target))
         {
             return node;
         }
@@ -373,27 +376,27 @@ internal static class CorrelatedDmlRule
 
     // The runtime boundary is EncloseInParentheses(ISubquery); its source-level
     // image is a Select-headed chain bound as an argument of a SqlArtisan call.
-    private static bool IsInsideSubquery(IOperation node, IOperation root)
+    private static IInvocationOperation? EnclosingSubquery(IOperation node, IOperation root)
     {
         for (IOperation? current = node.Parent; current is not null; current = current.Parent)
         {
             if (current == root)
             {
-                return false;
+                return null;
             }
 
             if (current is IArgumentOperation { Parent: IInvocationOperation host }
                 && DialectUsageAnalyzer.IsFromSqlArtisan(host.TargetMethod.ContainingAssembly)
-                && ChainHeadIsSelect(host))
+                && ChainHead(host).TargetMethod.Name == "Select")
             {
-                return true;
+                return host;
             }
         }
 
-        return false;
+        return null;
     }
 
-    private static bool ChainHeadIsSelect(IInvocationOperation invocation)
+    private static IInvocationOperation ChainHead(IInvocationOperation invocation)
     {
         IInvocationOperation head = invocation;
         while (head.Instance is { } instance
@@ -403,8 +406,38 @@ internal static class CorrelatedDmlRule
             head = receiver;
         }
 
-        return head.TargetMethod.Name == "Select";
+        return head;
     }
+
+    // Any step of the chain counts, set-operator branches together: a listing in one
+    // branch that Build() would not credit to another only keeps the rule silent.
+    private static bool ChainLists(IInvocationOperation step, ISymbol target)
+    {
+        foreach (IInvocationOperation current in FluentChain.CompoundSteps(step))
+        {
+            foreach (IArgumentOperation argument in current.Arguments)
+            {
+                if (argument.Parameter?.Type is { } type
+                    && FluentChain.IsTableReference(
+                        type is IArrayTypeSymbol array ? array.ElementType : type)
+                    && Lists(argument.Value, target))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="value"/>, or an element of the array it passes,
+    /// resolves to <paramref name="target"/>'s symbol.
+    /// </summary>
+    internal static bool Lists(IOperation value, ISymbol target) =>
+        UnwrapConversion(value) is IArrayCreationOperation { Initializer: { } initializer }
+            ? initializer.ElementValues.Any(element => Lists(element, target))
+            : SymbolEqualityComparer.Default.Equals(ResolveTargetSymbol(value), target);
 
     private static bool IsThisOrStatic(IFieldReferenceOperation field) =>
         field.Instance is null or IInstanceReferenceOperation;

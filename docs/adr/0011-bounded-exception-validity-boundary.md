@@ -238,7 +238,9 @@ a new one the analyzer can see.
   T-SQL spelling. `UPDATE ... FROM aux` turns on instance identity the
   analyzer cannot read; the other two are declaring-interface shapes (see
   above). PostgreSQL's forms legally omit the re-list, so the guard is
-  `Dbms.SqlServer`-scoped. Live twin owed: the SQL Server lane pins only the
+  `Dbms.SqlServer`-scoped. Since #679 the two `DELETE` shapes have entries of
+  their own (`DELETE ... USING` below, and the last entry), and a target
+  re-listed through a join counts as one re-listed in `From(...)`. Live twin owed: the SQL Server lane pins only the
   accepted re-listed form (`JoinedUpdateFrom_Executes`).
 - **Joined `UPDATE` with the target re-listed in `FROM`, off SQL Server**
   (release audit, pass 2) — the mirror of the guard above. The re-listed form
@@ -363,3 +365,14 @@ a new one the analyzer can see.
   `Excluded(t.Name)` reads the source's `name` rather than the value selected
   for it (MySQL 8.0.46,
   `MySqlTests.UpsertAfterSelect_ThroughACast_ReadsTheSourceColumn`; #679).
+- **A joined `DELETE ... FROM` that does not re-list its target, off Oracle**
+  (#679). Not re-listed, the lead keeps `DELETE FROM target` before a second
+  `FROM`. Oracle 23.26.3 runs that text, its `from_using_clause` opening with
+  `FROM` as well as `USING`, while XE 21.3.0, MySQL 8.0.46, PostgreSQL 16, SQLite 3.50.4
+  and SQL Server 2022 reject it with the alias every joined target carries. The
+  re-listing is instance identity, a later join can supply it, and the dialect
+  decides, so the check left `From(...)`, where it had thrown on every dialect
+  since #582, for `Build(Dbms)`, scoped to every dialect but Oracle. Live twins:
+  `DeleteFromNotRelisted_IsRejectedByTheEngine` on the MySQL, PostgreSQL, SQLite
+  and SQL Server lanes, `ContextRule_JoinedDeleteFromNotRelisted_Rejected` on
+  the Oracle lane, and `DeleteFromNotRelisted_Executes` on the Oracle23ai lane.

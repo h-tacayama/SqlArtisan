@@ -116,10 +116,26 @@ public class CorrelatedDmlAnalyzerTests
             }
             """, AnalyzerVerifier.EditorConfig("postgresql"), expectWarning: true);
 
+    // A block listing the target reads it as its own relation, as Build() does (#679).
+    [Theory]
+    [InlineData("var q = DeleteFrom(t).Where(t.Id.In(Select(t.Id).From(t)));")]
+    [InlineData(
+        "_ = Update(t).Set(t.Dep == Select(Max(t.Dep)).From(r).InnerJoin(t).On(r.Id == t.Id));")]
+    public Task DeleteFrom_SubqueryListingTarget_StaysSilent(string statement) =>
+        RunSilent(statement);
+
+    // Documented false negative: a compound's branches are read together, since its
+    // trailing ORDER BY sits on the last one in source; Build() checks each branch.
     [Fact]
-    public Task DeleteFrom_SameInstanceInInnerSelect_ReportsSqla0300() =>
+    public Task DeleteFrom_CompoundBranchCorrelatingBesideListingBranch_StaysSilent() =>
+        RunSilent("""
+            var q = DeleteFrom(t).Where(t.Id.In(Select(t.Id).From(t).Union.Select(r.Id).From(r).Where(r.Dep == t.Dep)));
+            """);
+
+    [Fact]
+    public Task DeleteFrom_SubqueryNestedInListingSubquery_ReportsSqla0300() =>
         RunReporting("""
-            var q = DeleteFrom(t).Where(t.Id.In(Select({|#0:t.Id|}).From(t)));
+            var q = DeleteFrom(t).Where(t.Id.In(Select(t.Id).From(t).Where(Exists(Select(r.Id).From(r).Where(r.Dep == {|#0:t.Dep|})))));
             """);
 
     [Fact]

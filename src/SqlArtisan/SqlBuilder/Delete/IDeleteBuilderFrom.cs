@@ -1,9 +1,9 @@
 namespace SqlArtisan;
 
 /// <summary>
-/// The state after <c>DELETE alias FROM target ...</c> (the SQL Server / MySQL
-/// form, where the target is re-listed in <c>FROM</c>): join further tables,
-/// filter with <c>WHERE</c>, or build.
+/// The state after a joined delete's <c>FROM</c>, the target re-listed there or in
+/// a join after it (or, on Oracle from a specific release, left out): join further
+/// tables, filter with <c>WHERE</c>, or build.
 /// </summary>
 public interface IDeleteBuilderFrom : ISqlBuilder
 {

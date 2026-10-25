@@ -367,6 +367,59 @@ internal static class FluentChain
         return false;
     }
 
+    /// <summary>
+    /// Every step of the query <paramref name="step"/> belongs to, each
+    /// set-operator branch included, from its first call to its last.
+    /// </summary>
+    public static IEnumerable<IInvocationOperation> CompoundSteps(IInvocationOperation step)
+    {
+        IOperation start = step;
+        while (PreviousStep(start) is { } previous)
+        {
+            start = previous;
+        }
+
+        for (IOperation? current = start; current is not null;)
+        {
+            if (current is IInvocationOperation invocation)
+            {
+                yield return invocation;
+            }
+
+            IOperation? next = current.Parent is IConversionOperation conversion
+                ? conversion.Parent
+                : current.Parent;
+            current = next switch
+            {
+                IInvocationOperation { Instance: { } receiver } outer
+                    when ReferenceEquals(Unwrap(receiver), current)
+                    && DialectUsageAnalyzer.IsFromSqlArtisan(
+                        outer.TargetMethod.ContainingAssembly) => outer,
+                IPropertyReferenceOperation { Instance: { } receiver } property
+                    when ReferenceEquals(Unwrap(receiver), current)
+                    && IsSetOperator(property) => property,
+                _ => null,
+            };
+        }
+    }
+
+    // The SqlArtisan step or set operator `operation` was called on, if any.
+    private static IOperation? PreviousStep(IOperation operation)
+    {
+        IOperation? receiver = operation switch
+        {
+            IInvocationOperation { Instance: { } instance } => Unwrap(instance),
+            IPropertyReferenceOperation { Instance: { } instance } => Unwrap(instance),
+            _ => null,
+        };
+
+        return receiver is IInvocationOperation invocation
+                && DialectUsageAnalyzer.IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly)
+            || receiver is not null && IsSetOperator(receiver)
+                ? receiver
+                : null;
+    }
+
     private static bool IsStatementHead(IInvocationOperation step)
     {
         IOperation current = step;

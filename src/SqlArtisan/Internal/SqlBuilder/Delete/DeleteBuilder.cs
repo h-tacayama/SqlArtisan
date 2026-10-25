@@ -37,7 +37,6 @@ internal sealed class DeleteBuilder(
             targetRepeated |= ReferenceEquals(reference, table);
         }
 
-        DmlTargetGuard.ThrowIfJoinedDeleteTargetNotRepeated(targetRepeated);
         DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
 
         AddPart(from);
@@ -48,13 +47,13 @@ internal sealed class DeleteBuilder(
 
     public IDeleteBuilderFromJoinOn FullJoin(TableReference joined)
     {
-        AddJoin(new FullJoinClause(joined));
+        AddJoin(new FullJoinClause(joined), joined);
         return this;
     }
 
     public IDeleteBuilderFromJoinOn InnerJoin(TableReference joined)
     {
-        AddJoin(new InnerJoinClause(joined));
+        AddJoin(new InnerJoinClause(joined), joined);
         return this;
     }
 
@@ -68,7 +67,7 @@ internal sealed class DeleteBuilder(
 
     public IDeleteBuilderFromJoinOn LeftJoin(TableReference joined)
     {
-        AddJoin(new LeftJoinClause(joined));
+        AddJoin(new LeftJoinClause(joined), joined);
         return this;
     }
 
@@ -91,7 +90,7 @@ internal sealed class DeleteBuilder(
 
     public IDeleteBuilderFromJoinOn RightJoin(TableReference joined)
     {
-        AddJoin(new RightJoinClause(joined));
+        AddJoin(new RightJoinClause(joined), joined);
         return this;
     }
 
@@ -121,8 +120,8 @@ internal sealed class DeleteBuilder(
         return this;
     }
 
-    // The joined form's WHERE returns a stage without RETURNING, which no engine
-    // that spells DELETE ... FROM has.
+    // The joined form's WHERE returns a stage without RETURNING: no engine with one runs
+    // a re-listed target, and Using(...) offers it where the target is not re-listed.
     IDeleteBuilderFromWhere IDeleteBuilderFrom.Where(SqlCondition condition)
     {
         AddPart(new WhereClause(condition));
@@ -151,14 +150,16 @@ internal sealed class DeleteBuilder(
         if (state.IsJoined)
         {
             DmlTargetGuard.ThrowIfSqlServerDeleteUsing(FindPart<DeleteUsingClause>(), dbms);
-            DmlTargetGuard.ThrowIfSqlServerJoinedTargetNotRepeated(state, dbms, Keywords.Delete);
+            DmlTargetGuard.ThrowIfJoinedDeleteTargetNotRepeated(state, dbms);
         }
     }
 
-    private void AddJoin(SqlPart joinClause)
+    private void AddJoin(SqlPart joinClause, TableReference joined)
     {
         DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
         AddPart(joinClause);
         state.HasJoin = true;
+        // Joined after FROM, the target is re-listed as in From(target, ...) (#679).
+        state.TargetRepeatedInFrom |= state.HasFrom && ReferenceEquals(joined, table);
     }
 }

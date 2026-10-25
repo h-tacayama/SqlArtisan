@@ -1097,6 +1097,21 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
+    // #679: the lead that does not re-list the target, which Oracle 23 runs, is
+    // rejected here too, so SQLA0102 reports either lead below its floor.
+    [Fact]
+    public void ContextRule_JoinedDeleteFromNotRelisted_Rejected()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            DeleteFrom(o).From(u).Where((o.UserId == u.Id) & (u.Id == 3)), transaction));
+        transaction.Rollback();
+    }
+
     [Fact]
     public void ContextRule_DeleteUsing_Rejected()
     {
