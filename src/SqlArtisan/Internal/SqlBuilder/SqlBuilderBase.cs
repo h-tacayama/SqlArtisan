@@ -114,14 +114,17 @@ internal abstract class SqlBuilderBase
 
     internal void DischargeReturning() => _pendingReturning--;
 
+    // A stage completed by Into(...) leaves its clause in the parts, so it counts too.
+    private const string TwoReturningStagesMessage =
+        "Two RETURNING stages were written on this statement; a build from either "
+        + "would drop the other, so write RETURNING once.";
+
     internal SqlStatement BuildWithPart(SqlPart extraPart, Dbms dbms)
     {
         ThrowIfAlreadyBuilt();
-        if (_pendingReturning > 1)
+        if (_pendingReturning > 1 || (_pendingReturning == 1 && HoldsReturningInto()))
         {
-            throw new ArgumentException(
-                "Two RETURNING stages were written on this statement; a build from either "
-                + "would drop the other, so write RETURNING once.");
+            throw new ArgumentException(TwoReturningStagesMessage);
         }
 
         // The stage carries its own clause; a failed build restores the obligation
@@ -474,10 +477,14 @@ internal abstract class SqlBuilderBase
         if (_pendingReturning > 0)
         {
             throw new ArgumentException(
-                "A RETURNING clause was written on this statement, but it was built from "
-                + "the stage before it; build from the RETURNING stage.");
+                HoldsReturningInto()
+                    ? TwoReturningStagesMessage
+                    : "A RETURNING clause was written on this statement, but it was built from "
+                        + "the stage before it; build from the RETURNING stage.");
         }
     }
+
+    private bool HoldsReturningInto() => FindPart<ReturningIntoClause>() is not null;
 
     [DoesNotReturn]
     private static void ThrowJoinConditionMissing() =>

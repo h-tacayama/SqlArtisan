@@ -7,10 +7,12 @@ internal sealed class DeleteUsingClause : SqlPart
 {
     private readonly TableReference[] _tables;
 
+    internal const string NullTableMessage =
+        "A USING clause must not contain a null table reference.";
+
     internal DeleteUsingClause(TableReference[] tables)
     {
-        CollectionGuard.ThrowIfNullElement(
-            tables, nameof(tables), "A USING clause must not contain a null table reference.");
+        CollectionGuard.ThrowIfNullElement(tables, nameof(tables), NullTableMessage);
         _tables = tables;
     }
 

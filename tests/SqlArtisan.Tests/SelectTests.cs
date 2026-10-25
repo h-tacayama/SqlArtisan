@@ -787,4 +787,60 @@ public class SelectTests
             "TOP cannot be combined with LIMIT, OFFSET, or FETCH; use one or the other.",
             ex.Message);
     }
+
+    // A SELECT prefix written out of the overloads' order lands in an item slot (#679).
+    [Theory]
+    [InlineData("DISTINCT")]
+    [InlineData("TOP")]
+    [InlineData("An optimizer hint")]
+    public void Select_PrefixOutOfOrder_ThrowsArgumentException(string keyword)
+    {
+        object prefix = keyword switch
+        {
+            "DISTINCT" => Distinct,
+            "TOP" => Top(5),
+            _ => Hints("/*+ FULL(t) */"),
+        };
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code, prefix).From(_t));
+
+        Assert.Equal(
+            $"{keyword} goes ahead of the select items, in an order a Select(...) overload "
+                + "takes: hints, then DISTINCT or DISTINCT ON, or DISTINCT, then TOP.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Select_TopBeforeDistinct_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Top(5), Distinct, _t.Code).From(_t));
+
+        Assert.Equal(
+            "DISTINCT goes ahead of the select items, in an order a Select(...) overload "
+                + "takes: hints, then DISTINCT or DISTINCT ON, or DISTINCT, then TOP.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_DistinctKeyword_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).OrderBy(Distinct));
+
+        Assert.Equal(
+            "DISTINCT is no value; Select(Distinct, ...) and an aggregate such as "
+                + "Count(Distinct, x) take it first.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Returning_TopClause_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(_t).Set(_t.Code == 1).Returning(Top(1), _t.Code));
+
+        Assert.Equal("TOP is no value; Select(...) takes it ahead of its items.", ex.Message);
+    }
 }

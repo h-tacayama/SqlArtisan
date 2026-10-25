@@ -14,7 +14,8 @@ internal sealed class ReturningBuilder : IReturningBuilder
     internal static ReturningBuilder Create(SqlBuilderBase inner, object[] expressions)
     {
         CollectionGuard.ThrowIfEmpty(
-            expressions, nameof(expressions), "RETURNING requires at least one expression.");
+            expressions, nameof(expressions), "RETURNING requires at least one expression.",
+            ExpressionResolver.NullValueMessage);
 
         // An alias is valid in a RETURNING list (PostgreSQL, SQLite), so it is
         // emitted faithfully here (ADR 0007); only the INTO form rejects it.
@@ -103,7 +104,8 @@ internal sealed class ReturningBuilder : IReturningBuilder
         if (_completed)
         {
             throw new ArgumentException(
-                "This RETURNING clause was already built; start a new chain.");
+                "This RETURNING stage was already completed by Build() or Into(...); "
+                    + "start a new chain.");
         }
     }
 }

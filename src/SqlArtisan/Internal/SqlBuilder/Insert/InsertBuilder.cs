@@ -20,6 +20,10 @@ internal sealed class InsertBuilder :
     private const string NoRowsMessage =
         "VALUES requires at least one row; the row collection is empty.";
 
+    // Values(null) binds the rows overloads, where a null stood for a NULL value.
+    private const string NullRowsMessage =
+        "A null Values(...) argument binds the rows overload; pass Sql.Null for a NULL value.";
+
     private readonly DbTableBase _table;
     private readonly int _columnCount;
     private InsertValuesClause? _valuesClause;
@@ -83,7 +87,8 @@ internal sealed class InsertBuilder :
     public IInsertBuilderOutputInto Output(params object[] items)
     {
         CollectionGuard.ThrowIfEmpty(
-            items, nameof(items), "OUTPUT requires at least one expression.");
+            items, nameof(items), "OUTPUT requires at least one expression.",
+            ExpressionResolver.NullValueMessage);
         AddPart(new OutputClause(SelectItemResolver.Resolve(items, "OutputItem", "outputItem")));
         return this;
     }
@@ -115,7 +120,11 @@ internal sealed class InsertBuilder :
     public IInsertBuilderValues Values(IEnumerable<object[]> rows)
     {
         ThrowIfBuilt();
-        ArgumentNullException.ThrowIfNull(rows);
+        if (rows is null)
+        {
+            throw new ArgumentNullException(nameof(rows), NullRowsMessage);
+        }
+
         AddValuesRows(rows);
         return this;
     }
@@ -123,7 +132,11 @@ internal sealed class InsertBuilder :
     public IInsertBuilderValues Values(object[][] rows)
     {
         ThrowIfBuilt();
-        ArgumentNullException.ThrowIfNull(rows);
+        if (rows is null)
+        {
+            throw new ArgumentNullException(nameof(rows), NullRowsMessage);
+        }
+
         AddValuesRows(rows);
         return this;
     }
@@ -317,9 +330,14 @@ internal sealed class InsertBuilder :
     {
         if (values is null)
         {
-            throw new ArgumentNullException(
-                nameof(values), "A VALUES source must not contain a null row.");
+            throw new ArgumentNullException(nameof(values), InsertValueResolver.NullRowMessage);
         }
+
+        InsertValueResolver.ThrowIfArrayValue(
+            values,
+            _valuesClause is null
+                ? "Values(object[][]) or one Values(row) per row"
+                : "one Values(row) per row");
 
         if (_valuesClause is null)
         {

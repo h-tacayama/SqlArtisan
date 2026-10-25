@@ -113,7 +113,8 @@ public class BuilderReuseTests
             ret.Build(Dbms.Oracle));
 
         Assert.Equal(
-            "This RETURNING clause was already built; start a new chain.",
+            "This RETURNING stage was already completed by Build() or Into(...); "
+                + "start a new chain.",
             ex.Message);
     }
 
@@ -127,7 +128,8 @@ public class BuilderReuseTests
             ret.Into(new OutputParameter("out", DbType.Int32)));
 
         Assert.Equal(
-            "This RETURNING clause was already built; start a new chain.",
+            "This RETURNING stage was already completed by Build() or Into(...); "
+                + "start a new chain.",
             ex.Message);
     }
 
@@ -143,7 +145,8 @@ public class BuilderReuseTests
             ret.Build(Dbms.Oracle));
 
         Assert.Equal(
-            "This RETURNING clause was already built; start a new chain.",
+            "This RETURNING stage was already completed by Build() or Into(...); "
+                + "start a new chain.",
             ex.Message);
     }
 
@@ -157,7 +160,8 @@ public class BuilderReuseTests
             ret.Into(new OutputParameter("out2", DbType.Int32)));
 
         Assert.Equal(
-            "This RETURNING clause was already built; start a new chain.",
+            "This RETURNING stage was already completed by Build() or Into(...); "
+                + "start a new chain.",
             ex.Message);
     }
 
@@ -1290,7 +1294,21 @@ public class BuilderReuseTests
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() => inner.Build(Dbms.Oracle));
 
-        Assert.Equal(ReturningPendingMessage, ex.Message);
+        Assert.Equal(TwoReturningStagesMessage, ex.Message);
+    }
+
+    // The stage Into completed leaves its clause behind, so the sibling cannot build past it.
+    [Fact]
+    public void Returning_TwoStages_IntoOnOne_SiblingBuildThrows()
+    {
+        IUpdateBuilderSet inner = Update(_t).Set(_t.Code == 1);
+        IReturningBuilder first = inner.Returning(_t.Code);
+        IReturningBuilder second = inner.Returning(_t.Name);
+        first.Into(new OutputParameter("out_code", DbType.Int32));
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => second.Build(Dbms.Oracle));
+
+        Assert.Equal(TwoReturningStagesMessage, ex.Message);
     }
 
     [Fact]
@@ -1318,6 +1336,10 @@ public class BuilderReuseTests
 
         Assert.Equal("This UPDATE statement was already built; start a new chain.", ex.Message);
     }
+
+    private const string TwoReturningStagesMessage =
+        "Two RETURNING stages were written on this statement; a build from either "
+        + "would drop the other, so write RETURNING once.";
 
     private const string ReturningPendingMessage =
         "A RETURNING clause was written on this statement, but it was built from the stage "

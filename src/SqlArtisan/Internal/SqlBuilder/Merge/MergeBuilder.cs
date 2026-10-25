@@ -58,10 +58,10 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
 
     public IMergeBuilderThenInsert ThenInsert(params DbColumn[] columns)
     {
-        CollectionGuard.ThrowIfEmpty(
-            columns, nameof(columns), "An INSERT column list requires at least one column.");
         CollectionGuard.ThrowIfNullElement(
             columns, nameof(columns), "An INSERT column list must not contain a null column.");
+        CollectionGuard.ThrowIfEmpty(
+            columns, nameof(columns), "An INSERT column list requires at least one column.");
         ColumnListGuard.ThrowIfDuplicate(
             columns, "An INSERT column list must not name a column twice.");
         ColumnListGuard.ThrowIfForeignColumn(
@@ -118,7 +118,12 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     {
         // Checked here, not left to the resolver: the width guard below would
         // otherwise dereference a null array before any named guard runs.
-        ArgumentNullException.ThrowIfNull(values);
+        if (values is null)
+        {
+            throw new ArgumentNullException(nameof(values), InsertValueResolver.NullRowMessage);
+        }
+
+        InsertValueResolver.ThrowIfArrayValue(values, severalRows: null);
 
         if (_pendingInsertColumnCount > 0
             && values.Length > 0
@@ -205,7 +210,7 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         DmlTargetGuard.ThrowIfLeadingWithBeforeMergeActionFilter(PartsSpan);
         DmlTargetGuard.ThrowIfLeadingWithUnsupportedOnMerge(PartsSpan, dbms);
 
-        bool branchOpen = false;
+        SqlPart? openBranch = null;
         bool insertOpen = false;
         bool filterable = false;
         bool filtered = false;
@@ -215,20 +220,20 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         {
             if (part is WhenMatchedClause or WhenNotMatchedClause or WhenNotMatchedBySourceClause)
             {
-                ThrowIfBranchUnfinished(branchOpen, insertOpen);
-                branchOpen = true;
+                ThrowIfBranchUnfinished(openBranch, insertOpen);
+                openBranch = part;
                 filterable = part is WhenMatchedClause { IsConditioned: false }
                     or WhenNotMatchedClause { IsConditioned: false };
                 refusedByOracle |= !filterable;
             }
             else if (part is MergeUpdateSetClause or MergeDeleteClause)
             {
-                branchOpen = false;
+                openBranch = null;
                 refusedByOracle |= part is MergeDeleteClause;
             }
             else if (part is MergeInsertClause)
             {
-                branchOpen = false;
+                openBranch = null;
                 insertOpen = true;
             }
             else if (part is InsertValuesClause)
@@ -249,7 +254,7 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
                 is MergeUpdateWhereClause or MergeDeleteWhereClause or MergeInsertWhereClause;
         }
 
-        ThrowIfBranchUnfinished(branchOpen, insertOpen);
+        ThrowIfBranchUnfinished(openBranch, insertOpen);
 
         // The filters are Oracle's, which refuses the other branch forms, and the engines
         // with those refuse an action WHERE, so no target runs both in one MERGE (#679).
@@ -263,12 +268,19 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         }
     }
 
-    private static void ThrowIfBranchUnfinished(bool branchOpen, bool insertOpen)
+    // Each WHEN clause takes its own actions, so the message lists that branch's.
+    private static void ThrowIfBranchUnfinished(SqlPart? openBranch, bool insertOpen)
     {
-        if (branchOpen)
+        if (openBranch is not null)
         {
-            throw new ArgumentException(
-                "A MERGE WHEN branch requires an action (UPDATE SET, DELETE, or INSERT).");
+            throw new ArgumentException(openBranch switch
+            {
+                WhenNotMatchedClause =>
+                    "A MERGE WHEN NOT MATCHED branch requires an action (INSERT).",
+                WhenNotMatchedBySourceClause => "A MERGE WHEN NOT MATCHED BY SOURCE branch "
+                    + "requires an action (UPDATE SET or DELETE).",
+                _ => "A MERGE WHEN MATCHED branch requires an action (UPDATE SET or DELETE).",
+            });
         }
 
         if (insertOpen)

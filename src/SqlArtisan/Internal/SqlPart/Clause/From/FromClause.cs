@@ -4,10 +4,12 @@ internal sealed class FromClause : SqlPart
 {
     private readonly TableReference[] _tables;
 
+    internal const string NullTableMessage =
+        "A FROM clause must not contain a null table reference.";
+
     internal FromClause(TableReference[] tables)
     {
-        CollectionGuard.ThrowIfNullElement(
-            tables, nameof(tables), "A FROM clause must not contain a null table reference.");
+        CollectionGuard.ThrowIfNullElement(tables, nameof(tables), NullTableMessage);
         _tables = tables;
     }
 

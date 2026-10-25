@@ -645,6 +645,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#654)
 
 ### Fixed
+- Several messages named a type, or the runtime's `Value cannot be null.`, where
+  the caller needed a remedy:
+  - `Distinct`, `DistinctOn(...)`, `Top(n)` or `Hints(...)` out of the order the
+    `Select(...)` overloads take now names that order, and in any other slot
+    says where it goes.
+  - `GroupBy(Group(...))` names `GroupingSets(...)`, `Rollup(...)` and
+    `Cube(...)`.
+  - An array among a `VALUES` row's values, such as `.Values(row1, row2)` or an
+    `int[]` row, names the rows overloads before the row's width.
+  - `Values(null)` names `Sql.Null`.
+  - A lone `null` passed to `From`, `Using`, `Set`, `DoUpdateSet`,
+    `OnDuplicateKeyUpdate`, `ThenUpdateSet`, `Returning`, `Output`,
+    `InsertInto(t, ...)`, `ThenInsert`, `With` or `Into` names the construct.
+  - A MERGE `WHEN` branch with no action lists that branch's own actions.
+  - A `RETURNING` stage reused after `Into(...)` says it was completed by
+    `Build()` or `Into(...)`, where it said it was already built. A second
+    `RETURNING` stage beside one that `Into(...)` completed reports the two
+    stages, where it said the statement was built from the stage before it.
+    (#679)
 - A subquery that lists an unaliased `UPDATE`, `DELETE` or `MERGE` target in its
   own `From(...)` or join builds, reading the target there as its own relation,
   as a CTE body already did; it threw `The target of a correlated UPDATE,

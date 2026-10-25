@@ -300,10 +300,40 @@ internal static class ExpressionResolver
     // generic message, where `position` names the position the value reached
     // (e.g. "SelectItem", "GroupByItem").
     internal static ArgumentException UnresolvableValue(string position, object item) =>
-        item is IIncompleteExpression incomplete
-            ? new ArgumentException(incomplete.IncompleteMessage)
-            : new ArgumentException(
-                $"Invalid type for {position}: {item.GetType()}");
+        item switch
+        {
+            IIncompleteExpression incomplete => new(incomplete.IncompleteMessage),
+            DistinctKeyword or DistinctOnKeyword or SqlHints or TopClause
+                => new(MisplacedPrefixMessage(item, position)),
+            GroupingSet => new(
+                "A grouping set built with Group(...) goes inside GroupingSets(...), "
+                    + "Rollup(...) or Cube(...)."),
+            _ => new($"Invalid type for {position}: {item.GetType()}"),
+        };
+
+    // A SELECT prefix is a part as an item is, so one written out of the order the
+    // overloads take lands in an item slot; the message names that order (#679).
+    private static string MisplacedPrefixMessage(object prefix, string position)
+    {
+        string keyword = prefix switch
+        {
+            DistinctKeyword => "DISTINCT",
+            DistinctOnKeyword => "DISTINCT ON",
+            TopClause => "TOP",
+            _ => "An optimizer hint",
+        };
+
+        if (position == "SelectItem")
+        {
+            return $"{keyword} goes ahead of the select items, in an order a Select(...) "
+                + "overload takes: hints, then DISTINCT or DISTINCT ON, or DISTINCT, then TOP.";
+        }
+
+        return prefix is DistinctKeyword
+            ? "DISTINCT is no value; Select(Distinct, ...) and an aggregate such as "
+                + "Count(Distinct, x) take it first."
+            : $"{keyword} is no value; Select(...) takes it ahead of its items.";
+    }
 
     // The tail parameter is named `items` here and above so a null tail keeps the
     // message every other array-taking resolver entry point produces.

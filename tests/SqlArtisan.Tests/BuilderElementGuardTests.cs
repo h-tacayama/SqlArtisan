@@ -206,4 +206,86 @@ public class BuilderElementGuardTests
             "A WITH clause must not contain a null CTE definition. (Parameter 'ctes')",
             ex.Message);
     }
+
+    // A lone null argument binds the params array itself to null, so each site names
+    // its construct, the element's message where an element was the likelier intent (#679).
+    public static TheoryData<string, Func<object>, string> NullParamsArrays
+    {
+        get
+        {
+            TestTable t = new("t");
+            TestTable s = new("s");
+            const string NullValue = "A C# null is not SQL NULL; pass Sql.Null instead.";
+            return new()
+            {
+                {
+                    "From", () => Select(t.Code).From(null!),
+                    "A FROM clause must not contain a null table reference. (Parameter 'tables')"
+                },
+                {
+                    "DeleteUsing", () => DeleteFrom(t).Using(null!),
+                    "A USING clause must not contain a null table reference. (Parameter 'tables')"
+                },
+                {
+                    "Set", () => Update(t).Set(null!),
+                    "The SET assignment list must not contain a null assignment. "
+                        + "(Parameter 'assignments')"
+                },
+                {
+                    "DoUpdateSet", () => InsertInto(t, t.Code).Values(1).OnConflict(t.Code)
+                        .DoUpdateSet(null!),
+                    "The DO UPDATE SET assignment list must not contain a null assignment. "
+                        + "(Parameter 'assignments')"
+                },
+                {
+                    "OnDuplicateKeyUpdate", () => InsertInto(t, t.Code).Values(1)
+                        .OnDuplicateKeyUpdate(null!),
+                    "The ON DUPLICATE KEY UPDATE assignment list must not contain a null "
+                        + "assignment. (Parameter 'assignments')"
+                },
+                {
+                    "ThenUpdateSet", () => MergeInto(t).Using(s).On(t.Code == s.Code)
+                        .WhenMatched().ThenUpdateSet(null!),
+                    "The UPDATE SET assignment list must not contain a null assignment. "
+                        + "(Parameter 'assignments')"
+                },
+                {
+                    "Returning", () => Update(t).Set(t.Code == 1).Returning(null!),
+                    $"{NullValue} (Parameter 'expressions')"
+                },
+                {
+                    "Output", () => Update(t).Set(t.Code == 1).Output(null!),
+                    $"{NullValue} (Parameter 'items')"
+                },
+                {
+                    "InsertInto", () => InsertInto(t, null!),
+                    "An INSERT column list must not contain a null column. (Parameter 'columns')"
+                },
+                {
+                    "ThenInsert", () => MergeInto(t).Using(s).On(t.Code == s.Code)
+                        .WhenNotMatched().ThenInsert(null!),
+                    "An INSERT column list must not contain a null column. (Parameter 'columns')"
+                },
+                {
+                    "With", () => With(null!),
+                    "A WITH clause must not contain a null CTE definition. (Parameter 'ctes')"
+                },
+                {
+                    "Into", () => Update(t).Set(t.Code == 1).Returning(t.Code).Into(null!),
+                    "INTO requires at least one output parameter. (Parameter 'outputs')"
+                },
+            };
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(NullParamsArrays))]
+    public void Stage_NullParamsArray_ThrowsArgumentNullException(
+        string stage, Func<object> call, string expected)
+    {
+        _ = stage;
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => call());
+
+        Assert.Equal(expected, ex.Message);
+    }
 }

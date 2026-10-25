@@ -5,11 +5,19 @@ namespace SqlArtisan.Internal;
 // construct-specific message supplied at the call site.
 internal static class CollectionGuard
 {
-    // paramName is the caller's parameter, so the null path never surfaces an
-    // internal name (the same contract as ThrowIfNullElement below).
-    internal static void ThrowIfEmpty<T>(T[] items, string paramName, string message)
+    // A null array is the C# binding for a lone null argument (From(null)), so it
+    // takes a construct-named message rather than the runtime's; paramName is the caller's.
+    internal static void ThrowIfEmpty<T>(T[] items, string paramName, string message) =>
+        ThrowIfEmpty(items, paramName, message, message);
+
+    // nullMessage is the element message, where the null more likely stood for an element.
+    internal static void ThrowIfEmpty<T>(
+        T[] items, string paramName, string message, string nullMessage)
     {
-        ArgumentNullException.ThrowIfNull(items, paramName);
+        if (items is null)
+        {
+            throw new ArgumentNullException(paramName, nullMessage);
+        }
 
         if (items.Length == 0)
         {
@@ -22,7 +30,10 @@ internal static class CollectionGuard
         string paramName,
         string message)
     {
-        ArgumentNullException.ThrowIfNull(items, paramName);
+        if (items is null)
+        {
+            throw new ArgumentNullException(paramName, message);
+        }
 
         if (items.Count == 0)
         {
