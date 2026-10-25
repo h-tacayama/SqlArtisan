@@ -300,6 +300,7 @@ public class ReturningTests
     [InlineData("out-id")]
     [InlineData("0a")]
     [InlineData("_out")]
+    [InlineData("a\uD840")]
     public void OutputParameter_NonIdentifierVariable_ThrowsArgumentException(string variable)
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
@@ -317,6 +318,8 @@ public class ReturningTests
     [InlineData("out$")]
     [InlineData("out#")]
     [InlineData("出力")]
+    [InlineData("a\U0002000B")]
+    [InlineData("\U0002000B")]
     public void ReturningInto_Oracle_IdentifierShapedVariable_CorrectSql(string variable)
     {
         SqlStatement sql =

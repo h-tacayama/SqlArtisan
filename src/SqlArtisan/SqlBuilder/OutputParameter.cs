@@ -1,4 +1,5 @@
 using System.Data;
+using System.Text;
 using SqlArtisan.Internal;
 
 namespace SqlArtisan;
@@ -61,19 +62,21 @@ public readonly struct OutputParameter
     /// </summary>
     public int? Size { get; }
 
+    // By rune, so a letter outside the BMP reads as the letter it is, not two surrogates.
     private static bool IsIdentifierShaped(string value)
     {
-        if (!char.IsLetter(value[0]))
+        bool first = true;
+        foreach (Rune r in value.EnumerateRunes())
         {
-            return false;
-        }
-
-        foreach (char c in value)
-        {
-            if (!char.IsLetterOrDigit(c) && c != '_' && c != '$' && c != '#')
+            bool allowed = first
+                ? Rune.IsLetter(r)
+                : Rune.IsLetterOrDigit(r) || r.Value is '_' or '$' or '#';
+            if (!allowed)
             {
                 return false;
             }
+
+            first = false;
         }
 
         return true;
