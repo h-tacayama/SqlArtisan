@@ -1136,8 +1136,8 @@ public class InsertTests
             InsertInto(t, t.Code, t.Name).Values(first, second));
 
         Assert.Equal(
-            "A VALUES value cannot be an array (System.Object[]); bind an array value with "
-                + "BindArray(...), and pass a row as object[], and several as "
+            "A VALUES value cannot be an array (System.Object[]); bind a PostgreSQL array "
+                + "value with BindArray(...), and pass a row as object[], and several as "
                 + "Values(object[][]) or one Values(row) per row.",
             ex.Message);
     }
@@ -1152,8 +1152,8 @@ public class InsertTests
             InsertInto(t, t.Code, t.Name).Values(1, "a").Values(rows));
 
         Assert.Equal(
-            "A VALUES value cannot be an array (System.Object[]); bind an array value with "
-                + "BindArray(...), and pass a row as object[], and several as "
+            "A VALUES value cannot be an array (System.Object[]); bind a PostgreSQL array "
+                + "value with BindArray(...), and pass a row as object[], and several as "
                 + "one Values(row) per row.",
             ex.Message);
     }
@@ -1167,8 +1167,8 @@ public class InsertTests
             InsertInto(t, t.Code, t.Name).Values(new int[] { 1, 2 }));
 
         Assert.Equal(
-            "A VALUES value cannot be an array (System.Int32[]); bind an array value with "
-                + "BindArray(...), and pass a row as object[], and several as "
+            "A VALUES value cannot be an array (System.Int32[]); bind a PostgreSQL array "
+                + "value with BindArray(...), and pass a row as object[], and several as "
                 + "Values(object[][]) or one Values(row) per row.",
             ex.Message);
     }
@@ -1202,7 +1202,7 @@ public class InsertTests
     }
 
     // An object[] row holding an array value reads the same as an array row, so the
-    // message names BindArray(...), which binds it.
+    // message names BindArray(...), which binds it on PostgreSQL.
     [Fact]
     public void Values_ArrayValueInAnObjectRow_ThrowsArgumentException()
     {
@@ -1213,8 +1213,8 @@ public class InsertTests
             InsertInto(t, t.Code).Values([codes]));
 
         Assert.Equal(
-            "A VALUES value cannot be an array (System.Int32[]); bind an array value with "
-                + "BindArray(...), and pass a row as object[], and several as "
+            "A VALUES value cannot be an array (System.Int32[]); bind a PostgreSQL array "
+                + "value with BindArray(...), and pass a row as object[], and several as "
                 + "Values(object[][]) or one Values(row) per row.",
             ex.Message);
     }

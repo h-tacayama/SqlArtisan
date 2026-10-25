@@ -16,8 +16,8 @@ internal static class InsertValueResolver
             if (value is Array)
             {
                 throw new ArgumentException(
-                    $"A VALUES value cannot be an array ({value.GetType()}); bind an array "
-                        + "value with BindArray(...), and pass "
+                    $"A VALUES value cannot be an array ({value.GetType()}); bind a PostgreSQL "
+                        + "array value with BindArray(...), and pass "
                         + (severalRows is null
                             ? "the row as object[]."
                             : $"a row as object[], and several as {severalRows}."));
