@@ -295,14 +295,43 @@ public class ReturningTests
     [InlineData(" out")]
     [InlineData("out id")]
     [InlineData("out\t")]
-    public void OutputParameter_WhiteSpaceInVariable_ThrowsArgumentException(string variable)
+    [InlineData("0--")]
+    [InlineData("out)")]
+    [InlineData("out-id")]
+    [InlineData("0a")]
+    [InlineData("_out")]
+    public void OutputParameter_NonIdentifierVariable_ThrowsArgumentException(string variable)
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             new OutputParameter(variable, DbType.Int32));
 
         Assert.Equal(
-            "An output variable name must not contain white space; its marker ends there.",
+            "An output variable name must start with a letter and hold only letters, "
+            + "digits, _, $ and #; its marker ends at any other character.",
             ex.Message);
+    }
+
+    [Theory]
+    [InlineData("o")]
+    [InlineData("out_id2")]
+    [InlineData("out$")]
+    [InlineData("out#")]
+    [InlineData("出力")]
+    public void ReturningInto_Oracle_IdentifierShapedVariable_CorrectSql(string variable)
+    {
+        SqlStatement sql =
+            DeleteFrom(_t)
+            .Returning(_t.Code)
+            .Into(new OutputParameter(variable, DbType.Int32))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM ");
+        expected.Append("test_table ");
+        expected.Append("RETURNING code ");
+        expected.Append($"INTO :{variable}");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]

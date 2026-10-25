@@ -121,8 +121,10 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   an `OUTPUT ... INTO` list whose width differs from the `OUTPUT` list; a `SET` target another table owns, in an arm that
   renders it bare, and a column list entry another table owns (the paragraph
   below, #674); an `OutputParameter` name that is digits only, the positional
-  bind markers' namespace (release audit pass 5), or holds white space, where its
-  marker ends (`"0 "` rendered `INTO :0 ` beside a positional `:0`, #679).
+  bind markers' namespace (release audit pass 5), or is not shaped as an Oracle
+  nonquoted identifier (a letter, then letters, digits, `_`, `$` or `#`), since
+  its marker ends at any other character (`"0 "` rendered `INTO :0 ` beside a
+  positional `:0`, #679).
   These are call-site defects rejected whatever the engine does (ADR 0011
   decides the class outside its bar) — eagerly, the `OUTPUT ... INTO` width
   at `Into(...)`, but for the joined-`UPDATE` arm's cross-name pairs above and

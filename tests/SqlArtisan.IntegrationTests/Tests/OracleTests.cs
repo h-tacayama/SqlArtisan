@@ -131,8 +131,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             () => IdentifierLimits.ReturnedAlias(connection, atLimit + character));
     }
 
-    // OutputParameter rejects white space in its name (#679): an output named "0 " beside the
-    // positional :0 renders INTO :0 , which binds the returned id to that input instead.
+    // OutputParameter rejects a name not shaped as an identifier (#679): an output named "0 "
+    // beside the positional :0 renders INTO :0 , which binds the returned id to that input.
     [Fact]
     public void ReturningInto_MarkerEndingInWhiteSpace_BindsTheInputMarker()
     {

@@ -75,10 +75,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   17, SQLite 3.50, and SQL Server 2022 and 2025. (#662)
 
 ### Changed
-- **Breaking:** `new OutputParameter(name, ...)` throws `ArgumentException` when
-  the name contains white space. Its marker ends there: `"0 "` rendered
-  `INTO :0 ` beside a positional `:0`, and Oracle XE 21.3.0 wrote the returned
-  value into that input while the output parameter read empty. (#679)
+- **Breaking:** `new OutputParameter(name, ...)` throws `ArgumentException`
+  unless the name starts with a letter and holds only letters, digits, `_`, `$`
+  and `#`, the shape of an Oracle nonquoted identifier. Its marker ends at any
+  other character: `"0 "` rendered `INTO :0 ` beside a positional `:0`, and
+  Oracle XE 21.3.0 wrote the returned value into that input while the output
+  parameter read empty. (#679)
 - **Breaking:** an `INSERT` stage after `Output(...)` no longer offers
   `With(...)` or `WithRecursive(...)`, and an `ON CONFLICT` action no longer offers `Into(...)` after
   `Returning(...)`. SQL Server, the one engine with `OUTPUT`, takes a `WITH` only
