@@ -1078,8 +1078,11 @@ on Oracle XE 21.3.0 and SQLite 3.50.4.
 The `DELETE ... FROM` and MySQL's join-before-`SET` stages do not offer
 `Returning(...)`: MySQL and SQL Server, whose forms they spell, have no
 `RETURNING`, and on Oracle `Using(...)` takes it where the target is not
-re-listed; on an
-`UPDATE` re-listing its target, `Returning(...)` throws at `Build()`. A chain
+re-listed. On an `UPDATE` that re-lists its target, `Returning(...)` throws at
+`Build()`, and so does a held stage that reaches it on a `DELETE ... FROM`
+that re-lists its target or an `UPDATE` that joins before `SET`; on Oracle, a
+held `DELETE ... FROM` stage that does not re-list its target builds with
+it. A chain
 also takes one join spelling: joining before `SET` and adding a `FROM` throws
 at `Build()`.
 

@@ -661,8 +661,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `RETURNING ... INTO` included, and still throws at `Build()` elsewhere.
   On Oracle, `SQLA0102` reports a joined `DELETE`'s `From` below 23, whichever
   lead it writes, and from 23 only a lead that re-lists the target, which
-  Oracle still rejects, where the expression passes the target's own local or
-  readonly field to `From(...)` or a join. (#679)
+  Oracle still rejects, where the expression passes the target's own local, or
+  a readonly field read through `this` or statically, to `From(...)` or a
+  join. (#679)
 - `Build(IDbConnection)`, and every `SqlArtisan.Dapper` call through it, said
   `Unsupported DBMS.` for a connection whose type is not registered, such as a
   wrapper around a supported provider. The message now names the connection

@@ -821,8 +821,9 @@ Server parse. A `From(...)` that does not re-list the target keeps
 its [floor](#version-bound-constructs). `Build(Dbms)` emits that lead on Oracle
 at any version and throws for it on every other dialect. So past that floor
 the rule reports on Oracle only where the same expression passes the target's
-own local or readonly field to `From(...)` or a later join, and stays silent
-where it cannot see that. On PostgreSQL write the join as
+own local, or a readonly field read through `this` or statically, to
+`From(...)` or a later join, and stays silent where it cannot see that, such
+as a parameter or another instance's field. On PostgreSQL write the join as
 `Using(...)`, as Oracle at or past its floor also takes; Oracle below that floor and
 SQLite take no joined form, and a [correlated subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#correlated-update--delete)
 on the aliased target takes its place there.

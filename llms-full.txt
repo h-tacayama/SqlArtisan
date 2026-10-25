@@ -1523,8 +1523,11 @@ on Oracle XE 21.3.0 and SQLite 3.50.4.
 The `DELETE ... FROM` and MySQL's join-before-`SET` stages do not offer
 `Returning(...)`: MySQL and SQL Server, whose forms they spell, have no
 `RETURNING`, and on Oracle `Using(...)` takes it where the target is not
-re-listed; on an
-`UPDATE` re-listing its target, `Returning(...)` throws at `Build()`. A chain
+re-listed. On an `UPDATE` that re-lists its target, `Returning(...)` throws at
+`Build()`, and so does a held stage that reaches it on a `DELETE ... FROM`
+that re-lists its target or an `UPDATE` that joins before `SET`; on Oracle, a
+held `DELETE ... FROM` stage that does not re-list its target builds with
+it. A chain
 also takes one join spelling: joining before `SET` and adding a `FROM` throws
 at `Build()`.
 
@@ -4567,8 +4570,9 @@ Server parse. A `From(...)` that does not re-list the target keeps
 its [floor](#version-bound-constructs). `Build(Dbms)` emits that lead on Oracle
 at any version and throws for it on every other dialect. So past that floor
 the rule reports on Oracle only where the same expression passes the target's
-own local or readonly field to `From(...)` or a later join, and stays silent
-where it cannot see that. On PostgreSQL write the join as
+own local, or a readonly field read through `this` or statically, to
+`From(...)` or a later join, and stays silent where it cannot see that, such
+as a parameter or another instance's field. On PostgreSQL write the join as
 `Using(...)`, as Oracle at or past its floor also takes; Oracle below that floor and
 SQLite take no joined form, and a [correlated subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#correlated-update--delete)
 on the aliased target takes its place there.
