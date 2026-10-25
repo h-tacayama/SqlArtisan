@@ -300,9 +300,24 @@ public class ReturningTests
     [InlineData("out-id")]
     [InlineData("0a")]
     [InlineData("_out")]
-    [InlineData("a\uD840")]
     public void OutputParameter_NonIdentifierVariable_ThrowsArgumentException(string variable)
     {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new OutputParameter(variable, DbType.Int32));
+
+        Assert.Equal(
+            "An output variable name must start with a letter and hold only letters, "
+            + "digits, _, $ and #; its marker ends at any other character.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void OutputParameter_LoneSurrogateInVariable_ThrowsArgumentException()
+    {
+        // Built at run time: an attribute argument is stored as UTF-8, which has no lone
+        // surrogate, so InlineData would pass U+FFFD instead.
+        string variable = "a" + '\uD840';
+
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             new OutputParameter(variable, DbType.Int32));
 
