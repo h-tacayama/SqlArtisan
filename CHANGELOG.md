@@ -651,14 +651,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   DELETE, or MERGE must be aliased.`, and `SQLA0300` reported it. A block that
   does not list the target still needs it aliased. (#679)
 - A joined `DELETE ... FROM` or `UPDATE ... FROM` that re-lists its target
-  through a join after `From(...)` counts as re-listed:
-  `DeleteFrom(t).From(u).InnerJoin(t)` threw at `From(u)`, and the same
-  `UPDATE` threw at `Build(Dbms.SqlServer)`, though MySQL 8.0.46 and SQL Server
-  2022 run both. A `DELETE ... FROM` that does not re-list its target builds on
-  Oracle, whose Free 23ai release runs it, `RETURNING ... INTO` included, and
-  throws at `Build()` elsewhere instead of at `From(...)`. `SQLA0102` reports
-  that lead on Oracle below 23 and, from 23, only where the expression re-lists
-  the target's own variable or field, the lead Oracle still rejects. (#679)
+  through a join after `From(...)` counts as re-listed. On every dialect
+  `Build()` threw on `DeleteFrom(t).From(u).InnerJoin(t)`, which MySQL 8.0.46
+  and SQL Server 2022 run, and `Build(Dbms.SqlServer)` on the same `UPDATE`,
+  which SQL Server 2022 runs. That `UPDATE` now throws at `Build()` on every
+  other dialect, where it built with the target listed twice, as one that
+  re-lists the target in `From(...)` already did. A `DELETE ... FROM` that does
+  not re-list its target builds on Oracle, whose Free 23ai release runs it,
+  `RETURNING ... INTO` included, and still throws at `Build()` elsewhere.
+  On Oracle, `SQLA0102` reports a joined `DELETE`'s `From` below 23, whichever
+  lead it writes, and from 23 only a lead that re-lists the target, which
+  Oracle still rejects, where the expression passes the target's own local or
+  readonly field to `From(...)` or a join. (#679)
 - `Build(IDbConnection)`, and every `SqlArtisan.Dapper` call through it, said
   `Unsupported DBMS.` for a connection whose type is not registered, such as a
   wrapper around a supported provider. The message now names the connection

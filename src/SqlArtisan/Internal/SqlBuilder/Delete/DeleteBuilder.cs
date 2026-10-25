@@ -120,8 +120,8 @@ internal sealed class DeleteBuilder(
         return this;
     }
 
-    // The joined form's WHERE returns a stage without RETURNING, which no engine
-    // that spells DELETE ... FROM has.
+    // The joined form's WHERE returns a stage without RETURNING: no engine with one runs
+    // a re-listed target, and Using(...) offers it where the target is not re-listed.
     IDeleteBuilderFromWhere IDeleteBuilderFrom.Where(SqlCondition condition)
     {
         AddPart(new WhereClause(condition));

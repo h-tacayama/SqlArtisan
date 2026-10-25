@@ -818,10 +818,11 @@ reads the chain past Oracle's floor alone, as the next paragraph says.
 bare alias (`DELETE t FROM ...`), the multi-table form only MySQL and SQL
 Server parse. A `From(...)` that does not re-list the target keeps
 `DELETE FROM t` ahead of a second `FROM`, which Oracle alone takes, at or past
-its [floor](#version-bound-constructs); elsewhere `Build(Dbms)` throws. So
-past that floor the rule reports on Oracle only where the same expression lists
-the target's own variable or readonly field in `From(...)` or a later join, and
-stays silent where it cannot see that. On PostgreSQL write the join as
+its [floor](#version-bound-constructs). `Build(Dbms)` emits that lead on Oracle
+at any version and throws for it on every other dialect. So past that floor
+the rule reports on Oracle only where the same expression passes the target's
+own local or readonly field to `From(...)` or a later join, and stays silent
+where it cannot see that. On PostgreSQL write the join as
 `Using(...)`, as Oracle at or past its floor also takes; Oracle below that floor and
 SQLite take no joined form, and a [correlated subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#correlated-update--delete)
 on the aliased target takes its place there.
@@ -1112,8 +1113,8 @@ value does.
 ## Correlated DML target (SQLA0300)
 
 An UPDATE, DELETE, or MERGE whose subquery — or, for MERGE, whose `USING`
-source — references a column of the **unaliased** target table can be
-silently wrong: the bare outer column can resolve to the inner table, and
+source — references a column of the **unaliased** target table, without
+listing the target in its own `From(...)` or join, can be silently wrong: the bare outer column can resolve to the inner table, and
 then the subquery no longer depends on the outer row and the statement acts
 on the wrong rows or, from a `SET` subquery, writes the wrong values.
 `Build()` rejects this statement at run time; `SQLA0300` is the same finding
@@ -1147,7 +1148,9 @@ report a statement that builds. Known cases include:
 - a `readonly` target rewritten through `Unsafe.AsRef`.
 
 The warning is reported once per statement, on a target column read inside a
-subquery. CTE bodies are not walked, whether the `With(...)` chain heads the
+subquery that does not list the target. A subquery that passes the target's
+own local or readonly field to its `From(...)` or a join reads the target as
+its own relation, which `Build()` accepts, so it stays silent. CTE bodies are not walked, whether the `With(...)` chain heads the
 statement or sits in a subquery or a MERGE `USING` source: a target column
 read there stays silent and is left to `Build()`, which accepts a body that
 reads the target as its own relation and rejects one that correlates.

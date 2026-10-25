@@ -45,8 +45,8 @@ internal static class DmlTargetGuard
     }
 
     // Not re-listed, the lead keeps `DELETE FROM target` before a second FROM: Oracle
-    // 23.26.3 runs that opener as it runs USING; XE 21.3.0 and the other engines reject
-    // it with the alias the joined target carries (DeleteFromNotRelisted_* twins, #679).
+    // 23.26.3 runs that opener as it runs USING; XE 21.3.0 and the other engines reject it
+    // with the joined target's alias (twins DeleteFromNotRelisted_*, ContextRule_*; #679).
     internal static void ThrowIfJoinedDeleteTargetNotRepeated(DmlJoinState state, Dbms dbms)
     {
         if (dbms != Dbms.Oracle && state.HasFrom && !state.TargetRepeatedInFrom)

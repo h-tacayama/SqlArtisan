@@ -1075,8 +1075,10 @@ other table: `DeleteFrom(t).Where(t.Id.In(Select(u.Id).From(u).Where(u.Id == t.I
 with `t` aliased, and the same filter on `Update(t).Set(...)`, run in that shape
 on Oracle XE 21.3.0 and SQLite 3.50.4.
 
-The MySQL / SQL Server `DELETE ... FROM` and MySQL's join-before-`SET` stages
-do not offer `Returning(...)`, since neither engine has `RETURNING`; on an
+The `DELETE ... FROM` and MySQL's join-before-`SET` stages do not offer
+`Returning(...)`: MySQL and SQL Server, whose forms they spell, have no
+`RETURNING`, and on Oracle `Using(...)` takes it where the target is not
+re-listed; on an
 `UPDATE` re-listing its target, `Returning(...)` throws at `Build()`. A chain
 also takes one join spelling: joining before `SET` and adding a `FROM` throws
 at `Build()`.

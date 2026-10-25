@@ -208,7 +208,8 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   FROM` whose target is not re-listed, off Oracle — the lead keeps
   `DELETE FROM target` before a second `FROM`, which Oracle 23.26.3 runs and XE
   21.3.0 and the other engines reject with the joined target's alias
-  (`DeleteFromNotRelisted_*`, #679); a target re-listed through a join
+  (`DeleteFromNotRelisted_*`, and `ContextRule_JoinedDeleteFromNotRelisted_Rejected`
+  on XE 21.3.0; #679); a target re-listed through a join
   counts, on both statements, as one re-listed in `From(...)`; a joined
   `UPDATE` off SQL Server whose target IS re-listed in `FROM` — the mirror:
   that form's bare-alias lead is T-SQL's alone; a non-integer constant
@@ -767,8 +768,8 @@ reopens this (#579).
 re-file):** `Values()`, `InsertInto(t).Set()` and an empty explicit column list
 throw on every dialect, though MySQL 8.0.46 inserts a row of defaults for the
 `() VALUES ()` and `VALUES ()` they would emit
-(`MySqlTests.DefaultsRow_IsAcceptedByTheEngine`), so #396's "invalid SQL" holds
-on every engine but MySQL. An array computed empty is likelier a caller's slip
+(`MySqlTests.DefaultsRow_IsAcceptedByTheEngine`), so #396's "invalid SQL"
+premise is false for MySQL. An array computed empty is likelier a caller's slip
 than a deliberate defaults row, and on MySQL the text would insert that row
 with no error, the silent class this section exists for. A defaults row is a
 construct of its own, `DEFAULT VALUES` in `public-api-design.md`'s forms not
