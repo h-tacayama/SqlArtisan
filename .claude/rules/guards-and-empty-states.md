@@ -863,12 +863,13 @@ from an element injection (whole-argument nulls keep the loud-NRE exemption);
 and `BuilderElementGuardTests` pins the builder-side sites the factory sweep
 cannot reach. A new typed element position lands on this shape, not a bare NRE.
 A lone null argument binds the `params` array itself to null (`From(null)`), so
-each position names its construct there too, never with the runtime's
+each position gets a named message there too, never the runtime's
 `Value cannot be null.`: the element's message where the site's guards give it
 one (`CollectionGuard.ThrowIfEmpty`'s `nullMessage`, `ThrowIfNullElement` run
 first, or a resolver's own check), and its empty-collection message where they
-do not (`IN`, `ARRAY[...]` and the `SELECT` list among them); `Values(null)`
-binds the rows overload and names `Sql.Null` (`BuilderElementGuardTests`, #679).
+do not (`IN`, `ARRAY[...]` and the `SELECT` list among them). An `INSERT`'s
+`Values(null)` binds the rows overload, and MERGE's, which has none, the row
+itself; both messages name `Sql.Null` (`BuilderElementGuardTests`, #679).
 
 ## Compile time or a guard: the copy count (decided — do not re-file)
 
