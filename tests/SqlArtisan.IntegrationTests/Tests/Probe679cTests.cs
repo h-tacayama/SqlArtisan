@@ -114,6 +114,29 @@ public abstract class OracleProbe679cBase
             ("relisted", "DELETE \"x\" FROM orders \"x\" INNER JOIN users \"y\" ON \"x\".user_id = \"y\".id WHERE \"y\".id = 1"),
             ("relisted_join", "DELETE \"x\" FROM users \"y\" INNER JOIN orders \"x\" ON \"x\".user_id = \"y\".id WHERE \"y\".id = 1"),
             ("using", "DELETE FROM orders \"x\" USING users \"y\" WHERE \"x\".user_id = \"y\".id AND \"y\".id = 1"));
+        foreach ((string label, string sql) in new[]
+        {
+            ("ret.from_from", "DELETE FROM orders \"x\" FROM users \"y\" WHERE \"x\".user_id = \"y\".id AND \"y\".id = 2 RETURNING \"x\".id INTO :rid"),
+            ("ret.using", "DELETE FROM orders \"x\" USING users \"y\" WHERE \"x\".user_id = \"y\".id AND \"y\".id = 2 RETURNING \"x\".id INTO :rid"),
+            ("ret.update_from", "UPDATE orders \"x\" SET amount = 7 FROM users \"y\" WHERE \"x\".user_id = \"y\".id AND \"y\".id = 2 RETURNING \"x\".id INTO :rid"),
+        })
+        {
+            using IDbTransaction tx = c.BeginTransaction();
+            DynamicParameters p = new();
+            p.Add("rid", dbType: DbType.Int32, direction: ParameterDirection.Output);
+            try
+            {
+                int n = c.Execute(sql, p, tx);
+                log.Add($"{label}: ok, {n} row(s), rid=[{p.Get<object>("rid")}]");
+            }
+            catch (Exception e)
+            {
+                log.Add($"{label}: ERROR {e.GetType().Name}: {e.Message.Split('\n')[0]}");
+            }
+
+            tx.Rollback();
+        }
+
         return log;
     }
 }
