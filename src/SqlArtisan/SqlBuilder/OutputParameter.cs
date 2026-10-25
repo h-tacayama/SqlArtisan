@@ -1,4 +1,5 @@
 using System.Data;
+using System.Text;
 using SqlArtisan.Internal;
 
 namespace SqlArtisan;
@@ -18,7 +19,7 @@ public readonly struct OutputParameter
     /// <param name="variable">The output variable name, emitted as a bind marker (<c>:name</c>).</param>
     /// <param name="dbType">The data type the output parameter is bound as.</param>
     /// <param name="size">The buffer size for variable-length types (for example strings); omit for fixed-width types.</param>
-    /// <exception cref="ArgumentException"><paramref name="variable"/> is <see langword="null"/>, empty, white space, or digits only.</exception>
+    /// <exception cref="ArgumentException"><paramref name="variable"/> is <see langword="null"/>, empty or white space, is digits only, or does not start with a letter and hold only letters, digits, <c>_</c>, <c>$</c> and <c>#</c>.</exception>
     public OutputParameter(string variable, DbType dbType, int? size = null)
     {
         StringGuard.ThrowIfNullOrWhiteSpace(variable, "An output variable name is required.");
@@ -30,6 +31,15 @@ public readonly struct OutputParameter
             throw new ArgumentException(
                 "An output variable name must not be digits only; "
                 + "that namespace belongs to the positional bind markers.");
+        }
+
+        // The shape of an Oracle nonquoted identifier: the marker ends at any other character,
+        // so "0 " rendered INTO :0 beside a positional :0 (#679).
+        if (!IsIdentifierShaped(variable))
+        {
+            throw new ArgumentException(
+                "An output variable name must start with a letter and hold only letters, "
+                + "digits, _, $ and #; its marker ends at any other character.");
         }
 
         Variable = variable;
@@ -51,6 +61,26 @@ public readonly struct OutputParameter
     /// Gets the buffer size for variable-length types, or <see langword="null"/> when unset.
     /// </summary>
     public int? Size { get; }
+
+    // By rune, so a letter outside the BMP reads as the letter it is, not two surrogates.
+    private static bool IsIdentifierShaped(string value)
+    {
+        bool first = true;
+        foreach (Rune r in value.EnumerateRunes())
+        {
+            bool allowed = first
+                ? Rune.IsLetter(r)
+                : Rune.IsLetterOrDigit(r) || r.Value is '_' or '$' or '#';
+            if (!allowed)
+            {
+                return false;
+            }
+
+            first = false;
+        }
+
+        return true;
+    }
 
     private static bool IsDigitsOnly(string value)
     {

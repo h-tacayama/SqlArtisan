@@ -290,6 +290,68 @@ public class ReturningTests
         Assert.Equal("An output variable name is required.", ex.Message);
     }
 
+    [Theory]
+    [InlineData("0 ")]
+    [InlineData(" out")]
+    [InlineData("out id")]
+    [InlineData("out\t")]
+    [InlineData("0--")]
+    [InlineData("out)")]
+    [InlineData("out-id")]
+    [InlineData("0a")]
+    [InlineData("_out")]
+    public void OutputParameter_NonIdentifierVariable_ThrowsArgumentException(string variable)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new OutputParameter(variable, DbType.Int32));
+
+        Assert.Equal(
+            "An output variable name must start with a letter and hold only letters, "
+            + "digits, _, $ and #; its marker ends at any other character.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void OutputParameter_LoneSurrogateInVariable_ThrowsArgumentException()
+    {
+        // Built at run time: an attribute argument is stored as UTF-8, which has no lone
+        // surrogate, so InlineData would pass U+FFFD instead.
+        string variable = "a" + '\uD840';
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new OutputParameter(variable, DbType.Int32));
+
+        Assert.Equal(
+            "An output variable name must start with a letter and hold only letters, "
+            + "digits, _, $ and #; its marker ends at any other character.",
+            ex.Message);
+    }
+
+    [Theory]
+    [InlineData("o")]
+    [InlineData("out_id2")]
+    [InlineData("out$")]
+    [InlineData("out#")]
+    [InlineData("出力")]
+    [InlineData("a\U0002000B")]
+    [InlineData("\U0002000B")]
+    public void ReturningInto_Oracle_IdentifierShapedVariable_CorrectSql(string variable)
+    {
+        SqlStatement sql =
+            DeleteFrom(_t)
+            .Returning(_t.Code)
+            .Into(new OutputParameter(variable, DbType.Int32))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM ");
+        expected.Append("test_table ");
+        expected.Append("RETURNING code ");
+        expected.Append($"INTO :{variable}");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
     [Fact]
     public void OutputParameter_DigitsOnlyVariable_ThrowsArgumentException()
     {

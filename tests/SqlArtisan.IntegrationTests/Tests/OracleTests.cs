@@ -131,6 +131,30 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             () => IdentifierLimits.ReturnedAlias(connection, atLimit + character));
     }
 
+    // OutputParameter rejects a name not shaped as an identifier (#679): an output named "0 "
+    // beside the positional :0 renders INTO :0 , which binds the returned id to that input.
+    [Fact]
+    public void ReturningInto_MarkerEndingInWhiteSpace_BindsTheInputMarker()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        DynamicParameters parameters = new();
+        parameters.Add(":0", 77);
+        parameters.Add(":1", 1);
+        parameters.Add(":0 ", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+        connection.Execute(
+            "UPDATE users SET age = :0 WHERE id = :1 RETURNING id INTO :0 ",
+            parameters,
+            transaction);
+
+        Assert.True(parameters.Get<object?>(":0 ") is null or DBNull);
+        Assert.Equal(1, Convert.ToInt32(parameters.Get<object>(":0")));
+        Assert.Equal(77, connection.ExecuteScalar<int>(
+            "SELECT age FROM users WHERE id = 1", transaction: transaction));
+        transaction.Rollback();
+    }
+
     // The RETURNING ... INTO variable is the one name SQLA0103 checks on Oracle alone.
     [Fact]
     public void OutputParameter_PastTheIdentifierLimit_IsRejectedByTheEngine()
