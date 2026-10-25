@@ -81,6 +81,19 @@ internal sealed class Probe679Table : DbTableBase
     public DbColumn Name { get; }
 }
 
+internal sealed class Probe679LabelTable : DbTableBase
+{
+    public Probe679LabelTable(string name, string alias = "") : base(name, alias)
+    {
+        Id = new DbColumn(this, "id");
+        Label = new DbColumn(this, "label");
+    }
+
+    public DbColumn Id { get; }
+
+    public DbColumn Label { get; }
+}
+
 [Trait("Probe", "MySql")]
 public sealed class MySqlProbe679 : IClassFixture<MySqlFixture>
 {
@@ -111,6 +124,31 @@ public sealed class MySqlProbe679 : IClassFixture<MySqlFixture>
             Probe679Table s = new("ps679", alias);
             log.AddRange(Probe679.B(c, $"upsert.{tag}", () =>
                 ((IUpsert)InsertInto(t, t.Id, t.Name).Select(s.Id, s.Name).From(s))
+                    .OnDuplicateKeyUpdate(t.Name == Excluded(t.Name)), Dbms.MySql));
+            log.Add(Probe679.Q(c, $"upsert.{tag}.rows", "SELECT id, name FROM pt679 ORDER BY id"));
+        }
+
+        // A select list feeding the target's name from another source column.
+        foreach (bool sourceHasName in new[] { true, false })
+        {
+            string tag = sourceHasName ? "mismatch_with_name" : "mismatch_without_name";
+            log.Add(Probe679.X(c, $"upsert.{tag}.drop", "DROP TABLE IF EXISTS pt679, ps679"));
+            log.Add(Probe679.X(c, $"upsert.{tag}.target", "CREATE TABLE pt679 (id INT PRIMARY KEY, name VARCHAR(20))"));
+            log.Add(Probe679.X(
+                c, $"upsert.{tag}.source",
+                sourceHasName
+                    ? "CREATE TABLE ps679 (id INT, name VARCHAR(20), label VARCHAR(20))"
+                    : "CREATE TABLE ps679 (id INT, label VARCHAR(20))"));
+            log.Add(Probe679.X(c, $"upsert.{tag}.seed_t", "INSERT INTO pt679 VALUES (1, 'old1'), (2, 'old2')"));
+            log.Add(Probe679.X(
+                c, $"upsert.{tag}.seed_s",
+                sourceHasName
+                    ? "INSERT INTO ps679 VALUES (1, 'srcname1', 'label1'), (3, 'srcname3', 'label3')"
+                    : "INSERT INTO ps679 VALUES (1, 'label1'), (3, 'label3')"));
+            Probe679Table t = new("pt679");
+            Probe679LabelTable s = new("ps679");
+            log.AddRange(Probe679.B(c, $"upsert.{tag}", () =>
+                ((IUpsert)InsertInto(t, t.Id, t.Name).Select(s.Id, s.Label).From(s))
                     .OnDuplicateKeyUpdate(t.Name == Excluded(t.Name)), Dbms.MySql));
             log.Add(Probe679.Q(c, $"upsert.{tag}.rows", "SELECT id, name FROM pt679 ORDER BY id"));
         }

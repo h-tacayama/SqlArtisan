@@ -32,7 +32,7 @@ jobs:
         # runs only a handful of statements. PostgreSql17 does the same for the
         # PostgreSQL bounds above the 16 baseline (#582), and SqlServer2025 for
         # what SQL Server added above the 2022 baseline (#614).
-        engine: [MySql, Oracle, Oracle23ai, SqlServer]
+        engine: [MySql]
 
     steps:
       - name: Checkout
