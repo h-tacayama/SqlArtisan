@@ -193,11 +193,10 @@ internal static class DmlTargetGuard
     internal static bool LeadsWithCte(ReadOnlySpan<SqlPart> parts) =>
         parts.Length > 0 && parts[0] is WithClause or WithRecursiveClause;
 
-    // OUTPUT ... INTO is SQL Server-only, and its destination is a plain
-    // INSERT target (FormatAsDmlTarget) — an alias there renders as
-    // `INTO archive AS "a" (...)`, which T-SQL rejects the same way it rejects
-    // an aliased primary DML target. The alias is fixed at the call, so this
-    // throws eagerly rather than waiting for Build(Dbms).
+    // OUTPUT ... INTO is SQL Server-only, and its destination is a plain INSERT target
+    // (FormatAsDmlTarget): an alias renders `INTO archive AS "a" (...)`, which SQL Server
+    // 2022 rejects (OutputInto_AliasedDestination_IsRejectedByTheEngine). It is fixed at
+    // the call, so this throws eagerly rather than waiting for Build(Dbms).
     internal static void ThrowIfOutputIntoTargetAliased(DbTableBase table)
     {
         if (table.HasAlias)

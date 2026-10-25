@@ -65,7 +65,10 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   takes one only ahead of `INSERT INTO`, `ContextRule_InsertSelectWith_Rejected`),
   with an `UPDATE` that joins before `SET` (MySQL's form), or with an
   `UPDATE ... FROM` that does not re-list its target (the form SQL Server
-  refuses) — no dialect accepts both halves of any pairing (#400, #679);
+  refuses) — no dialect accepts both halves of any pairing (#400, #679); an
+  alias on the `OUTPUT ... INTO` destination, which SQL Server, the one engine
+  with `OUTPUT`, rejects (SQL Server 2022,
+  `OutputInto_AliasedDestination_IsRejectedByTheEngine`; #679);
   `Returning(...).Into(...)` (Oracle's)
   beside `OnConflict(...)`, which Oracle lacks, or after a leading `WITH`, which
   Oracle takes on no DML statement, and Oracle's MERGE action `WHERE` /
@@ -124,7 +127,9 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   bind markers' namespace (release audit pass 5), or is not shaped as an Oracle
   nonquoted identifier (a letter, then letters, digits, `_`, `$` or `#`), since
   its marker ends at any other character (`"0 "` rendered `INTO :0 ` beside a
-  positional `:0`, #679).
+  positional `:0`, #679); a `RETURNING ... INTO` variable list that is empty,
+  of another width than its `RETURNING` list, or names one variable twice, since
+  the parameters are keyed by name (#679).
   These are call-site defects rejected whatever the engine does (ADR 0011
   decides the class outside its bar) — eagerly, the `OUTPUT ... INTO` width
   at `Into(...)`, but for the joined-`UPDATE` arm's cross-name pairs above and
@@ -331,10 +336,13 @@ spelling, and both halves fail: a call-site constant is exactly what `SQLA0104`
 reads, and on those two engines `GroupBy(column)` spells the same intent. A
 *non-constant* ordinal is a blind spot, but the valid spelling is still there,
 so the second condition fails for it too and the database stays the arbiter.
-The ordinal **below 1** is a different question and guards, since it names no
-select-list position. ADR 0012's condition 1 no longer holds for it: MySQL
-8.0.46 reads `-1`, and Oracle `0` and `-1`, as one constant group (#684), so
-whether the guard stays is #679's (#521).
+The ordinal **below 1** is a different question and stays guarded on every
+dialect: it names no select-list position, so an engine that reads one reads
+another meaning (MySQL 8.0.46 groups `-1`, and Oracle XE 21.3.0 and 23.26.3
+`0` and `-1`, as one constant group, #684), and PostgreSQL 16.15, SQLite
+3.50.4 and SQL Server 2022 reject it. ADR 0012's condition 1 fails, so it is a
+call-site defect ADR 0011 decides outside its bar, as `OrderBy(0)` is (#521,
+#679).
 
 **A negative row count and a negative `Lag`/`Lead` offset stay permissive
 (decided — do not re-file):** `Top(-1)`, `FetchFirst(-1)` and `Limit(-1)`
@@ -466,10 +474,14 @@ an alias is quoted, where whitespace is legal. The stricter check is correct
 where it is, and the asymmetry is not a defect.
 
 **`Build(ISqlBuilder, IDbConnection)`'s unregistered-provider throw names
-`dbms` as its `ParamName` (decided — do not re-file):** the exception is
-`Build(Dbms)`'s own and the extension forwards the resolved value, so a
-caller-facing `cnn` name would split one guard into two. `ConfigTests` pins
-that message beside `SetDefaultDbms`'s.
+`dbms` as its `ParamName` (decided — do not re-file):** it is the
+`ArgumentOutOfRangeException` `Build(Dbms)` throws for `Dbms.Unknown`, raised
+by the extension before it forwards the resolved value, so a caller-facing
+`cnn` name would split one guard into two. Its message is the extension's own:
+the DBMS is often supported and only the connection type unregistered (a
+wrapper around a supported provider), so it names the type and both remedies,
+`DbmsResolver.RegisterProvider(...)` and `Build(Dbms)`, or, for a null
+connection, passing one (#679). `DbmsResolverTests` pins both messages.
 
 "Structurally invisible to the analyzer" is a per-guard fact, not a law: the
 correlated-DML guard's provable subset now has an advisory analyzer duplicate
@@ -842,7 +854,7 @@ stage.
   `Output(...)` (1: `IInsertBuilderOutputColumns`, #679), `Into(...)` after an
   `ON CONFLICT` action (1: `IInsertBuilderConflictAction`, #679), the
   direct-join `UPDATE`'s `SET`,
-  which leaves out `From` (1), `StringAgg`'s inline `ORDER BY` (1, #582),
+  which leaves out `From` and `Output` (1), `StringAgg`'s inline `ORDER BY` (1, #582),
   DISTINCT aggregate windows (2: the node the three DISTINCT factories share
   and its filtered form, #662), `RETURNING` on the joined `DELETE ... FROM`
   and direct-join `UPDATE` (2: their `WHERE` stages, #582), Oracle's MERGE
@@ -862,8 +874,10 @@ stage.
   `LIMIT`/`OFFSET`/`FETCH` (9); `TOP ... WITH TIES` without an `ORDER BY` (9:
   the `SELECT` stages before it, the set operator, and a `TopClause` copy,
   since a plain `Top(n)` reaches it too), or in a set-operator branch (the
-  same 9, #679); the `OUTPUT` pairings (10, across
-  three statement families, #400); an `INSERT ... SELECT` embedded as a
+  same 9, #679); the `OUTPUT` pairings (8: the
+  `INSERT` stage after `Into(...)` and its `VALUES`, the `UPDATE` `SET`,
+  `WHERE`, `FROM` and join-`ON` stages, and the `DELETE` and its `WHERE`;
+  #400, recounted in #679); an `INSERT ... SELECT` embedded as a
   subquery (13).
 
 Each copy doubles later edits to the stage it mirrors (all but one later

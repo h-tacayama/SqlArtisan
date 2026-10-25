@@ -26,9 +26,9 @@ internal interface IDbmsDialect
     bool BackslashNewlineContinuesStringLiterals { get; }
 
     /// <summary>
-    /// The separator between an INSERT/UPDATE/DELETE target and its alias:
-    /// <c> AS </c>, or a space on Oracle (ORA-00933). A MERGE target and every
-    /// FROM alias render AS-less on all dialects.
+    /// The separator between an INSERT/UPDATE/DELETE target and its alias: <c> AS </c>, or a
+    /// space on Oracle, which rejects <c>AS</c> there (XE 21.3.0 and 23.26.3). A MERGE target
+    /// and every FROM alias render AS-less on all dialects.
     /// </summary>
     string DmlTableAliasSeparator { get; }
 

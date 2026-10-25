@@ -22,8 +22,8 @@ internal sealed class DmlJoinState
 
     internal bool IsJoined => HasFrom || HasJoin || HasUsing;
 
-    // SQL Server / MySQL joined forms qualify the SET target (`SET t.col = ...`);
-    // PostgreSQL's UPDATE ... FROM rejects a qualified target even when its FROM
-    // carries a join between auxiliary tables (HasFrom without a repeated target).
+    // SQL Server / MySQL joined forms qualify the SET target (`SET t.col = ...`); PostgreSQL
+    // 16's UPDATE ... FROM rejects one even when its FROM joins auxiliary tables (HasFrom
+    // without a repeated target; UpdateFrom_QualifiedSetTarget_IsRejectedByTheEngine).
     internal bool QualifiesSetTarget => TargetRepeatedInFrom || (HasJoin && !HasFrom);
 }

@@ -447,6 +447,21 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Equal(3, groups);
     }
 
+    // OracleDialect.DmlTableAliasSeparator is a space: Oracle rejects AS before a DML
+    // target's alias, and runs the alias without it (#679).
+    [Fact]
+    public void DmlTargetAlias_WithAs_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        const string Set = " SET age = \"u\".age WHERE \"u\".id = 1";
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "UPDATE users AS \"u\"" + Set, transaction: transaction));
+        Assert.Equal(1, connection.Execute("UPDATE users \"u\"" + Set, transaction: transaction));
+        transaction.Rollback();
+    }
+
     [Fact] // #241 (GAP-19): Oracle matches GROUP BY syntactically, so a parameterized
            // expression repeated with fresh markers fails with ORA-00979.
     public void GroupByBindMarkerMismatch_Rejected()

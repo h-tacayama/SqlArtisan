@@ -104,7 +104,9 @@ Escaping identifiers "uniformly" is also unachievable, which is what settles the
 question rather than merely arguing it. Only the alias-quoted positions could
 double a quote character; the bare ones — the table name (which may be
 schema-qualified), the column name, the `CAST` target type, a CTE column list,
-an `OUTPUT … INTO` variable, and the `Sql.Hints` raw-SQL escape hatch — have no
+the column list of a `Sql.Values(...)` or `Unnest(...).AsTable(...)` derived
+table (whose own name is alias-quoted, #679), an `OUTPUT … INTO` variable, and
+the `Sql.Hints` raw-SQL escape hatch — have no
 delimiter to escape *into*. The outcome would be half-escaped, which is worse
 than a stated contract because it invites the belief that the other half is
 covered too.

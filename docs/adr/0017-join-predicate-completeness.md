@@ -111,7 +111,13 @@ justification, no per-member split.
   matching the uniform scope above, and runs from every nested render as
   well (release audit, pass 4): a subquery, CTE body, or scalar item never
   passes through `BuildCore`, and a dangling join is no less a cartesian
-  product one level down. The same backstop pairs a set operator with the
+  product one level down. A held join completed only after a later one is
+  rejected too, on another ground: `j = q.InnerJoin(u); q.InnerJoin(v).On(c1);
+  j.On(c2)` would render `t INNER JOIN u INNER JOIN v ON (c1) ON (c2)`, which
+  PostgreSQL 16 runs re-nested as `t JOIN (u JOIN v ON c1) ON c2`
+  (`PostgreSqlTests.NestedJoinSpelling_RunsReNested`), not as a cartesian
+  product; that nesting is not the chain the C# wrote, and with an outer join
+  for `u` it returns other rows (#679). The same backstop pairs a set operator with the
   `SELECT` that must follow it (release audit, pass 6): a held stage on
   which `Union`/`Intersect`/`Except`/`Minus` was taken renders a dangling
   `... UNION` when built from the stage before the operator, so the walk

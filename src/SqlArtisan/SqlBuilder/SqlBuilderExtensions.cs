@@ -22,6 +22,18 @@ public static class SqlBuilderExtensions
     public static SqlStatement Build(this ISqlBuilder sqlBuilder, IDbConnection cnn)
     {
         Dbms dbms = DbmsResolver.Resolve(cnn);
+
+        // The DBMS is often supported and only the connection type unregistered (a wrapper
+        // around a supported provider), so name the type and both ways out (#679).
+        if (dbms == Dbms.Unknown)
+        {
+            string message = cnn is null
+                ? "A null connection maps to no DBMS; pass a connection or call Build(Dbms)."
+                : $"Connection type {cnn.GetType().FullName} maps to no DBMS; register it with "
+                    + "DbmsResolver.RegisterProvider(...) or call Build(Dbms).";
+            throw new ArgumentOutOfRangeException(nameof(dbms), dbms, message);
+        }
+
         return sqlBuilder.Build(dbms);
     }
 }

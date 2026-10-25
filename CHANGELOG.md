@@ -646,6 +646,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#654)
 
 ### Fixed
+- `Build(IDbConnection)`, and every `SqlArtisan.Dapper` call through it, said
+  `Unsupported DBMS.` for a connection whose type is not registered, such as a
+  wrapper around a supported provider. The message now names the connection
+  type and both remedies, `DbmsResolver.RegisterProvider(...)` and
+  `Build(Dbms)`; a null connection gets its own. The exception type and its
+  `ParamName` are unchanged. (#679)
 - TableClassGen records no column as lacking a default on a table with a trigger
   that can fill one an `INSERT` omits, enabled or not — an Oracle `INSERT`
   trigger with a `BEFORE EACH ROW` section (a compound trigger's included), a
@@ -864,6 +870,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   bind the string with `Sql.Bind(...)` where its position takes a bound value.
 
 ### Tests
+- Twins pin the engine claims #679 found with no version or twin: SQL Server
+  2022 rejects an alias on the `OUTPUT ... INTO` destination, PostgreSQL 16
+  rejects a qualified `SET` target on `UPDATE ... FROM` and runs two `ON`
+  clauses after two joins re-nested, Oracle XE 21.3.0 and 23ai reject `AS`
+  before a DML target's alias, and MySQL 8.0 reads a cast `INSERT ... SELECT`
+  upsert's `AS new` as the source table. (#679)
 - Contract tests pin the interfaces inheriting each stage a DML-shape rule keys
   on, and the members that take an `IntervalExpression`; the schema parity
   catalog takes thirteen silent shapes from the per-rule suites. SQLite twins

@@ -1103,6 +1103,39 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             "DELETE FROM words WHERE z = @n", new { n = 1500001 }));
     }
 
+    // ADR 0011's cast entry (#679): an INSERT ... SELECT cast to IUpsert takes
+    // OnDuplicateKeyUpdate, whose AS new then names the SELECT's source table.
+    [Fact]
+    public void UpsertAfterSelect_ThroughACast_ReadsTheSourceColumn()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute("DROP TABLE IF EXISTS upsert_target, upsert_source");
+        connection.Execute("CREATE TABLE upsert_target (id INT PRIMARY KEY, name VARCHAR(20))");
+        connection.Execute(
+            "CREATE TABLE upsert_source (id INT, name VARCHAR(20), label VARCHAR(20))");
+        try
+        {
+            connection.Execute("INSERT INTO upsert_target VALUES (1, 'old')");
+            connection.Execute("INSERT INTO upsert_source VALUES (1, 'source name', 'label')");
+            DbTable t = new("upsert_target");
+            DbTable s = new("upsert_source");
+
+            connection.Execute(
+                ((IUpsert)InsertInto(t, t.Column("id"), t.Column("name"))
+                    .Select(s.Column("id"), s.Column("label"))
+                    .From(s))
+                .OnDuplicateKeyUpdate(t.Column("name") == Excluded(t.Column("name"))));
+
+            // The value inserted for name was the label; new.name read the source's own name.
+            Assert.Equal("source name", connection.ExecuteScalar<string>(
+                "SELECT name FROM upsert_target WHERE id = 1"));
+        }
+        finally
+        {
+            connection.Execute("DROP TABLE IF EXISTS upsert_target, upsert_source");
+        }
+    }
+
     // docs/analyzer.md (SQLA0200): the default sql_mode rejects a zero date, but INSERT
     // IGNORE and a non-strict mode store one, and IS NULL on a NOT NULL DATE or DATETIME
     // column finds it at a WHERE's top level or under its AND.
