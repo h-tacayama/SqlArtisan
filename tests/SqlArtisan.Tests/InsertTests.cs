@@ -1210,7 +1210,7 @@ public class InsertTests
         int[] codes = [1, 2];
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            InsertInto(t, t.Code).Values(new object[] { codes }));
+            InsertInto(t, t.Code).Values([codes]));
 
         Assert.Equal(
             "A VALUES value cannot be an array (System.Int32[]); bind an array value with "
