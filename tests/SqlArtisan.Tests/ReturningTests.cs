@@ -290,6 +290,21 @@ public class ReturningTests
         Assert.Equal("An output variable name is required.", ex.Message);
     }
 
+    [Theory]
+    [InlineData("0 ")]
+    [InlineData(" out")]
+    [InlineData("out id")]
+    [InlineData("out\t")]
+    public void OutputParameter_WhiteSpaceInVariable_ThrowsArgumentException(string variable)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new OutputParameter(variable, DbType.Int32));
+
+        Assert.Equal(
+            "An output variable name must not contain white space; its marker ends there.",
+            ex.Message);
+    }
+
     [Fact]
     public void OutputParameter_DigitsOnlyVariable_ThrowsArgumentException()
     {
