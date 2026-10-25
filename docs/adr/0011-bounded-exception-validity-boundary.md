@@ -356,7 +356,9 @@ a new one the analyzer can see.
   the Oracle lane, and `LeadingWithBeforeMerge_IsAcceptedByTheEngine` on the
   PostgreSQL and SQL Server lanes. No guard is added either where a cast
   reaches a wrong row rather than a rejection: an `INSERT ... SELECT` stage cast
-  to `IUpsert` takes `OnDuplicateKeyUpdate(...)`, whose `AS new` row alias then
-  names the `SELECT`'s source table, so `Excluded(t.Name)` reads that table's
-  own `name` column rather than the value selected for it (MySQL 8.0.46,
+  to `IUpsert` takes `OnDuplicateKeyUpdate(...)`, and when the `SELECT` reads one
+  unaliased table, its `AS new` row alias names that table. Feed the target's
+  `name` from another column of a source that has a `name` column too, and
+  `Excluded(t.Name)` reads the source's `name` rather than the value selected
+  for it (MySQL 8.0.46,
   `MySqlTests.UpsertAfterSelect_ThroughACast_ReadsTheSourceColumn`; #679).

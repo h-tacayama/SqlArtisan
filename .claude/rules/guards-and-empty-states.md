@@ -127,9 +127,10 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   bind markers' namespace (release audit pass 5), or is not shaped as an Oracle
   nonquoted identifier (a letter, then letters, digits, `_`, `$` or `#`), since
   its marker ends at any other character (`"0 "` rendered `INTO :0 ` beside a
-  positional `:0`, #679); a `RETURNING ... INTO` variable list that is empty,
-  of another width than its `RETURNING` list, or names one variable twice, since
-  the parameters are keyed by name (#679).
+  positional `:0`, #679); a `RETURNING ... INTO` variable list of another width
+  than its `RETURNING` list, or naming one variable twice, since the parameters
+  are keyed by name, and an unnamed variable, which `default(OutputParameter)`
+  reaches past the constructor (#679).
   These are call-site defects rejected whatever the engine does (ADR 0011
   decides the class outside its bar) — eagerly, the `OUTPUT ... INTO` width
   at `Into(...)`, but for the joined-`UPDATE` arm's cross-name pairs above and
@@ -341,8 +342,7 @@ dialect: it names no select-list position, so an engine that reads one reads
 another meaning (MySQL 8.0.46 groups `-1`, and Oracle XE 21.3.0 and 23.26.3
 `0` and `-1`, as one constant group, #684), and PostgreSQL 16.15, SQLite
 3.50.4 and SQL Server 2022 reject it. ADR 0012's condition 1 fails, so it is a
-call-site defect ADR 0011 decides outside its bar, as `OrderBy(0)` is (#521,
-#679).
+call-site defect ADR 0011 decides outside its bar (#521, #679).
 
 **A negative row count and a negative `Lag`/`Lead` offset stay permissive
 (decided — do not re-file):** `Top(-1)`, `FetchFirst(-1)` and `Limit(-1)`
@@ -474,10 +474,11 @@ an alias is quoted, where whitespace is legal. The stricter check is correct
 where it is, and the asymmetry is not a defect.
 
 **`Build(ISqlBuilder, IDbConnection)`'s unregistered-provider throw names
-`dbms` as its `ParamName` (decided — do not re-file):** it is the
-`ArgumentOutOfRangeException` `Build(Dbms)` throws for `Dbms.Unknown`, raised
-by the extension before it forwards the resolved value, so a caller-facing
-`cnn` name would split one guard into two. Its message is the extension's own:
+`dbms` as its `ParamName` (decided — do not re-file):** its `ParamName` and
+`ActualValue` describe the resolved `Dbms`, as those of the exception
+`Build(Dbms)` throws for `Dbms.Unknown` do, so code that reads either sees one
+fact whichever entry point it called; a caller-facing `cnn` name would split
+that. Its message is the extension's own:
 the DBMS is often supported and only the connection type unregistered (a
 wrapper around a supported provider), so it names the type and both remedies,
 `DbmsResolver.RegisterProvider(...)` and `Build(Dbms)`, or, for a null

@@ -1103,8 +1103,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             "DELETE FROM words WHERE z = @n", new { n = 1500001 }));
     }
 
-    // ADR 0011's cast entry (#679): an INSERT ... SELECT cast to IUpsert takes
-    // OnDuplicateKeyUpdate, whose AS new then names the SELECT's source table.
+    // ADR 0011's cast entry (#679): an INSERT ... SELECT over one unaliased table, cast to
+    // IUpsert, takes OnDuplicateKeyUpdate, whose AS new then names that source table.
     [Fact]
     public void UpsertAfterSelect_ThroughACast_ReadsTheSourceColumn()
     {

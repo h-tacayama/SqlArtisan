@@ -22,9 +22,14 @@ public static class SqlBuilderExtensions
     public static SqlStatement Build(this ISqlBuilder sqlBuilder, IDbConnection cnn)
     {
         Dbms dbms = DbmsResolver.Resolve(cnn);
+        ThrowIfUnresolved(dbms, cnn);
+        return sqlBuilder.Build(dbms);
+    }
 
-        // The DBMS is often supported and only the connection type unregistered (a wrapper
-        // around a supported provider), so name the type and both ways out (#679).
+    // The DBMS is often supported and only the connection type unregistered (a wrapper
+    // around a supported provider), so name the type and both ways out (#679).
+    private static void ThrowIfUnresolved(Dbms dbms, IDbConnection cnn)
+    {
         if (dbms == Dbms.Unknown)
         {
             string message = cnn is null
@@ -33,7 +38,5 @@ public static class SqlBuilderExtensions
                     + "DbmsResolver.RegisterProvider(...) or call Build(Dbms).";
             throw new ArgumentOutOfRangeException(nameof(dbms), dbms, message);
         }
-
-        return sqlBuilder.Build(dbms);
     }
 }
