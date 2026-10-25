@@ -26,10 +26,10 @@ internal sealed class WithBuilder : IWithBuilderWith, IWithBuilderWithRecursive
 
     public IInsertBuilderColumnsOutput InsertInto(DbTableBase table, params DbColumn[] columns)
     {
-        CollectionGuard.ThrowIfEmpty(
-            columns, nameof(columns), "An INSERT column list requires at least one column.");
         CollectionGuard.ThrowIfNullElement(
             columns, nameof(columns), "An INSERT column list must not contain a null column.");
+        CollectionGuard.ThrowIfEmpty(
+            columns, nameof(columns), "An INSERT column list requires at least one column.");
         ColumnListGuard.ThrowIfDuplicate(
             columns, "An INSERT column list must not name a column twice.");
         ColumnListGuard.ThrowIfForeignColumn(

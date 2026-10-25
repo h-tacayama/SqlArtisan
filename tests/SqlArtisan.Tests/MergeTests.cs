@@ -939,7 +939,35 @@ public class MergeTests
         ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Build());
 
         Assert.Equal(
-            "A MERGE WHEN branch requires an action (UPDATE SET, DELETE, or INSERT).",
+            "A MERGE WHEN MATCHED branch requires an action (UPDATE SET or DELETE).",
+            ex.Message);
+    }
+
+    // Each WHEN clause names the actions it takes.
+    [Fact]
+    public void WhenNotMatched_BranchWithoutAction_ThrowsArgumentException()
+    {
+        IMergeBuilderWhen held =
+            MergeInto(_t).Using(_s).On(_t.Code == _s.Code).WhenMatched().ThenDelete();
+        held.WhenNotMatched();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Build());
+
+        Assert.Equal("A MERGE WHEN NOT MATCHED branch requires an action (INSERT).", ex.Message);
+    }
+
+    [Fact]
+    public void WhenNotMatchedBySource_BranchWithoutAction_ThrowsArgumentException()
+    {
+        IMergeBuilderWhen held =
+            MergeInto(_t).Using(_s).On(_t.Code == _s.Code).WhenMatched().ThenDelete();
+        held.WhenNotMatchedBySource();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Build());
+
+        Assert.Equal(
+            "A MERGE WHEN NOT MATCHED BY SOURCE branch requires an action "
+                + "(UPDATE SET or DELETE).",
             ex.Message);
     }
 
@@ -1233,4 +1261,30 @@ public class MergeTests
         "Oracle's MERGE action WHERE and DELETE WHERE belong to a WHEN MATCHED or "
             + "WHEN NOT MATCHED branch without AND; a stage on a held builder "
             + "attached one to another branch.";
+
+    [Fact]
+    public void ThenInsertValues_NullArray_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            MergeInto(_t).Using(_s).On(_t.Code == _s.Code)
+                .WhenNotMatched().ThenInsert(_t.Code).Values(null!));
+
+        Assert.Equal(
+            "A VALUES row cannot be a null array; pass Sql.Null for a NULL value. "
+                + "(Parameter 'values')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void ThenInsertValues_ArrayValue_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t).Using(_s).On(_t.Code == _s.Code)
+                .WhenNotMatched().ThenInsert(_t.Code).Values(new int[] { 1 }));
+
+        Assert.Equal(
+            "A VALUES value cannot be an array (System.Int32[]); bind a PostgreSQL array "
+                + "value with BindArray(...), and pass the row as object[].",
+            ex.Message);
+    }
 }

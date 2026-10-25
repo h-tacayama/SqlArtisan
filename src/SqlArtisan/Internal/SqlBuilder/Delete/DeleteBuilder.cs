@@ -29,7 +29,9 @@ internal sealed class DeleteBuilder(
 
     public IDeleteBuilderFrom From(params TableReference[] tables)
     {
-        CollectionGuard.ThrowIfEmpty(tables, nameof(tables), "FROM requires at least one table.");
+        CollectionGuard.ThrowIfEmpty(
+            tables, nameof(tables), "FROM requires at least one table.",
+            FromClause.NullTableMessage);
         FromClause from = new(tables);
         bool targetRepeated = false;
         foreach (TableReference reference in tables)
@@ -80,7 +82,8 @@ internal sealed class DeleteBuilder(
     public IDeleteBuilderOutputInto Output(params object[] items)
     {
         CollectionGuard.ThrowIfEmpty(
-            items, nameof(items), "OUTPUT requires at least one expression.");
+            items, nameof(items), "OUTPUT requires at least one expression.",
+            ExpressionResolver.NullValueMessage);
         AddPart(new OutputClause(SelectItemResolver.Resolve(items, "OutputItem", "outputItem")));
         return this;
     }
@@ -96,7 +99,9 @@ internal sealed class DeleteBuilder(
 
     public IDeleteBuilderUsing Using(params TableReference[] tables)
     {
-        CollectionGuard.ThrowIfEmpty(tables, nameof(tables), "USING requires at least one table.");
+        CollectionGuard.ThrowIfEmpty(
+            tables, nameof(tables), "USING requires at least one table.",
+            DeleteUsingClause.NullTableMessage);
         DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
         AddPart(new DeleteUsingClause(tables));
         state.HasUsing = true;

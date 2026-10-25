@@ -32,7 +32,9 @@ internal sealed class UpdateBuilder(
 
     public IUpdateBuilderFrom From(params TableReference[] tables)
     {
-        CollectionGuard.ThrowIfEmpty(tables, nameof(tables), "FROM requires at least one table.");
+        CollectionGuard.ThrowIfEmpty(
+            tables, nameof(tables), "FROM requires at least one table.",
+            FromClause.NullTableMessage);
         DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
         AddPart(new FromClause(tables));
         state.HasFrom = true;
@@ -104,7 +106,8 @@ internal sealed class UpdateBuilder(
     public IUpdateBuilderOutputInto Output(params object[] items)
     {
         CollectionGuard.ThrowIfEmpty(
-            items, nameof(items), "OUTPUT requires at least one expression.");
+            items, nameof(items), "OUTPUT requires at least one expression.",
+            ExpressionResolver.NullValueMessage);
         AddPart(new OutputClause(SelectItemResolver.Resolve(items, "OutputItem", "outputItem")));
         return this;
     }

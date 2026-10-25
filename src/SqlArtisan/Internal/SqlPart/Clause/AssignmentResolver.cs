@@ -9,7 +9,13 @@ internal static class AssignmentResolver
     {
         // Inline rather than CollectionGuard.ThrowIfEmpty, which takes the message
         // eagerly: interpolating it would allocate on every call (ADR 0006).
-        ArgumentNullException.ThrowIfNull(assignments);
+        if (assignments is null)
+        {
+            throw new ArgumentNullException(
+                nameof(assignments),
+                $"The {clause} assignment list must not contain a null assignment.");
+        }
+
         if (assignments.Length == 0)
         {
             throw new ArgumentException($"{clause} requires at least one assignment.");

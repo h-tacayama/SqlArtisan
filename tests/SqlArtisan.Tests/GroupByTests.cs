@@ -661,4 +661,26 @@ public class GroupByTests
         Assert.Equal("SELECT COUNT(*) FROM test_table \"t\" GROUP BY ROLLUP(:0)", sql.Text);
         Assert.Equal(1, sql.Parameters.Get<int>(":0"));
     }
+
+    // A grouping set is an element of a grouping construct, not a GROUP BY key (#679).
+    [Fact]
+    public void GroupBy_GroupingSetKey_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Count(_t.Code)).From(_t).GroupBy(Group()));
+
+        Assert.Equal(
+            "A grouping set built with Group(...) goes inside GroupingSets(...), "
+                + "Rollup(...) or Cube(...).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void GroupBy_InvalidTypeKey_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).GroupBy(new object()));
+
+        Assert.Equal("Invalid type for GroupByItem: System.Object", ex.Message);
+    }
 }

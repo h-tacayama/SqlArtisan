@@ -1122,4 +1122,112 @@ public class InsertTests
                 + "table.",
             ex.Message);
     }
+
+    // params object[] takes an object[] row as the row itself, so an array among the
+    // values is several rows or a row of another element type, named before the width (#679).
+    [Fact]
+    public void Values_SeveralRowsAsValues_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        object[] first = [1, "a"];
+        object[] second = [2, "b"];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code, t.Name).Values(first, second));
+
+        Assert.Equal(
+            "A VALUES value cannot be an array (System.Object[]); bind a PostgreSQL array "
+                + "value with BindArray(...), and pass a row as object[], and several as "
+                + "Values(object[][]) or one Values(row) per row.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Values_RowsArrayAfterARow_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        object[][] rows = [[2, "b"]];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code, t.Name).Values(1, "a").Values(rows));
+
+        Assert.Equal(
+            "A VALUES value cannot be an array (System.Object[]); bind a PostgreSQL array "
+                + "value with BindArray(...), and pass a row as object[], and several as "
+                + "one Values(row) per row.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Values_IntArrayRow_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code, t.Name).Values(new int[] { 1, 2 }));
+
+        Assert.Equal(
+            "A VALUES value cannot be an array (System.Int32[]); bind a PostgreSQL array "
+                + "value with BindArray(...), and pass a row as object[], and several as "
+                + "Values(object[][]) or one Values(row) per row.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Values_NullArgument_ThrowsArgumentNullException()
+    {
+        TestTable t = new();
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            InsertInto(t, t.Code).Values(null!));
+
+        Assert.Equal(
+            "A null Values(...) argument binds the rows overload; pass Sql.Null for a NULL "
+                + "value. (Parameter 'rows')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Values_NullRowArray_ThrowsArgumentNullException()
+    {
+        TestTable t = new();
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            InsertInto(t, t.Code).Values((object[])null!));
+
+        Assert.Equal(
+            "A VALUES row cannot be a null array; pass Sql.Null for a NULL value. "
+                + "(Parameter 'values')",
+            ex.Message);
+    }
+
+    // An object[] row holding an array value reads the same as an array row, so the
+    // message names BindArray(...), which binds it on PostgreSQL.
+    [Fact]
+    public void Values_ArrayValueInAnObjectRow_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        int[] codes = [1, 2];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code).Values([codes]));
+
+        Assert.Equal(
+            "A VALUES value cannot be an array (System.Int32[]); bind a PostgreSQL array "
+                + "value with BindArray(...), and pass a row as object[], and several as "
+                + "Values(object[][]) or one Values(row) per row.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Values_ArrayValueBoundWithBindArray_CorrectSql()
+    {
+        TestTable t = new();
+        int[] codes = [1, 2];
+
+        SqlStatement sql = InsertInto(t, t.Code).Values(BindArray(codes)).Build();
+
+        Assert.Equal("INSERT INTO test_table (code) VALUES (:0)", sql.Text);
+        Assert.Equal(codes, sql.Parameters.Get<int[]>(":0"));
+    }
 }

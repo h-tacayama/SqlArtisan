@@ -862,6 +862,14 @@ constructors — `FROM`, JOIN/DELETE `USING`, `ON CONFLICT`, `OUTPUT INTO`,
 from an element injection (whole-argument nulls keep the loud-NRE exemption);
 and `BuilderElementGuardTests` pins the builder-side sites the factory sweep
 cannot reach. A new typed element position lands on this shape, not a bare NRE.
+A lone null argument binds the `params` array itself to null (`From(null)`), so
+each position gets a named message there too, never the runtime's
+`Value cannot be null.`: the element's message where the site's guards give it
+one (`CollectionGuard.ThrowIfEmpty`'s `nullMessage`, `ThrowIfNullElement` run
+first, or a resolver's own check), and its empty-collection message where they
+do not (`IN`, `ARRAY[...]` and the `SELECT` list among them). An `INSERT`'s
+`Values(null)` binds the rows overload, and MERGE's, which has none, the row
+itself; both messages name `Sql.Null` (`BuilderElementGuardTests`, #679).
 
 ## Compile time or a guard: the copy count (decided — do not re-file)
 
@@ -1062,4 +1070,13 @@ the offending type, never saying what the caller did wrong, and leaks an
 internal name into the public failure surface: that is how three `SET`-list
 guards said `Invalid type for EqualityCondition` until #497. The one type name
 in the family is `SqlExpression`, for the generic value position whose
-requirement *is* that — not a precedent for a narrower position.
+requirement *is* that — not a precedent for a narrower position. Three values a
+caller writes in a reachable slip leave the family for a remedy of their own:
+a `SELECT` prefix (`Distinct`, `DistinctOn(...)`, `Top(n)`, `Hints(...)`)
+written out of the order the `Select(...)` overloads take, which lands in an
+item slot; a `Group(...)` grouping set outside `GroupingSets`, `Rollup` or
+`Cube`; and an array among the values an `INSERT` or MERGE `Values(...)` call
+passes, which `params object[]` makes of several rows, of a row of another
+element type, or of an array value, which PostgreSQL binds through
+`BindArray(...)`, named before the
+row's width (#679).

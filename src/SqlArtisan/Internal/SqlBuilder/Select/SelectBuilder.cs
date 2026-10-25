@@ -178,7 +178,9 @@ internal class SelectBuilder :
 
     public ISelectBuilderFrom From(params TableReference[] tables)
     {
-        CollectionGuard.ThrowIfEmpty(tables, nameof(tables), "FROM requires at least one table.");
+        CollectionGuard.ThrowIfEmpty(
+            tables, nameof(tables), "FROM requires at least one table.",
+            FromClause.NullTableMessage);
         AddPart(new FromClause(tables));
         return this;
     }
