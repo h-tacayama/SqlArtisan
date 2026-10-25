@@ -306,6 +306,38 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         }
     }
 
+    // #684: an INSTEAD OF INSERT trigger, run in place of the INSERT, can fill a column
+    // it omits, so a table with one records no column as lacking a default, enabled or not.
+    [Fact]
+    public void GenerateTables_SqlServer_InsteadOfInsertTrigger_LeavesNoDefaultUnknown()
+    {
+        Execute(
+            "CREATE TABLE trigger_probe (id INT PRIMARY KEY, "
+                + "code NVARCHAR(10) NOT NULL DEFAULT NULL)");
+        try
+        {
+            Assert.Equal([null, false], HasDefaults());
+            Execute(
+                "CREATE TRIGGER trigger_probe_fill ON trigger_probe INSTEAD OF INSERT AS "
+                    + "INSERT INTO trigger_probe (id, code) "
+                    + "SELECT id, COALESCE(code, N'auto') FROM inserted");
+            Execute("INSERT INTO trigger_probe (id) VALUES (1)");
+            Assert.Equal([null, null], HasDefaults());
+            Execute("DISABLE TRIGGER trigger_probe_fill ON trigger_probe");
+            Assert.Equal([null, null], HasDefaults());
+        }
+        finally
+        {
+            Execute("DROP TABLE trigger_probe");
+        }
+
+        IEnumerable<bool?> HasDefaults() =>
+            new InformationSchemaCatalogReader(ConnInfo(), false)
+                .GetAllTables()
+                .Single(t => t.TableName == "trigger_probe")
+                .Columns.Select(c => c.HasDefault);
+    }
+
     // The default collation is case-insensitive, so `--tables USERS` finds `users`;
     // the class carries the stored name, as a full run writes it.
     [Fact]
@@ -692,6 +724,49 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
         }
     }
 
+    // #684: a row trigger firing before an INSERT can fill a column it omits, so a table
+    // with one records no column as lacking a default, enabled or not; a statement one cannot.
+    [Fact]
+    public void GenerateTables_PostgreSql_BeforeInsertRowTrigger_LeavesNoDefaultUnknown()
+    {
+        Execute(
+            "CREATE TABLE trigger_probe (id INTEGER PRIMARY KEY, "
+                + "code VARCHAR(10) NOT NULL DEFAULT NULL)");
+        try
+        {
+            Execute(
+                "CREATE FUNCTION trigger_probe_noop() RETURNS trigger LANGUAGE plpgsql "
+                    + "AS $$ BEGIN RETURN NULL; END $$");
+            Execute(
+                "CREATE FUNCTION trigger_probe_fill() RETURNS trigger LANGUAGE plpgsql "
+                    + "AS $$ BEGIN NEW.code := COALESCE(NEW.code, 'auto'); RETURN NEW; END $$");
+            Execute(
+                "CREATE TRIGGER trigger_probe_statement BEFORE INSERT ON trigger_probe "
+                    + "FOR EACH STATEMENT EXECUTE FUNCTION trigger_probe_noop()");
+            Assert.Equal([null, false], HasDefaults());
+
+            Execute(
+                "CREATE TRIGGER trigger_probe_row BEFORE INSERT ON trigger_probe "
+                    + "FOR EACH ROW EXECUTE FUNCTION trigger_probe_fill()");
+            Execute("INSERT INTO trigger_probe (id) VALUES (1)");
+            Assert.Equal([null, null], HasDefaults());
+            Execute("ALTER TABLE trigger_probe DISABLE TRIGGER trigger_probe_row");
+            Assert.Equal([null, null], HasDefaults());
+        }
+        finally
+        {
+            Execute("DROP TABLE trigger_probe");
+            Execute("DROP FUNCTION IF EXISTS trigger_probe_noop()");
+            Execute("DROP FUNCTION IF EXISTS trigger_probe_fill()");
+        }
+
+        IEnumerable<bool?> HasDefaults() =>
+            new InformationSchemaCatalogReader(ConnInfo(), false)
+                .GetAllTables()
+                .Single(t => t.TableName == "trigger_probe")
+                .Columns.Select(c => c.HasDefault);
+    }
+
     // #386: a fresh role connects fine — CONNECT is PUBLIC-granted by default —
     // but sees none of the seeded tables, the same empty catalog an unknown
     // --schema produces.
@@ -826,6 +901,63 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
         {
             TryExecute("DROP TABLE default_null_probe");
         }
+    }
+
+    // #684: a BEFORE EACH ROW section, a compound trigger's included, can fill a column
+    // the INSERT omits, so a table with one records no column as lacking a default,
+    // enabled or not; a statement trigger or an AFTER-only compound one cannot.
+    [Theory]
+    [InlineData("""
+        CREATE OR REPLACE TRIGGER trigger_probe_fill BEFORE INSERT ON trigger_probe
+        FOR EACH ROW BEGIN IF :NEW.code IS NULL THEN :NEW.code := 'auto'; END IF; END;
+        """, true)]
+    [InlineData("""
+        CREATE OR REPLACE TRIGGER trigger_probe_fill FOR INSERT ON trigger_probe
+        COMPOUND TRIGGER BEFORE EACH ROW IS BEGIN
+        IF :NEW.code IS NULL THEN :NEW.code := 'auto'; END IF; END BEFORE EACH ROW;
+        END trigger_probe_fill;
+        """, true)]
+    [InlineData("""
+        CREATE OR REPLACE TRIGGER trigger_probe_fill FOR INSERT ON trigger_probe
+        COMPOUND TRIGGER AFTER EACH ROW IS BEGIN NULL; END AFTER EACH ROW;
+        END trigger_probe_fill;
+        """, false)]
+    public void GenerateTables_Oracle_RowInsertTrigger_LeavesNoDefaultUnknown(
+        string trigger,
+        bool fills)
+    {
+        Execute("CREATE TABLE trigger_probe (id NUMBER(10) NOT NULL, code VARCHAR2(10) NOT NULL)");
+        try
+        {
+            Execute(
+                "CREATE OR REPLACE TRIGGER trigger_probe_statement BEFORE INSERT ON "
+                    + "trigger_probe BEGIN NULL; END;");
+            Assert.Equal([false, false], HasDefaults());
+
+            Execute(trigger);
+            if (!fills)
+            {
+                Assert.ThrowsAny<OracleException>(
+                    () => Execute("INSERT INTO trigger_probe (id) VALUES (1)"));
+                Assert.Equal([false, false], HasDefaults());
+                return;
+            }
+
+            Execute("INSERT INTO trigger_probe (id) VALUES (1)");
+            Assert.Equal([null, null], HasDefaults());
+            Execute("ALTER TRIGGER trigger_probe_fill DISABLE");
+            Assert.Equal([null, null], HasDefaults());
+        }
+        finally
+        {
+            TryExecute("DROP TABLE trigger_probe");
+        }
+
+        IEnumerable<bool?> HasDefaults() =>
+            new OracleCatalogReader(ConnInfo(), lowercaseNames: true)
+                .GetAllTables()
+                .Single(t => t.TableName == "trigger_probe")
+                .Columns.Select(c => c.HasDefault);
     }
 
     // ALL_IND_EXPRESSIONS.COLUMN_EXPRESSION is a LONG, so the collector never reads

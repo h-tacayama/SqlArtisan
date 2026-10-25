@@ -374,7 +374,12 @@ PostgreSQL, SQLite and SQL Server, since it supplies nothing an `INSERT` can omi
 (PostgreSQL stores one only for a type with a length or precision, as
 `NULL::character varying`, and none otherwise, which stays unknown). MySQL
 reports an explicit `DEFAULT NULL` as no default, which stays unknown, and a
-string default `'NULL'` as bare `NULL` text, which stays a default.
+string default `'NULL'` as bare `NULL` text, which stays a default. On a table
+with a trigger that can fill a column an `INSERT` omits — an Oracle `INSERT`
+trigger with a `BEFORE EACH ROW` section (a compound trigger's included), a
+PostgreSQL `BEFORE INSERT ... FOR EACH ROW` trigger, a SQL Server
+`INSTEAD OF INSERT` trigger — no column records `HasDefault = false`; those
+stay unknown. A disabled trigger counts too, since it can be enabled again.
 
 A table with no columns, which PostgreSQL allows, gets a class with no
 properties.

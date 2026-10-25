@@ -1317,9 +1317,13 @@ the rule reads the column's own facts, not what another predicate implies.
 is reported.
 
 The third is a row the engine rejects: an `INSERT` whose column list leaves out
-a column that is `NOT NULL` and has no default. What the catalog cannot show is
-a `BEFORE INSERT` trigger that fills the column in — where one exists, the
-statement is valid and the warning is a false alarm to suppress.
+a column that is `NOT NULL` and has no default. A trigger can fill such a column
+in, so on a table with one TableClassGen records no column as lacking a
+default, and the rule stays silent there: an Oracle `INSERT` trigger with a
+`BEFORE EACH ROW` section (a compound trigger's included), a PostgreSQL
+`BEFORE INSERT ... FOR EACH ROW` trigger, or a SQL Server `INSTEAD OF INSERT`
+trigger, which runs in place of the insert. A disabled trigger counts too, since
+it can be enabled again.
 
 ```csharp
 var sql = InsertInto(t, t.Note).Values("x").Build();

@@ -77,8 +77,12 @@ internal sealed class OracleCatalogReader(
             new CatalogColumnIndexReader(Dbms.Oracle, _connInfo.Schema)
                 .Read(conn, tableName);
 
-        List<CatalogColumn> columns =
-            ReadColumns(conn, tableName, indexes, ReadNullDefaults(conn, tableName));
+        List<CatalogColumn> columns = ReadColumns(
+            conn,
+            tableName,
+            indexes,
+            ReadNullDefaults(conn, tableName),
+            HasRowInsertTrigger(conn, tableName));
 
         // Oracle has no column-less table, so an empty list is a privilege gap.
         if (columns.Count == 0)
@@ -98,7 +102,8 @@ internal sealed class OracleCatalogReader(
         IDbConnection conn,
         string tableName,
         ColumnIndexInfo indexes,
-        IReadOnlySet<string> nullDefaults)
+        IReadOnlySet<string> nullDefaults,
+        bool rowInsertTrigger)
     {
         AllTabColumns atc = new();
 
@@ -123,11 +128,12 @@ internal sealed class OracleCatalogReader(
         {
             string catalogName = reader.GetString(0);
             string dataType = reader.GetString(1);
+            bool hasDefault = ReadHasDefault(reader, nullDefaults.Contains(catalogName));
             columns.Add(new CatalogColumn(
                 _lowercaseNames ? catalogName.ToLowerInvariant() : catalogName,
                 dataType,
                 isNullable: ReadIsNullable(reader, 2),
-                hasDefault: ReadHasDefault(reader, nullDefaults.Contains(catalogName)),
+                hasDefault: hasDefault || !rowInsertTrigger ? hasDefault : null,
                 isIndexed: indexes.IsIndexed(catalogName),
                 dbms: Dbms.Oracle));
         }
@@ -142,6 +148,26 @@ internal sealed class OracleCatalogReader(
         (!reader.IsDBNull(3) && !nullDefault)
         || (!reader.IsDBNull(4)
             && string.Equals(reader.GetString(4), "YES", StringComparison.OrdinalIgnoreCase));
+
+    // A BEFORE EACH ROW trigger or compound section can fill a column the INSERT omits, so no
+    // column is known to lack a default (#684), a disabled trigger included. BEFORE_ROW flags
+    // only the compound section (XE 21.3.0); a plain row trigger shows in TRIGGER_TYPE.
+    private bool HasRowInsertTrigger(IDbConnection conn, string tableName)
+    {
+        using IDbCommand command = conn.CreateCommand();
+        command.CommandText =
+            """
+            SELECT COUNT(*)
+            FROM ALL_TRIGGERS
+            WHERE TABLE_OWNER = :schema_name AND TABLE_NAME = :table_name
+                AND BASE_OBJECT_TYPE = 'TABLE' AND TRIGGERING_EVENT LIKE '%INSERT%'
+                AND (TRIGGER_TYPE = 'BEFORE EACH ROW' OR BEFORE_ROW = 'YES')
+            """;
+        CatalogCommand.AddParameter(command, ":schema_name", _connInfo.Schema.ToUpperInvariant());
+        CatalogCommand.AddParameter(command, ":table_name", tableName.ToUpperInvariant());
+
+        return Convert.ToInt64(command.ExecuteScalar()) > 0;
+    }
 
     // DATA_DEFAULT is a LONG, which ODP.NET reads only with a fetch size set, so it
     // is read apart, and only for the columns that have a default at all.

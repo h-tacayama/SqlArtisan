@@ -79,6 +79,7 @@ internal sealed class InformationSchemaCatalogReader(
                 .Read(conn, tableName);
 
         List<CatalogColumn> columns = [];
+        bool rowInsertTrigger = HasRowInsertTrigger(conn, tableName);
 
         using (IDataReader reader = conn.ExecuteReader(sql2))
         {
@@ -86,11 +87,12 @@ internal sealed class InformationSchemaCatalogReader(
             {
                 string catalogName = reader.GetString(0);
                 string dataType = reader.GetString(1);
+                bool? hasDefault = ReadHasDefault(reader, 3, _connInfo.Dbms);
                 columns.Add(new CatalogColumn(
                     Normalize(catalogName),
                     dataType,
                     isNullable: ReadIsNullable(reader, 2),
-                    hasDefault: ReadHasDefault(reader, 3, _connInfo.Dbms),
+                    hasDefault: hasDefault is false && rowInsertTrigger ? null : hasDefault,
                     isIndexed: indexes.IsIndexed(catalogName),
                     dbms: _connInfo.Dbms));
             }
@@ -133,6 +135,46 @@ internal sealed class InformationSchemaCatalogReader(
         CatalogCommand.AddParameter(command, "@table_name", tableName);
 
         return Convert.ToInt64(command.ExecuteScalar());
+    }
+
+    // A trigger ahead of each inserted row (PostgreSQL) or in place of the INSERT (SQL
+    // Server's INSTEAD OF) can fill a column it omits, enabled or not, since it can be
+    // enabled again (#684). MySQL records no column as lacking a default to undo.
+    private bool HasRowInsertTrigger(IDbConnection conn, string tableName)
+    {
+        using IDbCommand command = conn.CreateCommand();
+        switch (_connInfo.Dbms)
+        {
+            case Dbms.PostgreSql:
+                command.CommandText =
+                    """
+                    SELECT COUNT(*)
+                    FROM pg_trigger t
+                    JOIN pg_class c ON c.oid = t.tgrelid
+                    JOIN pg_namespace n ON n.oid = c.relnamespace
+                    WHERE c.relname = @table_name AND n.nspname = @schema_name
+                        AND NOT t.tgisinternal AND (t.tgtype & 7) = 7
+                    """;
+                break;
+            case Dbms.SqlServer:
+                command.CommandText =
+                    """
+                    SELECT COUNT(*)
+                    FROM sys.triggers t
+                    JOIN sys.trigger_events e ON e.object_id = t.object_id
+                    JOIN sys.tables tb ON tb.object_id = t.parent_id
+                    WHERE tb.name = @table_name AND SCHEMA_NAME(tb.schema_id) = @schema_name
+                        AND t.is_instead_of_trigger = 1 AND e.type_desc = 'INSERT'
+                    """;
+                break;
+            default:
+                return false;
+        }
+
+        CatalogCommand.AddParameter(command, "@schema_name", _connInfo.Schema);
+        CatalogCommand.AddParameter(command, "@table_name", tableName);
+
+        return Convert.ToInt64(command.ExecuteScalar()) > 0;
     }
 
     private static bool? ReadIsNullable(IDataReader reader, int ordinal) =>
