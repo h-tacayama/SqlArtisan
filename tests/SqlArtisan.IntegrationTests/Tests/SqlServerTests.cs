@@ -243,6 +243,23 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "DELETE FROM users WHERE DELETED.id = -1"));
     }
 
+    // DmlTargetGuard.ThrowIfOutputIntoTargetAliased: SQL Server rejects an alias on the
+    // OUTPUT ... INTO destination, while the same statement without one runs (#679).
+    [Fact]
+    public void OutputInto_AliasedDestination_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        const string Head =
+            "UPDATE users SET age = age OUTPUT INSERTED.id, INSERTED.name INTO output_archive";
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            Head + " AS \"a\" (id, name) WHERE id = 1", transaction: transaction));
+        Assert.Equal(1, connection.Execute(
+            Head + " (id, name) WHERE id = 1", transaction: transaction));
+        transaction.Rollback();
+    }
+
     [Fact] // #241 (GAP-19): SQL Server matches GROUP BY syntactically, so a
            // parameterized expression repeated with fresh markers fails with Msg 8120.
     public void GroupByBindMarkerMismatch_Rejected()

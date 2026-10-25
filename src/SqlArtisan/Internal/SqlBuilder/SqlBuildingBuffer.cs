@@ -263,8 +263,8 @@ internal sealed class SqlBuildingBuffer : IDisposable
     }
 
     // Appends a DML table alias to a target already written: the dialect's
-    // separator, then the quoted alias. Whether AS appears (Oracle rejects it
-    // on table aliases) is a dialect token (ADR 0002).
+    // separator, then the quoted alias. Whether AS appears (Oracle XE 21.3.0 and
+    // 23.26.3 reject it there) is a dialect token (ADR 0002).
     internal SqlBuildingBuffer AppendDmlTableAlias(string alias)
     {
         Append(_dialect.DmlTableAliasSeparator);
@@ -281,7 +281,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     }
 
     // Emits a single-quote-delimited string literal for a position whose grammar
-    // takes a constant (ADR 0004): the LIKE ... ESCAPE char, GROUP_CONCAT ... SEPARATOR.
+    // takes a constant: ADR 0016's forced-literal class (ADR 0004).
     internal SqlBuildingBuffer AppendStringLiteral(char value)
     {
         bool escapeString = value == '\\' && _dialect.BackslashLiteralsUseEscapeString;
@@ -692,8 +692,8 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        // The same instance formatted twice (SELECT and GROUP BY) reuses its marker:
-        // engines matching GROUP BY syntactically reject distinct markers (#241).
+        // The same instance formatted twice (SELECT and GROUP BY) reuses its marker: PostgreSQL
+        // 16, SQL Server 2022 and Oracle XE 21.3.0 reject distinct ones there (#241's twins).
         if (_parameters is not null)
         {
             // Linear by design (ADR 0006's best effort): 37 ms at 2,100 binds, and

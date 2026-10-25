@@ -1,5 +1,6 @@
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
+using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
@@ -112,6 +113,35 @@ public class DbmsResolverTests
 
         Assert.Equal(
             $"Unsupported DBMS. (Parameter 'dbms'){Environment.NewLine}Actual value was 99.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Build_UnregisteredConnection_ThrowsArgumentOutOfRangeException()
+    {
+        TestTable t = new();
+
+        ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Select(t.Code).From(t).Build(new UnregisteredConnection()));
+
+        Assert.Equal(
+            "Connection type SqlArtisan.Tests.DbmsResolverTests+UnregisteredConnection maps to "
+            + "no DBMS; register it with DbmsResolver.RegisterProvider(...) or call Build(Dbms). "
+            + $"(Parameter 'dbms'){Environment.NewLine}Actual value was Unknown.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Build_NullConnection_ThrowsArgumentOutOfRangeException()
+    {
+        TestTable t = new();
+
+        ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Select(t.Code).From(t).Build((IDbConnection)null!));
+
+        Assert.Equal(
+            "A null connection maps to no DBMS; pass a connection or call Build(Dbms). "
+            + $"(Parameter 'dbms'){Environment.NewLine}Actual value was Unknown.",
             ex.Message);
     }
 

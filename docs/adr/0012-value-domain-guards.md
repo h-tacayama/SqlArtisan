@@ -92,7 +92,9 @@ other value is invalid everywhere (#448). A `GROUP BY` column ordinal below
 Oracle probes selected an ungrouped column, which those two reject whatever the
 key, and with an aggregate-only select list MySQL 8.0.46 reads `-1`, and Oracle XE 21.3.0 and
 23.26.3 read `0` and `-1`, as one constant group, so condition 1 no longer
-holds; whether the guard stays is #679's. Note the contrast with `ORDER BY`,
+holds. The guard stays, as a call-site defect ADR 0011 decides outside its bar:
+the key names no position, and an engine that reads it reads another meaning
+(#679). Note the contrast with `ORDER BY`,
 whose negative ordinal MySQL reads as a constant and accepts, which is why that
 one is an ADR 0011 bounded exception rather than a guard here. A `DISTINCT ON`
 column ordinal below 1 (#673): PostgreSQL, the one engine with `DISTINCT ON`,

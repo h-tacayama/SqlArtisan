@@ -348,6 +348,38 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal("Alice", name);
     }
 
+    // ADR 0011 and 0017 (#679): the walk rejects a held join completed after a later one,
+    // which would render two ONs; PostgreSQL runs that text with the joins re-nested.
+    [Fact]
+    public void NestedJoinSpelling_RunsReNested()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // users a JOIN (orders o JOIN users b ON o.user_id = b.id) ON a.id = o.user_id:
+        // one row per order, not the 5 x 5 x 5 cartesian product.
+        Assert.Equal(5, connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM users \"a\" INNER JOIN orders \"o\" INNER JOIN users \"b\" "
+            + "ON (\"o\".user_id = \"b\".id) ON (\"a\".id = \"o\".user_id)"));
+    }
+
+    // DmlJoinState.QualifiesSetTarget: PostgreSQL rejects a qualified SET target on
+    // UPDATE ... FROM, even when the FROM joins other tables, and runs it bare (#679).
+    [Fact]
+    public void UpdateFrom_QualifiedSetTarget_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        const string From =
+            " FROM orders \"o\" INNER JOIN users \"y\" ON \"o\".user_id = \"y\".id "
+            + "WHERE \"x\".id = \"o\".user_id AND \"y\".id = 1";
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "UPDATE users AS \"x\" SET \"x\".age = \"x\".age" + From));
+        using IDbTransaction transaction = connection.BeginTransaction();
+        Assert.Equal(1, connection.Execute(
+            "UPDATE users AS \"x\" SET age = \"x\".age" + From, transaction: transaction));
+        transaction.Rollback();
+    }
+
     [Fact] // #241 (GAP-19): PostgreSQL matches GROUP BY syntactically, so a
            // parameterized expression repeated with fresh markers fails with 42803.
     public void GroupByBindMarkerMismatch_Rejected()

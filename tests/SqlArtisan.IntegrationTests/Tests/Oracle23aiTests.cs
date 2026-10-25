@@ -23,6 +23,21 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         _fixture = fixture;
     }
 
+    // OracleDialect.DmlTableAliasSeparator is a space: Oracle rejects AS before a DML
+    // target's alias, and runs the alias without it (#679).
+    [Fact]
+    public void DmlTargetAlias_WithAs_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        const string Set = " SET age = \"u\".age WHERE \"u\".id = 1";
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "UPDATE users AS \"u\"" + Set, transaction: transaction));
+        Assert.Equal(1, connection.Execute("UPDATE users \"u\"" + Set, transaction: transaction));
+        transaction.Rollback();
+    }
+
     // #684: 23ai groups by a constant key as 21c does (OracleTests'
     // GroupByConstant_GroupsByTheConstant), with the setting at its default.
     [Theory]

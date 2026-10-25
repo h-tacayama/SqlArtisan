@@ -93,12 +93,13 @@ override — so every build path (including `Returning()`, which funnels through
   differs from its `OUTPUT` list, a bare `SET` target or column list entry
   whose table is named other than the table the list writes (the statement's
   target, or an `OUTPUT ... INTO` list's own table), a qualified `SET`
-  column whose table has no alias (#674), and an `OutputParameter` name that is
-  digits only or not shaped as an Oracle nonquoted identifier (#679) — reject on
-  every dialect, even where an engine runs the text: a name listed twice in one
-  list, an `INTO` list that does not match the list it stores, another table's
-  column rendered as that table's, or a variable whose marker reads as another
-  or ends early, is read as a slip, not a spelling.
+  column whose table has no alias (#674), an `OutputParameter` name that is
+  digits only or not shaped as an Oracle nonquoted identifier (#679), and a
+  `GROUP BY` column ordinal below 1 (ADR 0012, #679) — reject on every dialect,
+  even where an engine runs the text: a name listed twice in one list, an `INTO`
+  list that does not match the list it stores, another table's column rendered
+  as that table's, a variable whose marker reads as another or ends early, or a
+  group key that names no position, is read as a slip, not a spelling.
   An engine that runs the repeat reports nothing — MySQL and SQLite silently
   keep a duplicated `SET`'s last assignment
   (`DuplicateSetAssignment_IsAcceptedByTheEngine` on both lanes). The
@@ -117,9 +118,11 @@ override — so every build path (including `Returning()`, which funnels through
   its once-per-kind check. Recorded engine-run cases: SQLite's second `ON
   CONFLICT` (#581); PostgreSQL's second locking clause (#582); SQLite's `ON`
   after a `CROSS JOIN` (`SqliteTests.OnAfterCrossJoin_IsAcceptedByTheEngine`);
-  and SQL Server's plain `OUTPUT` after `OUTPUT ... INTO`
+  SQL Server's plain `OUTPUT` after `OUTPUT ... INTO`
   (`SqlServerTests.OutputAfterOutputInto_IsAcceptedByTheEngine`), a pair the
-  chain does not offer. `public-api-design.md` § "Opinions live in docs and
+  chain does not offer; and PostgreSQL 16's two `ON` clauses after two joins,
+  which it runs re-nested (`PostgreSqlTests.NestedJoinSpelling_RunsReNested`;
+  ADR 0017, #679). `public-api-design.md` § "Opinions live in docs and
   the analyzer, not in API holes" records the first, second and fourth forms
   as not offered. The fourth class is an alias sort key inside `OVER`,
   `WITHIN GROUP` or an aggregate's inline ordering (#672). PostgreSQL and
@@ -351,4 +354,12 @@ a new one the analyzer can see.
   `LeadingWithBeforeMerge_IsRejectedByTheEngine` on the Oracle and Oracle23ai
   lanes, `CteInsideMergeUsingSubquery_IsAcceptedByTheEngine` for the remedy on
   the Oracle lane, and `LeadingWithBeforeMerge_IsAcceptedByTheEngine` on the
-  PostgreSQL and SQL Server lanes.
+  PostgreSQL and SQL Server lanes. No guard is added either where a cast
+  reaches a wrong row rather than a rejection: an `INSERT ... SELECT` stage cast
+  to `IUpsert` takes `OnDuplicateKeyUpdate(...)`, and when the `SELECT` ends at
+  one unaliased table (nothing after its `FROM`), its `AS new` row alias names
+  that table. Feed the target's
+  `name` from another column of a source that has a `name` column too, and
+  `Excluded(t.Name)` reads the source's `name` rather than the value selected
+  for it (MySQL 8.0.46,
+  `MySqlTests.UpsertAfterSelect_ThroughACast_ReadsTheSourceColumn`; #679).
