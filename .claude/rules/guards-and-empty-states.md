@@ -863,11 +863,13 @@ from an element injection (whole-argument nulls keep the loud-NRE exemption);
 and `BuilderElementGuardTests` pins the builder-side sites the factory sweep
 cannot reach. A new typed element position lands on this shape, not a bare NRE.
 A lone null argument binds the `params` array itself to null (`From(null)`), so
-`CollectionGuard.ThrowIfEmpty` names the construct there too: the element's
-message where the null more likely stood for an element (`FROM`, `USING`, the
-assignment and column lists, `WITH`, `RETURNING` / `OUTPUT` items, `CASE`), and
-the empty-collection message elsewhere; `Values(null)` binds the rows overload
-and names `Sql.Null` (`BuilderElementGuardTests`, #679).
+each position names its construct there too, never with the runtime's
+`Value cannot be null.`: the element's message where the null more likely
+stood for an element (`FROM`, `USING`, the assignment and column lists, `WITH`,
+`RETURNING` / `OUTPUT` items, `CASE`, and the `GROUP BY`, `ORDER BY` and
+`PARTITION BY` keys), and the empty-collection message where a null element is
+itself a value (`IN`, `NOT IN`, the `SELECT` list); `Values(null)` binds the
+rows overload and names `Sql.Null` (`BuilderElementGuardTests`, #679).
 
 ## Compile time or a guard: the copy count (decided — do not re-file)
 
@@ -1073,6 +1075,7 @@ caller writes in a reachable slip leave the family for a remedy of their own:
 a `SELECT` prefix (`Distinct`, `DistinctOn(...)`, `Top(n)`, `Hints(...)`)
 written out of the order the `Select(...)` overloads take, which lands in an
 item slot; a `Group(...)` grouping set outside `GroupingSets`, `Rollup` or
-`Cube`; and an array among an `INSERT` or MERGE `VALUES` row's values, which
-`params object[]` makes of several rows or of a row of another element type,
-named before the row's width (#679).
+`Cube`; and an array among the values an `INSERT` or MERGE `Values(...)` call
+passes, which `params object[]` makes of several rows, of a row of another
+element type, or of an array value `BindArray(...)` binds, named before the
+row's width (#679).

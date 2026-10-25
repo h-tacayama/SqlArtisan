@@ -8,7 +8,7 @@ internal static class InsertValueResolver
         "A VALUES row cannot be a null array; pass Sql.Null for a NULL value.";
 
     // params object[] takes an object[] row as the row itself, so an array among its
-    // values is several rows, or a row of another element type (#679).
+    // values is several rows, a row of another element type, or an array value (#679).
     internal static void ThrowIfArrayValue(object?[] values, string? severalRows)
     {
         foreach (object? value in values)
@@ -16,7 +16,8 @@ internal static class InsertValueResolver
             if (value is Array)
             {
                 throw new ArgumentException(
-                    $"A VALUES value cannot be an array ({value.GetType()}); pass "
+                    $"A VALUES value cannot be an array ({value.GetType()}); bind an array "
+                        + "value with BindArray(...), and pass "
                         + (severalRows is null
                             ? "the row as object[]."
                             : $"a row as object[], and several as {severalRows}."));

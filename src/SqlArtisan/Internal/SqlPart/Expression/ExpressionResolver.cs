@@ -294,11 +294,8 @@ internal static class ExpressionResolver
             + "test for NULL with .IsNull or .IsNotNull.");
 
     // Builds the exception for a value that reached a value position but isn't a
-    // usable expression, shared by every resolver. A "pending" type (a window
-    // function before .Over(...), an ordered-set aggregate before .WithinGroup(...))
-    // gets an actionable completion hint; any other unsupported type gets the
-    // generic message, where `position` names the position the value reached
-    // (e.g. "SelectItem", "GroupByItem").
+    // usable expression, shared by every resolver. A "pending" type, a SELECT prefix and
+    // a grouping set get a remedy; any other type the generic message, naming the position.
     internal static ArgumentException UnresolvableValue(string position, object item) =>
         item switch
         {

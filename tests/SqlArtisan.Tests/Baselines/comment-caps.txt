@@ -21,7 +21,7 @@ src/SqlArtisan/Internal/SqlPart/Clause/GroupBy/GroupingSetsGrouping.cs 1
 src/SqlArtisan/Internal/SqlPart/Clause/GroupBy/RollupGrouping.cs 1
 src/SqlArtisan/SqlPart/Clause/Separator/SeparatorClause.cs 1
 src/SqlArtisan/Internal/SqlPart/Expression/ExcludedColumn.cs 1
-src/SqlArtisan/Internal/SqlPart/Expression/ExpressionResolver.cs 3
+src/SqlArtisan/Internal/SqlPart/Expression/ExpressionResolver.cs 2
 src/SqlArtisan/Internal/SqlPart/Expression/Function/DateTimeFunction/SqlServer/DatetruncFunction.cs 1
 src/SqlArtisan/SqlPart/Expression/Function/FullTextSearchFunction/MatchFunction.cs 1
 src/SqlArtisan/Internal/SqlPart/Expression/Function/FullTextSearchFunction/ToTsqueryFunction.cs 1

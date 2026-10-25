@@ -1283,7 +1283,8 @@ public class MergeTests
                 .WhenNotMatched().ThenInsert(_t.Code).Values(new int[] { 1 }));
 
         Assert.Equal(
-            "A VALUES value cannot be an array (System.Int32[]); pass the row as object[].",
+            "A VALUES value cannot be an array (System.Int32[]); bind an array value with "
+                + "BindArray(...), and pass the row as object[].",
             ex.Message);
     }
 }

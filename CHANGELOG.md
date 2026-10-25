@@ -652,8 +652,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     says where it goes.
   - `GroupBy(Group(...))` names `GroupingSets(...)`, `Rollup(...)` and
     `Cube(...)`.
-  - An array among a `VALUES` row's values, such as `.Values(row1, row2)` or an
-    `int[]` row, names the rows overloads before the row's width.
+  - An array among the values one `Values(...)` call passes, such as
+    `.Values(row1, row2)` or an `int[]` row, names `BindArray(...)` for an array
+    value, and on an `INSERT` the rows overloads, before the row's width.
   - `Values(null)` names `Sql.Null`.
   - A lone `null` passed to `From`, `Using`, `Set`, `DoUpdateSet`,
     `OnDuplicateKeyUpdate`, `ThenUpdateSet`, `Returning`, `Output`,

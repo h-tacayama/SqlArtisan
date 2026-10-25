@@ -1136,8 +1136,9 @@ public class InsertTests
             InsertInto(t, t.Code, t.Name).Values(first, second));
 
         Assert.Equal(
-            "A VALUES value cannot be an array (System.Object[]); pass a row as object[], "
-                + "and several as Values(object[][]) or one Values(row) per row.",
+            "A VALUES value cannot be an array (System.Object[]); bind an array value with "
+                + "BindArray(...), and pass a row as object[], and several as "
+                + "Values(object[][]) or one Values(row) per row.",
             ex.Message);
     }
 
@@ -1151,8 +1152,9 @@ public class InsertTests
             InsertInto(t, t.Code, t.Name).Values(1, "a").Values(rows));
 
         Assert.Equal(
-            "A VALUES value cannot be an array (System.Object[]); pass a row as object[], "
-                + "and several as one Values(row) per row.",
+            "A VALUES value cannot be an array (System.Object[]); bind an array value with "
+                + "BindArray(...), and pass a row as object[], and several as "
+                + "one Values(row) per row.",
             ex.Message);
     }
 
@@ -1165,8 +1167,9 @@ public class InsertTests
             InsertInto(t, t.Code, t.Name).Values(new int[] { 1, 2 }));
 
         Assert.Equal(
-            "A VALUES value cannot be an array (System.Int32[]); pass a row as object[], "
-                + "and several as Values(object[][]) or one Values(row) per row.",
+            "A VALUES value cannot be an array (System.Int32[]); bind an array value with "
+                + "BindArray(...), and pass a row as object[], and several as "
+                + "Values(object[][]) or one Values(row) per row.",
             ex.Message);
     }
 
@@ -1196,5 +1199,35 @@ public class InsertTests
             "A VALUES row cannot be a null array; pass Sql.Null for a NULL value. "
                 + "(Parameter 'values')",
             ex.Message);
+    }
+
+    // An object[] row holding an array value reads the same as an array row, so the
+    // message names BindArray(...), which binds it.
+    [Fact]
+    public void Values_ArrayValueInAnObjectRow_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        int[] codes = [1, 2];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code).Values(new object[] { codes }));
+
+        Assert.Equal(
+            "A VALUES value cannot be an array (System.Int32[]); bind an array value with "
+                + "BindArray(...), and pass a row as object[], and several as "
+                + "Values(object[][]) or one Values(row) per row.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Values_ArrayValueBoundWithBindArray_CorrectSql()
+    {
+        TestTable t = new();
+        int[] codes = [1, 2];
+
+        SqlStatement sql = InsertInto(t, t.Code).Values(BindArray(codes)).Build();
+
+        Assert.Equal("INSERT INTO test_table (code) VALUES (:0)", sql.Text);
+        Assert.Equal(codes, sql.Parameters.Get<int[]>(":0"));
     }
 }
