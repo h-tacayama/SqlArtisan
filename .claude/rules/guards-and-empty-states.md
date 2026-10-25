@@ -128,8 +128,8 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   nonquoted identifier (a letter, then letters, digits, `_`, `$` or `#`), since
   its marker ends at any other character (`"0 "` rendered `INTO :0 ` beside a
   positional `:0`, #679); a `RETURNING ... INTO` variable list of another width
-  than its `RETURNING` list, or naming one variable twice, since the parameters
-  are keyed by name, and an unnamed variable, which `default(OutputParameter)`
+  than its `RETURNING` list; one naming a variable twice, since the parameters
+  are keyed by name; and an unnamed variable, which `default(OutputParameter)`
   reaches past the constructor (#679).
   These are call-site defects rejected whatever the engine does (ADR 0011
   decides the class outside its bar) — eagerly, the `OUTPUT ... INTO` width
