@@ -32,16 +32,20 @@ public class ContextRuleDocsTests
         foreach ((ContextRules.DmlShape shape, TargetDbms dbms, EngineVersion from)
             in DialectUsageAnalyzer.DmlShapeFloors)
         {
-            string trigger = shape switch
+            // Two shapes share the From trigger, so the position tells their rows apart.
+            (string trigger, string position) = shape switch
             {
-                ContextRules.DmlShape.JoinedUpdateFrom => "From",
-                ContextRules.DmlShape.InsertValuesRow => "Values",
-                ContextRules.DmlShape.DeleteUsing => "Using",
+                ContextRules.DmlShape.JoinedUpdateFrom => ("From", "`UPDATE ... SET ... FROM`"),
+                ContextRules.DmlShape.InsertValuesRow => ("Values", "a second `VALUES` row"),
+                ContextRules.DmlShape.DeleteUsing => ("Using", "`DELETE ... USING`"),
+                ContextRules.DmlShape.JoinedDeleteLead
+                    => ("From", "`DELETE ... FROM` not re-listing the target"),
                 _ => throw new InvalidOperationException($"Name the trigger of {shape} here."),
             };
 
             Regex row = new(
-                $@"^\| `{trigger}` \|.*\| {Regex.Escape(TargetDbmsNames.Display(dbms))} \| "
+                $@"^\| `{trigger}` \| {Regex.Escape(position)} \| "
+                    + $@"{Regex.Escape(TargetDbmsNames.Display(dbms))} \| "
                     + $@"{Regex.Escape(from.ToString())} \|$");
             if (!lines.Any(line => row.IsMatch(line)))
             {

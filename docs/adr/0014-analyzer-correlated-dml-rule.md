@@ -91,8 +91,13 @@ statement is invisible to the walk, so that shape still reports
 "correlated" while the join step throws the joined message — accepted: the
 statement is unbuildable either way, the exception type matches, and the
 remediation (alias the target) is identical, so only the message label
-diverges. The runtime accepted-false-positive (one instance reused for both
-scopes) is reported too — accurately, since that statement cannot build.
+diverges. A subquery that lists the target instance reads it as its own
+relation, in `Build()` and in the rule alike, since #679: the rule stays silent
+on a target column whose subquery chain passes the target's own symbol to a
+`From` or join step. It reads a compound's branches together, since a trailing
+`ORDER BY` sits on the last branch in source, so a branch correlating beside
+one that lists the target stays silent where `Build()` throws. The same symbol
+reading decides `SQLA0102`'s joined `DELETE` lead on Oracle past its floor.
 
 One deliberate-circumvention escape is accepted rather than defended
 against: reassigning the target through an `in` parameter via

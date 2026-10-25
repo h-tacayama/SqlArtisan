@@ -905,6 +905,22 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
+    // #679: not re-listed, the lead keeps `DELETE FROM t` before a second FROM, which
+    // SQLite rejects; Build(Dbms) throws for it, so the text is written out.
+    [Fact]
+    public void DeleteFromNotRelisted_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "DELETE FROM orders AS \"o\" FROM users \"u\" "
+                    + "WHERE \"o\".user_id = \"u\".id AND \"u\".id = 3",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
     // The live twins of the ORDER BY ordinal guards: SQLite reads both literals
     // as positions and rejects each, while the window position takes them.
     [Fact]

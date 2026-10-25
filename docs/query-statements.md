@@ -961,10 +961,11 @@ SqlStatement sql =
 // (SELECT "o".id FROM orders "o" WHERE "o".user_id = "u".id)
 ```
 
-To deliberately re-select from the target table in an uncorrelated subquery,
-give the inner scope its own instance — one C# instance cannot stand for two
-SQL scopes, so reusing an unaliased target instance inside the subquery also
-throws (an aliased target renders, with the inner alias shadowing the outer):
+To re-select from the target table in an uncorrelated subquery, list the table
+in the subquery's own `From(...)` or join. Inside that subquery the listed
+instance is the inner row, whether it is a second instance or the target
+instance itself; only a block that does not list the target reaches it by
+correlation and needs it aliased:
 
 ```csharp
 UsersTable u = new();
@@ -1056,8 +1057,11 @@ DeleteFrom(t).From(t).InnerJoin(u).On(t.Id == u.Id).Build(Dbms.SqlServer);
 ```
 
 The joined target must be aliased, or the `From(...)`, join or `Using(...)` call
-that joins it throws. A joined `DELETE ... FROM` must re-list the
-target in `FROM`, or `From(...)` throws; on SQL Server a joined `UPDATE` must too
+that joins it throws. A joined `DELETE ... FROM` must re-list the target, in
+`From(...)` or through a join after it, or `Build()` throws, except on Oracle,
+whose `DELETE` takes a `FROM` without the re-list from the release the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)
+names; on SQL Server a joined `UPDATE` must re-list it too
 — T-SQL's joined form takes the target's alias from there — or
 `Build(Dbms.SqlServer)` throws. A re-listed `UPDATE` target off SQL Server throws
 at `Build()`, and so does `DeleteFrom(t).Using(...)` on SQL Server, which has no

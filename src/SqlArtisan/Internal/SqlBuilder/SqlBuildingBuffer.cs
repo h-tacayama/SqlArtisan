@@ -25,16 +25,15 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // subquery resolves to the inner scope — a silent tautology — so
     // DbColumn's Format fails loudly instead. Holds an aliased target too (#595).
     private TableReference? _correlatedDmlTarget;
-    private int _subqueryDepth;
     // Fits the padding beside _disposed, so it costs no build an allocation.
     private bool _qualifyReturningByTableName;
     // Set by DO UPDATE SET for the rest of its statement level: PostgreSQL reads an
     // unaliased target's bare column there as ambiguous with EXCLUDED's (#675).
     private bool _qualifyUpsertTarget;
-    // Inside a CTE body the guard defers to each query block's end: a target
-    // column is legitimate only where its own block lists the target (#607).
+    // Inside a nested block the guard defers to the block's end: a target column
+    // is legitimate only where its own block lists the target (#607, #679).
     // A byte flags enum, so it shares that padding.
-    private CteGuard _cteGuard;
+    private TargetGuard _targetGuard;
     // The innermost nested query block, whose FROM a bare column is checked against
     // (#677); this one field costs every build 8 bytes.
     private SelectBuilder? _block;
@@ -393,22 +392,22 @@ internal sealed class SqlBuildingBuffer : IDisposable
         bool qualifyUpsertTarget = _qualifyUpsertTarget;
         _qualifyUpsertTarget = false;
 
-        // Inside a CTE body a subquery is its own block for the deferred guard.
-        CteGuard outer = _cteGuard;
-        _cteGuard &= CteGuard.InBody;
+        // A subquery is its own block for the deferred guard.
+        TargetGuard outer = _targetGuard;
+        _targetGuard = _correlatedDmlTarget is DbTableBase { HasAlias: false }
+            ? TargetGuard.Armed
+            : 0;
 
         SelectBuilder? outerBlock = _block;
         _block = subquery as SelectBuilder;
 
         Append('(');
-        _subqueryDepth++;
         subquery.Format(this);
         ThrowIfBlockCorrelates();
-        _subqueryDepth--;
         Append(')');
         _correlatedDmlTarget = target;
         _qualifyUpsertTarget = qualifyUpsertTarget;
-        _cteGuard = outer;
+        _targetGuard = outer;
         _block = outerBlock;
         return this;
     }
@@ -495,8 +494,8 @@ internal sealed class SqlBuildingBuffer : IDisposable
             _correlatedDmlTarget = null;
         }
 
-        CteGuard outer = _cteGuard;
-        _cteGuard = guardsTarget ? CteGuard.InBody : 0;
+        TargetGuard outer = _targetGuard;
+        _targetGuard = guardsTarget ? TargetGuard.Armed : 0;
         SelectBuilder? outerBlock = _block;
         _block = body as SelectBuilder;
 
@@ -508,7 +507,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
         finally
         {
             _correlatedDmlTarget = target;
-            _cteGuard = outer;
+            _targetGuard = outer;
             _block = outerBlock;
         }
     }
@@ -521,13 +520,9 @@ internal sealed class SqlBuildingBuffer : IDisposable
             return;
         }
 
-        if ((_cteGuard & CteGuard.InBody) != 0)
+        if ((_targetGuard & TargetGuard.Armed) != 0)
         {
-            _cteGuard |= CteGuard.TargetColumnSeen;
-        }
-        else if (_subqueryDepth > 0)
-        {
-            DmlTargetGuard.ThrowCorrelatedUnaliasedTarget();
+            _targetGuard |= TargetGuard.TargetColumnSeen;
         }
     }
 
@@ -545,9 +540,10 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // A block listing the guarded target reads it as its own relation (#253).
     internal void NoteRelation(TableReference relation)
     {
-        if ((_cteGuard & CteGuard.InBody) != 0 && ReferenceEquals(relation, _correlatedDmlTarget))
+        if ((_targetGuard & TargetGuard.Armed) != 0
+            && ReferenceEquals(relation, _correlatedDmlTarget))
         {
-            _cteGuard |= CteGuard.TargetListed;
+            _targetGuard |= TargetGuard.TargetListed;
         }
     }
 
@@ -555,12 +551,12 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // the target carries on for the compound's ORDER BY.
     internal SqlBuildingBuffer EndSetOperatorBranch()
     {
-        bool listed = (_cteGuard & (CteGuard.TargetListed | CteGuard.CompoundListed)) != 0;
+        bool listed = (_targetGuard & (TargetGuard.TargetListed | TargetGuard.CompoundListed)) != 0;
         ThrowIfBlockCorrelates();
-        _cteGuard &= CteGuard.InBody;
-        if (listed && _cteGuard != 0)
+        _targetGuard &= TargetGuard.Armed;
+        if (listed && _targetGuard != 0)
         {
-            _cteGuard |= CteGuard.CompoundListed;
+            _targetGuard |= TargetGuard.CompoundListed;
         }
 
         return this;
@@ -572,9 +568,9 @@ internal sealed class SqlBuildingBuffer : IDisposable
     internal SqlBuildingBuffer BeginCompoundOrderBy()
     {
         EndSetOperatorBranch();
-        if ((_cteGuard & CteGuard.CompoundListed) != 0)
+        if ((_targetGuard & TargetGuard.CompoundListed) != 0)
         {
-            _cteGuard = CteGuard.InBody | CteGuard.TargetListed;
+            _targetGuard = TargetGuard.Armed | TargetGuard.TargetListed;
         }
 
         return this;
@@ -583,7 +579,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     internal void EndCompoundOrderBy()
     {
         ThrowIfBlockCorrelates();
-        _cteGuard &= CteGuard.InBody;
+        _targetGuard &= TargetGuard.Armed;
     }
 
     // Checked once a block is fully rendered, since its FROM follows its SELECT
@@ -591,18 +587,18 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // can be shadowed by one in between, which is #253's tautology again.
     private void ThrowIfBlockCorrelates()
     {
-        const CteGuard Block =
-            CteGuard.InBody | CteGuard.TargetColumnSeen | CteGuard.TargetListed;
-        if ((_cteGuard & Block) == (CteGuard.InBody | CteGuard.TargetColumnSeen))
+        const TargetGuard Block =
+            TargetGuard.Armed | TargetGuard.TargetColumnSeen | TargetGuard.TargetListed;
+        if ((_targetGuard & Block) == (TargetGuard.Armed | TargetGuard.TargetColumnSeen))
         {
             DmlTargetGuard.ThrowCorrelatedUnaliasedTarget();
         }
     }
 
     [Flags]
-    private enum CteGuard : byte
+    private enum TargetGuard : byte
     {
-        InBody = 1,
+        Armed = 1,
         TargetColumnSeen = 2,
         TargetListed = 4,
         CompoundListed = 8,

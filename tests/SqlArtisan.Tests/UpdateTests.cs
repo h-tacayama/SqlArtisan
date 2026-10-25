@@ -295,6 +295,23 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_ScalarSubqueryListingUnaliasedTarget_CorrectSql()
+    {
+        SqlStatement sql =
+            Update(_t)
+            .Set(_t.Name == Select(Max(_t.Name)).From(_t))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE ");
+        expected.Append("test_table ");
+        expected.Append("SET ");
+        expected.Append("name = (SELECT MAX(name) FROM test_table)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Update_TargetColumnAfterSubquery_CorrectSql()
     {
         // A bare target column following an uncorrelated subquery is back at
@@ -784,6 +801,31 @@ public class UpdateTests
         Assert.Equal(
             "A joined UPDATE on SQL Server must re-list the target table in the FROM clause.",
             ex.Message);
+    }
+
+    // A join of the target instance re-lists it as From(target, ...) does (#679).
+    [Fact]
+    public void Update_SqlServer_TargetRelistedThroughJoin_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == s.Name)
+            .From(s)
+            .InnerJoin(t)
+            .On(t.Code == s.Code)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE \"t\" ");
+        expected.Append("SET \"t\".name = \"s\".name ");
+        expected.Append("FROM test_table \"s\" ");
+        expected.Append("INNER JOIN test_table \"t\" ");
+        expected.Append("ON \"t\".code = \"s\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]

@@ -44,14 +44,12 @@ internal static class DmlTargetGuard
         }
     }
 
-    // The joined DELETE ... FROM leads with the target's alias and introduces the
-    // target through FROM, so the target must be re-listed there — otherwise the
-    // lead keeps `DELETE FROM target` and a second FROM follows, invalid on every
-    // dialect. A wrong-dialect joined form is emitted faithfully and left to the
-    // database (ADR 0001); only this structurally-broken case throws.
-    internal static void ThrowIfJoinedDeleteTargetNotRepeated(bool targetRepeated)
+    // Not re-listed, the lead keeps `DELETE FROM target` before a second FROM: Oracle
+    // 23.26.3 runs that opener as it runs USING; XE 21.3.0 and the other engines reject
+    // it with the alias the joined target carries (DeleteFromNotRelisted_* twins, #679).
+    internal static void ThrowIfJoinedDeleteTargetNotRepeated(DmlJoinState state, Dbms dbms)
     {
-        if (!targetRepeated)
+        if (dbms != Dbms.Oracle && state.HasFrom && !state.TargetRepeatedInFrom)
         {
             throw new ArgumentException(
                 "A joined DELETE ... FROM must re-list the target table in the FROM clause.");

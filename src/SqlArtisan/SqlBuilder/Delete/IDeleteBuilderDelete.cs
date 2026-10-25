@@ -1,16 +1,15 @@
 namespace SqlArtisan;
 
 /// <summary>
-/// The state after <c>DELETE FROM table</c>: join other tables with <c>USING</c> (PostgreSQL,
-/// and Oracle from a specific release) or <c>FROM</c> (SQL Server / MySQL, re-listing the target),
-/// narrow with <c>WHERE</c>, add <c>RETURNING</c>, or build.
+/// The state after <c>DELETE FROM table</c>: join other tables with <c>USING</c> or
+/// <c>FROM</c>, narrow with <c>WHERE</c>, add <c>RETURNING</c>, or build.
 /// </summary>
 public interface IDeleteBuilderDelete : ISqlBuilder, IReturning
 {
     /// <summary>
-    /// Appends <c>FROM target, ...</c> for the SQL Server / MySQL joined delete;
-    /// re-list the target table here (its alias then leads the statement) and
-    /// join the other tables.
+    /// Appends <c>FROM target, ...</c> for the MySQL and SQL Server joined delete;
+    /// re-list the target table here or in a join after it (its alias then leads the
+    /// statement). Oracle, from a specific release, takes the other tables alone.
     /// </summary>
     /// <param name="tables">The tables the delete joins, including the re-listed target.</param>
     /// <returns>The builder positioned to join further tables, filter with <c>WHERE</c>, add <c>RETURNING</c>, or build.</returns>

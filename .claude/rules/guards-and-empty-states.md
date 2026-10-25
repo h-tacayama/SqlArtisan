@@ -78,11 +78,17 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   `ORDER BY` of its own query block, which a set-operator branch never has,
   since a compound's `ORDER BY` sorts the combined result (SQL Server 2022,
   `TopWithTiesInCompoundBranch_IsRejectedByTheEngine`; #569, #679);
-  `Returning(...)` on a joined `DELETE ... FROM`, a direct-join `UPDATE`, or an
-  `UPDATE` re-listing its target — those forms belong to MySQL and SQL Server,
-  which have no `RETURNING`, and the engines with it reject the forms (#582);
-  the typestate withholds it on the first two, and `Build()` backstops a held
-  stage and the re-listed form, which instance identity decides; an `UPDATE`
+  `Returning(...)` on a joined `DELETE ... FROM` or `UPDATE` that re-lists its
+  target, or a direct-join `UPDATE` — those forms belong to MySQL and SQL
+  Server, which have no `RETURNING`, and the engines with it reject the forms
+  (#582; Oracle 23.26.3 rejects the re-listed `DELETE` lead,
+  `Oracle23aiTests.JoinedDeleteLead_IsRejectedByTheEngine`); the typestate
+  withholds it on a `DELETE ... FROM` and a direct join, and `Build()` backstops
+  a held stage and the re-listed form, which instance identity decides. A
+  `DELETE ... FROM` that does not re-list its target runs with
+  `RETURNING ... INTO` on Oracle 23.26.3, so a held stage reaches it there
+  (`JoinedDmlNotRelisted_ReturningInto_BindsOutputParameter`; the typestate's
+  `Using(...)` route runs the same statement, #679); an `UPDATE`
   joining before `SET` and through `FROM` too — the typestate keeps the
   spellings apart, so only a held stage reaches both (#582); Oracle's MERGE
   action `WHERE` / `DELETE WHERE` in a conditioned (`WHEN ... AND`) or
@@ -197,8 +203,13 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   SQL Server (on the joined forms the library requires the alias instead —
   next paragraph);
   aliased `INSERT` target on MySQL (its INSERT grammar has no target-alias
-  slot); a joined `UPDATE`/`DELETE` on SQL Server whose target is not re-listed
-  in `FROM` (T-SQL's joined spelling takes the alias from `FROM`); a joined
+  slot); a joined `UPDATE` on SQL Server whose target is not re-listed in `FROM`
+  (T-SQL's joined spelling takes the alias from `FROM`); a joined `DELETE ...
+  FROM` whose target is not re-listed, off Oracle — the lead keeps
+  `DELETE FROM target` before a second `FROM`, which Oracle 23.26.3 runs and XE
+  21.3.0 and the other engines reject with the joined target's alias
+  (`DeleteFromNotRelisted_*`, #679); a target re-listed through a join
+  counts, on both statements, as one re-listed in `From(...)`; a joined
   `UPDATE` off SQL Server whose target IS re-listed in `FROM` — the mirror:
   that form's bare-alias lead is T-SQL's alone; a non-integer constant
   `ORDER BY` sort key on PostgreSQL and SQL Server (`OrderBy(2.5)`) — MySQL,
@@ -234,7 +245,7 @@ refuse the other half: another DML clause or form, or a clause they take in a
 `SELECT`, a leading `WITH` on Oracle). The owners are SQL Server's `OUTPUT` and
 re-listed `UPDATE` target, Oracle's `RETURNING ... INTO` and MERGE action
 filters, MySQL's `INSERT IGNORE`, `ON DUPLICATE KEY UPDATE` and direct-join
-`UPDATE`, and the joined `DELETE ... FROM` MySQL and SQL Server share; the
+`UPDATE`, and the re-listed `DELETE ... FROM` MySQL and SQL Server share; the
 *Incomplete* list above enumerates the pairs, and the walk's slot exclusivity (§
 "The empty-state policy", `SqlBuilderBase`) holds the two that also spell one
 slot, `ON DUPLICATE KEY UPDATE` beside `ON CONFLICT` and a joined `DELETE ...
@@ -255,8 +266,10 @@ Server and Oracle refuse that clause everywhere: the position, not the keyword,
 is what the guard reads. An expression in a position no engine allows is the
 engine's for the same reason (the window-function paragraph below). This narrows
 #684's "a pair no engine runs is a type or `Build()` guard" (#679). Oracle
-23ai's joined `UPDATE` and `DELETE` beside `RETURNING ... INTO` are not
-verified, so they stay unguarded (#679's CI items).
+23.26.3 runs `UPDATE ... FROM`, `DELETE ... USING` and a `DELETE ... FROM` that
+does not re-list its target beside `RETURNING ... INTO`
+(`Oracle23aiTests.JoinedDmlNotRelisted_ReturningInto_BindsOutputParameter`), so
+those stay unguarded (#679).
 
 **A `RegexpOptions` match parameter is never domain-checked (decided — do not
 re-file):** no letter the enum emits is universally invalid, and a
@@ -493,24 +506,27 @@ were admitted as invisible but are visible to ADR 0013's declaring-interface
 mode; they stay on a cost ground (ADR 0011, #569). An entry's condition-1
 sentence is its admission record, so check it before citing it as precedent.
 
-**A CTE body defers the correlated-DML guard to each query block's end
-(decided — do not re-file):** the target instance legitimately appears in a CTE
-body as the CTE's own relation, so a target column there throws only if its own
-block lists the target nowhere — the body's block and each subquery nested in
-it (#253, #607; `DeleteFrom_CteBodyReferencingTarget_CorrectSql` and
-`DeleteFrom_CteBodyNestedSubqueryReferencingTarget_CorrectSql` pin the listed
-shapes). The check waits for the block's end
-because its FROM follows its SELECT list. A block that does not list the target
-reaches it only by correlation, and the guard cannot see the schema to tell
-whether a bare column there binds the target or a same-named column of the
-block's own relation, so it rejects it, as the plain-subquery guard does. That
+**Each nested block defers the correlated-DML guard to its end (decided — do
+not re-file):** the target instance legitimately appears in a CTE body or a
+subquery as that block's own relation, so a target column there throws only if
+its own block lists the target nowhere (#253, #607;
+`DeleteFrom_CteBodyReferencingTarget_CorrectSql`,
+`DeleteFrom_CteBodyNestedSubqueryReferencingTarget_CorrectSql` and
+`DeleteFrom_SubqueryListingUnaliasedTarget_CorrectSql` pin the listed shapes).
+A listing block reads its own relation, which is what the C# listing says; the
+plain subquery was rejected as "one instance for two scopes" until #679, a
+reason no engine gave while the CTE body took the same shape. The check waits
+for the block's end because its FROM follows its SELECT list. A block that does
+not list the target reaches it only by correlation, and the guard cannot see the
+schema to tell whether a bare column there binds the target or a same-named
+column of the block's own relation, so it rejects it. That
 holds for a top-level `With(...)` body too: a bare column there binds the
 body's own same-named column, nested or not
 (`CorrelatedCteBody_BareTargetColumn_BindsTheBodysRelation`), and SQLite 3.50.4
 resolves a body at its use site, so without one it can reach the target
 (`CorrelatedCteBody_AliasedTarget_Executes`). A listing in a
 sibling or an enclosing block does not count: a relation in between can still
-shadow the column, so the rule matches the guard's plain-subquery reading. Each
+shadow the column (`DeleteFrom_SubqueryListingTargetElsewhere_ThrowsArgumentException`). Each
 set-operator branch is a block of its own, so a listing in one branch does not
 cover a correlation in another (#611,
 `DeleteFrom_CteBodyBranchCorrelatingUnaliasedTarget_ThrowsArgumentException`).
@@ -747,6 +763,17 @@ code for a misuse no docs page, cookbook recipe or companion package makes
 (none computes either list). A caller shape that computes either list
 reopens this (#579).
 
+**An empty `INSERT` row stays rejected on MySQL too (decided — do not
+re-file):** `Values()`, `InsertInto(t).Set()` and an empty explicit column list
+throw on every dialect, though MySQL 8.0.46 inserts a row of defaults for the
+`() VALUES ()` and `VALUES ()` they would emit
+(`MySqlTests.DefaultsRow_IsAcceptedByTheEngine`), so #396's "invalid SQL" holds
+on every engine but MySQL. An array computed empty is likelier a caller's slip
+than a deliberate defaults row, and on MySQL the text would insert that row
+with no error, the silent class this section exists for. A defaults row is a
+construct of its own, `DEFAULT VALUES` in `public-api-design.md`'s forms not
+yet offered, added when a caller needs it (ADR 0010, #679).
+
 ## Null arguments: where the runtime-guard obligation stops
 
 The guard mission targets **silent** wrongness — a build that succeeds with SQL
@@ -910,8 +937,9 @@ type carries — a dialect, a table instance's identity — is a guard outright.
   one stage's own arguments is the first bullet's case, not this one
   (`OrderBy(0)`, `Into(...)`'s variable names, #569), and so is one fixed by
   the stages already called: the `OUTPUT ... INTO` width at `Into(...)`, the
-  `INSERT ... SELECT` width at the first `Select(...)`, the joined
-  `DELETE ... FROM`'s re-listed target at `From(...)` (#582).
+  `INSERT ... SELECT` width at the first `Select(...)` (#582). The joined
+  `DELETE ... FROM`'s re-listed target is not: a later join can re-list it, and
+  the dialect decides, so it waits for `Build(Dbms)` (#679).
 - **A condition clause stays Build()-time even where its node is one
   statement's own** (the MERGE `ON`, `WHEN ... AND`, `DeleteWhere` and action
   `Where`): an empty condition is rejected one way in every position, so the

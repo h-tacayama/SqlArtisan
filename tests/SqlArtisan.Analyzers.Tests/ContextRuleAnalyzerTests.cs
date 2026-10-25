@@ -697,6 +697,37 @@ public class ContextRuleAnalyzerTests
             var q = DeleteFrom(t).From(t, s).Where(t.Dep == s.Id);
             """, dbms: null);
 
+    // Oracle 23.26.3 runs the lead that does not re-list the target and rejects the
+    // re-listed one (ORA-00942); XE 21.3.0 rejects both (#679).
+    [Theory]
+    [InlineData("var q = {|#0:DeleteFrom(t).From(s)|}.Where(t.Dep == s.Id);")]
+    [InlineData("var q = {|#0:DeleteFrom(t).From(t, s)|}.Where(t.Dep == s.Id);")]
+    public Task JoinedDeleteFrom_Oracle_BelowFloor_ReportsSqla0102(string statement) =>
+        RunAsync(
+            Usage(statement),
+            AnalyzerVerifier.EditorConfig("oracle", "21"),
+            expectWarning: true);
+
+    [Theory]
+    [InlineData("var q = {|#0:DeleteFrom(t).From(t, s)|}.Where(t.Dep == s.Id);")]
+    [InlineData("var q = {|#0:DeleteFrom(t).From(s)|}.InnerJoin(t).On(t.Dep == s.Id);")]
+    public Task JoinedDeleteFrom_Oracle_AtFloorRelisted_ReportsSqla0102(string statement) =>
+        RunAsync(
+            Usage(statement),
+            AnalyzerVerifier.EditorConfig("oracle", "23"),
+            expectWarning: true);
+
+    // Past the floor only a provable re-list reports: the lead that does not re-list
+    // runs, and a target the symbols cannot prove (a variable chain) stays silent.
+    [Theory]
+    [InlineData("var q = DeleteFrom(t).From(s).Where(t.Dep == s.Id);")]
+    [InlineData("var u = t; var q = DeleteFrom(t).From(u, s).Where(t.Dep == s.Id);")]
+    public Task JoinedDeleteFrom_Oracle_AtFloorNotProvablyRelisted_StaysSilent(string statement) =>
+        RunAsync(
+            AnalyzerVerifier.Unmarked(Usage(statement)),
+            AnalyzerVerifier.EditorConfig("oracle", "23"),
+            expectWarning: false);
+
     [Fact]
     public Task SelectFrom_PostgreSql_StaysSilent() =>
         RunSilent("""

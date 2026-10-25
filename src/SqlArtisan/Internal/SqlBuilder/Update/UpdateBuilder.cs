@@ -51,20 +51,20 @@ internal sealed class UpdateBuilder(
 
     IUpdateBuilderFromJoinOn IUpdateBuilderFrom.FullJoin(TableReference joined)
     {
-        AddJoin(new FullJoinClause(joined));
+        AddJoin(new FullJoinClause(joined), joined);
         return this;
     }
 
     public IUpdateBuilderJoinOn InnerJoin(TableReference joined)
     {
-        AddJoin(new InnerJoinClause(joined));
+        AddJoin(new InnerJoinClause(joined), joined);
         state.HasDirectJoin = true;
         return this;
     }
 
     IUpdateBuilderFromJoinOn IUpdateBuilderFrom.InnerJoin(TableReference joined)
     {
-        AddJoin(new InnerJoinClause(joined));
+        AddJoin(new InnerJoinClause(joined), joined);
         return this;
     }
 
@@ -78,14 +78,14 @@ internal sealed class UpdateBuilder(
 
     public IUpdateBuilderJoinOn LeftJoin(TableReference joined)
     {
-        AddJoin(new LeftJoinClause(joined));
+        AddJoin(new LeftJoinClause(joined), joined);
         state.HasDirectJoin = true;
         return this;
     }
 
     IUpdateBuilderFromJoinOn IUpdateBuilderFrom.LeftJoin(TableReference joined)
     {
-        AddJoin(new LeftJoinClause(joined));
+        AddJoin(new LeftJoinClause(joined), joined);
         return this;
     }
 
@@ -114,14 +114,14 @@ internal sealed class UpdateBuilder(
 
     public IUpdateBuilderJoinOn RightJoin(TableReference joined)
     {
-        AddJoin(new RightJoinClause(joined));
+        AddJoin(new RightJoinClause(joined), joined);
         state.HasDirectJoin = true;
         return this;
     }
 
     IUpdateBuilderFromJoinOn IUpdateBuilderFrom.RightJoin(TableReference joined)
     {
-        AddJoin(new RightJoinClause(joined));
+        AddJoin(new RightJoinClause(joined), joined);
         return this;
     }
 
@@ -204,10 +204,12 @@ internal sealed class UpdateBuilder(
         }
     }
 
-    private void AddJoin(SqlPart joinClause)
+    private void AddJoin(SqlPart joinClause, TableReference joined)
     {
         DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
         AddPart(joinClause);
         state.HasJoin = true;
+        // Joined after FROM, the target is re-listed as in From(target, ...) (#679).
+        state.TargetRepeatedInFrom |= state.HasFrom && ReferenceEquals(joined, table);
     }
 }

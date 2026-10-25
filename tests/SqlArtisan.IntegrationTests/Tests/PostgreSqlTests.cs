@@ -784,6 +784,22 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         transaction.Rollback();
     }
 
+    // #679: not re-listed, the lead keeps `DELETE FROM t` before a second FROM, which
+    // PostgreSQL 16 rejects; Build(Dbms) throws for it, so the text is written out.
+    [Fact]
+    public void DeleteFromNotRelisted_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "DELETE FROM orders AS \"o\" FROM users \"u\" "
+                    + "WHERE \"o\".user_id = \"u\".id AND \"u\".id = 3",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
     [Fact]
     public void JoinedDeleteUsing_Executes()
     {

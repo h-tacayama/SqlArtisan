@@ -46,14 +46,14 @@ internal static class ReturningGuard
         }
     }
 
-    // The typestate withholds RETURNING on these joined forms, whose only engines
-    // (MySQL, SQL Server) have none; this backstops a held stage that reaches both.
+    // The typestate withholds RETURNING on these joined forms, which MySQL and SQL Server
+    // spell without one and Oracle 23.26.3 rejects re-listed; this backstops a held stage.
     internal static void ThrowIfCombinedWithJoinedDelete(
         DmlJoinState state,
         ReturningClause? returning,
         ReturningIntoClause? returningInto)
     {
-        if (state.HasFrom && (returning is not null || returningInto is not null))
+        if (state.TargetRepeatedInFrom && (returning is not null || returningInto is not null))
         {
             throw new ArgumentException(
                 "RETURNING cannot be combined with a joined DELETE ... FROM; "

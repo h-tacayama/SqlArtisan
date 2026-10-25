@@ -262,6 +262,43 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         transaction.Rollback();
     }
 
+    // #679: not re-listed, the lead keeps `DELETE FROM t` before a second FROM, which
+    // MySQL 8.0.46 rejects; Build(Dbms) throws for it, so the text is written out.
+    [Fact]
+    public void DeleteFromNotRelisted_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "DELETE FROM orders AS `o` FROM users `u` "
+                    + "WHERE `o`.user_id = `u`.id AND `u`.id = 3",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // #679: a target re-listed through a join, rather than in From(...), leads too.
+    [Fact]
+    public void DeleteFromTargetRelistedThroughJoin_Executes()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        OrdersTable read = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int deleted = connection.Execute(
+            DeleteFrom(o).From(u).InnerJoin(o).On(o.UserId == u.Id).Where(u.Id == 3),
+            transaction);
+        long remaining = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(read.Id)).From(read).Where(read.UserId == 3), transaction));
+
+        Assert.Equal(1, deleted);
+        Assert.Equal(0, remaining);
+        transaction.Rollback();
+    }
+
     [Fact] // #264: SQLA0102's live proof. Top-level LIMIT acceptance is proven by
            // Pagination_LimitOffset_Executes; the position is the only difference.
     public void ContextRule_LimitInInSubquery_Rejected()
@@ -1101,6 +1138,25 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         connection.Execute("INSERT INTO words VALUES ('01500001'), ('abc')");
         Assert.ThrowsAny<DbException>(() => connection.Execute(
             "DELETE FROM words WHERE z = @n", new { n = 1500001 }));
+    }
+
+    // #679: MySQL 8.0.46 inserts a row of defaults for `() VALUES ()` and `VALUES ()`,
+    // which the empty column-list and VALUES-row guards still reject, on every dialect.
+    [Fact]
+    public void DefaultsRow_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute("DROP TEMPORARY TABLE IF EXISTS defaults_row");
+        connection.Execute(
+            "CREATE TEMPORARY TABLE defaults_row "
+                + "(id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(20) DEFAULT 'd')");
+
+        connection.Execute("INSERT INTO defaults_row () VALUES ()");
+        connection.Execute("INSERT INTO defaults_row VALUES ()");
+
+        Assert.Equal(
+            new[] { "d", "d" },
+            connection.Query<string>("SELECT name FROM defaults_row ORDER BY id"));
     }
 
     // ADR 0011's cast entry (#679): an INSERT ... SELECT ending at one unaliased table, cast

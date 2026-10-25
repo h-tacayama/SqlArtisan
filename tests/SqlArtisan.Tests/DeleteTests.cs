@@ -157,16 +157,45 @@ public class DeleteTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // A subquery listing the target reads it as its own relation, as a CTE body
+    // does: the bare column binds the inner instance (#679).
     [Fact]
-    public void DeleteFrom_SameTableInstanceInSubquery_ThrowsArgumentException()
+    public void DeleteFrom_SubqueryListingUnaliasedTarget_CorrectSql()
     {
-        // Accepted false positive: one C# instance standing for two SQL scopes is
-        // ambiguous authorship — use a second instance for the inner scope, or alias the target.
         TestTable t = new();
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .Where(t.Code.In(Select(t.Code).From(t).Where(t.Name == "x")))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM ");
+        expected.Append("test_table ");
+        expected.Append("WHERE ");
+        expected.Append("code IN ");
+        expected.Append("(SELECT code FROM test_table WHERE name = :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("x", sql.Parameters.Get<string>(":0"));
+    }
+
+    // The listing scopes its own block only: a subquery nested in it that does not
+    // list the target, or a set-operator branch beside it, still correlates.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void DeleteFrom_SubqueryListingTargetElsewhere_ThrowsArgumentException(bool nested)
+    {
+        TestTable t = new();
+        TestTable r = new("r");
+        ISubquery sub = nested
+            ? Select(t.Code).From(t).Where(Exists(Select(r.Code).From(r).Where(r.Code == t.Code)))
+            : Select(t.Code).From(t).Union.Select(r.Code).From(r).Where(r.Code == t.Code);
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             DeleteFrom(t)
-            .Where(t.Code.In(Select(t.Code).From(t)))
+            .Where(t.Code.In(sub))
             .Build());
 
         Assert.Equal(
@@ -638,23 +667,68 @@ public class DeleteTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
-    [Fact]
-    public void DeleteFrom_FromNotRepeatingTarget_ThrowsAtFrom()
+    // Not re-listed, the lead keeps `DELETE FROM target` before a second FROM, which
+    // only Oracle 23 runs (#679); a held builder can still re-list it before Build().
+    [Theory]
+    [InlineData(Dbms.MySql)]
+    [InlineData(Dbms.PostgreSql)]
+    [InlineData(Dbms.Sqlite)]
+    [InlineData(Dbms.SqlServer)]
+    public void DeleteFrom_FromNotRepeatingTarget_ThrowsAtBuild(Dbms dbms)
     {
-        // The SQL Server / MySQL joined DELETE must re-list its target in FROM;
-        // omitting it would emit a target-less DELETE alias.
         TestTable t = new("t");
         TestTable s = new("s");
-        IDeleteBuilderDeleteOutput held = DeleteFrom(t);
+        IDeleteBuilderFrom held = DeleteFrom(t).From(s);
 
-        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.From(s));
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Build(dbms));
 
         Assert.Equal(
             "A joined DELETE ... FROM must re-list the target table in the FROM clause.",
             ex.Message);
-        Assert.Equal(
-            "DELETE \"t\" FROM test_table \"t\", test_table \"s\"",
-            held.From(t, s).Build(Dbms.SqlServer).Text);
+    }
+
+    [Fact]
+    public void DeleteFrom_Oracle_FromNotRepeatingTarget_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .From(s)
+            .Where(t.Code == s.Code)
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("FROM test_table \"s\" ");
+        expected.Append("WHERE \"t\".code = \"s\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    // A join of the target instance re-lists it as From(target, ...) does (#679).
+    [Fact]
+    public void DeleteFrom_MySql_TargetRelistedThroughJoin_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .From(s)
+            .InnerJoin(t)
+            .On(t.Code == s.Code)
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE `t` ");
+        expected.Append("FROM test_table `s` ");
+        expected.Append("INNER JOIN test_table `t` ");
+        expected.Append("ON `t`.code = `s`.code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]
@@ -941,7 +1015,8 @@ public class DeleteTests
             ex.Message);
     }
 
-    // No engine that spells DELETE ... FROM has RETURNING, so the stage withholds it.
+    // The stage withholds RETURNING: no engine with one runs a re-listed target, and
+    // Using(...) takes it where the target is not re-listed (#679).
     [Theory]
     [InlineData(typeof(IDeleteBuilderFrom))]
     [InlineData(typeof(IDeleteBuilderFromWhere))]
@@ -965,5 +1040,30 @@ public class DeleteTests
             "RETURNING cannot be combined with a joined DELETE ... FROM; "
                 + "join through Using(...) instead.",
             ex.Message);
+    }
+
+    // Oracle 23.26.3 runs a DELETE ... FROM that does not re-list its target with
+    // RETURNING ... INTO, so a held stage reaching both builds (#679).
+    [Fact]
+    public void DeleteFrom_Oracle_HeldStageNotRelistedThenReturningInto_CorrectSql()
+    {
+        TestTable t = new("t");
+        ArchiveTable a = new("a");
+        IDeleteBuilderDeleteOutput held = DeleteFrom(t);
+        held.From(a).Where(a.Code == t.Code);
+
+        SqlStatement sql =
+            held.Returning(t.Code)
+            .Into(new OutputParameter("code", System.Data.DbType.Int32))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("FROM archive_table \"a\" ");
+        expected.Append("WHERE \"a\".code = \"t\".code ");
+        expected.Append("RETURNING \"t\".code INTO :code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 }
