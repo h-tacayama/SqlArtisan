@@ -864,10 +864,11 @@ and `BuilderElementGuardTests` pins the builder-side sites the factory sweep
 cannot reach. A new typed element position lands on this shape, not a bare NRE.
 A lone null argument binds the `params` array itself to null (`From(null)`), so
 each position names its construct there too, never with the runtime's
-`Value cannot be null.`: the element's message where the site checks its
-elements before their count, and its empty-collection message where it counts
-first; `Values(null)` binds the rows overload and names `Sql.Null`
-(`BuilderElementGuardTests`, #679).
+`Value cannot be null.`: the element's message where the site's guards give it
+one (`CollectionGuard.ThrowIfEmpty`'s `nullMessage`, `ThrowIfNullElement` run
+first, or a resolver's own check), and its empty-collection message where they
+do not (`IN`, `ARRAY[...]` and the `SELECT` list among them); `Values(null)`
+binds the rows overload and names `Sql.Null` (`BuilderElementGuardTests`, #679).
 
 ## Compile time or a guard: the copy count (decided — do not re-file)
 
