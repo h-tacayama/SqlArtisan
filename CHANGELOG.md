@@ -912,6 +912,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   bind the string with `Sql.Bind(...)` where its position takes a bound value.
 
 ### Tests
+- A MySQL twin pins that MySQL 8.0.46 runs a second locking clause where each
+  clause names its own table and rejects a table in two, and a SQL Server twin
+  pins that SQL Server 2022 rejects `OUTPUT` beside a `WITH` between `INSERT INTO`
+  and its `SELECT`, the pairing `Build()` rejects on every dialect. (#679)
 - A MySQL twin pins that MySQL 8.0.46 inserts a row of defaults for
   `() VALUES ()` and `VALUES ()`. The empty column-list and `VALUES`-row guards
   still reject both on every dialect: an array computed empty is likelier a

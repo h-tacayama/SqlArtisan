@@ -768,6 +768,27 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         transaction.Rollback();
     }
 
+    // #679: the pairing OutputClauseGuard rejects on every dialect. With OUTPUT the
+    // WITH is still taken only ahead of INSERT INTO, so no engine runs both halves.
+    [Fact]
+    public void OutputBesideInsertSelectWith_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            "WITH c AS (SELECT 801 AS id, N'x' AS name) "
+                + "INSERT INTO users (id, name) OUTPUT INSERTED.id SELECT id, name FROM c",
+            transaction: transaction);
+
+        Assert.Equal(new[] { 801 }, ids);
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "INSERT INTO users (id, name) OUTPUT INSERTED.id "
+                + "WITH c AS (SELECT 802 AS id, N'x' AS name) SELECT id, name FROM c",
+            transaction: transaction).ToList());
+        transaction.Rollback();
+    }
+
     // SQLA0102 (#587): SQL Server filters a MERGE branch on its WHEN and takes no
     // WHERE after the action. The unfiltered actions run, so only the WHERE is rejected.
     [Fact]

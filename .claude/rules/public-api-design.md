@@ -652,7 +652,9 @@ an additive change, left to demand (ADR 0010).
 
 - *A second locking clause.* PostgreSQL 16 runs `FOR UPDATE OF u NOWAIT FOR
   UPDATE OF o SKIP LOCKED`, a wait policy per table
-  (`PostgreSqlTests.RepeatedLockingClause_IsAcceptedByTheEngine`).
+  (`PostgreSqlTests.RepeatedLockingClause_IsAcceptedByTheEngine`). MySQL 8.0.46
+  runs it too where each clause names its own table, and rejects a table in two
+  (`MySqlTests.RepeatedLockingClause_IsAcceptedByTheEngine`, #679).
   SqlArtisan offers one locking clause per query block and no `FOR SHARE`,
   and the walk rejects a held stage's second `ForUpdate` as it does the
   second `ON CONFLICT` above.
