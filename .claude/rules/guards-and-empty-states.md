@@ -947,8 +947,9 @@ type carries — a dialect, a table instance's identity — is a guard outright.
   has run). An eager check here would misfire on legal code. A fact fixed by
   one stage's own arguments is the first bullet's case, not this one
   (`OrderBy(0)`, `Into(...)`'s variable names, #569), and so is one fixed by
-  the stages already called: the `OUTPUT ... INTO` width at `Into(...)`, the
-  `INSERT ... SELECT` width at the first `Select(...)` (#582). The joined
+  the stages already called (a pairing or a repeated stage excepted, below):
+  the `OUTPUT ... INTO` width at `Into(...)`, the `INSERT ... SELECT` width at
+  the first `Select(...)` (#582). The joined
   `DELETE ... FROM`'s re-listed target is not: a later join can re-list it, and
   the dialect decides, so it waits for `Build(Dbms)` (#679).
 - **A condition clause stays Build()-time even where its node is one
@@ -958,28 +959,31 @@ type carries — a dialect, a table instance's identity — is a guard outright.
 
 **A pairing or a repeated stage throws at `Build()`, not at the call that
 completes it (decided — do not re-file):** the walk's multiplicity and slot
-checks, and the dialect-blind pairing guards in `Validate(Dbms)` whose fact
-the second half's call fixes (`TOP` beside `LIMIT`, `OUTPUT` beside
-`RETURNING`, a leading `WITH` beside `ON DUPLICATE KEY UPDATE` among them; a
-re-list pair is not one, below), could throw at that call and leave a held
-builder usable. The walk stays at `Build()` on cost: its facts span every
-stage, and measured with a `Stopwatch` loop over `Build()` and over the walk
-alone, called through reflection, on a joined `SELECT`, an `INSERT`, an
-`UPDATE` and a `MERGE`, it took 0.3–1.6 µs of a 1.6–3.0 µs build, so rerunning
-it at each `AddPart` would add an estimated 0.5–7 µs, from about a third of a
-build's time to more than twice it; keeping its state on the builder instead
-adds an estimated 24 bytes to each builder (two 64-bit masks and flags, about
-2% of a typical build's 1–1.5 KB), an allocation ADR 0006 does not trade for an
-earlier failure on a misused held builder. A pairing costs only a scan of the
-parts already added, at one call where the order is fixed (a leading `WITH` or
-`INSERT IGNORE` is the chain's first part) and at both where it is not (`TOP`
-after a held prefix's `LIMIT` and a set operator). The pairings stay too:
-moving them buys the same earlier failure, which changes only where a misused
-held builder throws, while the absence and dialect checks — a join's missing
-`ON`, `TOP ... WITH TIES` without `ORDER BY`, the re-list guards (`OUTPUT`
-beside an `UPDATE ... FROM` that does not re-list its target among them),
-every `Dbms`-scoped guard — can only run at `Build()`, so the move would split
-one guard family across stage calls and `Validate` (#679).
+checks, a second `Returning(...)` stage, and the dialect-blind pairing guards
+in `Validate(Dbms)` whose fact the second half's call fixes (`TOP` beside
+`LIMIT`, `OUTPUT` beside `RETURNING`, a leading `WITH` beside
+`ON DUPLICATE KEY UPDATE`, `RETURNING` beside a re-listed `DELETE` or `UPDATE`
+target among them) could throw at that call and leave a held builder usable.
+The walk stays at `Build()` on cost: its facts span every stage, and measured
+with a `Stopwatch` loop over `Build()` and over the walk alone, called through
+reflection, on a joined `SELECT`, an `INSERT`, an `UPDATE` and a `MERGE`, it
+took 0.3–1.6 µs of a 1.6–3.0 µs build, so rerunning it at each `AddPart` would
+add an estimated 0.5–7 µs, from about a third of a build's time to more than
+twice it; keeping its state on the builder instead adds an estimated 24 bytes
+to each builder (two 64-bit masks and flags, about 2% of a typical build's
+1–1.5 KB), an allocation ADR 0006 does not trade for an earlier failure on a
+misused held builder. A pairing costs only a scan of the parts already added,
+at one call where the order is fixed (a leading `WITH` or `INSERT IGNORE` is
+the chain's first part) and at both where it is not (`TOP` after a held
+prefix's `LIMIT` and a set operator), and an earlier `RETURNING` stage is
+already counted on the builder or, completed by `Into(...)`, in its parts.
+Those stay too: moving them buys the same earlier failure, which changes only
+where a misused held builder throws, while the absence and dialect checks — a
+join's missing `ON`, `TOP ... WITH TIES` without `ORDER BY`, a target not yet
+re-listed (`OUTPUT` beside such an `UPDATE ... FROM` among them), a
+`RETURNING` clause built from the stage before it, every `Dbms`-scoped guard —
+can only run at `Build()`, so the move would split each family across stage
+calls and `Build()` (#679).
 
 ## TableClassGen: a run does what it was asked or fails
 
