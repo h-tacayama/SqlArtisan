@@ -708,7 +708,9 @@ Build()-time by decision** (pass 7): narrowing the `Output(...)` continuation
 types to withhold `Returning`/`Using`/upsert would split three interface
 families for a rejection the guard already states exactly, so ADR 0007's
 compile-time-first order yields here; the typestate still withholds `Output`
-after `Using`, and that asymmetry is accepted, not a finding.
+after `Using`, and that asymmetry is accepted, not a finding. That weighs a type
+against a guard; that the guard throws at `Build()` rather than at the call
+completing the pair is § "When to throw"'s decision.
 Its eighth pass added the bare-`OFFSET` rejection on MySQL and SQLite (ADR
 0011) and the SQL Server joined-`UPDATE` guard's second remedy for the
 direct-join chain, made the CTE-body exemption cover nested subqueries, and
@@ -945,14 +947,28 @@ type carries — a dialect, a table instance's identity — is a guard outright.
   has run). An eager check here would misfire on legal code. A fact fixed by
   one stage's own arguments is the first bullet's case, not this one
   (`OrderBy(0)`, `Into(...)`'s variable names, #569), and so is one fixed by
-  the stages already called: the `OUTPUT ... INTO` width at `Into(...)`, the
-  `INSERT ... SELECT` width at the first `Select(...)` (#582). The joined
+  the stages already called (the pairings and repeated stages below excepted):
+  the `OUTPUT ... INTO` width at `Into(...)`, the `INSERT ... SELECT` width at
+  the first `Select(...)` (#582). The joined
   `DELETE ... FROM`'s re-listed target is not: a later join can re-list it, and
   the dialect decides, so it waits for `Build(Dbms)` (#679).
 - **A condition clause stays Build()-time even where its node is one
   statement's own** (the MERGE `ON`, `WHEN ... AND`, `DeleteWhere` and action
   `Where`): an empty condition is rejected one way in every position, so the
   empty-state table above has one row for all of them (#582).
+
+**The walk, the `RETURNING` count and the `Validate(Dbms)` pairings throw at
+`Build()`, not at the call that completes them (decided — do not re-file):**
+some are fixed at that call and could throw there, leaving a misused held
+builder still buildable, which a `Build()`-time throw does not. The walk stays
+on cost: rerunning it at each `AddPart` would add an estimated 0.3 to 2.4 times
+a build's own time (from its measured share of a build), and holding its state
+on the builder instead costs 8–24 bytes each, by how it is packed (ADR 0006).
+The rest stay beside the absence and dialect checks in the same walk and
+`Validate(Dbms)` overrides, which can only run at `Build()` — a join's missing
+`ON`, a target not yet re-listed, every `Dbms`-scoped guard, a build from the
+stage before `RETURNING` — since moving them helps only a misused held builder
+(#679).
 
 ## TableClassGen: a run does what it was asked or fails
 
