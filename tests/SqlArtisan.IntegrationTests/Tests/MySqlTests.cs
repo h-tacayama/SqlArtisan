@@ -1043,8 +1043,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         using IDbTransaction transaction = connection.BeginTransaction();
 
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
-            "SELECT u.id FROM users u INNER JOIN orders o ON u.id = o.user_id "
-                + "FOR UPDATE FOR SHARE OF o",
+            "SELECT u.id FROM users u INNER JOIN orders o ON u.id = o.user_id ORDER BY u.id "
+                + "FOR UPDATE OF u FOR UPDATE OF u",
             transaction: transaction).ToList());
         transaction.Rollback();
     }
