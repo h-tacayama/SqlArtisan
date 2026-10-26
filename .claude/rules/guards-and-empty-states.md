@@ -708,7 +708,9 @@ Build()-time by decision** (pass 7): narrowing the `Output(...)` continuation
 types to withhold `Returning`/`Using`/upsert would split three interface
 families for a rejection the guard already states exactly, so ADR 0007's
 compile-time-first order yields here; the typestate still withholds `Output`
-after `Using`, and that asymmetry is accepted, not a finding.
+after `Using`, and that asymmetry is accepted, not a finding. That weighs a type
+against a guard; that the guard throws at `Build()` rather than at the call
+completing the pair is § "When to throw"'s decision.
 Its eighth pass added the bare-`OFFSET` rejection on MySQL and SQLite (ADR
 0011) and the SQL Server joined-`UPDATE` guard's second remedy for the
 direct-join chain, made the CTE-body exemption cover nested subqueries, and
@@ -953,6 +955,28 @@ type carries — a dialect, a table instance's identity — is a guard outright.
   statement's own** (the MERGE `ON`, `WHEN ... AND`, `DeleteWhere` and action
   `Where`): an empty condition is rejected one way in every position, so the
   empty-state table above has one row for all of them (#582).
+
+**A pairing or a repeated stage throws at `Build()`, not at the call that
+completes it (decided — do not re-file):** the dialect-blind pairing guards in
+`Validate(Dbms)` (`TOP` beside `LIMIT`, `OUTPUT` beside `RETURNING`, a leading
+`WITH` beside `ON DUPLICATE KEY UPDATE`, and the rest of the *Incomplete* list's
+pairs) and the walk's multiplicity and slot checks know their fact at the
+second stage call, where a throw would leave a held builder repairable. They
+stay at `Build()` on cost. The eager cases above check at a call whose half
+always comes second (`Into(...)` follows `Output(...)`); a pair's halves come in
+either order on a held builder, so each half would carry the check, and the
+walk's facts span every stage. Measured with a `Stopwatch` loop over `Build()`
+and over the walk alone, called through reflection, on a joined `SELECT`, an
+`INSERT`, an `UPDATE` and a `MERGE`, the walk took 0.3–1.6 µs of a 1.6–3.0 µs
+build, so rerunning it at each `AddPart` would add an estimated 0.5–7 µs, about
+doubling a typical build;
+keeping its state on the builder instead adds an estimated 24 bytes to each
+builder (two 64-bit masks and flags, about 2% of a typical build's 1–1.5 KB),
+an allocation ADR 0006 does not trade for an earlier failure on a misused held
+builder. And the absence and dialect checks — a join's missing `ON`,
+`TOP ... WITH TIES` without `ORDER BY`, the re-list guards, every `Dbms`-scoped
+guard — can only run at `Build()`, so the guards would split across two places
+(#679).
 
 ## TableClassGen: a run does what it was asked or fails
 
