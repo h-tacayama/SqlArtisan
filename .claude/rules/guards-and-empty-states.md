@@ -62,7 +62,8 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   (ADR 0017); `Output(...)` (SQL Server) combined with `Returning(...)`, with
   `Using(...)` on `DELETE`, with `OnConflict(...)`/`OnDuplicateKeyUpdate(...)`
   on `INSERT`, with a `WITH` between `INSERT INTO` and its `SELECT` (SQL Server
-  takes one only ahead of `INSERT INTO`, `ContextRule_InsertSelectWith_Rejected`),
+  2022 takes one only ahead of `INSERT INTO`, `ContextRule_InsertSelectWith_Rejected`,
+  and with `OUTPUT` too, `OutputBesideInsertSelectWith_IsRejectedByTheEngine`),
   with an `UPDATE` that joins before `SET` (MySQL's form), or with an
   `UPDATE ... FROM` that does not re-list its target (the form SQL Server
   refuses) — no dialect accepts both halves of any pairing (#400, #679); an

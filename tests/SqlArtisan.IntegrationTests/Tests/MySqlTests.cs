@@ -1019,6 +1019,36 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         transaction.Rollback();
     }
 
+    // #679: a second locking clause the walk rejects on a held stage (ADR 0011), run
+    // here while each clause names its own table; a table in two is rejected below.
+    [Fact]
+    public void RepeatedLockingClause_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            "SELECT u.id FROM users u INNER JOIN orders o ON u.id = o.user_id ORDER BY u.id "
+                + "FOR UPDATE OF u NOWAIT FOR UPDATE OF o SKIP LOCKED",
+            transaction: transaction);
+
+        Assert.NotEmpty(ids);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void RepeatedLockingClauseOnOneTable_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "SELECT u.id FROM users u INNER JOIN orders o ON u.id = o.user_id ORDER BY u.id "
+                + "FOR UPDATE OF u NOWAIT FOR UPDATE OF u SKIP LOCKED",
+            transaction: transaction).ToList());
+        transaction.Rollback();
+    }
+
     // #521: an unaliased schema-qualified table locks by its bare name.
     [Fact]
     public void ForUpdate_OfQualifiedUnaliasedTable_Executes()

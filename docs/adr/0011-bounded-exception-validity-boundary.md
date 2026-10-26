@@ -116,7 +116,9 @@ override — so every build path (including `Returning()`, which funnels through
   because which repeats a statement carries is what the fluent chain offers.
   Clauses that legally repeat, such as joins and set operators, are outside
   its once-per-kind check. Recorded engine-run cases: SQLite's second `ON
-  CONFLICT` (#581); PostgreSQL's second locking clause (#582); SQLite's `ON`
+  CONFLICT` (#581); PostgreSQL's second locking clause (#582), and MySQL
+  8.0.46's where each clause names its own table
+  (`MySqlTests.RepeatedLockingClause_IsAcceptedByTheEngine`, #679); SQLite's `ON`
   after a `CROSS JOIN` (`SqliteTests.OnAfterCrossJoin_IsAcceptedByTheEngine`);
   SQL Server's plain `OUTPUT` after `OUTPUT ... INTO`
   (`SqlServerTests.OutputAfterOutputInto_IsAcceptedByTheEngine`), a pair the
