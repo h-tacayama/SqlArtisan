@@ -947,7 +947,7 @@ type carries — a dialect, a table instance's identity — is a guard outright.
   has run). An eager check here would misfire on legal code. A fact fixed by
   one stage's own arguments is the first bullet's case, not this one
   (`OrderBy(0)`, `Into(...)`'s variable names, #569), and so is one fixed by
-  the stages already called (a pairing or a repeated stage excepted, below):
+  the stages already called (the pairings and repeated stages below excepted):
   the `OUTPUT ... INTO` width at `Into(...)`, the `INSERT ... SELECT` width at
   the first `Select(...)` (#582). The joined
   `DELETE ... FROM`'s re-listed target is not: a later join can re-list it, and
@@ -957,20 +957,18 @@ type carries — a dialect, a table instance's identity — is a guard outright.
   `Where`): an empty condition is rejected one way in every position, so the
   empty-state table above has one row for all of them (#582).
 
-**A pairing or a repeated stage throws at `Build()`, not at the call that
-completes it (decided — do not re-file):** a check that reads which clauses a
-statement holds — the walk's multiplicity and slot checks, a second
-`Returning(...)` stage, the pairing guards in `Validate(Dbms)` — runs at
-`Build()`; a stage call throws over the earlier stages only when its own
-arguments disagree with them (the widths above). Some of those checks are fixed
-at the completing call and could throw there, leaving a misused held builder
-still buildable, which a `Build()`-time throw does not. They stay: rerunning
-the walk at each `AddPart` would add an estimated 0.3 to 2.4 times a build's
-own time (from its measured share of a build), keeping its state on the
-builder instead costs 16–24 bytes each (ADR 0006), and the absence and dialect
-checks — a join's missing `ON`, a target not yet re-listed, every
-`Dbms`-scoped guard — can only run at `Build()`, so moving the rest would blur
-that line (#679).
+**The walk, the `RETURNING` count and the `Validate(Dbms)` pairings throw at
+`Build()`, not at the call that completes them (decided — do not re-file):**
+some are fixed at that call and could throw there, leaving a misused held
+builder still buildable, which a `Build()`-time throw does not. The walk stays
+on cost: rerunning it at each `AddPart` would add an estimated 0.3 to 2.4 times
+a build's own time (from its measured share of a build), and holding its state
+on the builder instead costs 8–24 bytes each, by how it is packed (ADR 0006).
+The rest stay beside the absence and dialect checks in the same walk and
+`Validate(Dbms)` overrides, which can only run at `Build()` — a join's missing
+`ON`, a target not yet re-listed, every `Dbms`-scoped guard, a build from the
+stage before `RETURNING` — since moving them helps only a misused held builder
+(#679).
 
 ## TableClassGen: a run does what it was asked or fails
 
