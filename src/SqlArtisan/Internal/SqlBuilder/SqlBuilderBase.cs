@@ -88,7 +88,7 @@ internal abstract class SqlBuilderBase
         }
     }
 
-    // Every node that embeds a subquery takes it through here, so an INSERT ... SELECT
+    // Every node but a CTE body takes its subquery through here, so an INSERT ... SELECT
     // chain, an ISubquery through its SELECT stages, is rejected at the embedding call.
     internal static ISubquery Composed(ISubquery subquery)
     {
