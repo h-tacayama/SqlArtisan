@@ -949,11 +949,7 @@ type carries — a dialect, a table instance's identity — is a guard outright.
   (`OrderBy(0)`, `Into(...)`'s variable names, #569), and so is one fixed by
   the stages already called (the pairings and repeated stages below excepted):
   the `OUTPUT ... INTO` width at `Into(...)`, the `INSERT ... SELECT` width at
-  the first `Select(...)` (#582). An `INSERT ... SELECT` passed where a
-  subquery goes is fixed by its call's own argument yet waits for `Build()`:
-  every embedding but a CTE body, which stays permissive, renders through
-  `SqlBuildingBuffer.EncloseInParentheses`, so the one check there covers what
-  an eager check would repeat at each call taking a subquery (#679). The joined
+  the first `Select(...)` (#582). The joined
   `DELETE ... FROM`'s re-listed target is not: a later join can re-list it, and
   the dialect decides, so it waits for `Build(Dbms)` (#679).
 - **A condition clause stays Build()-time even where its node is one
