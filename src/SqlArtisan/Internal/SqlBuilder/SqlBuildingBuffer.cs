@@ -375,14 +375,6 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // through here — the correlated-DML guard's boundary (#253).
     internal SqlBuildingBuffer EncloseInParentheses(ISubquery subquery)
     {
-        // An INSERT ... SELECT chain is an ISubquery through its SELECT stages, but
-        // no dialect takes an INSERT here.
-        if (subquery is InsertBuilder)
-        {
-            throw new ArgumentException(
-                "An INSERT statement cannot be embedded as a subquery; embed its SELECT instead.");
-        }
-
         TableReference? target = _correlatedDmlTarget;
         if (HoldsReturningTarget && RebindsReturningTarget(subquery))
         {

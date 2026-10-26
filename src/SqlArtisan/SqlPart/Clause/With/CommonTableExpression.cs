@@ -19,13 +19,13 @@ public sealed class CommonTableExpression
         ArgumentNullException.ThrowIfNull(subquery);
 
         _name = name;
-        _subquery = SqlBuilderBase.Composed(subquery);
+        _subquery = SqlBuilderBase.ComposedAsCteBody(subquery);
     }
 
     private CommonTableExpression(string name, ISubquery subquery, CteColumnName[] columnNames)
     {
         _name = name;
-        _subquery = SqlBuilderBase.Composed(subquery);
+        _subquery = SqlBuilderBase.ComposedAsCteBody(subquery);
         _columnNames = columnNames;
     }
 

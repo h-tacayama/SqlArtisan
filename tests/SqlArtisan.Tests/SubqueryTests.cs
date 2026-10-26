@@ -358,16 +358,48 @@ public class SubqueryTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
-    [Fact]
-    public void In_InsertSelectChain_ThrowsArgumentException()
+    [Theory]
+    [InlineData("In")]
+    [InlineData("NotIn")]
+    [InlineData("Exists")]
+    [InlineData("NotExists")]
+    [InlineData("Any")]
+    [InlineData("All")]
+    [InlineData("Some")]
+    [InlineData("As")]
+    [InlineData("AsTable")]
+    [InlineData("SelectItem")]
+    [InlineData("CrossApply")]
+    [InlineData("CrossJoinLateral")]
+    [InlineData("JoinLateral")]
+    [InlineData("LeftJoinLateral")]
+    [InlineData("OuterApply")]
+    public void InsertSelectChain_EmbeddedAsSubquery_ThrowsAtTheEmbeddingCall(string position)
     {
-        // The INSERT ... SELECT chain is an ISubquery through its SELECT stages,
-        // but no dialect takes an INSERT in a value position.
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Select(_t.Code)
-            .From(_t)
-            .Where(_t.Code.In(InsertInto(_s, _s.Code).Select(_r.Code).From(_r)))
-            .Build());
+        ISubquery insert = InsertInto(_s, _s.Code).Select(_r.Code).From(_r);
+        DerivedTable x = new("x");
+
+        Action embed = position switch
+        {
+            "In" => () => _t.Code.In(insert),
+            "NotIn" => () => _t.Code.NotIn(insert),
+            "Exists" => () => Exists(insert),
+            "NotExists" => () => NotExists(insert),
+            "Any" => () => Any(insert),
+            "All" => () => All(insert),
+            "Some" => () => Some(insert),
+            "As" => () => insert.As("v"),
+            "AsTable" => () => insert.AsTable("v"),
+            "SelectItem" => () => Select(insert),
+            "CrossApply" => () => Select(_t.Code).From(_t).CrossApply(insert, x),
+            "CrossJoinLateral" => () => Select(_t.Code).From(_t).CrossJoinLateral(insert, x),
+            "JoinLateral" => () => Select(_t.Code).From(_t).JoinLateral(insert, x),
+            "LeftJoinLateral" => () => Select(_t.Code).From(_t).LeftJoinLateral(insert, x),
+            "OuterApply" => () => Select(_t.Code).From(_t).OuterApply(insert, x),
+            _ => throw new ArgumentOutOfRangeException(nameof(position)),
+        };
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(embed);
 
         Assert.Equal(
             "An INSERT statement cannot be embedded as a subquery; embed its SELECT instead.",

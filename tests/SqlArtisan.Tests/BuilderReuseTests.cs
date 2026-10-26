@@ -647,8 +647,7 @@ public class BuilderReuseTests
             .UnionAll
             .Select(s.Code).From(s);
 
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Select(_t.Code).From(_t).Where(Exists(insert)).Build());
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Exists(insert));
 
         Assert.Equal(
             "An INSERT statement cannot be embedded as a subquery; embed its SELECT instead.",

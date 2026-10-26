@@ -88,8 +88,21 @@ internal abstract class SqlBuilderBase
         }
     }
 
-    // Every node that embeds a subquery takes it through here.
+    // Every node that embeds a subquery takes it through here, so an INSERT ... SELECT
+    // chain, an ISubquery through its SELECT stages, is rejected at the embedding call.
     internal static ISubquery Composed(ISubquery subquery)
+    {
+        if (subquery is InsertBuilder)
+        {
+            throw new ArgumentException(
+                "An INSERT statement cannot be embedded as a subquery; embed its SELECT instead.");
+        }
+
+        return ComposedAsCteBody(subquery);
+    }
+
+    // A CTE body stays permissive: PostgreSQL runs a data-modifying WITH.
+    internal static ISubquery ComposedAsCteBody(ISubquery subquery)
     {
         if (subquery is SqlBuilderBase builder)
         {

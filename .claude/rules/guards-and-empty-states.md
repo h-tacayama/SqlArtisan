@@ -152,7 +152,8 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   premise corrected after pass 8); an `INSERT ... SELECT`
   chain embedded as a subquery — no dialect takes an `INSERT` in a value or
   table position, though a CTE body stays permissive (PostgreSQL's
-  data-modifying `WITH`); `Returning(expr.As(...)).Into(...)` — the output
+  data-modifying `WITH`), rejected at the call that embeds it, which
+  `SqlBuilderBase.Composed` sees (#679); `Returning(expr.As(...)).Into(...)` — the output
   parameter names the value, so the alias is a contradiction, while the
   plain `RETURNING expr "alias"` is valid on PostgreSQL and SQLite and emits
   faithfully (release audit pass 5, reversing an earlier dialect-blind eager
@@ -917,7 +918,7 @@ stage.
   `INSERT` stage after `Into(...)` and its `VALUES`, the `UPDATE` `SET`,
   `WHERE`, `FROM` and join-`ON` stages, and the `DELETE` and its `WHERE`;
   #400, recounted in #679); an `INSERT ... SELECT` embedded as a
-  subquery (13).
+  subquery (13; thrown at the embedding call, not at `Build()`, #679).
 
 Each copy doubles later edits to the stage it mirrors (all but one later
 commit to an `INSERT IGNORE` stage since #275 also edited its `INSERT` twin);
