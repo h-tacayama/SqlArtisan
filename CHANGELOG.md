@@ -358,9 +358,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   one the bad entry could not be replaced and surfaced only at `Build(cnn)`, as
   an unrelated failure. (#614)
 - **Breaking:** a `RegexpOptions` value with an undefined bit throws
-  `ArgumentOutOfRangeException`. The bit emitted no letter, so
-  `(RegexpOptions)(32 | 2)` built `'i'`, and appending a flag at that bit would
-  have changed the SQL the same call emits. (#614)
+  `ArgumentOutOfRangeException` naming the function it was passed to
+  (`REGEXP_LIKE requires a defined RegexpOptions combination.`). The bit emitted
+  no letter, so `(RegexpOptions)(32 | 2)` built `'i'`, and appending a flag at
+  that bit would have changed the SQL the same call emits. (#614, #669)
 - **Breaking:** `.NullsFirst` / `.NullsLast` on a sort key that already has a
   null ordering throws `InvalidOperationException`. The second call silently
   replaced the first, so `.NullsFirst.NullsLast` emitted `NULLS LAST`. (#614)
@@ -796,8 +797,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   a body that reads the target as its own relation, which builds; `Build()`
   now guards every CTE body, so a body that correlates still fails there.
   (#610)
-- `Returning(...)` on SQLite qualifies an aliased target's columns by the table
-  name — `UPDATE users AS "u" ... RETURNING users.id` — where it emitted
+- `Returning(...)` on SQLite qualifies an aliased target's columns, read through
+  any handle of the target's table under its alias, by the table name —
+  `UPDATE users AS "u" ... RETURNING users.id` — where it emitted
   `"u".id`, which SQLite rejects (`no such column: u.id`, live-verified on
   3.50.4). `INSERT`, UPSERT, `UPDATE`, `UPDATE ... FROM` and `DELETE` with an
   aliased target can now return a column by name on SQLite, and a correlated
@@ -806,7 +808,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   unaliased, a CTE named after it, or an alias equal to it) keeps the target's
   alias: the table name would bind that inner relation, so SQLite 3.50.4
   rejects the statement instead of returning its value. Other engines' output is
-  unchanged. (#595)
+  unchanged. (#595, #669)
 - `WhenNotMatchedBySource(...)` is documented and analyzed as PostgreSQL 17+
   syntax as well as SQL Server's: PostgreSQL 17 added `WHEN NOT MATCHED BY
   SOURCE`, and a declared `sqlartisan_syntax_postgresql` of 17 or later no
@@ -1250,6 +1252,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `Values(...)`, `Unnest(...).AsTable(...)`, a `DerivedTable` or other
   `DerivedTableBase` subclass) and a CTE's or derived table's column list.
   (#737)
+- `docs/query-statements.md` says SQLite rejects the qualified star of a
+  schema-qualified table (`main.t.*`, observed on SQLite 3.50.4) and that an
+  alias is the spelling that runs there. (#669)
 - The AI-assistant rules snippet tells an agent never to pass request input
   where SqlArtisan emits text verbatim, linking the list of those positions,
   and the cookbook's runtime-sort recipe says its `switch` is the allowlist that

@@ -19,7 +19,7 @@ internal sealed class RegexpReplaceFunction : SqlExpression
             replacement,
             position,
             occurrence,
-            options?.ToValue());
+            options?.ToValue(Keywords.RegexpReplace));
     }
 
     internal override void Format(SqlBuildingBuffer buffer) =>

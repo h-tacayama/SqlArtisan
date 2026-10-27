@@ -26,6 +26,8 @@ public abstract class TableReference : SqlPart
     /// <para>Oracle rejects it before <c>INTO</c>, PostgreSQL's <c>RETURNING</c> takes it,
     /// SQLite's rejects it, and SQL Server rejects the target's in an <c>OUTPUT</c> on a
     /// statement that joins nothing.</para>
+    /// <para>SQLite rejects it on an unaliased schema-qualified table (<c>main.t.*</c>,
+    /// observed on SQLite 3.50.4); alias the table there.</para>
     /// </summary>
     public SqlPart Asterisk =>
         string.IsNullOrEmpty(CorrelationName)

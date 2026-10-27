@@ -569,7 +569,7 @@ public class ReturningTests
     }
 
     [Fact]
-    public void Returning_Sqlite_SelfJoinedUpdate_QualifiesOnlyTheTargetInstance()
+    public void Returning_Sqlite_SelfJoinedUpdate_QualifiesOnlyTheTargetsAlias()
     {
         TestTable t = new("t");
         TestTable t2 = new("t2");
@@ -578,7 +578,7 @@ public class ReturningTests
             .Set(t.Name == t2.Name)
             .From(t2)
             .Where(t2.Code == t.Code)
-            .Returning(t.Code)
+            .Returning(t.Code, t2.Code)
             .Build(Dbms.Sqlite);
 
         StringBuilder expected = new();
@@ -586,9 +586,27 @@ public class ReturningTests
         expected.Append("SET name = \"t2\".name ");
         expected.Append("FROM test_table \"t2\" ");
         expected.Append("WHERE \"t2\".code = \"t\".code ");
-        expected.Append("RETURNING test_table.code");
+        expected.Append("RETURNING test_table.code, \"t2\".code");
 
         Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Returning_Sqlite_SecondHandleUnderTheTargetsAlias_QualifiesByTableName()
+    {
+        // The same table and alias render as the target, so SQLite reads them as the target.
+        TestTable t = new("t");
+        TestTable sameSpelling = new("t");
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == "a")
+            .Returning(sameSpelling.Code)
+            .Build(Dbms.Sqlite);
+
+        Assert.Equal(
+            "UPDATE test_table AS \"t\" SET name = :0 RETURNING test_table.code",
+            sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<string>(":0"));
     }
 
     [Fact]

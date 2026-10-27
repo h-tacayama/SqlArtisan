@@ -446,11 +446,19 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // subquery or CTE body that rebinds the name or the alias clears the slot.
     internal bool QualifiesByTableName(TableReference owner) =>
         (_qualifyReturningByTableName
-            && ReferenceEquals(owner, _correlatedDmlTarget)
-            && owner is DbTableBase { HasAlias: true })
+            && owner is DbTableBase { HasAlias: true }
+            && SpellsReturningTarget(owner))
         || (_qualifyUpsertTarget
             && owner is DbTableBase { HasAlias: false }
             && _pseudoRowTarget is { HasAlias: false } target
+            && TableReference.NamesSameTable(owner, target));
+
+    // Matched by spelling, not instance: another handle under the target's table and
+    // alias renders as the target does, while a self-join's handle has its own alias.
+    private bool SpellsReturningTarget(TableReference owner) =>
+        ReferenceEquals(owner, _correlatedDmlTarget)
+        || (_correlatedDmlTarget is { } target
+            && owner.CorrelationName == target.CorrelationName
             && TableReference.NamesSameTable(owner, target));
 
     // Matched by name, not instance: the capture comes from any relation so

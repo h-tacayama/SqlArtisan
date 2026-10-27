@@ -13,7 +13,7 @@ internal sealed class RegexpLikeCondition : SqlCondition
     {
         _source = source;
         _pattern = pattern;
-        _options = options?.ToValue();
+        _options = options?.ToValue(Keywords.RegexpLike);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer

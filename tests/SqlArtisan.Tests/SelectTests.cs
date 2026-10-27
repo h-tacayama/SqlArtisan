@@ -112,6 +112,32 @@ public class SelectTests
     }
 
     [Fact]
+    public void QualifiedAsterisk_SchemaQualifiedUnaliasedTable_CorrectSql()
+    {
+        DbTable t = new("main.test_table", "");
+        SqlStatement sql =
+            Select(t.Asterisk)
+            .From(t)
+            .Build();
+
+        Assert.Equal("SELECT main.test_table.* FROM main.test_table", sql.Text);
+    }
+
+    // SQLite 3.50.4 rejects this; a bare `test_table.*` would run but expand every
+    // same-named table the block lists, so the schema stays and the failure stays loud.
+    [Fact]
+    public void QualifiedAsterisk_Sqlite_SchemaQualifiedUnaliasedTable_KeepsTheSchema()
+    {
+        DbTable t = new("main.test_table", "");
+        SqlStatement sql =
+            Select(t.Asterisk)
+            .From(t)
+            .Build(Dbms.Sqlite);
+
+        Assert.Equal("SELECT main.test_table.* FROM main.test_table", sql.Text);
+    }
+
+    [Fact]
     public void QualifiedAsterisk_WithOtherSelectItem_CorrectSql()
     {
         SqlStatement sql =
