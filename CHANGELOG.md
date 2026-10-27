@@ -910,6 +910,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   SqlArtisan escaped it: into another parameter's value or `null`, or with the
   statement's other parameters dropped. Run such a statement through ADO.NET, or
   bind the string with `Sql.Bind(...)` where its position takes a bound value.
+- SqlArtisan.ArrayBind and SqlArtisan.TableClassGen reference
+  `System.Security.Cryptography.Pkcs` 8.0.2 directly, lifting the 8.0.1 that
+  Oracle.ManagedDataAccess.Core and Microsoft.Data.SqlClient pull in above
+  GHSA-846f-f764-76mx (High) and GHSA-2fmv-rv2c-59x7 (Moderate). ArrayBind's
+  package now depends on Pkcs 8.0.2, which carries the fix to its consumers;
+  TableClassGen users get it by updating the tool. (#737)
 
 ### Tests
 - A MySQL twin pins that MySQL 8.0.46 runs a second locking clause where each
