@@ -1894,4 +1894,51 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Null(connection.ExecuteScalar<string>(
             Select(JsonArrowText(u.Data, "$.name")).From(u).Where(u.Id == 1)));
     }
+
+    // #669: the twin of SQLite's In_EmptyList_IsAcceptedByTheEngine.
+    [Fact]
+    public void In_EmptyList_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar<int>("SELECT COUNT(*) FROM users WHERE id IN (1)");
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM users WHERE id IN ()"));
+    }
+
+    // #669: an empty ARRAY[] is typed only through a cast, so Array() builds it.
+    [Fact]
+    public void Array_NoElementsUnderACast_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Empty(connection.ExecuteScalar<int[]>(Select(Cast(Array(), "int[]")))!);
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(Select(Array())));
+    }
+
+    // #669: the twin of SQLite's EmptyQuotedName_IsAcceptedByTheEngine.
+    [Fact]
+    public void EmptyQuotedName_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar<int>("SELECT 1 AS \"a\"");
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "SELECT 1 AS \"\""));
+    }
+
+    // #669: an empty and a blank interval value are both rejected here.
+    [Fact]
+    public void IntervalLiteral_EmptyOrBlankValue_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT INTERVAL '1' DAY");
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar("SELECT INTERVAL '' DAY"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar("SELECT INTERVAL ' ' DAY"));
+    }
 }

@@ -1424,4 +1424,17 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             connection.Execute("SET SESSION sql_mode = @@GLOBAL.sql_mode");
         }
     }
+
+    // #669: an empty or blank single-unit interval value reads as 0, with a
+    // truncation warning rather than an error.
+    [Fact]
+    public void IntervalLiteral_EmptyOrBlankValue_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(1, connection.ExecuteScalar<int>(
+            "SELECT DATE_ADD(DATE '2020-01-01', INTERVAL '' DAY) = DATE '2020-01-01'"));
+        Assert.Equal(1, connection.ExecuteScalar<int>(
+            "SELECT DATE_ADD(DATE '2020-01-01', INTERVAL ' ' DAY) = DATE '2020-01-01'"));
+    }
 }

@@ -44,12 +44,25 @@ public class ArrayOperatorTests
     }
 
     [Fact]
-    public void Array_NoElements_ThrowsArgumentException()
+    public void Array_NoElementsUnderACast_CorrectSql()
     {
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Array());
+        SqlStatement sql =
+            Select(Cast(Array(), "int[]"))
+            .Build(Dbms.PostgreSql);
 
-        Assert.Equal("ARRAY[...] requires at least one element.", ex.Message);
+        Assert.Equal("SELECT CAST(ARRAY[] AS int[])", sql.Text);
+        Assert.Equal(0, sql.Parameters.Count);
+    }
+
+    [Fact]
+    public void Array_NullArray_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            Array(null!));
+
+        Assert.Equal(
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'elements')",
+            ex.Message);
     }
 
     // --- ArrayOverlaps (&&) -----------------------------------------------------

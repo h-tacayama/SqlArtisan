@@ -1319,4 +1319,33 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.Equal(4, updated);
         transaction.Rollback();
     }
+
+    // #669: SQLite runs an empty IN list, which is why `In(...)` rejects one at the
+    // call: a list computed empty would match nothing (NOT IN: everything) silently.
+    [Fact]
+    public void In_EmptyList_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        int all = connection.ExecuteScalar<int>("SELECT COUNT(*) FROM users");
+
+        Assert.Equal(0, connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM users WHERE id IN ()"));
+        Assert.Equal(all, connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM users WHERE id NOT IN ()"));
+    }
+
+    // #669: SQLite runs a zero-length quoted name in each position SqlArtisan quotes;
+    // the guards reject one as a slip, not as text no engine runs.
+    [Fact]
+    public void EmptyQuotedName_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(1, connection.ExecuteScalar<int>(
+            "SELECT id \"\" FROM users WHERE id = 1"));
+        Assert.Equal(1, connection.ExecuteScalar<int>(
+            "WITH \"\" AS (SELECT id FROM users) SELECT \"\".id FROM \"\" WHERE \"\".id = 1"));
+        Assert.Equal(1, connection.ExecuteScalar<int>(
+            "SELECT \"\".id FROM (SELECT id FROM users) \"\" WHERE \"\".id = 1"));
+    }
 }
