@@ -1612,4 +1612,16 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             "SELECT INTERVAL ' ' DAY FROM DUAL"));
     }
+
+    // #669: the twin of SQLite's In_EmptyList_IsAcceptedByTheEngine.
+    [Fact]
+    public void In_EmptyList_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar<int>("SELECT COUNT(*) FROM users WHERE id IN (1)");
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM users WHERE id IN ()"));
+    }
 }
