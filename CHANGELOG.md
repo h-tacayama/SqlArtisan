@@ -1244,6 +1244,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   MySQL reads `FULL` after an unaliased table as its alias when no joined column
   is ambiguous; MySQL's `LIMIT`-in-`IN` rejection names the version observed;
   and the README says raw ADO.NET on Oracle needs `BindByName`.
+- The list of positions emitted verbatim in `SECURITY.md` and
+  `docs/functions.md` names the `RETURNING ... INTO` output variable of an
+  `OutputParameter`, a CTE name, a derived table's alias (`AsTable(...)`,
+  `Values(...)`, `Unnest(...).AsTable(...)`, a `DerivedTable` or other
+  `DerivedTableBase` subclass) and a CTE's or derived table's column list.
+  (#737)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

@@ -102,14 +102,20 @@ of `DECIMAL(10,2)` is not a name to be quoted at all.
 
 Escaping identifiers "uniformly" is also unachievable, which is what settles the
 question rather than merely arguing it. Only the alias-quoted positions could
-double a quote character; the bare ones — the table name (which may be
-schema-qualified), the column name, the `CAST` target type, a CTE column list,
-the column list of a `Sql.Values(...)` or `Unnest(...).AsTable(...)` derived
-table (whose own name is alias-quoted, #679), an `OUTPUT … INTO` variable, and
-the `Sql.Hints` raw-SQL escape hatch — have no
-delimiter to escape *into*. The outcome would be half-escaped, which is worse
-than a stated contract because it invites the belief that the other half is
-covered too.
+double a quote character: a table's alias, a select item's `As("x")` alias, a
+scalar subquery's `As` alias, a CTE's name, and a derived table's name (a
+`DerivedTableBase`: `AsTable(...)` on a subquery, `Sql.Values(...)`,
+`Unnest(...).AsTable(...)` or a `DerivedTable`, #679). The bare ones — the table
+name (which may be schema-qualified), the column name, a select item's alias
+given as `As(column)`, the `CAST` target type, the Oracle and SQL Server
+sequence name, a CTE column-list entry taken from a column or `As(column)` (one
+taken from `As("name")` is alias-quoted, as its select item is, #165), the
+column list of a `Sql.Values(...)` or `Unnest(...).AsTable(...)` derived table,
+the `RETURNING … INTO` output variable (whose name ADR 0011 restricts to an
+Oracle nonquoted identifier's shape, #679), and the `Sql.Hints` raw-SQL escape
+hatch — have no delimiter to escape *into*. The outcome would be half-escaped,
+which is worse than a stated contract because it invites the belief that the
+other half is covered too.
 
 The security scope that follows is stated on the user-facing surfaces in plain
 words: `SECURITY.md` (what counts as a vulnerability), the README's feature
