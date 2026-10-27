@@ -1321,7 +1321,7 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
     }
 
     // #669: SQLite runs an empty IN list, which is why `In(...)` rejects one at the
-    // call: a list computed empty would match nothing (NOT IN: everything) silently.
+    // call: a list computed empty would run here without an error.
     [Fact]
     public void In_EmptyList_IsAcceptedByTheEngine()
     {

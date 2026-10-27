@@ -52,8 +52,8 @@ public class FactoryGuardSweepTests
         // Group() with zero columns is the documented grand-total row, not a
         // dropped column list.
         ["Group(Object[]) :: columns=[]"] = "SELECT \"x\".c FROM e \"x\" GROUP BY GROUPING SETS(())",
-        // An empty ARRAY[] runs on PostgreSQL under a cast (`CAST(ARRAY[] AS int[])`), and
-        // the engine rejects it bare, so nothing builds silently wrong.
+        // PostgreSQL, ARRAY's one engine, runs an empty ARRAY[] only under a cast the caller
+        // writes (`CAST(ARRAY[] AS int[])`), as an empty array, and rejects it bare.
         ["Array(Object[]) :: elements=[]"] = "SELECT ARRAY[]",
         // SqlHints elides a null or empty hint: a non-semantic decoration with
         // its own no-hints spelling, unlike the clauses above.

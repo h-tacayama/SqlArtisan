@@ -493,20 +493,22 @@ where it is, and the asymmetry is not a defect.
 rejected, though an engine runs it (decided — do not re-file):** `In(...)` and
 `NotIn(...)` with no value, an empty `As(...)` alias, CTE, derived-table or
 `Values(...)` name, and an empty `IntervalLiteral` value throw at the call on
-every dialect. SQLite 3.50.4 runs `IN ()` as matching no row, `NOT IN ()` as
-matching every row, and a zero-length alias, CTE name or subquery derived-table
-name; MySQL 8.0 reads `INTERVAL '' DAY` as 0. An empty list or string reaches
+every dialect. SQLite 3.50.4 runs `IN ()`, `NOT IN ()` and a zero-length
+alias, CTE name or subquery derived-table name; MySQL 8.0 reads
+`INTERVAL '' DAY` as 0. An empty list or string reaches
 these positions only as a value computed empty, which those engines would run
-without an error, so ADR 0011 decides the class outside its bar. The other
-lanes reject them: `IN ()` and `NOT IN ()` on MySQL 8.0, Oracle XE 21.3.0,
+without an error, so ADR 0011 decides the class outside its bar. These lanes
+reject them: `IN ()` and `NOT IN ()` on MySQL 8.0, Oracle XE 21.3.0,
 PostgreSQL 16.15 and SQL Server 2022, the empty alias on PostgreSQL 16.15, and the
 empty interval value on Oracle XE 21.3.0 and PostgreSQL 16.15 (`In_EmptyList_*`,
 `EmptyQuotedName_*`, `IntervalLiteral_EmptyOrBlankValue_*`). A blank value stays the engine's, as the
 clause above keeps whitespace in a quoted position, though MySQL reads
 `INTERVAL ' ' DAY` as 0 too. `Array()` takes no element instead: PostgreSQL, its
-one engine, runs `CAST(ARRAY[] AS int[])` and rejects a bare `ARRAY[]`
-(`Array_NoElementsUnderACast_IsAcceptedByTheEngine`), so nothing builds silently
-wrong (#669).
+one engine, runs an empty `ARRAY[]` only under a cast the caller writes,
+`CAST(ARRAY[] AS int[])` returning an empty array, and rejects it bare
+(`Array_NoElementsUnderACast_IsAcceptedByTheEngine`, PostgreSQL 16.15). A list
+computed empty under that cast now reaches the engine, where it used to throw
+(#669).
 
 **`Build(ISqlBuilder, IDbConnection)`'s unregistered-provider throw names
 `dbms` as its `ParamName` (decided — do not re-file):** its `ParamName` and
