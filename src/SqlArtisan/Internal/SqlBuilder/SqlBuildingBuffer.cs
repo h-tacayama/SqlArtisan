@@ -421,8 +421,6 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
     internal string ExcludedName => _dialect.ExcludedName;
 
-    internal bool QualifiedAsteriskDropsSchema => _dialect.QualifiedAsteriskDropsSchema;
-
     internal void QualifyUpsertTarget() => _qualifyUpsertTarget = true;
 
     internal SqlBuildingBuffer AppendReturningItems(SqlPart[] items)

@@ -20,7 +20,5 @@ internal sealed class SqliteDialect : IDbmsDialect
 
     public char ParameterMarker => ':';
 
-    public bool QualifiedAsteriskDropsSchema => true;
-
     public bool ReturningIgnoresTargetAlias => true;
 }

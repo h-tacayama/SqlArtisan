@@ -26,11 +26,13 @@ public abstract class TableReference : SqlPart
     /// <para>Oracle rejects it before <c>INTO</c>, PostgreSQL's <c>RETURNING</c> takes it,
     /// SQLite's rejects it, and SQL Server rejects the target's in an <c>OUTPUT</c> on a
     /// statement that joins nothing.</para>
+    /// <para>SQLite rejects it on an unaliased schema-qualified table (<c>main.t.*</c>);
+    /// alias the table there.</para>
     /// </summary>
     public SqlPart Asterisk =>
         string.IsNullOrEmpty(CorrelationName)
-            ? new QualifiedAsteriskMarker(_name, _name.Length - NameWithoutSchema.Length)
-            : new QualifiedAsteriskMarker(CorrelationName);
+            ? new QualifiedAsteriskMarker(_name, quoteQualifier: false)
+            : new QualifiedAsteriskMarker(CorrelationName, quoteQualifier: true);
 
     internal abstract string CorrelationName { get; }
 

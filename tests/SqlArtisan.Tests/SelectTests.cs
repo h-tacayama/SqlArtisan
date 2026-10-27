@@ -123,9 +123,10 @@ public class SelectTests
         Assert.Equal("SELECT main.test_table.* FROM main.test_table", sql.Text);
     }
 
-    // SQLite 3.50.4 rejects a schema before `.*`, though it takes one before a column.
+    // SQLite 3.50.4 rejects this; a bare `test_table.*` would run but expand every
+    // same-named table the block lists, so the schema stays and the failure stays loud.
     [Fact]
-    public void QualifiedAsterisk_Sqlite_SchemaQualifiedUnaliasedTable_DropsTheSchema()
+    public void QualifiedAsterisk_Sqlite_SchemaQualifiedUnaliasedTable_KeepsTheSchema()
     {
         DbTable t = new("main.test_table", "");
         SqlStatement sql =
@@ -133,7 +134,7 @@ public class SelectTests
             .From(t)
             .Build(Dbms.Sqlite);
 
-        Assert.Equal("SELECT test_table.* FROM main.test_table", sql.Text);
+        Assert.Equal("SELECT main.test_table.* FROM main.test_table", sql.Text);
     }
 
     [Fact]

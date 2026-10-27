@@ -21,7 +21,5 @@ internal sealed class SqlServerDialect : IDbmsDialect
 
     public char ParameterMarker => '@';
 
-    public bool QualifiedAsteriskDropsSchema => false;
-
     public bool ReturningIgnoresTargetAlias => false;
 }
