@@ -303,13 +303,13 @@ A factory requiring at least one argument enforces it two ways, both
 shipped: a **leading required parameter** ahead of the `params` tail
 (`Coalesce(primary, secondary, params object[])`, `Cube(element, params
 object[])`, `Match(column, params object[])`) makes the empty call a compile
-error; a **runtime eager guard** on a bare `params object[]` (`Array(...)`,
-`Unnest(...)`, `Greatest(...)`, `Least(...)`, `DistinctOn(...)`) throws at the
-call site per `guards-and-empty-states.md`. Prefer the leading-parameter shape
-when the construct has a natural "first" argument to split out; use the
-runtime guard when every argument plays the same role and splitting one out
-would misdescribe the construct (there is no privileged "first" array
-element in `ARRAY[...]`).
+error; a **runtime eager guard** on a bare `params object[]` (`Unnest(...)`,
+`Greatest(...)`, `Least(...)`, `DistinctOn(...)`) throws at the call site per
+`guards-and-empty-states.md`. Prefer the leading-parameter shape when the
+construct has a natural "first" argument to split out; use the runtime guard
+when every argument plays the same role and splitting one out would misdescribe
+the construct (no argument of `GREATEST(...)` comes first by role). `Array(...)`
+has no minimum: PostgreSQL runs an empty `ARRAY[]` under a cast (#669).
 
 **Recorded exception — simple `Case(object expr, params SimpleCaseWhenClause[])`**
 keeps the bare tail and its eager guard, although its searched sibling splits

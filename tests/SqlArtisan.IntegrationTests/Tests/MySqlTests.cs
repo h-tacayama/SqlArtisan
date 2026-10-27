@@ -1425,8 +1425,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         }
     }
 
-    // #669: an empty or blank single-unit interval value reads as 0, with a
-    // truncation warning rather than an error.
+    // #669: an empty or blank single-unit interval value reads as 0 rather than failing.
     [Fact]
     public void IntervalLiteral_EmptyOrBlankValue_IsAcceptedByTheEngine()
     {
@@ -1448,5 +1447,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
             "SELECT COUNT(*) FROM users WHERE id IN ()"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM users WHERE id NOT IN ()"));
     }
 }

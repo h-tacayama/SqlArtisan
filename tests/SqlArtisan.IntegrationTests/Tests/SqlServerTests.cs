@@ -1580,5 +1580,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
 
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
             "SELECT COUNT(*) FROM users WHERE id IN ()"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM users WHERE id NOT IN ()"));
     }
 }

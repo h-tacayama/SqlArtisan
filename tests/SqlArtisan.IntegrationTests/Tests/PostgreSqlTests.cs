@@ -1905,6 +1905,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
 
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
             "SELECT COUNT(*) FROM users WHERE id IN ()"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM users WHERE id NOT IN ()"));
     }
 
     // #669: an empty ARRAY[] is typed only through a cast, so Array() builds it.

@@ -332,7 +332,7 @@ SqlStatement sql =
 // WHERE id IN (:0, :1, ...) — one bind per element
 ```
 
-The overload takes `IReadOnlyCollection<T>` rather than `IEnumerable<T>` deliberately: a `string` is an `IEnumerable<char>` but *not* an `IReadOnlyCollection<char>`, so `col.In("abc")` stays a single-value predicate (`IN (:0)`) instead of silently expanding into one bind per character. An empty collection throws at the call site — an empty `IN ()` is invalid SQL — so build the chain with or without the predicate keyed on whether the list has any elements.
+The overload takes `IReadOnlyCollection<T>` rather than `IEnumerable<T>` deliberately: a `string` is an `IEnumerable<char>` but *not* an `IReadOnlyCollection<char>`, so `col.In("abc")` stays a single-value predicate (`IN (:0)`) instead of silently expanding into one bind per character. An empty collection throws at the call site: SQLite runs `IN ()` as matching no row and `NOT IN ()` as matching every row, where the other engines reject both, so a list computed empty would change the query there without an error (observed on SQLite 3.50.4). Build the chain with or without the predicate keyed on whether the list has any elements.
 
 Each element is a **separate** bind parameter, so the parameter count grows with the list, and a very large `IN` list runs into per-engine bind-parameter ceilings — see your engine's manual for its limit. On PostgreSQL, an equality-against-array — `col = ANY(:param)`, a single array-valued bind whose plan is stable across list sizes — sidesteps both the parameter count and the ceiling; SqlArtisan's `In(...)` emits the per-element list form on every dialect, so reach for the bound-array form (`Any(BindArray(...))` — see [ANY / ALL with a Bound Array](#any--all-with-a-bound-array-postgresql)) when the list is both large and size-varying on PostgreSQL.
 
@@ -532,7 +532,7 @@ SqlStatement sql =
 // WHERE tags && ARRAY[:0, :1]
 ```
 
-PostgreSQL only. `ArrayOverlaps` (`&&`) tests whether two arrays share at least one element; `ArrayContains` (`@>`) tests whether the left array contains every element of the right one; `ArrayContainedBy` (`<@`) tests the reverse. `Array(...)` requires at least one element — an empty call throws at the call site.
+PostgreSQL only. `ArrayOverlaps` (`&&`) tests whether two arrays share at least one element; `ArrayContains` (`@>`) tests whether the left array contains every element of the right one; `ArrayContainedBy` (`<@`) tests the reverse. With no elements, `Array()` emits `ARRAY[]`, which PostgreSQL runs only under a cast — `Cast(Array(), "int[]")` — and rejects bare (observed on PostgreSQL 16.15).
 
 String elements form a `text[]`; for another element type, pass typed values (`Array(1, 2)` binds an integer array).
 

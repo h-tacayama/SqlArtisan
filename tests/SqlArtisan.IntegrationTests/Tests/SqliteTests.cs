@@ -1334,7 +1334,7 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
             "SELECT COUNT(*) FROM users WHERE id NOT IN ()"));
     }
 
-    // #669: SQLite runs a zero-length quoted name in each position SqlArtisan quotes;
+    // #669: SQLite runs a zero-length quoted alias, CTE name and derived-table name;
     // the guards reject one as a slip, not as text no engine runs.
     [Fact]
     public void EmptyQuotedName_IsAcceptedByTheEngine()

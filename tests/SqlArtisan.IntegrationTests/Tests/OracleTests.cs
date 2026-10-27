@@ -1623,5 +1623,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
             "SELECT COUNT(*) FROM users WHERE id IN ()"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM users WHERE id NOT IN ()"));
     }
 }
