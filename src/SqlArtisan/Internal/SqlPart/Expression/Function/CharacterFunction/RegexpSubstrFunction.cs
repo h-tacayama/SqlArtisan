@@ -18,7 +18,7 @@ internal sealed class RegexpSubstrFunction : SqlExpression
             pattern,
             position,
             occurrence,
-            options?.ToValue(),
+            options?.ToValue(Keywords.RegexpSubstr),
             subPatternPos);
     }
 

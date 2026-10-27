@@ -2,9 +2,9 @@ namespace SqlArtisan.Internal;
 
 // Stringified once at construction, not per Format — the flag set is fixed at
 // the call site (ADR 0006; WaitBehavior's shape).
-internal sealed class RegexpOptionsValue(RegexpOptions options) : SqlPart
+internal sealed class RegexpOptionsValue(RegexpOptions options, string construct) : SqlPart
 {
-    private readonly string _sql = options.ToSql();
+    private readonly string _sql = options.ToSql(construct);
 
     internal override void Format(SqlBuildingBuffer buffer) =>
         buffer.Append(_sql);

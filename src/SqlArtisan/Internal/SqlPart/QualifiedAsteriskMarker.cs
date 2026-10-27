@@ -8,11 +8,18 @@ internal sealed class QualifiedAsteriskMarker : SqlPart
 {
     private readonly string _qualifier;
     private readonly bool _quoteQualifier;
+    private readonly int _nameStart;
 
-    internal QualifiedAsteriskMarker(string qualifier, bool quoteQualifier)
+    internal QualifiedAsteriskMarker(string correlationName)
     {
-        _qualifier = qualifier;
-        _quoteQualifier = quoteQualifier;
+        _qualifier = correlationName;
+        _quoteQualifier = true;
+    }
+
+    internal QualifiedAsteriskMarker(string tableName, int nameStart)
+    {
+        _qualifier = tableName;
+        _nameStart = nameStart;
     }
 
     internal override void Format(SqlBuildingBuffer buffer)
@@ -20,6 +27,10 @@ internal sealed class QualifiedAsteriskMarker : SqlPart
         if (_quoteQualifier)
         {
             buffer.EncloseInAliasQuotes(_qualifier);
+        }
+        else if (buffer.QualifiedAsteriskDropsSchema)
+        {
+            buffer.Append(_qualifier.AsSpan(_nameStart));
         }
         else
         {

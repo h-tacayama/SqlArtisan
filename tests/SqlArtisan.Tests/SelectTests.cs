@@ -112,6 +112,31 @@ public class SelectTests
     }
 
     [Fact]
+    public void QualifiedAsterisk_SchemaQualifiedUnaliasedTable_CorrectSql()
+    {
+        DbTable t = new("main.test_table", "");
+        SqlStatement sql =
+            Select(t.Asterisk)
+            .From(t)
+            .Build();
+
+        Assert.Equal("SELECT main.test_table.* FROM main.test_table", sql.Text);
+    }
+
+    // SQLite 3.50.4 rejects a schema before `.*`, though it takes one before a column.
+    [Fact]
+    public void QualifiedAsterisk_Sqlite_SchemaQualifiedUnaliasedTable_DropsTheSchema()
+    {
+        DbTable t = new("main.test_table", "");
+        SqlStatement sql =
+            Select(t.Asterisk)
+            .From(t)
+            .Build(Dbms.Sqlite);
+
+        Assert.Equal("SELECT test_table.* FROM main.test_table", sql.Text);
+    }
+
+    [Fact]
     public void QualifiedAsterisk_WithOtherSelectItem_CorrectSql()
     {
         SqlStatement sql =

@@ -15,7 +15,7 @@ internal sealed class RegexpCountFunction : SqlExpression
             source,
             pattern,
             position,
-            options?.ToValue());
+            options?.ToValue(Keywords.RegexpCount));
     }
 
     internal override void Format(SqlBuildingBuffer buffer) =>

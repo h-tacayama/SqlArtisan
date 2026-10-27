@@ -48,6 +48,18 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void RegexpCount_UndefinedOptionBit_ThrowsArgumentOutOfRangeException()
+    {
+        ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RegexpCount(_t.Name, "[abc]", 2, (RegexpOptions)(32 | 2)));
+
+        Assert.Equal(
+            "REGEXP_COUNT requires a defined RegexpOptions combination. (Parameter 'options')"
+                + Environment.NewLine + "Actual value was 34.",
+            ex.Message);
+    }
+
+    [Fact]
     public void RegexpInstr_Pattern_CorrectSql()
     {
         SqlStatement sql =

@@ -20,5 +20,7 @@ internal sealed class OracleDialect : IDbmsDialect
 
     public char ParameterMarker => ':';
 
+    public bool QualifiedAsteriskDropsSchema => false;
+
     public bool ReturningIgnoresTargetAlias => false;
 }

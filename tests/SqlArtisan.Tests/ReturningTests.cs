@@ -592,6 +592,24 @@ public class ReturningTests
     }
 
     [Fact]
+    public void Returning_Sqlite_SecondHandleUnderTheTargetsAlias_QualifiesByTableName()
+    {
+        // The same table and alias render as the target, so SQLite reads them as the target.
+        TestTable t = new("t");
+        TestTable sameSpelling = new("t");
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == "a")
+            .Returning(sameSpelling.Code)
+            .Build(Dbms.Sqlite);
+
+        Assert.Equal(
+            "UPDATE test_table AS \"t\" SET name = :0 RETURNING test_table.code",
+            sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
     public void Returning_Sqlite_SchemaQualifiedTarget_DropsTheSchema()
     {
         DbTable t = new("main.test_table", "t");

@@ -56,6 +56,13 @@ internal interface IDbmsDialect
     char ParameterMarker { get; }
 
     /// <summary>
+    /// Whether an unaliased table's qualified star drops the table's schema
+    /// (<c>t.*</c> for <c>main.t</c>) — true only on SQLite, whose 3.50.4 grammar
+    /// rejects a schema before <c>.*</c> but takes one before a column.
+    /// </summary>
+    bool QualifiedAsteriskDropsSchema { get; }
+
+    /// <summary>
     /// Whether <c>RETURNING</c> resolves the DML target by its table name alone,
     /// ignoring its alias (true only on SQLite: 3.50.4 rejects <c>"u".id</c> there
     /// but accepts <c>users.id</c>), so a target column renders table-qualified.

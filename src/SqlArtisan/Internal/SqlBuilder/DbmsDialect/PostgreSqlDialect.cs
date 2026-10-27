@@ -23,5 +23,7 @@ internal sealed class PostgreSqlDialect : IDbmsDialect
 
     public char ParameterMarker => ':';
 
+    public bool QualifiedAsteriskDropsSchema => false;
+
     public bool ReturningIgnoresTargetAlias => false;
 }

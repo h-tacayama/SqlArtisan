@@ -75,7 +75,7 @@ public class RegexpLikeTests
             RegexpLike(_t.Name, "[2-5]", (RegexpOptions)(32 | 2)));
 
         Assert.Equal(
-            "The value is not a defined RegexpOptions combination. (Parameter 'options')"
+            "REGEXP_LIKE requires a defined RegexpOptions combination. (Parameter 'options')"
                 + Environment.NewLine + "Actual value was 34.",
             ex.Message);
     }

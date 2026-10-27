@@ -20,7 +20,7 @@ internal sealed class RegexpInstrFunction : SqlExpression
             position,
             occurrence,
             returnOption,
-            options?.ToValue(),
+            options?.ToValue(Keywords.RegexpInstr),
             subPatternPos);
     }
 

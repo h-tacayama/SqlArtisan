@@ -219,6 +219,19 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
+    // The qualified star drops the schema because SQLite rejects one there; a
+    // column takes it.
+    [Fact]
+    public void QualifiedAsterisk_SchemaQualifiedTable_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query(
+            "SELECT main.users.* FROM main.users WHERE main.users.id = 1"));
+        Assert.Single(connection.Query(
+            "SELECT users.* FROM main.users WHERE main.users.id = 1"));
+    }
+
     [Fact]
     public void Returning_Sqlite_AliasedTargetCorrelatedSubquery_Executes()
     {

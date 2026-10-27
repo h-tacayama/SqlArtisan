@@ -29,8 +29,8 @@ public abstract class TableReference : SqlPart
     /// </summary>
     public SqlPart Asterisk =>
         string.IsNullOrEmpty(CorrelationName)
-            ? new QualifiedAsteriskMarker(_name, quoteQualifier: false)
-            : new QualifiedAsteriskMarker(CorrelationName, quoteQualifier: true);
+            ? new QualifiedAsteriskMarker(_name, _name.Length - NameWithoutSchema.Length)
+            : new QualifiedAsteriskMarker(CorrelationName);
 
     internal abstract string CorrelationName { get; }
 

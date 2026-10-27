@@ -888,6 +888,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   a SQLite file whose stored schema is malformed, the server and user for a
   session that fails mid-read. It used to print the driver's message alone.
   (#645)
+- SQLite: a `RETURNING` column read through a second handle of the target's
+  table under the target's alias renders table-qualified, as the target's own
+  handle does. It rendered `"u".a`, which SQLite rejects. (#669)
+- SQLite: the qualified star of an unaliased schema-qualified table drops the
+  schema (`main.t` renders `t.*`). SQLite 3.50.4 rejects `main.t.*`; the other
+  dialects keep the schema. (#669)
+- An undefined `RegexpOptions` value names the function it was passed to
+  (`REGEXP_LIKE requires a defined RegexpOptions combination.`) instead of
+  saying only that the value is undefined. (#669)
 
 ### Security
 - **Breaking:** PostgreSQL: a forced literal holding a backslash — a `JsonArrow`
