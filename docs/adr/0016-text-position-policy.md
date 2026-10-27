@@ -115,9 +115,10 @@ shape, #679), and the `Sql.Hints` raw-SQL escape hatch — have no delimiter to
 escape *into*. The outcome would be half-escaped, which is worse than a stated
 contract because it invites the belief that the other half is covered too. A
 name that reads another definition — a CTE column-list entry, a reference
-through `Column(alias)` or `Column(column)`, an `As(column)` alias — renders as
-that definition does: alias-quoted when it comes from `As("name")`, bare
-otherwise (#165).
+through `Column(alias)` or `Column(column)` (one on a `Sql.Values(...)` or
+`Unnest(...).AsTable(...)` derived table stays bare, as its column list does),
+an `As(column)` alias — renders as that definition does: alias-quoted when it
+comes from `As("name")`, bare otherwise (#165).
 
 The security scope that follows is stated on the user-facing surfaces in plain
 words: `SECURITY.md` (what counts as a vulnerability), the README's feature
