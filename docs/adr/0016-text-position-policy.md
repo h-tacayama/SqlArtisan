@@ -146,7 +146,9 @@ alongside the bind-parameter types.
   takes a `string` decides which of the three rows it is on, and the answer
   follows from the grammar of the position, or from a measured plan difference
   within the bound above — not from whether the string happens to name
-  something.
+  something. `ForcedLiteralSweepTests.TextParameters_PublicSurface_AreClassified`
+  holds it: it fails on a text parameter of the public surface that neither of
+  its catalogs classifies (#705).
 - **The verbatim contract is now defended by tests**, which it was not: no test
   anywhere asserted identifier behavior with a quote character, so a future
   change could have silently started escaping one. `Cast_TypeWithQuote_…`,

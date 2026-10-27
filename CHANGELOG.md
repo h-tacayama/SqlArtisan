@@ -1250,6 +1250,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `Values(...)`, `Unnest(...).AsTable(...)`, a `DerivedTable` or other
   `DerivedTableBase` subclass) and a CTE's or derived table's column list.
   (#737)
+- The AI-assistant rules snippet tells an agent never to pass request input
+  where SqlArtisan emits text verbatim, linking the list of those positions,
+  and the cookbook's runtime-sort recipe says its `switch` is the allowlist that
+  keeps the sort key out of a column-name position. (#737)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

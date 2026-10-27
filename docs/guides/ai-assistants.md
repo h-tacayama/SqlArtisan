@@ -169,6 +169,11 @@ file, and set the dialect line to your engine:
   https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/llms.txt
 - Reference database tables through their table classes (one `DbTableBase`
   subclass per table); never name a table or column with a string literal.
+  Never pass request input where SqlArtisan emits text verbatim — an
+  identifier position (listed at
+  https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types)
+  or `Hints(...)`; map it to a table-class property instead, as the cookbook's
+  runtime sort does.
 - A builder chain is single-use — build a fresh chain per statement; never
   hold a partially built query for reuse.
 - Every new or changed query gets an exact-SQL unit test asserting `sql.Text`
@@ -177,6 +182,7 @@ file, and set the dialect line to your engine:
 
 Why these lines: the dialect pin plus the analyzer turns a common AI failure
 (mixing dialects) into a build signal; the table-class rule keeps
-generated queries inside the compile-checked surface; the single-use rule
-matches the builder contract; and the test rule makes every generated query's
-SQL reviewable — and regression-locked — in the diff.
+generated queries inside the compile-checked surface, and request input out of
+the positions SqlArtisan emits verbatim, which no escaping protects; the
+single-use rule matches the builder contract; and the test rule makes every
+generated query's SQL reviewable — and regression-locked — in the diff.

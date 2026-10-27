@@ -404,6 +404,10 @@ SqlStatement count =
 //   AND (("c".created_at >= :2) AND ("c".created_at < :3))
 ```
 
+The `switch` is the allowlist: `sortKey` comes from the request, and building
+the column from it (`new DbColumn(c, sortKey)`) would put request input in a
+column-name position, which SqlArtisan emits verbatim.
+
 The tie-breaker is added only when the sort key is not `customer_id` itself:
 SQL Server rejects a column listed twice in `ORDER BY` (observed on SQL Server
 2022). On Oracle and SQL Server, page with `.OffsetRows(40).FetchNext(20)` in
