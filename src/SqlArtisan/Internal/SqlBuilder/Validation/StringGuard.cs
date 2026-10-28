@@ -14,7 +14,8 @@ internal static class StringGuard
     }
 
     // For a bare-token position (a CAST type, a NEXT VALUE FOR sequence name),
-    // where whitespace is invalid on every dialect — unlike a quoted one.
+    // where whitespace is invalid on every dialect — unlike a quoted one — and for
+    // an INTERVAL value, whose blank form MySQL runs without an error (#669).
     internal static void ThrowIfNullOrWhiteSpace(string value, string message)
     {
         if (string.IsNullOrWhiteSpace(value))

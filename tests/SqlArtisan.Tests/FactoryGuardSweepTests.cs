@@ -60,13 +60,11 @@ public class FactoryGuardSweepTests
         // its own no-hints spelling, unlike the clauses above.
         ["Hints(String) :: hints=null"] = "SELECT c FROM e",
         ["Hints(String) :: hints=\"\""] = "SELECT c FROM e",
-        // Whitespace in a quoted or string-literal position is the engine's to
-        // judge (guards-and-empty-states.md); only bare-token positions throw.
+        // Whitespace in a quoted or string-literal position is the engine's to judge
+        // (guards-and-empty-states.md); bare-token positions and an INTERVAL value throw.
         ["Currval(String) :: sequenceName=\" \""] = "SELECT CURRVAL(' ')",
         ["Nextval(String) :: sequenceName=\" \""] = "SELECT NEXTVAL(' ')",
         ["Hints(String) :: hints=\" \""] = "SELECT   c FROM e",
-        ["IntervalLiteral(String) :: text=\" \""] = "SELECT INTERVAL ' '",
-        ["IntervalLiteral(String, IntervalField) :: value=\" \""] = "SELECT INTERVAL ' ' YEAR",
         ["JsonArrow(Object, String) :: key=\" \""] = "SELECT (:0 -> ' ')",
         ["JsonArrowText(Object, String) :: key=\" \""] = "SELECT (:0 ->> ' ')",
         ["JsonExtract(Object, String) :: path=\" \""] = "SELECT JSON_EXTRACT(:0, ' ')",

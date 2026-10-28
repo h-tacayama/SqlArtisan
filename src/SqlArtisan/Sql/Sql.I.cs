@@ -199,6 +199,8 @@ public static partial class Sql
     /// <param name="text">The interval literal text, emitted inline as an
     /// escaped string literal.</param>
     /// <returns>An <see cref="IntervalLiteralExpression"/> emitting <c>INTERVAL 'text'</c>.</returns>
+    /// <exception cref="ArgumentException"><paramref name="text"/> is empty or whitespace
+    /// only.</exception>
     /// <remarks>PostgreSQL syntax.</remarks>
     public static IntervalLiteralExpression IntervalLiteral(string text) => new(text);
 
@@ -213,6 +215,8 @@ public static partial class Sql
     /// <param name="field">The field the literal is expressed in.</param>
     /// <returns>An <see cref="IntervalLiteralExpression"/> emitting
     /// <c>INTERVAL 'value' field</c>.</returns>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is empty or whitespace
+    /// only.</exception>
     /// <remarks>
     /// Oracle/PostgreSQL syntax; MySQL's own grammar happens to accept this
     /// exact spelling too, but prefer
@@ -236,6 +240,8 @@ public static partial class Sql
     /// <see cref="ToHour"/>, <see cref="ToMinute"/>, or <see cref="ToSecond()"/>.</param>
     /// <returns>An <see cref="IntervalLiteralExpression"/> emitting
     /// <c>INTERVAL 'value' leadingField TO trailingField</c>.</returns>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is empty or whitespace
+    /// only.</exception>
     /// <exception cref="ArgumentException"><paramref name="leadingField"/> and
     /// <paramref name="trailingField"/> are not one of the seven valid Oracle
     /// pairings, or <paramref name="trailingField"/> carries a precision without

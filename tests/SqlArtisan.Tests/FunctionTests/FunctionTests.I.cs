@@ -512,6 +512,14 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void IntervalLiteral_WhitespaceValue_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => IntervalLiteral(" ", Day()));
+
+        Assert.Equal("INTERVAL requires a literal value.", ex.Message);
+    }
+
+    [Fact]
     public void Isnull_CharacterValue_CorrectSql()
     {
         SqlStatement sql =

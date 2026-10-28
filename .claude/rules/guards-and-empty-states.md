@@ -192,8 +192,9 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   whitespace-only string in a bare-token position — the `CAST` target type,
   the `NEXT VALUE FOR` sequence name, a `DbColumn` name — invalid on every
   dialect, while a quoted or literal position keeps accepting whitespace
-  (the bare-token boundary below, gated by the factory sweep's whitespace injection;
-  release audit pass 2); a cast-in undefined `DateTimePart` value
+  (an `IntervalLiteral` value aside, #669; the bare-token boundary below, gated by
+  the factory sweep's whitespace injection; release audit pass 2); a cast-in
+  undefined `DateTimePart` value
   (`ArgumentOutOfRangeException` at the factory call, naming the construct
   and the caller's parameter, not an index error at `Build()`; #661); a
   `CurrentTimestamp` / `CurrentTime`
@@ -489,25 +490,26 @@ name are emitted as bare identifiers, invalid as whitespace on every dialect;
 an alias is quoted, where whitespace is legal. The stricter check is correct
 where it is, and the asymmetry is not a defect.
 
-**An empty `In` / `NotIn` list, quoted name or `IntervalLiteral` value is
-rejected, though an engine runs it (decided — do not re-file):** `In(...)` and
-`NotIn(...)` with no value, an empty `As(...)` alias, CTE or derived-table name,
-and an empty `IntervalLiteral` value throw at the call on
-every dialect. SQLite 3.50.4 runs `IN ()`, `NOT IN ()` and a zero-length
-alias, CTE name or subquery derived-table name; MySQL 8.0 reads
-`INTERVAL '' DAY` as 0. An empty list or string reaches
-these positions only as a value computed empty, which those engines would run
-without an error, the silent class this file's guards exist for. These lanes
-reject them: `IN ()` and `NOT IN ()` on MySQL 8.0, Oracle XE 21.3.0,
-PostgreSQL 16.15 and SQL Server 2022, the empty alias on PostgreSQL 16.15, and the
-empty interval value on Oracle XE 21.3.0 and PostgreSQL 16.15 (`In_EmptyList_*`,
-`EmptyQuotedName_*`, `IntervalLiteral_EmptyOrBlankValue_*`). An empty
-`Values(...)` name throws with them, though SQLite 3.50.4 does not run one: it
-rejects the column list `Values(...)` always emits, whatever the name
-(`SqliteTests.ValuesColumnList_IsRejectedByTheEngine`). A blank value stays the engine's, as the
-clause above keeps whitespace in a quoted position, though MySQL reads
-`INTERVAL ' ' DAY` as 0 too. `Array()` takes no element instead: PostgreSQL, its
-one engine, runs an empty `ARRAY[]` only under a cast the caller writes,
+**An empty `In` / `NotIn` list or quoted name, or an empty or blank
+`IntervalLiteral` value, is rejected, though an engine runs it (decided — do not
+re-file):** `In(...)` and `NotIn(...)` with no value, an empty `As(...)` alias,
+CTE or derived-table name, and an empty or whitespace-only `IntervalLiteral`
+value throw at the call on every dialect. SQLite 3.50.4 runs `IN ()`,
+`NOT IN ()` and a zero-length alias, CTE name or subquery derived-table name;
+MySQL 8.0 reads `INTERVAL '' DAY` and `INTERVAL ' ' DAY` as 0. An empty list or
+a blank string reaches these positions only as a value computed empty, which
+those engines would run without an error, so ADR 0011 decides the class outside
+its bar. These lanes reject them: `IN ()` and `NOT IN ()` on MySQL 8.0, Oracle
+XE 21.3.0, PostgreSQL 16.15 and SQL Server 2022, the empty alias on PostgreSQL
+16.15, and the empty and blank interval values on Oracle XE 21.3.0 and
+PostgreSQL 16.15 (`In_EmptyList_*`, `EmptyQuotedName_*`,
+`IntervalLiteral_EmptyOrBlankValue_*`). An empty `Values(...)` name throws with
+them, though SQLite 3.50.4 does not run one: it rejects the column list
+`Values(...)` always emits, whatever the name
+(`SqliteTests.ValuesColumnList_IsRejectedByTheEngine`). The blank interval value
+departs from the clause above, which keeps whitespace in a quoted position:
+whitespace is a legal name there, while MySQL reads this value as 0. `Array()`
+takes no element instead: PostgreSQL, its one engine, runs an empty `ARRAY[]` only under a cast the caller writes,
 `CAST(ARRAY[] AS int[])` returning an empty array, and rejects it bare
 (`Array_NoElementsUnderACast_IsAcceptedByTheEngine`, PostgreSQL 16.15). A list
 computed empty under that cast now reaches the engine, where it used to throw
@@ -799,7 +801,8 @@ throw on every dialect, though MySQL 8.0.46 inserts a row of defaults for the
 (`MySqlTests.DefaultsRow_IsAcceptedByTheEngine`), so #396's "invalid SQL"
 premise is false for MySQL. An array computed empty is likelier a caller's slip
 than a deliberate defaults row, and on MySQL the text would insert that row
-with no error, the silent class this section exists for. A defaults row is a
+with no error, the silent class this section exists for, so ADR 0011 decides it
+outside its bar (#669). A defaults row is a
 construct of its own, `DEFAULT VALUES` in `public-api-design.md`'s forms not
 yet offered, added when a caller needs it (ADR 0010, #679).
 
