@@ -13,7 +13,9 @@ public static partial class Sql
     /// <param name="rightBits">The second bit vector.</param>
     /// <returns>A <c>&lt;~&gt;</c> operator expression.</returns>
     public static SqlExpression HammingDistance(object leftBits, object rightBits) =>
-        new HammingDistanceOperator(Resolve(leftBits), Resolve(rightBits));
+        new HammingDistanceOperator(
+            Resolve(leftBits, nameof(leftBits)),
+            Resolve(rightBits, nameof(rightBits)));
 
     /// <summary>
     /// An optimizer-hint clause carrying <paramref name="hints"/> verbatim, to

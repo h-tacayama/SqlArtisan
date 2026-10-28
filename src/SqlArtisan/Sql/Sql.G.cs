@@ -14,7 +14,7 @@ public static partial class Sql
     /// <remarks>Not supported by SQLite — its multi-argument
     /// <c>MAX(a, b, ...)</c> is the equivalent; SQL Server (2022+).</remarks>
     public static SqlExpression Greatest(params object[] expressions) =>
-        new GreatestFunction(Resolve(expressions));
+        new GreatestFunction(Resolve(expressions, nameof(expressions)));
 
     /// <summary>
     /// A parenthesized grouping element for <c>GroupingSets(...)</c>,
@@ -44,7 +44,7 @@ public static partial class Sql
     /// <remarks>A MySQL and SQLite aggregate; on other dialects use
     /// <see cref="Listagg(object, object)"/> (Oracle).</remarks>
     public static SqlExpression GroupConcat(object expr) =>
-        new GroupConcatFunction(Resolve(expr));
+        new GroupConcatFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>GROUP_CONCAT(expr, separator)</c> string aggregate with SQLite's
@@ -59,7 +59,9 @@ public static partial class Sql
     /// separator stays the default comma — spell MySQL's separator with
     /// <c>Sql.Separator(...)</c> instead.</remarks>
     public static SqlExpression GroupConcat(object expr, object separator) =>
-        new GroupConcatFunction(Resolve(expr), positionalSeparator: Resolve(separator));
+        new GroupConcatFunction(
+            Resolve(expr, nameof(expr)),
+            positionalSeparator: Resolve(separator, nameof(separator)));
 
     /// <summary>
     /// The <c>GROUP_CONCAT(expr ORDER BY ...)</c> string aggregate with
@@ -74,7 +76,7 @@ public static partial class Sql
     /// <see cref="Listagg(object, object)"/>.</remarks>
     public static SqlExpression GroupConcat(object expr, OrderByClause orderByClause) =>
         new GroupConcatFunction(
-            Resolve(expr),
+            Resolve(expr, nameof(expr)),
             orderByClause: NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)));
 
     /// <summary>
@@ -91,7 +93,7 @@ public static partial class Sql
     /// <see cref="Listagg(object, object)"/>.</remarks>
     public static SqlExpression GroupConcat(object expr, SeparatorClause separatorClause) =>
         new GroupConcatFunction(
-            Resolve(expr),
+            Resolve(expr, nameof(expr)),
             separatorClause: NullGuard.ThrowIfNull(separatorClause, nameof(separatorClause)));
 
     /// <summary>
@@ -112,7 +114,7 @@ public static partial class Sql
         OrderByClause orderByClause,
         SeparatorClause separatorClause) =>
         new GroupConcatFunction(
-            Resolve(expr),
+            Resolve(expr, nameof(expr)),
             orderByClause: NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)),
             separatorClause: NullGuard.ThrowIfNull(separatorClause, nameof(separatorClause)));
 
@@ -124,7 +126,7 @@ public static partial class Sql
     /// <c>GROUP_CONCAT(DISTINCT expr)</c>.</returns>
     public static SqlExpression GroupConcat(DistinctKeyword distinct, object expr) =>
         new GroupConcatFunction(
-            Resolve(expr),
+            Resolve(expr, nameof(expr)),
             distinct: NullGuard.ThrowIfNull(distinct, nameof(distinct)));
 
     /// <inheritdoc cref="GroupConcat(object, OrderByClause)"/>
@@ -140,7 +142,7 @@ public static partial class Sql
         object expr,
         OrderByClause orderByClause) =>
         new GroupConcatFunction(
-            Resolve(expr),
+            Resolve(expr, nameof(expr)),
             distinct: NullGuard.ThrowIfNull(distinct, nameof(distinct)),
             orderByClause: NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)));
 
@@ -157,7 +159,7 @@ public static partial class Sql
         object expr,
         SeparatorClause separatorClause) =>
         new GroupConcatFunction(
-            Resolve(expr),
+            Resolve(expr, nameof(expr)),
             distinct: NullGuard.ThrowIfNull(distinct, nameof(distinct)),
             separatorClause: NullGuard.ThrowIfNull(separatorClause, nameof(separatorClause)));
 
@@ -177,7 +179,7 @@ public static partial class Sql
         OrderByClause orderByClause,
         SeparatorClause separatorClause) =>
         new GroupConcatFunction(
-            Resolve(expr),
+            Resolve(expr, nameof(expr)),
             distinct: NullGuard.ThrowIfNull(distinct, nameof(distinct)),
             orderByClause: NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)),
             separatorClause: NullGuard.ThrowIfNull(separatorClause, nameof(separatorClause)));
@@ -193,7 +195,7 @@ public static partial class Sql
     /// <remarks>MySQL (8.0.1+), Oracle, PostgreSQL, and SQL Server; not SQLite,
     /// which has no grouping extensions.</remarks>
     public static SqlExpression Grouping(object expr) =>
-        new GroupingFunction(Resolve(expr));
+        new GroupingFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The multi-column <c>GROUPING(<paramref name="expr1"/>, <paramref name="expr2"/>, ...)</c>
@@ -208,7 +210,13 @@ public static partial class Sql
     /// form (use <see cref="GroupingId(object, object[])"/> there instead), and
     /// neither SQLite nor SQL Server support it.</remarks>
     public static SqlExpression Grouping(object expr1, object expr2, params object[] others) =>
-        new GroupingFunction(ResolveVariadic(expr1, expr2, others));
+        new GroupingFunction(ResolveVariadic(
+            expr1,
+            nameof(expr1),
+            expr2,
+            nameof(expr2),
+            others,
+            nameof(others)));
 
     /// <summary>
     /// The <c>GROUPING_ID(<paramref name="expr"/>, ...)</c> bitmask function: each
@@ -222,7 +230,7 @@ public static partial class Sql
     /// <remarks>Oracle and SQL Server syntax; for MySQL/PostgreSQL's equivalent
     /// bitmask use <see cref="Grouping(object, object, object[])"/> instead.</remarks>
     public static SqlExpression GroupingId(object expr, params object[] others) =>
-        new GroupingIdFunction(ResolveVariadic(expr, others));
+        new GroupingIdFunction(ResolveVariadic(expr, nameof(expr), others, nameof(others)));
 
     /// <summary>
     /// The <c>GROUPING SETS(...)</c> GROUP BY grouping extension, built from one or

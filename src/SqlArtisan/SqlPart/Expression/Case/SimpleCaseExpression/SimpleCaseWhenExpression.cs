@@ -24,7 +24,7 @@ public sealed class SimpleCaseWhenExpression : SqlPart, IIncompleteExpression
     /// </summary>
     /// <param name="thenExpr">The branch's result value or expression.</param>
     public SimpleCaseWhenClause Then(object thenExpr) =>
-        new(this, new CaseThenExpression(Resolve(thenExpr)));
+        new(this, new CaseThenExpression(Resolve(thenExpr, nameof(thenExpr))));
 
     internal override void Format(SqlBuildingBuffer buffer) =>
         _whenExpr.Format(buffer);

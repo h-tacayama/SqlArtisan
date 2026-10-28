@@ -11,7 +11,7 @@ internal static class SelectItemResolver
     {
         CollectionGuard.ThrowIfEmpty(
             selectItems, nameof(selectItems), "SELECT requires at least one item.");
-        return Resolve(selectItems, "SelectItem", "selectItem");
+        return Resolve(selectItems, "SelectItem", nameof(selectItems));
     }
 
     // RETURNING and OUTPUT share the SELECT list's grammar but name their own

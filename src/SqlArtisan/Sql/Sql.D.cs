@@ -17,7 +17,7 @@ public static partial class Sql
     /// and PostgreSQL (casts to <c>date</c>).
     /// </remarks>
     public static SqlExpression Date(object timevalue) =>
-        new DateFunction(Resolve(timevalue));
+        new DateFunction(Resolve(timevalue, nameof(timevalue)));
 
     /// <summary>
     /// The <c>DATE(<paramref name="timevalue"/>, <paramref name="modifier"/>, ...)</c>
@@ -38,7 +38,13 @@ public static partial class Sql
         object timevalue,
         object modifier,
         params object[] modifiers) =>
-        new DateFunction(ResolveVariadic(timevalue, modifier, modifiers));
+        new DateFunction(ResolveVariadic(
+            timevalue,
+            nameof(timevalue),
+            modifier,
+            nameof(modifier),
+            modifiers,
+            nameof(modifiers)));
 
     /// <summary>
     /// The <c>DATE_ADD(<paramref name="date"/>, <paramref name="interval"/>)</c>
@@ -54,7 +60,7 @@ public static partial class Sql
     /// <see cref="Dateadd(DateTimePart, object, object)"/>, a different shape.
     /// Subtraction: <see cref="DateSub(object, IntervalExpression)"/>.</remarks>
     public static SqlExpression DateAdd(object date, IntervalExpression interval) =>
-        new DateAddFunction(Resolve(date), interval);
+        new DateAddFunction(Resolve(date, nameof(date)), interval);
 
     /// <inheritdoc cref="DateAdd(object, IntervalExpression)"/>
     /// <param name="date">The date/time value to shift.</param>
@@ -62,7 +68,7 @@ public static partial class Sql
     /// <see cref="Interval(object, DateTimePart)"/> or
     /// <see cref="IntervalLiteral(string, IntervalField)"/>.</param>
     public static SqlExpression DateAdd(object date, IntervalLiteralExpression interval) =>
-        new DateAddFunction(Resolve(date), interval);
+        new DateAddFunction(Resolve(date, nameof(date)), interval);
 
     /// <summary>
     /// The <c>DATEADD(<paramref name="datepart"/>, <paramref name="number"/>,
@@ -78,7 +84,10 @@ public static partial class Sql
     /// <see cref="DateAdd(object, IntervalExpression)"/>; PostgreSQL: <c>+</c>/<c>-</c> with
     /// <see cref="IntervalLiteral(string, IntervalField)"/>.</remarks>
     public static SqlExpression Dateadd(DateTimePart datepart, object number, object dateTime) =>
-        new DateaddFunction(datepart, Resolve(number), Resolve(dateTime));
+        new DateaddFunction(
+            datepart,
+            Resolve(number, nameof(number)),
+            Resolve(dateTime, nameof(dateTime)));
 
     /// <summary>
     /// The <c>DATEDIFF(<paramref name="datepart"/>, <paramref name="startDate"/>,
@@ -98,8 +107,8 @@ public static partial class Sql
         object startDate,
         object endDate) => new DatediffFunction(
             datepart,
-            Resolve(startDate),
-            Resolve(endDate));
+            Resolve(startDate, nameof(startDate)),
+            Resolve(endDate, nameof(endDate)));
 
     /// <summary>
     /// The <c>DATE_FORMAT(<paramref name="date"/>, <paramref name="format"/>)</c>
@@ -112,7 +121,7 @@ public static partial class Sql
     /// <returns>The <c>DATE_FORMAT</c> function expression.</returns>
     /// <remarks>MySQL syntax.</remarks>
     public static SqlExpression DateFormat(object date, object format) =>
-        new DateFormatFunction(Resolve(date), Resolve(format));
+        new DateFormatFunction(Resolve(date, nameof(date)), Resolve(format, nameof(format)));
 
     /// <summary>
     /// The <c>DATEPART(<paramref name="datepart"/>, <paramref name="source"/>)</c>
@@ -126,7 +135,7 @@ public static partial class Sql
     /// <see cref="Extract(DateTimePart, object)"/>.
     /// </remarks>
     public static SqlExpression Datepart(DateTimePart datepart, object source) =>
-        new DatepartFunction(datepart, Resolve(source));
+        new DatepartFunction(datepart, Resolve(source, nameof(source)));
 
     /// <summary>
     /// The <c>DATE_SUB(<paramref name="date"/>, <paramref name="interval"/>)</c>
@@ -141,7 +150,7 @@ public static partial class Sql
     /// <remarks>MySQL syntax. For addition use
     /// <see cref="DateAdd(object, IntervalExpression)"/>.</remarks>
     public static SqlExpression DateSub(object date, IntervalExpression interval) =>
-        new DateSubFunction(Resolve(date), interval);
+        new DateSubFunction(Resolve(date, nameof(date)), interval);
 
     /// <inheritdoc cref="DateSub(object, IntervalExpression)"/>
     /// <param name="date">The date/time value to shift.</param>
@@ -149,7 +158,7 @@ public static partial class Sql
     /// <see cref="Interval(object, DateTimePart)"/> or
     /// <see cref="IntervalLiteral(string, IntervalField)"/>.</param>
     public static SqlExpression DateSub(object date, IntervalLiteralExpression interval) =>
-        new DateSubFunction(Resolve(date), interval);
+        new DateSubFunction(Resolve(date, nameof(date)), interval);
 
     /// <summary>
     /// The <c>DATETIME(<paramref name="timevalue"/>, ...)</c> function:
@@ -165,7 +174,11 @@ public static partial class Sql
     /// modifiers are plain strings.
     /// </remarks>
     public static SqlExpression Datetime(object timevalue, params object[] modifiers) =>
-        new DatetimeFunction(ResolveVariadic(timevalue, modifiers));
+        new DatetimeFunction(ResolveVariadic(
+            timevalue,
+            nameof(timevalue),
+            modifiers,
+            nameof(modifiers)));
 
     /// <summary>
     /// The <c>DATE_TRUNC('<paramref name="datepart"/>', <paramref name="source"/>)</c>
@@ -180,7 +193,7 @@ public static partial class Sql
     /// <see cref="Trunc(object, object)"/> (<c>TRUNC(date, fmt)</c>).
     /// </remarks>
     public static SqlExpression DateTrunc(DateTimePart datepart, object source) =>
-        new DateTruncFunction(datepart, Resolve(source));
+        new DateTruncFunction(datepart, Resolve(source, nameof(source)));
 
     /// <summary>
     /// The <c>DATETRUNC(<paramref name="datepart"/>, <paramref name="date"/>)</c>
@@ -195,7 +208,7 @@ public static partial class Sql
     /// earlier versions.
     /// </remarks>
     public static SqlExpression Datetrunc(DateTimePart datepart, object date) =>
-        new DatetruncFunction(datepart, Resolve(date));
+        new DatetruncFunction(datepart, Resolve(date, nameof(date)));
 
     /// <summary>
     /// The <c>DAY</c> interval field, for the sole-field overload of
@@ -236,9 +249,9 @@ public static partial class Sql
             searchResultPairs, nameof(searchResultPairs),
             "DECODE requires at least one (search, result) pair.");
         return new DecodeFunction(
-            Resolve(expr),
-            Resolve(searchResultPairs),
-            Resolve(@default));
+            Resolve(expr, nameof(expr)),
+            Resolve(searchResultPairs, nameof(searchResultPairs)),
+            Resolve(@default, nameof(@default)));
     }
 
     /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
@@ -246,9 +259,9 @@ public static partial class Sql
         object expr,
         (object search, object result) searchResultPair,
         object @default) => new DecodeFunction(
-            Resolve(expr),
-            Resolve(new (object, object)[] { searchResultPair }),
-            Resolve(@default));
+            Resolve(expr, nameof(expr)),
+            [Resolve(searchResultPair, nameof(searchResultPair))],
+            Resolve(@default, nameof(@default)));
 
     /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static SqlExpression Decode(
@@ -256,11 +269,11 @@ public static partial class Sql
         (object search, object result) searchResultPair1,
         (object search, object result) searchResultPair2,
         object @default) => new DecodeFunction(
-            Resolve(expr),
-            Resolve(new (object, object)[] {
-                searchResultPair1,
-                searchResultPair2,}),
-            Resolve(@default));
+            Resolve(expr, nameof(expr)),
+            [
+                Resolve(searchResultPair1, nameof(searchResultPair1)),
+                Resolve(searchResultPair2, nameof(searchResultPair2)),],
+            Resolve(@default, nameof(@default)));
 
     /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static SqlExpression Decode(
@@ -269,12 +282,12 @@ public static partial class Sql
         (object search, object result) searchResultPair2,
         (object search, object result) searchResultPair3,
         object @default) => new DecodeFunction(
-            Resolve(expr),
-            Resolve(new (object, object)[] {
-                searchResultPair1,
-                searchResultPair2,
-                searchResultPair3,}),
-            Resolve(@default));
+            Resolve(expr, nameof(expr)),
+            [
+                Resolve(searchResultPair1, nameof(searchResultPair1)),
+                Resolve(searchResultPair2, nameof(searchResultPair2)),
+                Resolve(searchResultPair3, nameof(searchResultPair3)),],
+            Resolve(@default, nameof(@default)));
 
     /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static SqlExpression Decode(
@@ -284,13 +297,13 @@ public static partial class Sql
         (object search, object result) searchResultPair3,
         (object search, object result) searchResultPair4,
         object @default) => new DecodeFunction(
-            Resolve(expr),
-            Resolve(new (object, object)[] {
-                searchResultPair1,
-                searchResultPair2,
-                searchResultPair3,
-                searchResultPair4,}),
-            Resolve(@default));
+            Resolve(expr, nameof(expr)),
+            [
+                Resolve(searchResultPair1, nameof(searchResultPair1)),
+                Resolve(searchResultPair2, nameof(searchResultPair2)),
+                Resolve(searchResultPair3, nameof(searchResultPair3)),
+                Resolve(searchResultPair4, nameof(searchResultPair4)),],
+            Resolve(@default, nameof(@default)));
 
     /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static SqlExpression Decode(
@@ -301,14 +314,14 @@ public static partial class Sql
         (object search, object result) searchResultPair4,
         (object search, object result) searchResultPair5,
         object @default) => new DecodeFunction(
-            Resolve(expr),
-            Resolve(new (object, object)[] {
-                searchResultPair1,
-                searchResultPair2,
-                searchResultPair3,
-                searchResultPair4,
-                searchResultPair5,}),
-            Resolve(@default));
+            Resolve(expr, nameof(expr)),
+            [
+                Resolve(searchResultPair1, nameof(searchResultPair1)),
+                Resolve(searchResultPair2, nameof(searchResultPair2)),
+                Resolve(searchResultPair3, nameof(searchResultPair3)),
+                Resolve(searchResultPair4, nameof(searchResultPair4)),
+                Resolve(searchResultPair5, nameof(searchResultPair5)),],
+            Resolve(@default, nameof(@default)));
 
     /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static SqlExpression Decode(
@@ -320,15 +333,15 @@ public static partial class Sql
         (object search, object result) searchResultPair5,
         (object search, object result) searchResultPair6,
         object @default) => new DecodeFunction(
-            Resolve(expr),
-            Resolve(new (object, object)[] {
-                searchResultPair1,
-                searchResultPair2,
-                searchResultPair3,
-                searchResultPair4,
-                searchResultPair5,
-                searchResultPair6,}),
-            Resolve(@default));
+            Resolve(expr, nameof(expr)),
+            [
+                Resolve(searchResultPair1, nameof(searchResultPair1)),
+                Resolve(searchResultPair2, nameof(searchResultPair2)),
+                Resolve(searchResultPair3, nameof(searchResultPair3)),
+                Resolve(searchResultPair4, nameof(searchResultPair4)),
+                Resolve(searchResultPair5, nameof(searchResultPair5)),
+                Resolve(searchResultPair6, nameof(searchResultPair6)),],
+            Resolve(@default, nameof(@default)));
 
     /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static SqlExpression Decode(
@@ -341,16 +354,16 @@ public static partial class Sql
         (object search, object result) searchResultPair6,
         (object search, object result) searchResultPair7,
         object @default) => new DecodeFunction(
-            Resolve(expr),
-            Resolve(new (object, object)[] {
-                searchResultPair1,
-                searchResultPair2,
-                searchResultPair3,
-                searchResultPair4,
-                searchResultPair5,
-                searchResultPair6,
-                searchResultPair7,}),
-            Resolve(@default));
+            Resolve(expr, nameof(expr)),
+            [
+                Resolve(searchResultPair1, nameof(searchResultPair1)),
+                Resolve(searchResultPair2, nameof(searchResultPair2)),
+                Resolve(searchResultPair3, nameof(searchResultPair3)),
+                Resolve(searchResultPair4, nameof(searchResultPair4)),
+                Resolve(searchResultPair5, nameof(searchResultPair5)),
+                Resolve(searchResultPair6, nameof(searchResultPair6)),
+                Resolve(searchResultPair7, nameof(searchResultPair7)),],
+            Resolve(@default, nameof(@default)));
 
     /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static SqlExpression Decode(
@@ -364,17 +377,17 @@ public static partial class Sql
         (object search, object result) searchResultPair7,
         (object search, object result) searchResultPair8,
         object @default) => new DecodeFunction(
-            Resolve(expr),
-            Resolve(new (object, object)[] {
-                searchResultPair1,
-                searchResultPair2,
-                searchResultPair3,
-                searchResultPair4,
-                searchResultPair5,
-                searchResultPair6,
-                searchResultPair7,
-                searchResultPair8,}),
-            Resolve(@default));
+            Resolve(expr, nameof(expr)),
+            [
+                Resolve(searchResultPair1, nameof(searchResultPair1)),
+                Resolve(searchResultPair2, nameof(searchResultPair2)),
+                Resolve(searchResultPair3, nameof(searchResultPair3)),
+                Resolve(searchResultPair4, nameof(searchResultPair4)),
+                Resolve(searchResultPair5, nameof(searchResultPair5)),
+                Resolve(searchResultPair6, nameof(searchResultPair6)),
+                Resolve(searchResultPair7, nameof(searchResultPair7)),
+                Resolve(searchResultPair8, nameof(searchResultPair8)),],
+            Resolve(@default, nameof(@default)));
 
     /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static SqlExpression Decode(
@@ -389,18 +402,18 @@ public static partial class Sql
         (object search, object result) searchResultPair8,
         (object search, object result) searchResultPair9,
         object @default) => new DecodeFunction(
-            Resolve(expr),
-            Resolve(new (object, object)[] {
-                searchResultPair1,
-                searchResultPair2,
-                searchResultPair3,
-                searchResultPair4,
-                searchResultPair5,
-                searchResultPair6,
-                searchResultPair7,
-                searchResultPair8,
-                searchResultPair9,}),
-            Resolve(@default));
+            Resolve(expr, nameof(expr)),
+            [
+                Resolve(searchResultPair1, nameof(searchResultPair1)),
+                Resolve(searchResultPair2, nameof(searchResultPair2)),
+                Resolve(searchResultPair3, nameof(searchResultPair3)),
+                Resolve(searchResultPair4, nameof(searchResultPair4)),
+                Resolve(searchResultPair5, nameof(searchResultPair5)),
+                Resolve(searchResultPair6, nameof(searchResultPair6)),
+                Resolve(searchResultPair7, nameof(searchResultPair7)),
+                Resolve(searchResultPair8, nameof(searchResultPair8)),
+                Resolve(searchResultPair9, nameof(searchResultPair9)),],
+            Resolve(@default, nameof(@default)));
 
     /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static SqlExpression Decode(
@@ -416,19 +429,19 @@ public static partial class Sql
         (object search, object result) searchResultPair9,
         (object search, object result) searchResultPair10,
         object @default) => new DecodeFunction(
-            Resolve(expr),
-            Resolve(new (object, object)[] {
-                searchResultPair1,
-                searchResultPair2,
-                searchResultPair3,
-                searchResultPair4,
-                searchResultPair5,
-                searchResultPair6,
-                searchResultPair7,
-                searchResultPair8,
-                searchResultPair9,
-                searchResultPair10,}),
-            Resolve(@default));
+            Resolve(expr, nameof(expr)),
+            [
+                Resolve(searchResultPair1, nameof(searchResultPair1)),
+                Resolve(searchResultPair2, nameof(searchResultPair2)),
+                Resolve(searchResultPair3, nameof(searchResultPair3)),
+                Resolve(searchResultPair4, nameof(searchResultPair4)),
+                Resolve(searchResultPair5, nameof(searchResultPair5)),
+                Resolve(searchResultPair6, nameof(searchResultPair6)),
+                Resolve(searchResultPair7, nameof(searchResultPair7)),
+                Resolve(searchResultPair8, nameof(searchResultPair8)),
+                Resolve(searchResultPair9, nameof(searchResultPair9)),
+                Resolve(searchResultPair10, nameof(searchResultPair10)),],
+            Resolve(@default, nameof(@default)));
 
     /// <summary>
     /// References <paramref name="column"/> of the <c>DELETED</c> pseudo-table in
@@ -504,7 +517,13 @@ public static partial class Sql
         object primary,
         object secondary,
         params object[] others) =>
-        new DoublePipeOperator(ResolveVariadic(primary, secondary, others));
+        new DoublePipeOperator(ResolveVariadic(
+            primary,
+            nameof(primary),
+            secondary,
+            nameof(secondary),
+            others,
+            nameof(others)));
 
     /// <summary>
     /// The <c>DUAL</c> dummy table (MySQL and Oracle), for selecting expressions

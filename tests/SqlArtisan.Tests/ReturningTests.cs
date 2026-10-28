@@ -232,7 +232,7 @@ public class ReturningTests
             .Returning(_t.Code, null!));
 
         Assert.Equal(
-            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'returningItem')",
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'expressions')",
             ex.Message);
     }
 

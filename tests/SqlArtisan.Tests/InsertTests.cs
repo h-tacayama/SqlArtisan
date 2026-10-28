@@ -981,6 +981,19 @@ public class InsertTests
         Assert.Equal("OUTPUT requires at least one expression.", ex.Message);
     }
 
+    [Fact]
+    public void InsertInto_OutputNullExpression_ThrowsArgumentNullException()
+    {
+        TestTable t = new();
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            InsertInto(t, t.Code).Output(Inserted(t.Code), null!));
+
+        Assert.Equal(
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'items')",
+            ex.Message);
+    }
+
     // A scalar subquery is a value in VALUES on every dialect; the resolver
     // wraps it like the expression resolver does (release audit pass 8).
     [Fact]

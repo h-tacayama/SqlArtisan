@@ -131,7 +131,7 @@ public static partial class Sql
     /// <returns>A <c>SIGN</c> function expression.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+), and SQL Server syntax.</remarks>
     public static SqlExpression Sign(object expr) =>
-        new SignFunction(Resolve(expr));
+        new SignFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>SKIP LOCKED</c> behavior for a <c>FOR UPDATE</c> clause: skip rows that
@@ -171,7 +171,7 @@ public static partial class Sql
     /// <returns>A <c>SQRT</c> function expression.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+), and SQL Server syntax.</remarks>
     public static SqlExpression Sqrt(object expr) =>
-        new SqrtFunction(Resolve(expr));
+        new SqrtFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>STDDEV(<paramref name="expr"/>)</c> aggregate function.
@@ -184,7 +184,7 @@ public static partial class Sql
     /// <see cref="StddevSamp(object)"/> name the statistic on every dialect.
     /// </remarks>
     public static UnfilteredAggregateFunction Stddev(object expr) =>
-        new StddevFunction(Resolve(expr));
+        new StddevFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>STDDEV_POP(<paramref name="expr"/>)</c> aggregate function: the
@@ -195,7 +195,7 @@ public static partial class Sql
     /// <remarks>MySQL, Oracle, PostgreSQL. SQL Server spells this
     /// <see cref="Stdevp(object)"/>.</remarks>
     public static UnfilteredAggregateFunction StddevPop(object expr) =>
-        new StddevPopFunction(Resolve(expr));
+        new StddevPopFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>STDDEV_SAMP(<paramref name="expr"/>)</c> aggregate function: the
@@ -206,7 +206,7 @@ public static partial class Sql
     /// <remarks>MySQL, Oracle, PostgreSQL. SQL Server spells this
     /// <see cref="Stdev(object)"/>.</remarks>
     public static UnfilteredAggregateFunction StddevSamp(object expr) =>
-        new StddevSampFunction(Resolve(expr));
+        new StddevSampFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>STDEV(<paramref name="expr"/>)</c> aggregate function: the sample
@@ -217,7 +217,7 @@ public static partial class Sql
     /// <remarks>SQL Server syntax — no double-D. MySQL, Oracle, and PostgreSQL
     /// spell this <see cref="StddevSamp(object)"/>.</remarks>
     public static UnfilteredAggregateFunction Stdev(object expr) =>
-        new StdevFunction(Resolve(expr));
+        new StdevFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>STDEVP(<paramref name="expr"/>)</c> aggregate function: the
@@ -228,7 +228,7 @@ public static partial class Sql
     /// <remarks>SQL Server syntax — no double-D. MySQL, Oracle, and PostgreSQL
     /// spell this <see cref="StddevPop(object)"/>.</remarks>
     public static UnfilteredAggregateFunction Stdevp(object expr) =>
-        new StdevpFunction(Resolve(expr));
+        new StdevpFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>STRFTIME(<paramref name="format"/>, <paramref name="timevalue"/>, ...)</c>
@@ -248,7 +248,13 @@ public static partial class Sql
         object format,
         object timevalue,
         params object[] modifiers) =>
-        new StrftimeFunction(ResolveVariadic(format, timevalue, modifiers));
+        new StrftimeFunction(ResolveVariadic(
+            format,
+            nameof(format),
+            timevalue,
+            nameof(timevalue),
+            modifiers,
+            nameof(modifiers)));
 
     /// <summary>
     /// The <c>STRING_AGG(expr, separator)</c> string aggregate: concatenates
@@ -264,7 +270,7 @@ public static partial class Sql
     /// <c>.WithinGroup(OrderBy(...))</c> for SQL Server's <c>WITHIN GROUP</c> form.
     /// </remarks>
     public static StringAggFunction StringAgg(object expr, string separator) =>
-        new(Resolve(expr), separator);
+        new(Resolve(expr, nameof(expr)), separator);
 
     /// <inheritdoc cref="StringAgg(object, string)"/>
     /// <param name="expr">The expression aggregated across the group.</param>
@@ -277,7 +283,7 @@ public static partial class Sql
         string separator,
         OrderByClause orderByClause) =>
         new StringAggOrderByFunction(
-            Resolve(expr),
+            Resolve(expr, nameof(expr)),
             separator,
             NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)));
 
@@ -292,7 +298,7 @@ public static partial class Sql
     /// <remarks>PostgreSQL syntax. For the keyword form (MySQL, PostgreSQL) with the
     /// reverse argument order, see <see cref="Position(object, object)"/>.</remarks>
     public static SqlExpression Strpos(object source, object substring) =>
-        new StrposFunction(Resolve(source), Resolve(substring));
+        new StrposFunction(Resolve(source, nameof(source)), Resolve(substring, nameof(substring)));
 
     /// <summary>
     /// The <c>SUBSTR(source, position)</c> function: the substring of
@@ -305,14 +311,17 @@ public static partial class Sql
     /// <remarks>Not supported by SQL Server — use <see cref="Substring(object, object, object)"/>
     /// there instead.</remarks>
     public static SqlExpression Substr(object source, object position) =>
-        new SubstrFunction(Resolve(source), Resolve(position));
+        new SubstrFunction(Resolve(source, nameof(source)), Resolve(position, nameof(position)));
 
     /// <inheritdoc cref="Substr(object, object)"/>
     /// <param name="source">The string to slice.</param>
     /// <param name="position">The 1-based start position.</param>
     /// <param name="length">The number of characters to take.</param>
     public static SqlExpression Substr(object source, object position, object length) =>
-        new SubstrFunction(Resolve(source), Resolve(position), Resolve(length));
+        new SubstrFunction(
+            Resolve(source, nameof(source)),
+            Resolve(position, nameof(position)),
+            Resolve(length, nameof(length)));
 
     /// <summary>
     /// The <c>SUBSTRB(source, position)</c> function: like <see cref="Substr(object, object)"/>
@@ -323,14 +332,17 @@ public static partial class Sql
     /// <returns>A <c>SUBSTRB</c> function expression.</returns>
     /// <remarks>Oracle syntax.</remarks>
     public static SqlExpression Substrb(object source, object position) =>
-        new SubstrbFunction(Resolve(source), Resolve(position));
+        new SubstrbFunction(Resolve(source, nameof(source)), Resolve(position, nameof(position)));
 
     /// <inheritdoc cref="Substrb(object, object)"/>
     /// <param name="source">The string to slice.</param>
     /// <param name="position">The 1-based start position, in bytes.</param>
     /// <param name="length">The number of bytes to take.</param>
     public static SqlExpression Substrb(object source, object position, object length) =>
-        new SubstrbFunction(Resolve(source), Resolve(position), Resolve(length));
+        new SubstrbFunction(
+            Resolve(source, nameof(source)),
+            Resolve(position, nameof(position)),
+            Resolve(length, nameof(length)));
 
     /// <summary>
     /// The <c>SUBSTRING(source, position, length)</c> function: the substring of
@@ -347,7 +359,10 @@ public static partial class Sql
     /// Unlike <c>Substr</c>, <paramref name="length"/> is required: SQL Server's grammar
     /// has no 2-argument form.</remarks>
     public static SqlExpression Substring(object source, object position, object length) =>
-        new SubstringFunction(Resolve(source), Resolve(position), Resolve(length));
+        new SubstringFunction(
+            Resolve(source, nameof(source)),
+            Resolve(position, nameof(position)),
+            Resolve(length, nameof(length)));
 
     /// <summary>
     /// The <c>SUM(expr)</c> aggregate: the total of <paramref name="expr"/> over the
@@ -356,14 +371,14 @@ public static partial class Sql
     /// <param name="expr">The numeric expression to total.</param>
     /// <returns>A <c>SUM</c> aggregate expression.</returns>
     public static UnfilteredAggregateFunction Sum(object expr) =>
-        new SumFunction(Resolve(expr));
+        new SumFunction(Resolve(expr, nameof(expr)));
 
     /// <inheritdoc cref="Sum(object)"/>
     /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Distinct"/>), emitting <c>SUM(DISTINCT expr)</c>.</param>
     /// <param name="expr">The numeric expression to total.</param>
     /// <returns>A <see cref="DistinctAggregateFunction"/> emitting <c>SUM(DISTINCT expr)</c>.</returns>
     public static DistinctAggregateFunction Sum(DistinctKeyword distinct, object expr) =>
-        new(Keywords.Sum, distinct, Resolve(expr));
+        new(Keywords.Sum, distinct, Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>SYSDATE</c> function.

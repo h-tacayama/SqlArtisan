@@ -24,7 +24,7 @@ public sealed class SearchedCaseWhenCondition : SqlPart, IIncompleteExpression
     /// </summary>
     /// <param name="thenExpr">The branch's result value or expression.</param>
     public SearchedCaseWhenClause Then(object thenExpr) =>
-        new(this, new CaseThenExpression(Resolve(thenExpr)));
+        new(this, new CaseThenExpression(Resolve(thenExpr, nameof(thenExpr))));
 
     internal override bool IsEmpty => _whenCondition.IsEmpty;
 

@@ -13,7 +13,7 @@ public static partial class Sql
     /// <returns>A window function emitting
     /// <c>FIRST_VALUE(expr)</c>.</returns>
     public static ValueAnalyticFunction FirstValue(object expr) =>
-        new AnalyticFirstValueFunction(Resolve(expr));
+        new AnalyticFirstValueFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>FLOOR(expr)</c> function (largest integer not greater than
@@ -23,7 +23,7 @@ public static partial class Sql
     /// <returns>An expression emitting <c>FLOOR(expr)</c>.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+), and SQL Server syntax.</remarks>
     public static SqlExpression Floor(object expr) =>
-        new FloorFunction(Resolve(expr));
+        new FloorFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// A <c>n FOLLOWING</c> window-frame bound (offset rows/range after the
@@ -50,7 +50,7 @@ public static partial class Sql
     /// the call does run, it does not carry these semantics.
     /// </remarks>
     public static SqlExpression Format(object value, object format) =>
-        new FormatFunction(Resolve(value), Resolve(format));
+        new FormatFunction(Resolve(value, nameof(value)), Resolve(format, nameof(format)));
 
     /// <inheritdoc cref="Format(object, object)"/>
     /// <param name="value">The value to format.</param>
@@ -58,7 +58,10 @@ public static partial class Sql
     /// <param name="culture">The culture name (e.g. <c>"en-US"</c>) the format is
     /// interpreted under.</param>
     public static SqlExpression Format(object value, object format, object culture) =>
-        new FormatFunction(Resolve(value), Resolve(format), Resolve(culture));
+        new FormatFunction(
+            Resolve(value, nameof(value)),
+            Resolve(format, nameof(format)),
+            Resolve(culture, nameof(culture)));
 
     /// <summary>
     /// The SQL Server full-text <c>FREETEXT(column, freetext)</c> predicate:
@@ -73,5 +76,5 @@ public static partial class Sql
     /// <remarks>SQL Server syntax. For exact words, prefixes, and boolean
     /// combinations use <see cref="Contains(object, object)"/>.</remarks>
     public static SqlCondition Freetext(object column, object freetext) =>
-        new FreetextCondition(Resolve(column), Resolve(freetext));
+        new FreetextCondition(Resolve(column, nameof(column)), Resolve(freetext, nameof(freetext)));
 }

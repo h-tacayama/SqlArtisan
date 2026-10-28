@@ -14,7 +14,9 @@ public static partial class Sql
     /// <returns>A <c>&lt;+&gt;</c> operator expression.</returns>
     /// <remarks>PostgreSQL syntax; Oracle has no L1 shorthand.</remarks>
     public static SqlExpression L1Distance(object leftVector, object rightVector) =>
-        new L1DistanceOperator(Resolve(leftVector), Resolve(rightVector));
+        new L1DistanceOperator(
+            Resolve(leftVector, nameof(leftVector)),
+            Resolve(rightVector, nameof(rightVector)));
 
     /// <summary>
     /// The <c>(leftVector &lt;-&gt; rightVector)</c> L2 (Euclidean) distance
@@ -26,7 +28,9 @@ public static partial class Sql
     /// <returns>A <c>&lt;-&gt;</c> operator expression.</returns>
     /// <remarks>Oracle (23ai+) and PostgreSQL syntax.</remarks>
     public static SqlExpression L2Distance(object leftVector, object rightVector) =>
-        new L2DistanceOperator(Resolve(leftVector), Resolve(rightVector));
+        new L2DistanceOperator(
+            Resolve(leftVector, nameof(leftVector)),
+            Resolve(rightVector, nameof(rightVector)));
 
     /// <summary>
     /// The <c>LAG(expr)</c> analytic function: the value of
@@ -36,7 +40,7 @@ public static partial class Sql
     /// <param name="expr">The value evaluated for each row of the window.</param>
     /// <returns>A window function emitting <c>LAG(expr)</c>.</returns>
     public static AnalyticFunction Lag(object expr) =>
-        new AnalyticLagFunction(Resolve(expr));
+        new AnalyticLagFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>LAG(expr, offset)</c> analytic function: the value of
@@ -48,7 +52,7 @@ public static partial class Sql
     /// <returns>A window function emitting <c>LAG(expr, offset)</c>.</returns>
     /// <remarks>The offset is emitted as an integer literal.</remarks>
     public static AnalyticFunction Lag(object expr, int offset) =>
-        new AnalyticLagFunction(Resolve(expr), offset);
+        new AnalyticLagFunction(Resolve(expr, nameof(expr)), offset);
 
     /// <summary>
     /// The <c>LAG(expr, offset, default)</c> analytic function: the value of
@@ -63,7 +67,10 @@ public static partial class Sql
     /// <remarks>The offset is emitted as an integer literal; the default value is
     /// parameterized.</remarks>
     public static AnalyticFunction Lag(object expr, int offset, object defaultValue) =>
-        new AnalyticLagFunction(Resolve(expr), offset, Resolve(defaultValue));
+        new AnalyticLagFunction(
+            Resolve(expr, nameof(expr)),
+            offset,
+            Resolve(defaultValue, nameof(defaultValue)));
 
     /// <summary>
     /// The <c>LAST_DAY(<paramref name="date"/>)</c> function: the date
@@ -73,7 +80,7 @@ public static partial class Sql
     /// <returns>The LAST_DAY construct.</returns>
     /// <remarks>MySQL and Oracle syntax.</remarks>
     public static SqlExpression LastDay(object date) =>
-        new LastDayFunction(Resolve(date));
+        new LastDayFunction(Resolve(date, nameof(date)));
 
     /// <summary>
     /// The <c>LAST_VALUE(expr)</c> analytic function: the value of
@@ -85,7 +92,7 @@ public static partial class Sql
     /// an explicit frame (e.g. <c>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED
     /// FOLLOWING</c>) is usually intended.</remarks>
     public static ValueAnalyticFunction LastValue(object expr) =>
-        new AnalyticLastValueFunction(Resolve(expr));
+        new AnalyticLastValueFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>LEAD(expr)</c> analytic function: the value of
@@ -95,7 +102,7 @@ public static partial class Sql
     /// <param name="expr">The value evaluated for each row of the window.</param>
     /// <returns>A window function emitting <c>LEAD(expr)</c>.</returns>
     public static AnalyticFunction Lead(object expr) =>
-        new AnalyticLeadFunction(Resolve(expr));
+        new AnalyticLeadFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>LEAD(expr, offset)</c> analytic function: the value of
@@ -107,7 +114,7 @@ public static partial class Sql
     /// <returns>A window function emitting <c>LEAD(expr, offset)</c>.</returns>
     /// <inheritdoc cref="Lag(object, int)" path="/remarks"/>
     public static AnalyticFunction Lead(object expr, int offset) =>
-        new AnalyticLeadFunction(Resolve(expr), offset);
+        new AnalyticLeadFunction(Resolve(expr, nameof(expr)), offset);
 
     /// <summary>
     /// The <c>LEAD(expr, offset, default)</c> analytic function: the value of
@@ -121,7 +128,10 @@ public static partial class Sql
     /// <returns>A window function emitting <c>LEAD(expr, offset, default)</c>.</returns>
     /// <inheritdoc cref="Lag(object, int, object)" path="/remarks"/>
     public static AnalyticFunction Lead(object expr, int offset, object defaultValue) =>
-        new AnalyticLeadFunction(Resolve(expr), offset, Resolve(defaultValue));
+        new AnalyticLeadFunction(
+            Resolve(expr, nameof(expr)),
+            offset,
+            Resolve(defaultValue, nameof(defaultValue)));
 
     /// <summary>
     /// The <c>LEAST(a, b, ...)</c> function: the smallest of its
@@ -132,7 +142,7 @@ public static partial class Sql
     /// <remarks>Not supported by SQLite — its multi-argument
     /// <c>MIN(a, b, ...)</c> is the equivalent; SQL Server (2022+).</remarks>
     public static SqlExpression Least(params object[] expressions) =>
-        new LeastFunction(Resolve(expressions));
+        new LeastFunction(Resolve(expressions, nameof(expressions)));
 
     /// <summary>
     /// The <c>LEFT(<paramref name="source"/>, <paramref name="length"/>)</c> function:
@@ -144,7 +154,7 @@ public static partial class Sql
     /// <remarks>MySQL, PostgreSQL, and SQL Server syntax. Oracle and SQLite have no
     /// <c>LEFT</c> — slice with <see cref="Substr(object, object, object)"/> there.</remarks>
     public static SqlExpression Left(object source, object length) =>
-        new LeftFunction(Resolve(source), Resolve(length));
+        new LeftFunction(Resolve(source, nameof(source)), Resolve(length, nameof(length)));
 
     /// <summary>
     /// The <c>LENGTH(<paramref name="source"/>)</c> function: the number of
@@ -155,7 +165,7 @@ public static partial class Sql
     /// <remarks>MySQL, Oracle, PostgreSQL, and SQLite syntax. Not available on
     /// SQL Server.</remarks>
     public static SqlExpression Length(object source) =>
-        new LengthFunction(Resolve(source));
+        new LengthFunction(Resolve(source, nameof(source)));
 
     /// <summary>
     /// The <c>LENGTHB(<paramref name="source"/>)</c> function: the
@@ -165,7 +175,7 @@ public static partial class Sql
     /// <returns>The LENGTHB construct.</returns>
     /// <remarks>Oracle syntax.</remarks>
     public static SqlExpression Lengthb(object source) =>
-        new LengthbFunction(Resolve(source));
+        new LengthbFunction(Resolve(source, nameof(source)));
 
     /// <summary>
     /// The <c>LISTAGG(expr, separator)</c> string aggregate. Complete
@@ -178,7 +188,7 @@ public static partial class Sql
     /// <c>LISTAGG(expr, separator)</c>.</returns>
     /// <remarks>Oracle syntax.</remarks>
     public static ListaggFunction Listagg(object expr, object separator) =>
-        new(Resolve(expr), Resolve(separator));
+        new(Resolve(expr, nameof(expr)), Resolve(separator, nameof(separator)));
 
     /// <summary>
     /// The <c>LN(<paramref name="expr"/>)</c> function: the natural (base e)
@@ -190,7 +200,7 @@ public static partial class Sql
     /// no <c>LN</c> — its single-argument <see cref="Log(object)"/> is the
     /// natural logarithm.</remarks>
     public static SqlExpression Ln(object expr) =>
-        new LnFunction(Resolve(expr));
+        new LnFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>LOG(<paramref name="expr"/>)</c> function: the logarithm of
@@ -204,7 +214,7 @@ public static partial class Sql
     /// <see cref="Ln(object)"/>, <see cref="Log10(object)"/>, or
     /// <see cref="Log(object, object)"/>.</remarks>
     public static SqlExpression Log(object expr) =>
-        new LogFunction(Resolve(expr));
+        new LogFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>LOG(<paramref name="base"/>, <paramref name="expr"/>)</c> function:
@@ -217,7 +227,7 @@ public static partial class Sql
     /// first; PostgreSQL takes <c>numeric</c> only. SQL Server reads <c>LOG(value, base)</c>:
     /// swap the arguments there, and suppress the <c>SQLA0100</c> it still draws.</remarks>
     public static SqlExpression Log(object @base, object expr) =>
-        new LogFunction(Resolve(@base), Resolve(expr));
+        new LogFunction(Resolve(@base, nameof(@base)), Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>LOG10(<paramref name="expr"/>)</c> function: the base-10 logarithm
@@ -228,7 +238,7 @@ public static partial class Sql
     /// <remarks>MySQL, PostgreSQL (12+), SQLite (3.35+), SQL Server syntax.
     /// Oracle has no <c>LOG10</c> — spell it <c>Log(10, expr)</c> there.</remarks>
     public static SqlExpression Log10(object expr) =>
-        new Log10Function(Resolve(expr));
+        new Log10Function(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>LOWER(<paramref name="source"/>)</c> function: lowercases
@@ -237,7 +247,7 @@ public static partial class Sql
     /// <param name="source">The string to lowercase.</param>
     /// <returns>The LOWER construct.</returns>
     public static SqlExpression Lower(object source) =>
-        new LowerFunction(Resolve(source));
+        new LowerFunction(Resolve(source, nameof(source)));
 
     /// <summary>
     /// The <c>LPAD(<paramref name="source"/>, <paramref name="length"/>)</c>
@@ -249,7 +259,7 @@ public static partial class Sql
     /// <returns>The LPAD construct.</returns>
     /// <remarks>Oracle and PostgreSQL syntax.</remarks>
     public static SqlExpression Lpad(object source, object length) =>
-        new LpadFunction(Resolve(source), Resolve(length));
+        new LpadFunction(Resolve(source, nameof(source)), Resolve(length, nameof(length)));
 
     /// <summary>
     /// The <c>LPAD(<paramref name="source"/>, <paramref name="length"/>,
@@ -262,7 +272,10 @@ public static partial class Sql
     /// <returns>The LPAD construct.</returns>
     /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
     public static SqlExpression Lpad(object source, object length, object padding) =>
-        new LpadFunction(Resolve(source), Resolve(length), Resolve(padding));
+        new LpadFunction(
+            Resolve(source, nameof(source)),
+            Resolve(length, nameof(length)),
+            Resolve(padding, nameof(padding)));
 
     /// <summary>
     /// The <c>LTRIM(<paramref name="source"/>)</c> function: removes leading
@@ -271,7 +284,7 @@ public static partial class Sql
     /// <param name="source">The string to trim.</param>
     /// <returns>The LTRIM construct.</returns>
     public static SqlExpression Ltrim(object source) =>
-        new LtrimFunction(Resolve(source));
+        new LtrimFunction(Resolve(source, nameof(source)));
 
     /// <summary>
     /// The <c>LTRIM(<paramref name="source"/>, <paramref name="trimChars"/>)</c>
@@ -285,5 +298,5 @@ public static partial class Sql
     /// Server also requires database compatibility level 160, the default for
     /// new databases.</remarks>
     public static SqlExpression Ltrim(object source, object trimChars) =>
-        new LtrimFunction(Resolve(source), Resolve(trimChars));
+        new LtrimFunction(Resolve(source, nameof(source)), Resolve(trimChars, nameof(trimChars)));
 }

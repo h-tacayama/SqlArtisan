@@ -71,7 +71,7 @@ public static partial class Sql
     /// <remarks>SQL Server syntax. MySQL, Oracle, and PostgreSQL spell this
     /// <see cref="VarSamp(object)"/>.</remarks>
     public static UnfilteredAggregateFunction Var(object expr) =>
-        new VarFunction(Resolve(expr));
+        new VarFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>VARIANCE(<paramref name="expr"/>)</c> aggregate function.
@@ -84,7 +84,7 @@ public static partial class Sql
     /// <see cref="VarSamp(object)"/> name the statistic on every dialect.
     /// </remarks>
     public static UnfilteredAggregateFunction Variance(object expr) =>
-        new VarianceFunction(Resolve(expr));
+        new VarianceFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>VARP(<paramref name="expr"/>)</c> aggregate function: the
@@ -95,7 +95,7 @@ public static partial class Sql
     /// <remarks>SQL Server syntax. MySQL, Oracle, and PostgreSQL spell this
     /// <see cref="VarPop(object)"/>.</remarks>
     public static UnfilteredAggregateFunction Varp(object expr) =>
-        new VarpFunction(Resolve(expr));
+        new VarpFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>VAR_POP(<paramref name="expr"/>)</c> aggregate function: the
@@ -106,7 +106,7 @@ public static partial class Sql
     /// <remarks>MySQL, Oracle, PostgreSQL. SQL Server spells this
     /// <see cref="Varp(object)"/>.</remarks>
     public static UnfilteredAggregateFunction VarPop(object expr) =>
-        new VarPopFunction(Resolve(expr));
+        new VarPopFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>VAR_SAMP(<paramref name="expr"/>)</c> aggregate function: the
@@ -117,5 +117,5 @@ public static partial class Sql
     /// <remarks>MySQL, Oracle, PostgreSQL. SQL Server spells this
     /// <see cref="Var(object)"/>.</remarks>
     public static UnfilteredAggregateFunction VarSamp(object expr) =>
-        new VarSampFunction(Resolve(expr));
+        new VarSampFunction(Resolve(expr, nameof(expr)));
 }

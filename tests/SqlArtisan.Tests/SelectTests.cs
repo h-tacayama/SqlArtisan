@@ -14,7 +14,7 @@ public class SelectTests
             Select(_t.Code, null!));
 
         Assert.Equal(
-            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'selectItem')",
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'selectItems')",
             ex.Message);
     }
 

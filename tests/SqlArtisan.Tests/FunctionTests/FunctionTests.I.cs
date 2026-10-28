@@ -213,7 +213,29 @@ public partial class FunctionTests
             () => Interval(null!, DateTimePart.Day));
 
         Assert.Equal(
-            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'item')",
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'quantity')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Interval_NullRightOperand_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => Interval(1, DateTimePart.Day) + (object)null!);
+
+        Assert.Equal(
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'rightSide')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Interval_StringPlusNullInterval_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => "2020-01-01" + (IntervalExpression)null!);
+
+        Assert.Equal(
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'rightSide')",
             ex.Message);
     }
 

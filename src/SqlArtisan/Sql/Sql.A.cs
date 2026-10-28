@@ -18,7 +18,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric expression to take the absolute value of.</param>
     /// <returns>An expression emitting <c>ABS(expr)</c>.</returns>
-    public static SqlExpression Abs(object expr) => new AbsFunction(Resolve(expr));
+    public static SqlExpression Abs(object expr) => new AbsFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>ADD_MONTHS(<paramref name="dateTime"/>, <paramref name="months"/>)</c>
@@ -32,7 +32,7 @@ public static partial class Sql
     /// <returns>An expression emitting
     /// <c>ADD_MONTHS(dateTime, months)</c>.</returns>
     public static SqlExpression AddMonths(object dateTime, object months) =>
-        new AddMonthsFunction(Resolve(dateTime), Resolve(months));
+        new AddMonthsFunction(Resolve(dateTime, nameof(dateTime)), Resolve(months, nameof(months)));
 
     /// <summary>
     /// The <c>ALL (subquery)</c> quantified comparison operator: the comparison must hold for every
@@ -86,16 +86,8 @@ public static partial class Sql
     /// PostgreSQL types only through a cast: <c>Cast(Array(), "int[]")</c> (observed on
     /// PostgreSQL 16.15).</param>
     /// <returns>An expression emitting <c>ARRAY[elements]</c>.</returns>
-    public static SqlExpression Array(params object[] elements)
-    {
-        // Checked here so the ParamName is the caller's, not the resolver's `items`.
-        if (elements is null)
-        {
-            throw new ArgumentNullException(nameof(elements), NullValueMessage);
-        }
-
-        return new ArrayConstructorExpression(Resolve(elements));
-    }
+    public static SqlExpression Array(params object[] elements) =>
+        new ArrayConstructorExpression(Resolve(elements, nameof(elements)));
 
     /// <summary>
     /// The array containment predicate <c>leftArray &lt;@ rightArray</c>: whether
@@ -152,7 +144,7 @@ public static partial class Sql
     /// <param name="expr">The numeric expression to average.</param>
     /// <returns>An aggregate emitting <c>AVG(expr)</c>.</returns>
     public static UnfilteredAggregateFunction Avg(object expr) =>
-        new AvgFunction(Resolve(expr));
+        new AvgFunction(Resolve(expr, nameof(expr)));
 
     /// <inheritdoc cref="Avg(object)"/>
     /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Sql.Distinct"/>),
@@ -160,5 +152,5 @@ public static partial class Sql
     /// <param name="expr">The numeric expression to average.</param>
     /// <returns>A <see cref="DistinctAggregateFunction"/> emitting <c>AVG(DISTINCT expr)</c>.</returns>
     public static DistinctAggregateFunction Avg(DistinctKeyword distinct, object expr) =>
-        new(Keywords.Avg, distinct, Resolve(expr));
+        new(Keywords.Avg, distinct, Resolve(expr, nameof(expr)));
 }

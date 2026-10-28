@@ -20,7 +20,7 @@ public static partial class Sql
     /// <c>IIF</c>. Not <see cref="ConditionIf(bool, SqlCondition)"/>, the C#-side
     /// helper that drops a <c>WHERE</c> condition and emits no SQL.</remarks>
     public static SqlExpression If(SqlCondition condition, object then, object @else) =>
-        new IfFunction(condition, Resolve(then), Resolve(@else));
+        new IfFunction(condition, Resolve(then, nameof(then)), Resolve(@else, nameof(@else)));
 
     /// <summary>
     /// The <c>IFNULL(<paramref name="expr"/>, <paramref name="alt"/>)</c> function:
@@ -33,7 +33,7 @@ public static partial class Sql
     /// <remarks>MySQL/SQLite syntax. For the standard equivalent use
     /// <see cref="Coalesce(object, object, object[])"/>.</remarks>
     public static SqlExpression Ifnull(object expr, object alt) =>
-        new IfnullFunction(Resolve(expr), Resolve(alt));
+        new IfnullFunction(Resolve(expr, nameof(expr)), Resolve(alt, nameof(alt)));
 
     /// <summary>
     /// The <c>IIF(<paramref name="condition"/>, <paramref name="then"/>,
@@ -49,7 +49,7 @@ public static partial class Sql
     /// <remarks>SQLite (3.32+) and SQL Server (2012+) syntax; on MySQL use
     /// <see cref="If(SqlCondition, object, object)"/>.</remarks>
     public static SqlExpression Iif(SqlCondition condition, object then, object @else) =>
-        new IifFunction(condition, Resolve(then), Resolve(@else));
+        new IifFunction(condition, Resolve(then, nameof(then)), Resolve(@else, nameof(@else)));
 
     /// <summary>
     /// References <paramref name="column"/> of the <c>INSERTED</c> pseudo-table in
@@ -149,14 +149,17 @@ public static partial class Sql
     /// <remarks>MySQL, Oracle, and SQLite syntax; the 3- and 4-argument forms
     /// are Oracle-only.</remarks>
     public static SqlExpression Instr(object source, object substring) =>
-        new InstrFunction(Resolve(source), Resolve(substring));
+        new InstrFunction(Resolve(source, nameof(source)), Resolve(substring, nameof(substring)));
 
     /// <inheritdoc cref="Instr(object, object)"/>
     /// <param name="source">The string to search in.</param>
     /// <param name="substring">The substring to search for.</param>
     /// <param name="position">The 1-based position at which to start searching.</param>
     public static SqlExpression Instr(object source, object substring, object position) =>
-        new InstrFunction(Resolve(source), Resolve(substring), Resolve(position));
+        new InstrFunction(
+            Resolve(source, nameof(source)),
+            Resolve(substring, nameof(substring)),
+            Resolve(position, nameof(position)));
 
     /// <inheritdoc cref="Instr(object, object)"/>
     /// <param name="source">The string to search in.</param>
@@ -168,10 +171,10 @@ public static partial class Sql
         object substring,
         object position,
         object occurrence) => new InstrFunction(
-            Resolve(source),
-            Resolve(substring),
-            Resolve(position),
-            Resolve(occurrence));
+            Resolve(source, nameof(source)),
+            Resolve(substring, nameof(substring)),
+            Resolve(position, nameof(position)),
+            Resolve(occurrence, nameof(occurrence)));
 
     /// <summary>
     /// The <c>INTERVAL <paramref name="quantity"/> unit</c> operand (the quantity bound,
@@ -190,7 +193,7 @@ public static partial class Sql
     /// <see cref="Numtodsinterval(object, DateTimePart)"/> instead.
     /// </remarks>
     public static IntervalExpression Interval(object quantity, DateTimePart unit) =>
-        new(Resolve(quantity), unit);
+        new(Resolve(quantity, nameof(quantity)), unit);
 
     /// <summary>
     /// The <c>INTERVAL '<paramref name="text"/>'</c> literal, with its unit(s)
@@ -273,5 +276,5 @@ public static partial class Sql
     /// no-argument <c>expr IS NULL</c> predicate. For the standard equivalent use
     /// <see cref="Coalesce(object, object, object[])"/>.</remarks>
     public static SqlExpression Isnull(object expr, object alt) =>
-        new IsnullFunction(Resolve(expr), Resolve(alt));
+        new IsnullFunction(Resolve(expr, nameof(expr)), Resolve(alt, nameof(alt)));
 }

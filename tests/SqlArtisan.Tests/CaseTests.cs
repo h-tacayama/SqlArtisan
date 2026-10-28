@@ -873,4 +873,26 @@ public class CaseTests
                 + "When(expr.IsNull). (Parameter 'expr')",
             ex.Message);
     }
+
+    [Fact]
+    public void Then_SearchedNullValue_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => When(_t.Name == "a").Then(null!));
+
+        Assert.Equal(
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'thenExpr')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Then_SimpleNullValue_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => When("a").Then(null!));
+
+        Assert.Equal(
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'thenExpr')",
+            ex.Message);
+    }
 }
