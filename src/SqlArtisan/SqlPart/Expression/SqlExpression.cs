@@ -158,7 +158,7 @@ public abstract class SqlExpression : SqlPart
     public static SqlExpression operator +(SqlExpression @this, object rightSide) =>
         new AdditionOperator(
             OperandGuard.ThrowIfNull(@this, Operators.Plus),
-            ResolveIntervalOperand(rightSide));
+            ResolveIntervalOperand(rightSide, nameof(rightSide)));
 
     /// <summary>
     /// The SQL addition operator with a string first:
@@ -170,8 +170,8 @@ public abstract class SqlExpression : SqlPart
     /// <returns>The addition expression.</returns>
     public static SqlExpression operator +(string leftSide, SqlExpression rightSide) =>
         new AdditionOperator(
-            Resolve(OperandGuard.ThrowIfNull(leftSide, Operators.Plus)),
-            Resolve(rightSide));
+            Resolve(OperandGuard.ThrowIfNull(leftSide, Operators.Plus), nameof(leftSide)),
+            Resolve(rightSide, nameof(rightSide)));
 
     /// <summary>
     /// The SQL subtraction operator: <c><paramref name="this"/> - <paramref name="rightSide"/></c>.
@@ -182,7 +182,7 @@ public abstract class SqlExpression : SqlPart
     public static SqlExpression operator -(SqlExpression @this, object rightSide) =>
         new SubtractionOperator(
             OperandGuard.ThrowIfNull(@this, Operators.Minus),
-            ResolveIntervalOperand(rightSide));
+            ResolveIntervalOperand(rightSide, nameof(rightSide)));
 
     /// <summary>
     /// The SQL multiplication operator: <c><paramref name="this"/> *
@@ -194,7 +194,7 @@ public abstract class SqlExpression : SqlPart
     public static SqlExpression operator *(SqlExpression @this, object rightSide) =>
         new MultiplicationOperator(
             OperandGuard.ThrowIfNull(@this, Operators.Asterisk),
-            Resolve(rightSide));
+            Resolve(rightSide, nameof(rightSide)));
 
     /// <summary>
     /// The SQL division operator: <c><paramref name="this"/> / <paramref name="rightSide"/></c>.
@@ -203,7 +203,9 @@ public abstract class SqlExpression : SqlPart
     /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
     /// <returns>The division expression.</returns>
     public static SqlExpression operator /(SqlExpression @this, object rightSide) =>
-        new DivisionOperator(OperandGuard.ThrowIfNull(@this, Operators.Slash), Resolve(rightSide));
+        new DivisionOperator(
+            OperandGuard.ThrowIfNull(@this, Operators.Slash),
+            Resolve(rightSide, nameof(rightSide)));
 
     /// <summary>
     /// The SQL modulus operator: <c><paramref name="this"/> % <paramref name="rightSide"/></c>.
@@ -213,7 +215,9 @@ public abstract class SqlExpression : SqlPart
     /// <returns>The modulus expression.</returns>
     /// <remarks>Not supported by Oracle — use <c>Sql.Mod</c> there.</remarks>
     public static SqlExpression operator %(SqlExpression @this, object rightSide) =>
-        new ModulusOperator(OperandGuard.ThrowIfNull(@this, Operators.Percent), Resolve(rightSide));
+        new ModulusOperator(
+            OperandGuard.ThrowIfNull(@this, Operators.Percent),
+            Resolve(rightSide, nameof(rightSide)));
 
     /// <summary>
     /// Aliases this expression in a <c>SELECT</c> list: <c>expr "<paramref name="alias"/>"</c>.

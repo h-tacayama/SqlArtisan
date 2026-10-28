@@ -89,7 +89,7 @@ internal sealed class InsertBuilder :
         CollectionGuard.ThrowIfEmpty(
             items, nameof(items), "OUTPUT requires at least one expression.",
             ExpressionResolver.NullValueMessage);
-        AddPart(new OutputClause(SelectItemResolver.Resolve(items, "OutputItem", "outputItem")));
+        AddPart(new OutputClause(SelectItemResolver.Resolve(items, "OutputItem", nameof(items))));
         return this;
     }
 

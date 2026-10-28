@@ -18,7 +18,9 @@ public static partial class Sql
     public static SqlExpression NegativeInnerProduct(
         object leftVector,
         object rightVector) =>
-        new NegativeInnerProductOperator(Resolve(leftVector), Resolve(rightVector));
+        new NegativeInnerProductOperator(
+            Resolve(leftVector, nameof(leftVector)),
+            Resolve(rightVector, nameof(rightVector)));
 
     /// <summary>
     /// The <c>NEXTVAL('sequenceName')</c> function: the next value of the named
@@ -80,7 +82,7 @@ public static partial class Sql
     /// <returns>An <c>NTH_VALUE</c> analytic function expression.</returns>
     /// <remarks>Not supported by SQL Server.</remarks>
     public static ValueAnalyticFunction NthValue(object expr, int n) =>
-        new AnalyticNthValueFunction(Resolve(expr), n);
+        new AnalyticNthValueFunction(Resolve(expr, nameof(expr)), n);
 
     /// <summary>
     /// The <c>NTILE(buckets)</c> analytic function: distributes the ordered rows
@@ -104,7 +106,7 @@ public static partial class Sql
     /// <param name="expr2">The expression compared against <paramref name="expr1"/>.</param>
     /// <returns>A <c>NULLIF</c> function expression.</returns>
     public static SqlExpression Nullif(object expr1, object expr2) =>
-        new NullifFunction(Resolve(expr1), Resolve(expr2));
+        new NullifFunction(Resolve(expr1, nameof(expr1)), Resolve(expr2, nameof(expr2)));
 
     /// <summary>
     /// The <c>NUMTODSINTERVAL(<paramref name="n"/>, 'unit')</c> function:
@@ -122,7 +124,7 @@ public static partial class Sql
     /// <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>'s
     /// <c>DAY TO SECOND</c> literal.</remarks>
     public static SqlExpression Numtodsinterval(object n, DateTimePart unit) =>
-        new NumtodsintervalFunction(Resolve(n), unit);
+        new NumtodsintervalFunction(Resolve(n, nameof(n)), unit);
 
     /// <summary>
     /// The <c>NUMTOYMINTERVAL(<paramref name="n"/>, 'unit')</c> function:
@@ -139,7 +141,7 @@ public static partial class Sql
     /// <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>'s
     /// <c>YEAR TO MONTH</c> literal.</remarks>
     public static SqlExpression Numtoyminterval(object n, DateTimePart unit) =>
-        new NumtoymintervalFunction(Resolve(n), unit);
+        new NumtoymintervalFunction(Resolve(n, nameof(n)), unit);
 
     /// <summary>
     /// The <c>NVL(expr1, expr2)</c> function: returns <paramref name="expr1"/> when
@@ -151,5 +153,5 @@ public static partial class Sql
     /// <remarks>Oracle syntax. For the standard equivalent use
     /// <see cref="Coalesce(object, object, object[])"/>.</remarks>
     public static SqlExpression Nvl(object expr1, object expr2) =>
-        new NvlFunction(Resolve(expr1), Resolve(expr2));
+        new NvlFunction(Resolve(expr1, nameof(expr1)), Resolve(expr2, nameof(expr2)));
 }

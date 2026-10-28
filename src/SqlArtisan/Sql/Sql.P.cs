@@ -67,7 +67,7 @@ public static partial class Sql
     /// <remarks>PostgreSQL syntax. For text already in tsquery syntax use
     /// <see cref="ToTsquery(object)"/>.</remarks>
     public static SqlExpression PlaintoTsquery(object text) =>
-        new PlaintoTsqueryFunction(null, Resolve(text));
+        new PlaintoTsqueryFunction(null, Resolve(text, nameof(text)));
 
     /// <inheritdoc cref="PlaintoTsquery(object)"/>
     /// <param name="config">The text-search configuration (e.g. <c>"english"</c>),
@@ -76,7 +76,7 @@ public static partial class Sql
     public static SqlExpression PlaintoTsquery(string config, object text)
     {
         StringGuard.ThrowIfNullOrEmpty(config, "PLAINTO_TSQUERY requires a configuration name.");
-        return new PlaintoTsqueryFunction(config, Resolve(text));
+        return new PlaintoTsqueryFunction(config, Resolve(text, nameof(text)));
     }
 
     /// <summary>
@@ -90,7 +90,9 @@ public static partial class Sql
     /// <remarks>MySQL, PostgreSQL. For PostgreSQL's function-call form with the
     /// reverse argument order, see <see cref="Strpos(object, object)"/>.</remarks>
     public static SqlExpression Position(object substring, object source) =>
-        new PositionFunction(Resolve(substring), Resolve(source));
+        new PositionFunction(
+            Resolve(substring, nameof(substring)),
+            Resolve(source, nameof(source)));
 
     /// <summary>
     /// The <c>POWER(base, exponent)</c> function: <paramref name="base"/> raised
@@ -101,7 +103,7 @@ public static partial class Sql
     /// <returns>A <c>POWER</c> function expression.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+), and SQL Server syntax.</remarks>
     public static SqlExpression Power(object @base, object exponent) =>
-        new PowerFunction(Resolve(@base), Resolve(exponent));
+        new PowerFunction(Resolve(@base, nameof(@base)), Resolve(exponent, nameof(exponent)));
 
     /// <summary>
     /// A <c>n PRECEDING</c> window-frame bound (offset rows/range before the

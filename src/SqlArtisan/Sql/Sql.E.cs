@@ -12,7 +12,7 @@ public static partial class Sql
     /// <param name="thenExpr">The value returned when no <c>WHEN</c> matches.</param>
     /// <returns>The <c>ELSE</c> arm.</returns>
     public static CaseElseExpression Else(object thenExpr) =>
-        new(Resolve(thenExpr));
+        new(Resolve(thenExpr, nameof(thenExpr)));
 
     /// <summary>
     /// References a column of the row proposed for insertion inside an UPSERT
@@ -43,7 +43,7 @@ public static partial class Sql
     /// <returns>An <c>EXP</c> function expression.</returns>
     /// <remarks>Supported on every dialect (SQLite 3.35+).</remarks>
     public static SqlExpression Exp(object expr) =>
-        new ExpFunction(Resolve(expr));
+        new ExpFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>EXTRACT(<paramref name="datepart"/> FROM <paramref name="source"/>)</c>
@@ -55,5 +55,5 @@ public static partial class Sql
     /// <remarks>MySQL, Oracle, and PostgreSQL syntax; SQL Server's equivalent is
     /// <see cref="Datepart(DateTimePart, object)"/>.</remarks>
     public static SqlExpression Extract(DateTimePart datepart, object source) =>
-        new ExtractFunction(datepart, Resolve(source));
+        new ExtractFunction(datepart, Resolve(source, nameof(source)));
 }

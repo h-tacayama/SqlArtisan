@@ -20,7 +20,7 @@ internal sealed class ReturningBuilder : IReturningBuilder
         // An alias is valid in a RETURNING list (PostgreSQL, SQLite), so it is
         // emitted faithfully here (ADR 0007); only the INTO form rejects it.
         SqlPart[] resolved =
-            SelectItemResolver.Resolve(expressions, "ReturningItem", "returningItem");
+            SelectItemResolver.Resolve(expressions, "ReturningItem", nameof(expressions));
         // Marked only once nothing here can throw, so a rejected list leaves the
         // inner builder exactly as it was.
         inner.MarkReturningPending();

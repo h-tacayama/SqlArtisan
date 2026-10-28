@@ -9,9 +9,9 @@ namespace SqlArtisan.Tests;
 public class ResolverParityTests
 {
     private static readonly MethodInfo s_insert = Resolver(
-        "SqlArtisan.Internal.InsertValueResolver");
+        "SqlArtisan.Internal.InsertValueResolver", [typeof(object)]);
     private static readonly MethodInfo s_expression = Resolver(
-        "SqlArtisan.Internal.ExpressionResolver");
+        "SqlArtisan.Internal.ExpressionResolver", [typeof(object), typeof(string)]);
 
     public static TheoryData<string> Values => new()
     {
@@ -25,7 +25,7 @@ public class ResolverParityTests
         object value = Value(kind);
 
         Assert.Equal(
-            s_expression.Invoke(null, [value])!.GetType(),
+            s_expression.Invoke(null, [value, "value"])!.GetType(),
             s_insert.Invoke(null, [value])!.GetType());
     }
 
@@ -39,7 +39,7 @@ public class ResolverParityTests
                 s_insert.Invoke(null, [value])).InnerException).Message;
         string expression = Assert.IsType<ArgumentException>(
             Assert.Throws<TargetInvocationException>(() =>
-                s_expression.Invoke(null, [value])).InnerException).Message;
+                s_expression.Invoke(null, [value, "value"])).InnerException).Message;
 
         Assert.StartsWith("Invalid type for InsertValue: ", insert);
         Assert.StartsWith("Invalid type for SqlExpression: ", expression);
@@ -59,7 +59,7 @@ public class ResolverParityTests
         };
     }
 
-    private static MethodInfo Resolver(string typeName) =>
+    private static MethodInfo Resolver(string typeName, Type[] parameterTypes) =>
         typeof(Sql).Assembly.GetType(typeName)!
-            .GetMethod("Resolve", BindingFlags.NonPublic | BindingFlags.Static, [typeof(object)])!;
+            .GetMethod("Resolve", BindingFlags.NonPublic | BindingFlags.Static, parameterTypes)!;
 }

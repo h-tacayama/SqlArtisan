@@ -32,7 +32,7 @@ public static partial class Sql
     {
         CollectionGuard.ThrowIfEmpty(
             arrays, nameof(arrays), "UNNEST(...) requires at least one array.");
-        return new(Resolve(arrays));
+        return new(Resolve(arrays, nameof(arrays)));
     }
 
     /// <summary>
@@ -54,5 +54,5 @@ public static partial class Sql
     /// <param name="source">The string to uppercase.</param>
     /// <returns>An <c>UPPER</c> function expression.</returns>
     public static SqlExpression Upper(object source) =>
-        new UpperFunction(Resolve(source));
+        new UpperFunction(Resolve(source, nameof(source)));
 }

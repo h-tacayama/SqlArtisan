@@ -13,7 +13,9 @@ public static partial class Sql
     /// <param name="rightBits">The second bit vector.</param>
     /// <returns>A <c>&lt;%&gt;</c> operator expression.</returns>
     public static SqlExpression JaccardDistance(object leftBits, object rightBits) =>
-        new JaccardDistanceOperator(Resolve(leftBits), Resolve(rightBits));
+        new JaccardDistanceOperator(
+            Resolve(leftBits, nameof(leftBits)),
+            Resolve(rightBits, nameof(rightBits)));
 
     /// <summary>
     /// The <c>(jsonExpr -&gt; key)</c> JSON operator: extracts a JSON element by
@@ -25,7 +27,7 @@ public static partial class Sql
     /// expression index over the field matches only a literal key.</param>
     /// <returns>A <c>-&gt;</c> operator expression.</returns>
     public static SqlExpression JsonArrow(object jsonExpr, string key) =>
-        new JsonArrowOperator(Resolve(jsonExpr), new JsonKeyLiteral(key));
+        new JsonArrowOperator(Resolve(jsonExpr, nameof(jsonExpr)), new JsonKeyLiteral(key));
 
     /// <summary>
     /// The <c>(jsonExpr -&gt; index)</c> JSON operator: extracts a JSON array
@@ -35,7 +37,7 @@ public static partial class Sql
     /// <param name="index">The zero-based array index, emitted as an inline integer.</param>
     /// <returns>A <c>-&gt;</c> operator expression.</returns>
     public static SqlExpression JsonArrow(object jsonExpr, int index) =>
-        new JsonArrowOperator(Resolve(jsonExpr), new JsonKeyLiteral(index));
+        new JsonArrowOperator(Resolve(jsonExpr, nameof(jsonExpr)), new JsonKeyLiteral(index));
 
     /// <summary>
     /// The <c>(jsonExpr -&gt; key)</c> JSON operator with a one-character key, emitted as
@@ -46,7 +48,9 @@ public static partial class Sql
     /// <param name="key">The one-character key.</param>
     /// <returns>A <c>-&gt;</c> operator expression.</returns>
     public static SqlExpression JsonArrow(object jsonExpr, char key) =>
-        new JsonArrowOperator(Resolve(jsonExpr), new JsonKeyLiteral(key.ToString()));
+        new JsonArrowOperator(
+            Resolve(jsonExpr, nameof(jsonExpr)),
+            new JsonKeyLiteral(key.ToString()));
 
     /// <summary>
     /// The <c>(jsonExpr -&gt; key)</c> JSON operator with a key computed in SQL — a
@@ -56,7 +60,7 @@ public static partial class Sql
     /// <param name="key">The key expression, emitted as written.</param>
     /// <returns>A <c>-&gt;</c> operator expression.</returns>
     public static SqlExpression JsonArrow(object jsonExpr, SqlExpression key) =>
-        new JsonArrowOperator(Resolve(jsonExpr), Resolve(key));
+        new JsonArrowOperator(Resolve(jsonExpr, nameof(jsonExpr)), Resolve(key, nameof(key)));
 
     /// <summary>
     /// The <c>(jsonExpr -&gt;&gt; key)</c> JSON operator: extracts a JSON element
@@ -68,7 +72,7 @@ public static partial class Sql
     /// expression index over the field matches only a literal key.</param>
     /// <returns>A <c>-&gt;&gt;</c> operator expression.</returns>
     public static SqlExpression JsonArrowText(object jsonExpr, string key) =>
-        new JsonArrowTextOperator(Resolve(jsonExpr), new JsonKeyLiteral(key));
+        new JsonArrowTextOperator(Resolve(jsonExpr, nameof(jsonExpr)), new JsonKeyLiteral(key));
 
     /// <summary>
     /// The <c>(jsonExpr -&gt;&gt; index)</c> JSON operator: extracts a JSON array
@@ -78,7 +82,7 @@ public static partial class Sql
     /// <param name="index">The zero-based array index, emitted as an inline integer.</param>
     /// <returns>A <c>-&gt;&gt;</c> operator expression.</returns>
     public static SqlExpression JsonArrowText(object jsonExpr, int index) =>
-        new JsonArrowTextOperator(Resolve(jsonExpr), new JsonKeyLiteral(index));
+        new JsonArrowTextOperator(Resolve(jsonExpr, nameof(jsonExpr)), new JsonKeyLiteral(index));
 
     /// <summary>
     /// The <c>(jsonExpr -&gt;&gt; key)</c> JSON operator with a one-character key, emitted as
@@ -89,7 +93,9 @@ public static partial class Sql
     /// <param name="key">The one-character key.</param>
     /// <returns>A <c>-&gt;&gt;</c> operator expression.</returns>
     public static SqlExpression JsonArrowText(object jsonExpr, char key) =>
-        new JsonArrowTextOperator(Resolve(jsonExpr), new JsonKeyLiteral(key.ToString()));
+        new JsonArrowTextOperator(
+            Resolve(jsonExpr, nameof(jsonExpr)),
+            new JsonKeyLiteral(key.ToString()));
 
     /// <summary>
     /// The <c>(jsonExpr -&gt;&gt; key)</c> JSON operator with a key computed in SQL — a
@@ -99,7 +105,7 @@ public static partial class Sql
     /// <param name="key">The key expression, emitted as written.</param>
     /// <returns>A <c>-&gt;&gt;</c> operator expression.</returns>
     public static SqlExpression JsonArrowText(object jsonExpr, SqlExpression key) =>
-        new JsonArrowTextOperator(Resolve(jsonExpr), Resolve(key));
+        new JsonArrowTextOperator(Resolve(jsonExpr, nameof(jsonExpr)), Resolve(key, nameof(key)));
 
     /// <summary>
     /// The JSONB containment predicate <c>jsonExpr @&gt; jsonValue</c>: whether
@@ -140,7 +146,7 @@ public static partial class Sql
         CollectionGuard.ThrowIfEmpty(keys, nameof(keys), "?& requires at least one key.");
         return new JsonbExistsAllCondition(
             ResolveCompared(jsonExpr, nameof(jsonExpr), Operators.JsonbExistsAll),
-            Resolve(keys));
+            Resolve(keys, nameof(keys)));
     }
 
     /// <summary>
@@ -156,7 +162,7 @@ public static partial class Sql
         CollectionGuard.ThrowIfEmpty(keys, nameof(keys), "?| requires at least one key.");
         return new JsonbExistsAnyCondition(
             ResolveCompared(jsonExpr, nameof(jsonExpr), Operators.JsonbExistsAny),
-            Resolve(keys));
+            Resolve(keys, nameof(keys)));
     }
 
     /// <summary>
@@ -168,7 +174,7 @@ public static partial class Sql
     /// inline string literal.</param>
     /// <returns>A <c>JSON_EXTRACT</c> function expression.</returns>
     public static SqlExpression JsonExtract(object jsonDoc, string path) =>
-        new JsonExtractFunction(Resolve(jsonDoc), path);
+        new JsonExtractFunction(Resolve(jsonDoc, nameof(jsonDoc)), path);
 
     /// <summary>
     /// The <c>(jsonExpr #&gt; path)</c> JSON operator: extracts a JSON element at
@@ -178,7 +184,7 @@ public static partial class Sql
     /// <param name="path">The path to access (e.g. <c>"{a,b}"</c>).</param>
     /// <returns>A <c>#&gt;</c> operator expression.</returns>
     public static SqlExpression JsonHashArrow(object jsonExpr, object path) =>
-        new JsonHashArrowOperator(Resolve(jsonExpr), Resolve(path));
+        new JsonHashArrowOperator(Resolve(jsonExpr, nameof(jsonExpr)), Resolve(path, nameof(path)));
 
     /// <summary>
     /// The <c>(jsonExpr #&gt;&gt; path)</c> JSON operator: extracts a JSON element
@@ -188,7 +194,9 @@ public static partial class Sql
     /// <param name="path">The path to access (e.g. <c>"{a,b}"</c>).</param>
     /// <returns>A <c>#&gt;&gt;</c> operator expression.</returns>
     public static SqlExpression JsonHashArrowText(object jsonExpr, object path) =>
-        new JsonHashArrowTextOperator(Resolve(jsonExpr), Resolve(path));
+        new JsonHashArrowTextOperator(
+            Resolve(jsonExpr, nameof(jsonExpr)),
+            Resolve(path, nameof(path)));
 
     /// <summary>
     /// The <c>JSON_QUERY(jsonDoc, 'path')</c> function: extracts a JSON object
@@ -200,7 +208,7 @@ public static partial class Sql
     /// inline string literal.</param>
     /// <returns>A <c>JSON_QUERY</c> function expression.</returns>
     public static SqlExpression JsonQuery(object jsonDoc, string path) =>
-        new JsonQueryFunction(Resolve(jsonDoc), path);
+        new JsonQueryFunction(Resolve(jsonDoc, nameof(jsonDoc)), path);
 
     /// <summary>
     /// The <c>JSON_VALUE(jsonDoc, 'path')</c> function: extracts a scalar value
@@ -213,7 +221,7 @@ public static partial class Sql
     /// inline string literal.</param>
     /// <returns>A <c>JSON_VALUE</c> function expression.</returns>
     public static SqlExpression JsonValue(object jsonDoc, string path) =>
-        new JsonValueFunction(Resolve(jsonDoc), path);
+        new JsonValueFunction(Resolve(jsonDoc, nameof(jsonDoc)), path);
 
     /// <summary>
     /// The <c>JULIANDAY(<paramref name="timevalue"/>, ...)</c> function:
@@ -228,5 +236,9 @@ public static partial class Sql
     /// modifiers are plain strings.
     /// </remarks>
     public static SqlExpression Julianday(object timevalue, params object[] modifiers) =>
-        new JuliandayFunction(ResolveVariadic(timevalue, modifiers));
+        new JuliandayFunction(ResolveVariadic(
+            timevalue,
+            nameof(timevalue),
+            modifiers,
+            nameof(modifiers)));
 }

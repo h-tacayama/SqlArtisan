@@ -467,7 +467,7 @@ public static partial class Sql
     /// </summary>
     /// <returns>An expression emitting <c>CAST(expr AS type)</c>.</returns>
     public static SqlExpression Cast(object expr, string type) =>
-        new CastExpression(Resolve(expr), type);
+        new CastExpression(Resolve(expr, nameof(expr)), type);
 
     /// <summary>
     /// The <c>CEIL(expr)</c> function (smallest integer not less than
@@ -477,7 +477,7 @@ public static partial class Sql
     /// <c>CEIL</c>. SQL Server spells it <c>CEILING</c> (<see cref="Ceiling(object)"/>);
     /// MySQL, PostgreSQL, and SQLite accept both spellings.</remarks>
     public static SqlExpression Ceil(object expr) =>
-        new CeilFunction(Resolve(expr));
+        new CeilFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>CEILING(expr)</c> function (smallest integer not less than
@@ -487,7 +487,7 @@ public static partial class Sql
     /// as <c>CEILING</c>. Oracle spells it <c>CEIL</c> (<see cref="Ceil(object)"/>); MySQL,
     /// PostgreSQL, and SQLite accept both spellings.</remarks>
     public static SqlExpression Ceiling(object expr) =>
-        new CeilingFunction(Resolve(expr));
+        new CeilingFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>CHAR_LENGTH(<paramref name="source"/>)</c> function (the number of
@@ -498,7 +498,7 @@ public static partial class Sql
     /// <remarks>MySQL and PostgreSQL syntax. Oracle and SQLite count characters with
     /// <see cref="Length(object)"/>; SQL Server spells it <c>LEN</c>.</remarks>
     public static SqlExpression CharLength(object source) =>
-        new CharLengthFunction(Resolve(source));
+        new CharLengthFunction(Resolve(source, nameof(source)));
 
     /// <summary>
     /// The <c>COALESCE(<paramref name="primary"/>, <paramref name="secondary"/>, ...)</c>
@@ -514,7 +514,13 @@ public static partial class Sql
         object primary,
         object secondary,
         params object[] others) =>
-        new CoalesceFunction(ResolveVariadic(primary, secondary, others));
+        new CoalesceFunction(ResolveVariadic(
+            primary,
+            nameof(primary),
+            secondary,
+            nameof(secondary),
+            others,
+            nameof(others)));
 
     /// <summary>
     /// The <c>CONCAT(<paramref name="primary"/>, <paramref name="secondary"/>)</c>
@@ -527,7 +533,9 @@ public static partial class Sql
     /// where Oracle's <c>CONCAT</c> differs — see
     /// <see cref="Concat(object, object, object, object[])"/>.</remarks>
     public static SqlExpression Concat(object primary, object secondary) =>
-        new ConcatFunction(Resolve(primary), Resolve(secondary));
+        new ConcatFunction(
+            Resolve(primary, nameof(primary)),
+            Resolve(secondary, nameof(secondary)));
 
     /// <summary>
     /// The <c>CONCAT(<paramref name="primary"/>, <paramref name="secondary"/>,
@@ -549,7 +557,15 @@ public static partial class Sql
         object secondary,
         object third,
         params object[] others) =>
-        new ConcatFunction(ResolveVariadic(primary, secondary, third, others));
+        new ConcatFunction(ResolveVariadic(
+            primary,
+            nameof(primary),
+            secondary,
+            nameof(secondary),
+            third,
+            nameof(third),
+            others,
+            nameof(others)));
 
     /// <summary>
     /// The <c>CONCAT_WS(<paramref name="separator"/>, <paramref name="primary"/>,
@@ -570,7 +586,15 @@ public static partial class Sql
         object primary,
         object secondary,
         params object[] others) =>
-        new ConcatWsFunction(ResolveVariadic(separator, primary, secondary, others));
+        new ConcatWsFunction(ResolveVariadic(
+            separator,
+            nameof(separator),
+            primary,
+            nameof(primary),
+            secondary,
+            nameof(secondary),
+            others,
+            nameof(others)));
 
     /// <summary>
     /// Drops <paramref name="condition"/> out of a <c>WHERE</c> clause based on a
@@ -602,7 +626,9 @@ public static partial class Sql
     /// score instead — use <see cref="ContainsScore(object, object)"/> for that
     /// target.</remarks>
     public static SqlCondition Contains(object column, object searchCondition) =>
-        new ContainsCondition(Resolve(column), Resolve(searchCondition));
+        new ContainsCondition(
+            Resolve(column, nameof(column)),
+            Resolve(searchCondition, nameof(searchCondition)));
 
     /// <summary>
     /// The Oracle Text <c>CONTAINS(column, query)</c> operator: the relevance score of
@@ -620,7 +646,7 @@ public static partial class Sql
     /// instead — use <see cref="Contains(object, object)"/> for that
     /// target.</remarks>
     public static SqlExpression ContainsScore(object column, object query) =>
-        new ContainsScoreFunction(Resolve(column), Resolve(query));
+        new ContainsScoreFunction(Resolve(column, nameof(column)), Resolve(query, nameof(query)));
 
     /// <inheritdoc cref="ContainsScore(object, object)"/>
     /// <param name="column">The Oracle Text indexed column to search.</param>
@@ -629,7 +655,10 @@ public static partial class Sql
     /// <param name="label">The label linking this operator to
     /// <see cref="Score(int)"/>, emitted as <c>CONTAINS(column, query, label)</c>.</param>
     public static SqlExpression ContainsScore(object column, object query, int label) =>
-        new ContainsScoreFunction(Resolve(column), Resolve(query), label);
+        new ContainsScoreFunction(
+            Resolve(column, nameof(column)),
+            Resolve(query, nameof(query)),
+            label);
 
     /// <summary>
     /// The <c>(leftVector &lt;=&gt; rightVector)</c> cosine distance operator
@@ -645,7 +674,9 @@ public static partial class Sql
     /// semantics, an equality test rather than a distance.
     /// </remarks>
     public static SqlExpression CosineDistance(object leftVector, object rightVector) =>
-        new CosineDistanceOperator(Resolve(leftVector), Resolve(rightVector));
+        new CosineDistanceOperator(
+            Resolve(leftVector, nameof(leftVector)),
+            Resolve(rightVector, nameof(rightVector)));
 
     /// <summary>
     /// The <c>COUNT(*)</c> aggregate function (the number of rows in the group,
@@ -667,7 +698,7 @@ public static partial class Sql
     /// <param name="expr">The expression to count.</param>
     /// <returns>An aggregate emitting <c>COUNT(expr)</c>.</returns>
     public static UnfilteredAggregateFunction Count(object expr) =>
-        new CountFunction(Resolve(expr));
+        new CountFunction(Resolve(expr, nameof(expr)));
 
     /// <inheritdoc cref="Count(object)"/>
     /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Sql.Distinct"/>),
@@ -675,7 +706,7 @@ public static partial class Sql
     /// <param name="expr">The expression to count.</param>
     /// <returns>A <see cref="DistinctAggregateFunction"/> emitting <c>COUNT(DISTINCT expr)</c>.</returns>
     public static DistinctAggregateFunction Count(DistinctKeyword distinct, object expr) =>
-        new(Keywords.Count, distinct, Resolve(expr));
+        new(Keywords.Count, distinct, Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>CUBE(...)</c> GROUP BY grouping extension. Each element is an ordinary

@@ -9,65 +9,44 @@ internal static class ExpressionResolver
     internal const string NullSimpleCaseMessage =
         "A simple CASE cannot match a C# null; test for NULL with a searched When(expr.IsNull).";
 
-    internal static (SqlExpression, SqlExpression)[] Resolve((object, object)[] pairs)
+    // Every entry point takes the caller's parameter name, so a null argument or element
+    // reports the public member's own parameter rather than this class's.
+    internal static (SqlExpression, SqlExpression)[] Resolve(
+        (object, object)[] pairs,
+        string paramName)
     {
         if (pairs is null)
         {
-            throw new ArgumentNullException(nameof(pairs), NullValueMessage);
+            throw new ArgumentNullException(paramName, NullValueMessage);
         }
 
         var resolved = new (SqlExpression, SqlExpression)[pairs.Length];
 
         for (int i = 0; i < pairs.Length; i++)
         {
-            resolved[i] = (Resolve(pairs[i].Item1), Resolve(pairs[i].Item2));
+            resolved[i] = Resolve(pairs[i], paramName);
         }
 
         return resolved;
     }
 
-    internal static SqlExpression[] Resolve(object[] items)
+    internal static (SqlExpression, SqlExpression) Resolve(
+        (object, object) pair,
+        string paramName) =>
+        (Resolve(pair.Item1, paramName), Resolve(pair.Item2, paramName));
+
+    internal static SqlExpression[] Resolve(object[] items, string paramName)
     {
         if (items is null)
         {
-            throw new ArgumentNullException(nameof(items), NullValueMessage);
+            throw new ArgumentNullException(paramName, NullValueMessage);
         }
 
         var resolved = new SqlExpression[items.Length];
 
         for (int i = 0; i < items.Length; i++)
         {
-            resolved[i] = Resolve(items[i]);
-        }
-
-        return resolved;
-    }
-
-    internal static SqlExpression[] Resolve<T>(IReadOnlyCollection<T> items)
-    {
-        var resolved = new SqlExpression[items.Count];
-
-        int i = 0;
-        foreach (T item in items)
-        {
-            resolved[i++] = Resolve(item!);
-        }
-
-        return resolved;
-    }
-
-    // A T[]-typed sibling of the IReadOnlyCollection<T> overload: foreach over a
-    // concrete array is a compiler-recognized zero-allocation loop, while the same
-    // foreach through the interface allocates the array's enumerator (measured
-    // 32 B/call, ADR 0006).
-    internal static SqlExpression[] Resolve<T>(T[] items)
-    {
-        var resolved = new SqlExpression[items.Length];
-
-        int i = 0;
-        foreach (T item in items)
-        {
-            resolved[i++] = Resolve(item!);
+            resolved[i] = Resolve(items[i], paramName);
         }
 
         return resolved;
@@ -78,51 +57,65 @@ internal static class ExpressionResolver
     // arguments allocates a second array per construction (ADR 0006). Each
     // overload resolves its leading arguments first, so a null there still
     // reports before a null tail does.
-    internal static SqlExpression[] ResolveVariadic(object first, object[] items)
+    internal static SqlExpression[] ResolveVariadic(
+        object first,
+        string firstName,
+        object[] items,
+        string itemsName)
     {
-        SqlExpression resolvedFirst = Resolve(first);
-        SqlExpression[] resolved = NewVariadicArray(items, 1);
+        SqlExpression resolvedFirst = Resolve(first, firstName);
+        SqlExpression[] resolved = NewVariadicArray(items, itemsName, 1);
 
         resolved[0] = resolvedFirst;
-        ResolveInto(items, resolved, 1);
-        return resolved;
-    }
-
-    internal static SqlExpression[] ResolveVariadic(object first, object second, object[] items)
-    {
-        SqlExpression resolvedFirst = Resolve(first);
-        SqlExpression resolvedSecond = Resolve(second);
-        SqlExpression[] resolved = NewVariadicArray(items, 2);
-
-        resolved[0] = resolvedFirst;
-        resolved[1] = resolvedSecond;
-        ResolveInto(items, resolved, 2);
+        ResolveInto(items, itemsName, resolved, 1);
         return resolved;
     }
 
     internal static SqlExpression[] ResolveVariadic(
         object first,
+        string firstName,
         object second,
-        object third,
-        object[] items)
+        string secondName,
+        object[] items,
+        string itemsName)
     {
-        SqlExpression resolvedFirst = Resolve(first);
-        SqlExpression resolvedSecond = Resolve(second);
-        SqlExpression resolvedThird = Resolve(third);
-        SqlExpression[] resolved = NewVariadicArray(items, 3);
+        SqlExpression resolvedFirst = Resolve(first, firstName);
+        SqlExpression resolvedSecond = Resolve(second, secondName);
+        SqlExpression[] resolved = NewVariadicArray(items, itemsName, 2);
+
+        resolved[0] = resolvedFirst;
+        resolved[1] = resolvedSecond;
+        ResolveInto(items, itemsName, resolved, 2);
+        return resolved;
+    }
+
+    internal static SqlExpression[] ResolveVariadic(
+        object first,
+        string firstName,
+        object second,
+        string secondName,
+        object third,
+        string thirdName,
+        object[] items,
+        string itemsName)
+    {
+        SqlExpression resolvedFirst = Resolve(first, firstName);
+        SqlExpression resolvedSecond = Resolve(second, secondName);
+        SqlExpression resolvedThird = Resolve(third, thirdName);
+        SqlExpression[] resolved = NewVariadicArray(items, itemsName, 3);
 
         resolved[0] = resolvedFirst;
         resolved[1] = resolvedSecond;
         resolved[2] = resolvedThird;
-        ResolveInto(items, resolved, 3);
+        ResolveInto(items, itemsName, resolved, 3);
         return resolved;
     }
 
-    internal static SqlExpression Resolve(object item)
+    internal static SqlExpression Resolve(object item, string paramName)
     {
         if (item is null)
         {
-            throw new ArgumentNullException(nameof(item), NullValueMessage);
+            throw new ArgumentNullException(paramName, NullValueMessage);
         }
 
 #pragma warning disable IDE0046
@@ -211,7 +204,7 @@ internal static class ExpressionResolver
                 : NullCompared(paramName, construct);
         }
 
-        return Resolve(item);
+        return Resolve(item, paramName);
     }
 
     // The right operand an ANY / ALL / SOME completes, in the slots QuantifiedExpression's
@@ -225,10 +218,10 @@ internal static class ExpressionResolver
             : ResolveCompared(item, paramName, construct);
 
     // The right operand of + / -, the arithmetic slot MySQL's INTERVAL completes (#666).
-    internal static SqlExpression ResolveIntervalOperand(object item) =>
+    internal static SqlExpression ResolveIntervalOperand(object item, string paramName) =>
         item is IntervalExpression interval
             ? new PositionBoundOperand(interval)
-            : Resolve(item);
+            : Resolve(item, paramName);
 
     internal static SqlExpression[] ResolveCompared(
         object[] items,
@@ -286,7 +279,7 @@ internal static class ExpressionResolver
             throw new ArgumentNullException(paramName, NullSimpleCaseMessage);
         }
 
-        return Resolve(item);
+        return Resolve(item, paramName);
     }
 
     internal static ArgumentNullException NullCompared(string paramName, string construct) =>
@@ -332,23 +325,28 @@ internal static class ExpressionResolver
             : $"{keyword} is no value; Select(...) takes it ahead of its items.";
     }
 
-    // The tail parameter is named `items` here and above so a null tail keeps the
-    // message every other array-taking resolver entry point produces.
-    private static SqlExpression[] NewVariadicArray(object[] items, int leadingCount)
+    private static SqlExpression[] NewVariadicArray(
+        object[] items,
+        string itemsName,
+        int leadingCount)
     {
         if (items is null)
         {
-            throw new ArgumentNullException(nameof(items), NullValueMessage);
+            throw new ArgumentNullException(itemsName, NullValueMessage);
         }
 
         return new SqlExpression[items.Length + leadingCount];
     }
 
-    private static void ResolveInto(object[] items, SqlExpression[] target, int offset)
+    private static void ResolveInto(
+        object[] items,
+        string itemsName,
+        SqlExpression[] target,
+        int offset)
     {
         for (int i = 0; i < items.Length; i++)
         {
-            target[i + offset] = Resolve(items[i]);
+            target[i + offset] = Resolve(items[i], itemsName);
         }
     }
 

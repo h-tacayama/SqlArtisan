@@ -10,9 +10,6 @@ namespace SqlArtisan.Tests;
 // build SQL recorded verbatim in AcceptedSilentBuilds (instance members excluded).
 public class FactoryGuardSweepTests
 {
-    private const string ResolverNullValueMessage =
-        "A C# null is not SQL NULL; pass Sql.Null instead.";
-
     // Key: "Signature :: injection"; value: the exact SQL the degenerate call
     // builds — an entry asserts the acceptance is deliberate (a smaller legal
     // call, or a quoted/literal position, where whitespace is the engine's).
@@ -109,11 +106,8 @@ public class FactoryGuardSweepTests
                     }
 
                     // A ParamName absent from the invoked signature leaks an internal
-                    // name (#497); the expression-resolver family's position names are exempt.
+                    // name (#497, #669).
                     if (ex.InnerException is ArgumentException { ParamName: { } paramName } argEx
-                        && !argEx.Message.StartsWith(
-                            ResolverNullValueMessage,
-                            StringComparison.Ordinal)
                         && System.Array.TrueForAll(
                             method.GetParameters(), p => p.Name != paramName))
                     {

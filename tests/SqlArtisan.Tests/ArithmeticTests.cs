@@ -74,4 +74,36 @@ public class ArithmeticTests
         Assert.Equal(
             "SELECT ((\"t\".created_at - \"t\".created_at) + :0)",
             Select((_t.CreatedAt - _t.CreatedAt) + 1).Build().Text);
+
+    [Theory]
+    [InlineData("op_Addition")]
+    [InlineData("op_Subtraction")]
+    [InlineData("op_Multiply")]
+    [InlineData("op_Division")]
+    [InlineData("op_Modulus")]
+    public void Arithmetic_NullRightOperand_ThrowsArgumentNullException(string operatorName)
+    {
+        System.Reflection.MethodInfo op = typeof(SqlExpression).GetMethod(
+            operatorName, [typeof(SqlExpression), typeof(object)])!;
+
+        System.Reflection.TargetInvocationException wrapped =
+            Assert.Throws<System.Reflection.TargetInvocationException>(() =>
+                op.Invoke(null, [_t.Code, null]));
+        ArgumentNullException ex = Assert.IsType<ArgumentNullException>(wrapped.InnerException);
+
+        Assert.Equal(
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'rightSide')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Addition_StringAndNullExpression_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => "Dr. " + (SqlExpression)null!);
+
+        Assert.Equal(
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'rightSide')",
+            ex.Message);
+    }
 }

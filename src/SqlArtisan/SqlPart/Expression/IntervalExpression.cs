@@ -32,7 +32,7 @@ public sealed class IntervalExpression : SqlPart, IIncompleteExpression
     public static SqlExpression operator +(IntervalExpression @this, object rightSide) =>
         new AdditionOperator(
             new PositionBoundOperand(OperandGuard.ThrowIfNull(@this, Operators.Plus)),
-            ExpressionResolver.Resolve(rightSide));
+            ExpressionResolver.Resolve(rightSide, nameof(rightSide)));
 
     /// <summary>
     /// The string-first date addition:
@@ -43,8 +43,9 @@ public sealed class IntervalExpression : SqlPart, IIncompleteExpression
     /// <returns>The addition expression.</returns>
     public static SqlExpression operator +(string leftSide, IntervalExpression rightSide) =>
         new AdditionOperator(
-            ExpressionResolver.Resolve(OperandGuard.ThrowIfNull(leftSide, Operators.Plus)),
-            ExpressionResolver.ResolveIntervalOperand(rightSide));
+            ExpressionResolver.Resolve(
+                OperandGuard.ThrowIfNull(leftSide, Operators.Plus), nameof(leftSide)),
+            ExpressionResolver.ResolveIntervalOperand(rightSide, nameof(rightSide)));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Interval)

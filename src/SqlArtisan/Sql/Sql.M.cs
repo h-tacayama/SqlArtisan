@@ -18,7 +18,7 @@ public static partial class Sql
     /// <remarks>MySQL syntax. For the SQLite FTS5 <c>table MATCH pattern</c>
     /// predicate use <see cref="Match(DbTableBase, object)"/>.</remarks>
     public static MatchFunction Match(object column, params object[] otherColumns) =>
-        new([Resolve(column), .. Resolve(otherColumns)]);
+        new([Resolve(column, nameof(column)), .. Resolve(otherColumns, nameof(otherColumns))]);
 
     /// <summary>
     /// The SQLite FTS5 <c>table MATCH pattern</c> predicate: matches rows of the
@@ -33,7 +33,7 @@ public static partial class Sql
     /// <remarks>SQLite syntax. For the MySQL <c>MATCH ... AGAINST</c> construct use
     /// <see cref="Match(object, object[])"/>.</remarks>
     public static SqlCondition Match(DbTableBase table, object pattern) =>
-        new MatchCondition(table, Resolve(pattern));
+        new MatchCondition(table, Resolve(pattern, nameof(pattern)));
 
     /// <summary>
     /// The <c>MAX(<paramref name="expr"/>)</c> aggregate: the largest value of
@@ -41,7 +41,8 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The value to aggregate.</param>
     /// <returns>The MAX construct.</returns>
-    public static UnfilteredAggregateFunction Max(object expr) => new MaxFunction(Resolve(expr));
+    public static UnfilteredAggregateFunction Max(object expr) =>
+        new MaxFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// Starts a <c>MERGE INTO target</c> statement (Oracle, PostgreSQL, SQL Server).
@@ -61,7 +62,8 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The value to aggregate.</param>
     /// <returns>The MIN construct.</returns>
-    public static UnfilteredAggregateFunction Min(object expr) => new MinFunction(Resolve(expr));
+    public static UnfilteredAggregateFunction Min(object expr) =>
+        new MinFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
     /// The <c>MINUTE</c> interval field, for the sole-field overload of
@@ -91,7 +93,7 @@ public static partial class Sql
     /// <remarks>Not supported by SQL Server — use the <c>%</c> operator there;
     /// SQLite (3.35+).</remarks>
     public static SqlExpression Mod(object dividend, object divisor) =>
-        new ModFunction(Resolve(dividend), Resolve(divisor));
+        new ModFunction(Resolve(dividend, nameof(dividend)), Resolve(divisor, nameof(divisor)));
 
     /// <summary>
     /// The <c>MONTH</c> interval field, for the sole-field overload of
@@ -120,5 +122,5 @@ public static partial class Sql
     /// <returns>The MONTHS_BETWEEN construct.</returns>
     /// <remarks>Oracle syntax.</remarks>
     public static SqlExpression MonthsBetween(object date1, object date2) =>
-        new MonthsBetweenFunction(Resolve(date1), Resolve(date2));
+        new MonthsBetweenFunction(Resolve(date1, nameof(date1)), Resolve(date2, nameof(date2)));
 }

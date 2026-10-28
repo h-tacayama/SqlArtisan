@@ -213,7 +213,7 @@ public partial class FunctionTests
             () => Interval(null!, DateTimePart.Day));
 
         Assert.Equal(
-            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'item')",
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'quantity')",
             ex.Message);
     }
 

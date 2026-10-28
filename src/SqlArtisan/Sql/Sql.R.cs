@@ -21,7 +21,7 @@ public static partial class Sql
     /// <returns>A <c>REGEXP_COUNT</c> function expression.</returns>
     /// <remarks>Oracle, PostgreSQL (15+), and SQL Server (2025+) syntax.</remarks>
     public static SqlExpression RegexpCount(object source, object pattern) =>
-        new RegexpCountFunction(Resolve(source), Resolve(pattern));
+        new RegexpCountFunction(Resolve(source, nameof(source)), Resolve(pattern, nameof(pattern)));
 
     /// <inheritdoc cref="RegexpCount(object, object)"/>
     /// <param name="source">The string searched.</param>
@@ -31,9 +31,9 @@ public static partial class Sql
         object source,
         object pattern,
         object position) => new RegexpCountFunction(
-            Resolve(source),
-            Resolve(pattern),
-            Resolve(position));
+            Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)),
+            Resolve(position, nameof(position)));
 
     /// <inheritdoc cref="RegexpCount(object, object)"/>
     /// <param name="source">The string searched.</param>
@@ -45,9 +45,9 @@ public static partial class Sql
         object pattern,
         object position,
         RegexpOptions options) => new RegexpCountFunction(
-            Resolve(source),
-            Resolve(pattern),
-            Resolve(position),
+            Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)),
+            Resolve(position, nameof(position)),
             options);
 
     /// <summary>
@@ -60,7 +60,7 @@ public static partial class Sql
     /// <returns>A <c>REGEXP_INSTR</c> function expression.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL (15+), and SQL Server (2025+) syntax.</remarks>
     public static SqlExpression RegexpInstr(object source, object pattern) =>
-        new RegexpInstrFunction(Resolve(source), Resolve(pattern));
+        new RegexpInstrFunction(Resolve(source, nameof(source)), Resolve(pattern, nameof(pattern)));
 
     /// <inheritdoc cref="RegexpInstr(object, object)"/>
     /// <param name="source">The string searched.</param>
@@ -70,9 +70,9 @@ public static partial class Sql
         object source,
         object pattern,
         object position) => new RegexpInstrFunction(
-            Resolve(source),
-            Resolve(pattern),
-            Resolve(position));
+            Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)),
+            Resolve(position, nameof(position)));
 
     /// <inheritdoc cref="RegexpInstr(object, object)"/>
     /// <param name="source">The string searched.</param>
@@ -84,10 +84,10 @@ public static partial class Sql
         object pattern,
         object position,
         object occurrence) => new RegexpInstrFunction(
-            Resolve(source),
-            Resolve(pattern),
-            Resolve(position),
-            Resolve(occurrence));
+            Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)),
+            Resolve(position, nameof(position)),
+            Resolve(occurrence, nameof(occurrence)));
 
     /// <inheritdoc cref="RegexpInstr(object, object)"/>
     /// <param name="source">The string searched.</param>
@@ -104,11 +104,11 @@ public static partial class Sql
         object position,
         object occurrence,
         object returnOption) => new RegexpInstrFunction(
-            Resolve(source),
-            Resolve(pattern),
-            Resolve(position),
-            Resolve(occurrence),
-            Resolve(returnOption));
+            Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)),
+            Resolve(position, nameof(position)),
+            Resolve(occurrence, nameof(occurrence)),
+            Resolve(returnOption, nameof(returnOption)));
 
     /// <inheritdoc cref="RegexpInstr(object, object)"/>
     /// <param name="source">The string searched.</param>
@@ -127,11 +127,11 @@ public static partial class Sql
         object occurrence,
         object returnOption,
         RegexpOptions options) => new RegexpInstrFunction(
-            Resolve(source),
-            Resolve(pattern),
-            Resolve(position),
-            Resolve(occurrence),
-            Resolve(returnOption),
+            Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)),
+            Resolve(position, nameof(position)),
+            Resolve(occurrence, nameof(occurrence)),
+            Resolve(returnOption, nameof(returnOption)),
             options);
 
     /// <inheritdoc cref="RegexpInstr(object, object)"/>
@@ -157,13 +157,13 @@ public static partial class Sql
         object returnOption,
         RegexpOptions options,
         object subPatternPos) => new RegexpInstrFunction(
-            Resolve(source),
-            Resolve(pattern),
-            Resolve(position),
-            Resolve(occurrence),
-            Resolve(returnOption),
+            Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)),
+            Resolve(position, nameof(position)),
+            Resolve(occurrence, nameof(occurrence)),
+            Resolve(returnOption, nameof(returnOption)),
             options,
-            Resolve(subPatternPos));
+            Resolve(subPatternPos, nameof(subPatternPos)));
 
     /// <summary>
     /// The <c>REGEXP_LIKE(source, pattern)</c> predicate: true when
@@ -209,9 +209,9 @@ public static partial class Sql
         object source,
         object pattern,
         object replacement) => new RegexpReplaceFunction(
-            Resolve(source),
-            Resolve(pattern),
-            Resolve(replacement));
+            Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)),
+            Resolve(replacement, nameof(replacement)));
 
     /// <inheritdoc cref="RegexpReplace(object, object, object)" path="/summary"/>
     /// <param name="source">The string searched.</param>
@@ -225,10 +225,10 @@ public static partial class Sql
         object pattern,
         object replacement,
         object position) => new RegexpReplaceFunction(
-            Resolve(source),
-            Resolve(pattern),
-            Resolve(replacement),
-            Resolve(position));
+            Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)),
+            Resolve(replacement, nameof(replacement)),
+            Resolve(position, nameof(position)));
 
     /// <inheritdoc cref="RegexpReplace(object, object, object)" path="/summary"/>
     /// <param name="source">The string searched.</param>
@@ -244,11 +244,11 @@ public static partial class Sql
         object replacement,
         object position,
         object occurrence) => new RegexpReplaceFunction(
-            Resolve(source),
-            Resolve(pattern),
-            Resolve(replacement),
-            Resolve(position),
-            Resolve(occurrence));
+            Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)),
+            Resolve(replacement, nameof(replacement)),
+            Resolve(position, nameof(position)),
+            Resolve(occurrence, nameof(occurrence)));
 
     /// <inheritdoc cref="RegexpReplace(object, object, object)" path="/summary"/>
     /// <param name="source">The string searched.</param>
@@ -266,11 +266,11 @@ public static partial class Sql
         object position,
         object occurrence,
         RegexpOptions options) =>
-        new RegexpReplaceFunction(Resolve(source),
-            Resolve(pattern),
-            Resolve(replacement),
-            Resolve(position),
-            Resolve(occurrence),
+        new RegexpReplaceFunction(Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)),
+            Resolve(replacement, nameof(replacement)),
+            Resolve(position, nameof(position)),
+            Resolve(occurrence, nameof(occurrence)),
             options);
 
     /// <summary>
@@ -282,7 +282,9 @@ public static partial class Sql
     /// <returns>A <c>REGEXP_SUBSTR</c> function expression.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL (15+), and SQL Server (2025+) syntax.</remarks>
     public static SqlExpression RegexpSubstr(object source, object pattern) =>
-        new RegexpSubstrFunction(Resolve(source), Resolve(pattern));
+        new RegexpSubstrFunction(
+            Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)));
 
     /// <inheritdoc cref="RegexpSubstr(object, object)"/>
     /// <param name="source">The string searched.</param>
@@ -292,9 +294,9 @@ public static partial class Sql
         object source,
         object pattern,
         object position) => new RegexpSubstrFunction(
-            Resolve(source),
-            Resolve(pattern),
-            Resolve(position));
+            Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)),
+            Resolve(position, nameof(position)));
 
     /// <inheritdoc cref="RegexpSubstr(object, object)"/>
     /// <param name="source">The string searched.</param>
@@ -306,10 +308,10 @@ public static partial class Sql
         object pattern,
         object position,
         object occurrence) => new RegexpSubstrFunction(
-            Resolve(source),
-            Resolve(pattern),
-            Resolve(position),
-            Resolve(occurrence));
+            Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)),
+            Resolve(position, nameof(position)),
+            Resolve(occurrence, nameof(occurrence)));
 
     /// <inheritdoc cref="RegexpSubstr(object, object)"/>
     /// <param name="source">The string searched.</param>
@@ -323,10 +325,10 @@ public static partial class Sql
         object position,
         object occurrence,
         RegexpOptions options) => new RegexpSubstrFunction(
-            Resolve(source),
-            Resolve(pattern),
-            Resolve(position),
-            Resolve(occurrence),
+            Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)),
+            Resolve(position, nameof(position)),
+            Resolve(occurrence, nameof(occurrence)),
             options);
 
     /// <inheritdoc cref="RegexpSubstr(object, object)"/>
@@ -347,12 +349,12 @@ public static partial class Sql
         object occurrence,
         RegexpOptions options,
         object subPatternPos) => new RegexpSubstrFunction(
-            Resolve(source),
-            Resolve(pattern),
-            Resolve(position),
-            Resolve(occurrence),
+            Resolve(source, nameof(source)),
+            Resolve(pattern, nameof(pattern)),
+            Resolve(position, nameof(position)),
+            Resolve(occurrence, nameof(occurrence)),
             options,
-            Resolve(subPatternPos));
+            Resolve(subPatternPos, nameof(subPatternPos)));
 
     /// <summary>
     /// The <c>REPLACE(source, search, replacement)</c> function: replaces every
@@ -364,7 +366,10 @@ public static partial class Sql
     /// <param name="replacement">The replacement substring.</param>
     /// <returns>A <c>REPLACE</c> function expression.</returns>
     public static SqlExpression Replace(object source, object search, object replacement) =>
-        new ReplaceFunction(Resolve(source), Resolve(search), Resolve(replacement));
+        new ReplaceFunction(
+            Resolve(source, nameof(source)),
+            Resolve(search, nameof(search)),
+            Resolve(replacement, nameof(replacement)));
 
     /// <summary>
     /// The <c>RIGHT(<paramref name="source"/>, <paramref name="length"/>)</c> function:
@@ -377,7 +382,7 @@ public static partial class Sql
     /// <c>RIGHT</c> — slice with <see cref="Substr(object, object)"/> and a negative
     /// position there.</remarks>
     public static SqlExpression Right(object source, object length) =>
-        new RightFunction(Resolve(source), Resolve(length));
+        new RightFunction(Resolve(source, nameof(source)), Resolve(length, nameof(length)));
 
     /// <summary>
     /// The <c>ROLLUP(...)</c> GROUP BY grouping extension. Each element is an
@@ -408,14 +413,14 @@ public static partial class Sql
     /// decimal count; pass <c>0</c> to <see cref="Round(object, object)"/>
     /// there.</remarks>
     public static SqlExpression Round(object expr) =>
-        new RoundFunction(Resolve(expr));
+        new RoundFunction(Resolve(expr, nameof(expr)));
 
     /// <inheritdoc cref="Round(object)" path="/summary"/>
     /// <param name="expr">The numeric expression to round.</param>
     /// <param name="decimals">The number of decimal places to round to.</param>
     /// <returns>A <c>ROUND(x, n)</c> function expression.</returns>
     public static SqlExpression Round(object expr, object decimals) =>
-        new RoundFunction(Resolve(expr), Resolve(decimals));
+        new RoundFunction(Resolve(expr, nameof(expr)), Resolve(decimals, nameof(decimals)));
 
     /// <summary>
     /// The <c>ROW_NUMBER()</c> analytic function: a sequential number per row within
@@ -433,7 +438,7 @@ public static partial class Sql
     /// <returns>An <c>RPAD</c> function expression.</returns>
     /// <remarks>Oracle and PostgreSQL syntax.</remarks>
     public static SqlExpression Rpad(object source, object length) =>
-        new RpadFunction(Resolve(source), Resolve(length));
+        new RpadFunction(Resolve(source, nameof(source)), Resolve(length, nameof(length)));
 
     /// <inheritdoc cref="Rpad(object, object)"/>
     /// <param name="source">The string to pad.</param>
@@ -441,7 +446,10 @@ public static partial class Sql
     /// <param name="padding">The padding string used instead of spaces.</param>
     /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
     public static SqlExpression Rpad(object source, object length, object padding) =>
-        new RpadFunction(Resolve(source), Resolve(length), Resolve(padding));
+        new RpadFunction(
+            Resolve(source, nameof(source)),
+            Resolve(length, nameof(length)),
+            Resolve(padding, nameof(padding)));
 
     /// <summary>
     /// The <c>RTRIM(source)</c> function: removes trailing spaces from
@@ -450,7 +458,7 @@ public static partial class Sql
     /// <param name="source">The string to trim.</param>
     /// <returns>An <c>RTRIM</c> function expression.</returns>
     public static SqlExpression Rtrim(object source) =>
-        new RtrimFunction(Resolve(source));
+        new RtrimFunction(Resolve(source, nameof(source)));
 
     /// <inheritdoc cref="Rtrim(object)"/>
     /// <param name="source">The string to trim.</param>
@@ -459,5 +467,5 @@ public static partial class Sql
     /// Server also requires database compatibility level 160, the default for
     /// new databases.</remarks>
     public static SqlExpression Rtrim(object source, object trimChars) =>
-        new RtrimFunction(Resolve(source), Resolve(trimChars));
+        new RtrimFunction(Resolve(source, nameof(source)), Resolve(trimChars, nameof(trimChars)));
 }

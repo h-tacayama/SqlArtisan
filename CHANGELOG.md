@@ -658,6 +658,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#654)
 
 ### Fixed
+- A null argument to a `Sql.*` factory, to an arithmetic operator's right
+  operand or to a CASE `Then(...)` reports the caller's parameter as its
+  `ParamName` (`Abs(null!)` reports `expr`), where it reported the resolver's
+  `item`, `items` or `pairs`. A null select, `RETURNING` or `OUTPUT` item
+  reports `selectItems`, `expressions` or `items` rather than `selectItem`,
+  `returningItem` or `outputItem`. The messages are unchanged. (#669)
 - Several messages named a type, or the runtime's `Value cannot be null.`, where
   the caller needed a remedy:
   - `Distinct`, `DistinctOn(...)`, `Top(n)` or `Hints(...)` out of the order the
