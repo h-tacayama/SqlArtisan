@@ -86,16 +86,8 @@ public static partial class Sql
     /// PostgreSQL types only through a cast: <c>Cast(Array(), "int[]")</c> (observed on
     /// PostgreSQL 16.15).</param>
     /// <returns>An expression emitting <c>ARRAY[elements]</c>.</returns>
-    public static SqlExpression Array(params object[] elements)
-    {
-        // Checked here so the ParamName is the caller's, not the resolver's `items`.
-        if (elements is null)
-        {
-            throw new ArgumentNullException(nameof(elements), NullValueMessage);
-        }
-
-        return new ArrayConstructorExpression(Resolve(elements, nameof(elements)));
-    }
+    public static SqlExpression Array(params object[] elements) =>
+        new ArrayConstructorExpression(Resolve(elements, nameof(elements)));
 
     /// <summary>
     /// The array containment predicate <c>leftArray &lt;@ rightArray</c>: whether

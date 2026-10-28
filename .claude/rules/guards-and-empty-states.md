@@ -1091,12 +1091,11 @@ so the wording is part of the contract.
   since `ON DUPLICATE KEY UPDATE` has no `SET` token to name (#582).
 - **`ParamName` is a parameter of the member the caller invoked**, or absent;
   the `dbms` entry above is the one recorded exception. A shared resolver or
-  guard takes the name from its caller (`ExpressionResolver`,
-  `SelectItemResolver`, `CollectionGuard`), so a helper's own parameter never
-  reaches the caller: `item`, `items` and `pairs` did until #669.
-  `FactoryGuardSweepTests` holds it for the arguments it injects into the
-  factories; the arithmetic operators' right operands and CASE `Then(...)` are
-  pinned by their own tests.
+  guard takes the name from its caller, or names its own parameter as every
+  caller names theirs; `ExpressionResolver`'s `item`, `items` and `pairs`
+  reached the caller until #669. `FactoryGuardSweepTests` holds it for the
+  arguments it injects into the factories; the public operators and instance
+  members #669 changed are pinned by their own tests.
 - **TableClassGen's construct is the flag.** A CLI message names the flag or
   `--config` key that fixes it by its spelling (`--schema`, `"schema"` in the
   `--config` file), the file for a malformed `--config`, or the schema object

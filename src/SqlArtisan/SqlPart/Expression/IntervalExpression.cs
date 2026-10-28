@@ -44,7 +44,8 @@ public sealed class IntervalExpression : SqlPart, IIncompleteExpression
     public static SqlExpression operator +(string leftSide, IntervalExpression rightSide) =>
         new AdditionOperator(
             ExpressionResolver.Resolve(
-                OperandGuard.ThrowIfNull(leftSide, Operators.Plus), nameof(leftSide)),
+                OperandGuard.ThrowIfNull(leftSide, Operators.Plus),
+                nameof(leftSide)),
             ExpressionResolver.ResolveIntervalOperand(rightSide, nameof(rightSide)));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer

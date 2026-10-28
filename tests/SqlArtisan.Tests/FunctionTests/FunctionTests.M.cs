@@ -118,6 +118,28 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Match_MySql_AgainstScoreNull_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => Match(_t.Name).AgainstScore(null!));
+
+        Assert.Equal(
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'searchExpr')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Match_MySql_AgainstScoreNullWithModifier_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => Match(_t.Name).AgainstScore(null!, SearchModifier.InBooleanMode));
+
+        Assert.Equal(
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'searchExpr')",
+            ex.Message);
+    }
+
+    [Fact]
     public void Match_Sqlite_CorrectSql()
     {
         SqlStatement sql =

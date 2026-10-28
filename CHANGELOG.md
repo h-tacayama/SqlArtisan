@@ -659,9 +659,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - A null argument to a `Sql.*` factory, to an arithmetic operator's right
-  operand or to a CASE `Then(...)` reports the caller's parameter as its
-  `ParamName` (`Abs(null!)` reports `expr`), where it reported the resolver's
-  `item`, `items` or `pairs`. A null select, `RETURNING` or `OUTPUT` item
+  operand, to a CASE `Then(...)` or to `Match(...).AgainstScore(...)` reports
+  the caller's parameter as its `ParamName` (`Abs(null!)` reports `expr`),
+  where it reported the resolver's `item`, `items` or `pairs`. A null select, `RETURNING` or `OUTPUT` item
   reports `selectItems`, `expressions` or `items` rather than `selectItem`,
   `returningItem` or `outputItem`. The messages are unchanged. (#669)
 - Several messages named a type, or the runtime's `Value cannot be null.`, where
