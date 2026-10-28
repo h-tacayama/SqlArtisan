@@ -634,6 +634,19 @@ public class UpdateTests
         Assert.Equal(1, sql.Parameters.Get<int>("@1"));
     }
 
+    [Fact]
+    public void Update_OutputNullExpression_ThrowsArgumentNullException()
+    {
+        TestTable t = new();
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            Update(t).Set(t.Name == "a").Output(Inserted(t.Name), null!));
+
+        Assert.Equal(
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'items')",
+            ex.Message);
+    }
+
     // Oracle, the one engine with RETURNING ... INTO, takes no leading WITH on DML,
     // so the pair builds on no target (#679).
     [Fact]
