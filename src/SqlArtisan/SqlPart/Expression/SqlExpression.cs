@@ -263,8 +263,9 @@ public abstract class SqlExpression : SqlPart
     /// </summary>
     /// <param name="expressions">The candidate values; must be non-empty.</param>
     /// <returns>The <c>IN</c> condition.</returns>
-    /// <exception cref="ArgumentException"><paramref name="expressions"/> is empty (an
-    /// empty <c>IN</c> list is invalid SQL).</exception>
+    /// <exception cref="ArgumentException"><paramref name="expressions"/> is empty (SQLite
+    /// 3.50.4 runs an empty <c>IN</c> list without an error, where MySQL 8.0, Oracle XE
+    /// 21.3.0, PostgreSQL 16.15 and SQL Server 2022 reject it).</exception>
     public SqlCondition In(params object[] expressions)
     {
         CollectionGuard.ThrowIfEmpty(
@@ -282,8 +283,9 @@ public abstract class SqlExpression : SqlPart
     /// </summary>
     /// <param name="values">The candidate values; must be non-empty.</param>
     /// <returns>The <c>IN</c> condition.</returns>
-    /// <exception cref="ArgumentException"><paramref name="values"/> is empty (an
-    /// empty <c>IN</c> list is invalid SQL).</exception>
+    /// <exception cref="ArgumentException"><paramref name="values"/> is empty (SQLite
+    /// 3.50.4 runs an empty <c>IN</c> list without an error, where MySQL 8.0, Oracle XE
+    /// 21.3.0, PostgreSQL 16.15 and SQL Server 2022 reject it).</exception>
     /// <remarks>
     /// A <see cref="string"/> stays one value: <c>In("abc")</c> binds <c>"abc"</c>, not
     /// one value per character.
@@ -301,7 +303,9 @@ public abstract class SqlExpression : SqlPart
     /// </summary>
     /// <param name="values">The candidate values; must be non-empty.</param>
     /// <returns>The <c>IN</c> condition.</returns>
-    /// <exception cref="ArgumentException"><paramref name="values"/> is empty.</exception>
+    /// <exception cref="ArgumentException"><paramref name="values"/> is empty (SQLite
+    /// 3.50.4 runs an empty <c>IN</c> list without an error, where MySQL 8.0, Oracle XE
+    /// 21.3.0, PostgreSQL 16.15 and SQL Server 2022 reject it).</exception>
     // A reference-type array converts covariantly to object[], so without this
     // overload it would be ambiguous with the params one.
     public SqlCondition In<T>(T[] values)
@@ -323,8 +327,9 @@ public abstract class SqlExpression : SqlPart
     /// </summary>
     /// <param name="expressions">The candidate values; must be non-empty.</param>
     /// <returns>The <c>NOT IN</c> condition.</returns>
-    /// <exception cref="ArgumentException"><paramref name="expressions"/> is empty (an
-    /// empty <c>NOT IN</c> list is invalid SQL).</exception>
+    /// <exception cref="ArgumentException"><paramref name="expressions"/> is empty (SQLite
+    /// 3.50.4 runs an empty <c>NOT IN</c> list without an error, where MySQL 8.0, Oracle XE
+    /// 21.3.0, PostgreSQL 16.15 and SQL Server 2022 reject it).</exception>
     public SqlCondition NotIn(params object[] expressions)
     {
         CollectionGuard.ThrowIfEmpty(
@@ -342,8 +347,9 @@ public abstract class SqlExpression : SqlPart
     /// </summary>
     /// <param name="values">The candidate values; must be non-empty.</param>
     /// <returns>The <c>NOT IN</c> condition.</returns>
-    /// <exception cref="ArgumentException"><paramref name="values"/> is empty (an
-    /// empty <c>NOT IN</c> list is invalid SQL).</exception>
+    /// <exception cref="ArgumentException"><paramref name="values"/> is empty (SQLite
+    /// 3.50.4 runs an empty <c>NOT IN</c> list without an error, where MySQL 8.0, Oracle XE
+    /// 21.3.0, PostgreSQL 16.15 and SQL Server 2022 reject it).</exception>
     /// <remarks>
     /// A <see cref="string"/> stays one value: <c>NotIn("abc")</c> binds <c>"abc"</c>, not
     /// one value per character.
@@ -360,7 +366,9 @@ public abstract class SqlExpression : SqlPart
     /// </summary>
     /// <param name="values">The candidate values; must be non-empty.</param>
     /// <returns>The <c>NOT IN</c> condition.</returns>
-    /// <exception cref="ArgumentException"><paramref name="values"/> is empty.</exception>
+    /// <exception cref="ArgumentException"><paramref name="values"/> is empty (SQLite
+    /// 3.50.4 runs an empty <c>NOT IN</c> list without an error, where MySQL 8.0, Oracle XE
+    /// 21.3.0, PostgreSQL 16.15 and SQL Server 2022 reject it).</exception>
     public SqlCondition NotIn<T>(T[] values)
     {
         CollectionGuard.ThrowIfEmpty(values, nameof(values), "NOT IN requires at least one value.");

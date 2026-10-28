@@ -1569,4 +1569,18 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
             Select(u.Id).From(u).OrderBy(u.Id.Desc, u.Id).OffsetRows(0).FetchNext(2)));
     }
+
+    // #669: the twin of SQLite's In_EmptyList_IsAcceptedByTheEngine.
+    [Fact]
+    public void In_EmptyList_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar<int>("SELECT COUNT(*) FROM users WHERE id IN (1)");
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM users WHERE id IN ()"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM users WHERE id NOT IN ()"));
+    }
 }

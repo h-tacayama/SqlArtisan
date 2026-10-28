@@ -82,12 +82,18 @@ public static partial class Sql
     /// The <c>ARRAY[elements]</c> array constructor: an array value from the
     /// listed elements (PostgreSQL).
     /// </summary>
-    /// <param name="elements">The array elements; at least one.</param>
+    /// <param name="elements">The array elements. With none it emits <c>ARRAY[]</c>, which
+    /// PostgreSQL types only through a cast: <c>Cast(Array(), "int[]")</c> (observed on
+    /// PostgreSQL 16.15).</param>
     /// <returns>An expression emitting <c>ARRAY[elements]</c>.</returns>
     public static SqlExpression Array(params object[] elements)
     {
-        CollectionGuard.ThrowIfEmpty(
-            elements, nameof(elements), "ARRAY[...] requires at least one element.");
+        // Checked here so the ParamName is the caller's, not the resolver's `items`.
+        if (elements is null)
+        {
+            throw new ArgumentNullException(nameof(elements), NullValueMessage);
+        }
+
         return new ArrayConstructorExpression(Resolve(elements));
     }
 

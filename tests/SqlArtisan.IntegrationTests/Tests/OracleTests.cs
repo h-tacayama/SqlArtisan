@@ -1598,4 +1598,32 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         Assert.Equal(new[] { 5, 4 }, ids);
     }
+
+    // #669: an empty and a blank interval value are both rejected here.
+    [Fact]
+    public void IntervalLiteral_EmptyOrBlankValue_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT INTERVAL '1' DAY FROM DUAL");
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT INTERVAL '' DAY FROM DUAL"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            "SELECT INTERVAL ' ' DAY FROM DUAL"));
+    }
+
+    // #669: the twin of SQLite's In_EmptyList_IsAcceptedByTheEngine.
+    [Fact]
+    public void In_EmptyList_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar<int>("SELECT COUNT(*) FROM users WHERE id IN (1)");
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM users WHERE id IN ()"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM users WHERE id NOT IN ()"));
+    }
 }

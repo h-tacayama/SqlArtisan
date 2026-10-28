@@ -87,15 +87,16 @@ the completing call.
   because the analyzer structurally cannot see the construct *and* the resolved
   target has no valid spelling at all; any further exception must clear the same
   bar, or, like `Listagg`'s pending type (the Decision, #664), lose no query to a
-  same-rows spelling. ADR 0011 also decides seven classes outside it, each rejected even where
+  same-rows spelling. ADR 0011 also decides eight classes outside it, each rejected even where
   an engine runs the text: the once-per-block walk's rejections — a
   once-per-block clause or slot a held stage writes twice (#581, #582) — the
   call-site-defect guards (a list that repeats a name, or an `OUTPUT ... INTO`
   width mismatch), the joined-target alias requirement (#258), an alias sort
   key inside `OVER` or an aggregate (#672), the correlated guards (#253,
   #677), a bound sort, group, partition or `DISTINCT ON` key (#678, #673),
-  a number as an expression-position sort key (#693), and a function-argument
-  enum in a value position (#667).
+  a number as an expression-position sort key (#693), a function-argument
+  enum in a value position (#667), and a value computed empty that an engine
+  runs without an error (#669, #679).
 - **A pseudo-column reference outside its context stays permissive.**
   `Sql.Excluded(...)` outside an upsert's `DO UPDATE SET`, or
   `Inserted`/`Deleted` under the wrong `OUTPUT` verb, builds and emits: each

@@ -16,7 +16,7 @@ public sealed class IntervalLiteralExpression : SqlExpression
         IntervalField? field = null,
         IntervalField? trailingField = null)
     {
-        StringGuard.ThrowIfNullOrEmpty(value, "INTERVAL requires a literal value.");
+        StringGuard.ThrowIfNullOrWhiteSpace(value, "INTERVAL requires a literal value.");
 
         if (field is not null && trailingField is not null)
         {

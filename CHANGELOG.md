@@ -633,6 +633,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   the same, and an expression index on `date_trunc('month', ts)` is now used,
   where `'MONTH'` planned a sequential scan (PostgreSQL 16). An index built to
   match `'MONTH'` stops matching. (#661)
+- **Breaking:** `IntervalLiteral(...)` throws `ArgumentException` on a
+  whitespace-only value, as it does on an empty one: MySQL runs
+  `INTERVAL ' ' DAY` without an error, and Oracle and PostgreSQL reject it
+  (observed on MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16.15). (#669)
+- `Array()` with no elements builds `ARRAY[]` instead of throwing. PostgreSQL
+  runs it under a cast, `Cast(Array(), "int[]")` building
+  `CAST(ARRAY[] AS int[])`, and rejects it bare (observed on PostgreSQL 16.15). A
+  null array still throws `ArgumentNullException`, now naming the `Sql.Null`
+  remedy. (#669)
 
 ### Removed
 - **Breaking:** the analyzer's `sqlartisan_target_dbms` /
@@ -1259,6 +1268,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   where SqlArtisan emits text verbatim, linking the list of those positions,
   and the cookbook's runtime-sort recipe says its `switch` is the allowlist that
   keeps the sort key out of a column-name position. (#737)
+- `docs/expressions.md` and the `In` / `NotIn` XML docs say why an empty list
+  throws: SQLite runs `IN ()` and `NOT IN ()` without an error, where MySQL,
+  Oracle, PostgreSQL and SQL Server reject both (observed on MySQL 8.0, Oracle
+  XE 21.3.0, PostgreSQL 16.15, SQLite 3.50.4 and SQL Server 2022). (#669)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

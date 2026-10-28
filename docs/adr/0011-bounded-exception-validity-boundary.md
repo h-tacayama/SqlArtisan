@@ -2,7 +2,7 @@
 
 **Status:** Accepted — #672 adds a fourth class decided outside the bar (an alias sort
 key where no select alias is in scope), #677 a fifth (the correlated guards, the
-DML-target one included), #678, #673 and #693 a sixth (a bound value as a sort, group, partition or `DISTINCT ON` key, and a number as an expression-position sort key), #667 a seventh (a function-argument enum in a value position).
+DML-target one included), #678, #673 and #693 a sixth (a bound value as a sort, group, partition or `DISTINCT ON` key, and a number as an expression-position sort key), #667 a seventh (a function-argument enum in a value position), #669 an eighth (a value computed empty that an engine runs without an error).
 
 ## Context
 
@@ -87,7 +87,7 @@ override — so every build path (including `Returning()`, which funnels through
   structurally can't see it, *and* the resolved target has no valid spelling.
   Absent both, the answer stays ADR 0007's default — emit faithfully. Some
   rejections of valid-somewhere text do not follow that today: ADR 0017 is its
-  own exception, and seven classes are decided outside the bar here. The
+  own exception, and eight classes are decided outside the bar here. The
   call-site-defect guards, enumerated in `guards-and-empty-states.md` — a
   fixed list that repeats a name, an `OUTPUT ... INTO` list whose width
   differs from its `OUTPUT` list, a bare `SET` target or column list entry
@@ -167,6 +167,15 @@ override — so every build path (including `Returning()`, which funnels through
   text. `Bind(value)` keeps a deliberate one, and `Dbms` and `DbTypeCategory`
   still bind, since no factory takes either as an argument
   (`public-api-design.md` § "Separator/format-string parameters").
+  The eighth is a value computed empty that an engine runs without an error
+  (#669, #679): an `In` / `NotIn` list with no value, an empty `As(...)` alias,
+  CTE or subquery derived-table name, an empty or blank `IntervalLiteral` value, and
+  an empty `INSERT` row. SQLite 3.50.4 runs `IN ()`, `NOT IN ()` and a zero-length name,
+  MySQL 8.0 reads `INTERVAL '' DAY` and `INTERVAL ' ' DAY` as 0, and MySQL
+  8.0.46 inserts a row of defaults for `VALUES ()`. An empty value there is
+  likelier a slip than the statement meant, so each is rejected at the call on
+  every dialect; `guards-and-empty-states.md` names the twins and the lanes
+  that reject each.
 - **Revisit when joined DML lands (#237).** Once `UPDATE … FROM` / `DELETE … FROM`
   give SQL Server a real spelling for the aliased/correlated shape, this guard's
   premise ("no valid spelling exists") weakens; re-evaluate whether it should
