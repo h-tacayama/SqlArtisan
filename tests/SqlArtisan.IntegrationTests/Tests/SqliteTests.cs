@@ -1348,4 +1348,19 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.Equal(1, connection.ExecuteScalar<int>(
             "SELECT \"\".id FROM (SELECT id FROM users) \"\" WHERE \"\".id = 1"));
     }
+
+    // #669: so a zero-length `Values(...)` name, which always carries its column list,
+    // does not run here, unlike the other quoted names above.
+    [Fact]
+    public void ValuesColumnList_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(1, connection.ExecuteScalar<int>("SELECT * FROM (VALUES (1)) \"x\""));
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "SELECT * FROM (VALUES (1)) \"x\" (a)"));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "SELECT * FROM (VALUES (1)) \"\" (a)"));
+    }
 }

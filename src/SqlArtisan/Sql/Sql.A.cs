@@ -83,7 +83,8 @@ public static partial class Sql
     /// listed elements (PostgreSQL).
     /// </summary>
     /// <param name="elements">The array elements. With none it emits <c>ARRAY[]</c>, which
-    /// PostgreSQL types only through a cast: <c>Cast(Array(), "int[]")</c>.</param>
+    /// PostgreSQL types only through a cast: <c>Cast(Array(), "int[]")</c> (observed on
+    /// PostgreSQL 16.15).</param>
     /// <returns>An expression emitting <c>ARRAY[elements]</c>.</returns>
     public static SqlExpression Array(params object[] elements)
     {

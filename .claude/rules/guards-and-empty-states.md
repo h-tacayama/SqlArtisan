@@ -491,8 +491,8 @@ where it is, and the asymmetry is not a defect.
 
 **An empty `In` / `NotIn` list, quoted name or `IntervalLiteral` value is
 rejected, though an engine runs it (decided — do not re-file):** `In(...)` and
-`NotIn(...)` with no value, an empty `As(...)` alias, CTE, derived-table or
-`Values(...)` name, and an empty `IntervalLiteral` value throw at the call on
+`NotIn(...)` with no value, an empty `As(...)` alias, CTE or derived-table name,
+and an empty `IntervalLiteral` value throw at the call on
 every dialect. SQLite 3.50.4 runs `IN ()`, `NOT IN ()` and a zero-length
 alias, CTE name or subquery derived-table name; MySQL 8.0 reads
 `INTERVAL '' DAY` as 0. An empty list or string reaches
@@ -501,7 +501,10 @@ without an error, so ADR 0011 decides the class outside its bar. These lanes
 reject them: `IN ()` and `NOT IN ()` on MySQL 8.0, Oracle XE 21.3.0,
 PostgreSQL 16.15 and SQL Server 2022, the empty alias on PostgreSQL 16.15, and the
 empty interval value on Oracle XE 21.3.0 and PostgreSQL 16.15 (`In_EmptyList_*`,
-`EmptyQuotedName_*`, `IntervalLiteral_EmptyOrBlankValue_*`). A blank value stays the engine's, as the
+`EmptyQuotedName_*`, `IntervalLiteral_EmptyOrBlankValue_*`). An empty
+`Values(...)` name throws with them, though SQLite 3.50.4 does not run one: it
+rejects the column list `Values(...)` always emits, whatever the name
+(`SqliteTests.ValuesColumnList_IsRejectedByTheEngine`). A blank value stays the engine's, as the
 clause above keeps whitespace in a quoted position, though MySQL reads
 `INTERVAL ' ' DAY` as 0 too. `Array()` takes no element instead: PostgreSQL, its
 one engine, runs an empty `ARRAY[]` only under a cast the caller writes,

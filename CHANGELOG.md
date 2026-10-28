@@ -1266,8 +1266,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   keeps the sort key out of a column-name position. (#737)
 - `docs/expressions.md` and the `In` / `NotIn` XML docs say why an empty list
   throws: SQLite runs `IN ()` and `NOT IN ()` without an error, where MySQL,
-  Oracle, PostgreSQL and SQL Server reject both (observed on SQLite 3.50.4,
-  MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16.15 and SQL Server 2022). (#669)
+  Oracle, PostgreSQL and SQL Server reject both (observed on MySQL 8.0, Oracle
+  XE 21.3.0, PostgreSQL 16.15, SQLite 3.50.4 and SQL Server 2022). (#669)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added
