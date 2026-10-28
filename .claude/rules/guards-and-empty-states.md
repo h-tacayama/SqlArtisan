@@ -497,7 +497,7 @@ every dialect. SQLite 3.50.4 runs `IN ()`, `NOT IN ()` and a zero-length
 alias, CTE name or subquery derived-table name; MySQL 8.0 reads
 `INTERVAL '' DAY` as 0. An empty list or string reaches
 these positions only as a value computed empty, which those engines would run
-without an error, so ADR 0011 decides the class outside its bar. These lanes
+without an error, the silent class this file's guards exist for. These lanes
 reject them: `IN ()` and `NOT IN ()` on MySQL 8.0, Oracle XE 21.3.0,
 PostgreSQL 16.15 and SQL Server 2022, the empty alias on PostgreSQL 16.15, and the
 empty interval value on Oracle XE 21.3.0 and PostgreSQL 16.15 (`In_EmptyList_*`,

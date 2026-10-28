@@ -53,7 +53,8 @@ public class FactoryGuardSweepTests
         // dropped column list.
         ["Group(Object[]) :: columns=[]"] = "SELECT \"x\".c FROM e \"x\" GROUP BY GROUPING SETS(())",
         // PostgreSQL, ARRAY's one engine, runs an empty ARRAY[] only under a cast the caller
-        // writes, and rejects it bare (Array_NoElementsUnderACast_IsAcceptedByTheEngine).
+        // writes, and rejects it bare (PostgreSQL 16.15,
+        // Array_NoElementsUnderACast_IsAcceptedByTheEngine).
         ["Array(Object[]) :: elements=[]"] = "SELECT ARRAY[]",
         // SqlHints elides a null or empty hint: a non-semantic decoration with
         // its own no-hints spelling, unlike the clauses above.
