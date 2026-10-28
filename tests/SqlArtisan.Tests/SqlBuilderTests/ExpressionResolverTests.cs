@@ -35,12 +35,29 @@ public class ExpressionResolverTests
             Select(
                 Abs(new DateTime(2001, 2, 3)),
                 Abs(new DateOnly(2004, 5, 6)),
-                Abs(new TimeOnly(7, 8, 9)))
+                Abs(new TimeOnly(7, 8, 9)),
+                Abs(new DateTimeOffset(2010, 11, 12, 0, 0, 0, TimeSpan.FromHours(9))),
+                Abs(TimeSpan.FromMinutes(13)))
             .Build();
 
         Assert.Equal(new DateTime(2001, 2, 3), sql.Parameters.Get<DateTime>(":0"));
         Assert.Equal(new DateOnly(2004, 5, 6), sql.Parameters.Get<DateOnly>(":1"));
         Assert.Equal(new TimeOnly(7, 8, 9), sql.Parameters.Get<TimeOnly>(":2"));
+        Assert.Equal(
+            new DateTimeOffset(2010, 11, 12, 0, 0, 0, TimeSpan.FromHours(9)),
+            sql.Parameters.Get<DateTimeOffset>(":3"));
+        Assert.Equal(TimeSpan.FromMinutes(13), sql.Parameters.Get<TimeSpan>(":4"));
+    }
+
+    [Fact]
+    public void Resolve_WithGuidLiteral_BindsAsGuid()
+    {
+        Guid id = new("00000000-0000-0000-0000-000000000001");
+
+        SqlStatement sql = Select(_t.Code).From(_t).Where(_t.Code == id).Build();
+
+        Assert.Equal("SELECT \"t\".code FROM test_table \"t\" WHERE \"t\".code = :0", sql.Text);
+        Assert.Equal(id, sql.Parameters.Get<Guid>(":0"));
     }
 
     [Fact]

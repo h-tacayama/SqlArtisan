@@ -426,6 +426,9 @@ public class OrderByTests
         { new DateTime(2020, 1, 1), "System.DateTime" },
         { new DateOnly(2020, 1, 1), "System.DateOnly" },
         { new TimeOnly(1, 0), "System.TimeOnly" },
+        { new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero), "System.DateTimeOffset" },
+        { TimeSpan.FromHours(1), "System.TimeSpan" },
+        { Guid.Empty, "System.Guid" },
         { DayOfWeek.Monday, "System.DayOfWeek" },
         { DateTimePart.Year, "SqlArtisan.DateTimePart" },
     };

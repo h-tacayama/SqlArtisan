@@ -78,6 +78,23 @@ public class BindArrayTests
     }
 
     [Fact]
+    public void BindArray_GuidElements_CorrectSql()
+    {
+        Guid[] values = [Guid.Empty];
+
+        SqlStatement sql =
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == Any(BindArray(values)))
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal(
+            "SELECT \"t\".code FROM test_table \"t\" WHERE \"t\".code = ANY (:0)",
+            sql.Text);
+        Assert.Same(values, sql.Parameters.Get<Guid[]>(":0"));
+    }
+
+    [Fact]
     public void BindArray_SharedInstance_ReusesMarker()
     {
         BindArrayValue shared = BindArray([1, 2]);

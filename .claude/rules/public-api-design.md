@@ -618,6 +618,16 @@ SQLite 3.45, MySQL not verified), and `LISTAGG` with no delimiter is
 `WITHIN GROUP`, which Oracle XE 21.3.0 runs, is `WithinGroup(OrderBy(Null))`, the
 same values with the order left to Oracle (#664).
 
+**Not yet offered (#669):** the B3 review found these forms with no spelling, so
+the same reading applies: `OUTPUT INSERTED.*` and `DELETED.*`, since
+`Inserted(...)` and `Deleted(...)` take only a column; and `COUNT(t.*)` and
+`ORDER BY t.*`, which PostgreSQL 16.15 runs and `Count(t.Asterisk)` and
+`OrderBy(t.Asterisk)` reject. A predicate in a value position (`Select(t.A == 1)`,
+`Coalesce(x, a > b)`) is rejected too, though PostgreSQL 16.15 and SQLite 3.50.4
+run it, but it has a same-values spelling, so it is ergonomic, not a hole:
+`Case(When(c).Then(true), When(Not(c)).Then(false))` returns the predicate's
+values there, NULL included.
+
 **Several `ON CONFLICT` clauses in one `INSERT` are not offered (decided —
 do not re-file):** SQLite runs `ON CONFLICT (id) DO UPDATE ... ON CONFLICT
 (code) DO NOTHING` (3.45.1, live) and PostgreSQL 16 rejects the second
