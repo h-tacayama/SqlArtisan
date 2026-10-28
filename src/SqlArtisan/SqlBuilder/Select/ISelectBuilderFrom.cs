@@ -25,8 +25,8 @@ public interface ISelectBuilderFrom :
     /// <param name="orderByItems">The sort keys — columns or expressions, optionally wrapped with <c>Sql.Asc(...)</c> / <c>Sql.Desc(...)</c> or a null-ordering modifier.</param>
     /// <returns>The builder positioned after <c>ORDER BY</c>.</returns>
     /// <exception cref="ArgumentException">An element of <paramref name="orderByItems"/> is the
-    /// ordinal <c>0</c>, or a string, char, bool, date/time or enum value, which binds as a
-    /// constant that sorts nothing.</exception>
+    /// ordinal <c>0</c>, or a string, char, bool, date/time, GUID or enum value, which binds
+    /// as a constant that sorts nothing.</exception>
     ISelectBuilderOrderBy OrderBy(params object[] orderByItems);
 
     /// <summary>

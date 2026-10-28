@@ -620,13 +620,15 @@ same values with the order left to Oracle (#664).
 
 **Not yet offered (#669):** the B3 review found these forms with no spelling, so
 the same reading applies: `OUTPUT INSERTED.*` and `DELETED.*`, since
-`Inserted(...)` and `Deleted(...)` take only a column; and `COUNT(t.*)` and
-`ORDER BY t.*`, which PostgreSQL 16.15 runs and `Count(t.Asterisk)` and
-`OrderBy(t.Asterisk)` reject. A predicate in a value position (`Select(t.A == 1)`,
-`Coalesce(x, a > b)`) is rejected too, though PostgreSQL 16.15 and SQLite 3.50.4
-run it, but it has a same-values spelling, so it is ergonomic, not a hole:
-`Case(When(c).Then(true), When(Not(c)).Then(false))` returns the predicate's
-values there, NULL included.
+`Inserted(...)` and `Deleted(...)` take only a column (an `Output(...)` listing
+every column is not measured against them); and `COUNT(t.*)`, which PostgreSQL
+16.15 runs and `Count(t.Asterisk)` rejects. Two more are rejected though
+PostgreSQL 16.15 runs them, but each has a same-rows spelling, so they are
+ergonomic, not holes: `ORDER BY t.*` is `OrderBy(...)` over the table's columns
+in order, the same order there, NULLs included; and a predicate in a value
+position (`Select(t.A == 1)`, `Coalesce(x, a > b)`), which SQLite 3.50.4 runs
+too, returns the values `Case(When(c).Then(true), When(Not(c)).Then(false))`
+returns on both, NULL included.
 
 **Several `ON CONFLICT` clauses in one `INSERT` are not offered (decided —
 do not re-file):** SQLite runs `ON CONFLICT (id) DO UPDATE ... ON CONFLICT

@@ -345,7 +345,7 @@ SqlArtisan automatically converts C# literal values into bind parameters (to bin
 - **GUID**: `Guid`
 - **Enum**: Any `enum` type, except the function-argument enums `DateTimePart`, `RegexpOptions` and `SearchModifier`, which throw `ArgumentException` in a value position. Passed there, one is a slip — an argument given at an arity with no slot of its type, as `RegexpCount(s, p, RegexpOptions.CaseInsensitive)` gives the options as the position — and bound, it is the value — through `SqlArtisan.Dapper`, its integer. To store or compare one deliberately, bind it with `Sql.Bind(value)`.
 
-That list is what SqlArtisan accepts as a bind value; whether a value reaches the database is the execution layer's and the provider's. Through `SqlArtisan.Dapper`, Dapper rejects `DateOnly`, `TimeOnly`, `nint`, `nuint` and `Complex` before the provider sees them (`NotSupportedException`, observed with Dapper 2.1.66), and the provider decides the rest — Npgsql rejects `sbyte`, `ushort`, `uint` and `ulong` (observed with Npgsql 9.0.3).
+That list is what SqlArtisan accepts as a bind value; whether a value reaches the database is the execution layer's and the provider's. Through `SqlArtisan.Dapper`, Dapper rejects `DateOnly`, `TimeOnly`, `nint`, `nuint` and `Complex` before the provider sees them (`NotSupportedException`, observed with Dapper 2.1.66), and the provider decides the rest — Npgsql rejects `sbyte`, `ushort`, `uint`, `ulong` and a `DateTimeOffset` whose offset is not zero (observed with Npgsql 9.0.3).
 
 A `byte[]` is not in the list: `In(...)` reads an array as one value per element, so bind binary data with `new BindValue(bytes)`.
 

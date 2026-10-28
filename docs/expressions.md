@@ -175,10 +175,10 @@ SqlStatement sql =
 > instead.
 
 > [!WARNING]
-> **`+` with a string operand adds numbers on MySQL and SQLite.** `"Dr. " + u.LastName`
-> builds `(:0 + last_name)`, and `u.FirstName + " "` builds `(first_name + :0)`; both
-> engines run them as numeric addition with no error (observed on MySQL 8.0 and SQLite
-> 3.50.4), and no analyzer rule reports it. Use `Concat(...)` on MySQL and
+> **`+` between strings adds numbers on MySQL and SQLite.** `"Dr. " + u.LastName`
+> builds `(:0 + last_name)`, and `u.FirstName + " "` builds `(first_name + :0)`; over
+> text columns both engines run them as numeric addition with no error (observed on
+> MySQL 8.0 and SQLite 3.50.4), and no analyzer rule reports it. Use `Concat(...)` on MySQL and
 > `DoublePipe(...)` on SQLite.
 
 ---

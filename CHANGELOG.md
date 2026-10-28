@@ -997,8 +997,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   that conditions the earlier matched branch (#685).
 
 ### Docs
-- `docs/expressions.md` § String Concatenation warns that `+` with a string
-  operand runs as numeric addition, with no error, on MySQL and SQLite
+- `docs/expressions.md` § String Concatenation warns that `+` between strings
+  runs as numeric addition, with no error, on MySQL and SQLite
   (observed on MySQL 8.0 and SQLite 3.50.4), and names `Concat(...)` and
   `DoublePipe(...)` there. (#669)
 - `docs/analyzer.md` records that `SQLA0103` counts MySQL, Oracle and PostgreSQL

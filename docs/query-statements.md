@@ -389,7 +389,7 @@ SqlStatement sql =
 
 **Dialect note:** `NullsFirst` / `NullsLast` emit `NULLS FIRST` / `NULLS LAST`, which MySQL and SQL Server reject — neither engine has the clause.
 
-A `string`, `char`, `bool`, date/time or enum sort key throws `Invalid type for
+A `string`, `char`, `bool`, date/time, GUID or enum sort key throws `Invalid type for
 OrderByItem: ...` at the call: bound, it would be a constant that sorts
 nothing, so a column name held in a string, or a sort-field enum, cannot pick
 the sort column. Choose
