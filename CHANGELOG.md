@@ -79,6 +79,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   17, SQLite 3.50, and SQL Server 2022 and 2025. (#662)
 
 ### Changed
+- `Build()` accepts a set-operator branch's `TOP` beside the compound's
+  `OffsetRows(...)` / `FetchNext(...)`, which SQL Server 2022 runs; it threw
+  `TOP cannot be combined with LIMIT, OFFSET, or FETCH`. (#669)
 - **Breaking:** `new OutputParameter(name, ...)` throws `ArgumentException`
   unless the name starts with a letter and holds only letters, digits, `_`, `$`
   and `#`, the shape of an Oracle nonquoted identifier. Its marker ends at any

@@ -242,7 +242,8 @@ over-guard finding at any tier.
 
 **Which clause pairs no dialect runs get a guard (decided — do not re-file):** a
 pair of statement clauses no dialect accepts together is rejected when both
-halves spell one slot (`TOP` beside `LIMIT` / `OFFSET` / `FETCH`), or when one
+halves spell one slot (`TOP` beside `LIMIT` / `OFFSET` / `FETCH`, where a compound's
+`OFFSET ROWS` / `FETCH` is not the branch's slot, #669), or when one
 half is a DML clause or statement form only some engines take and those engines
 refuse the other half: another DML clause or form, or a clause they take in a
 `SELECT` but refuse in that position (a `WITH` between `INSERT INTO` and its
@@ -731,7 +732,9 @@ second stage on one statement is refused — and widened two dialect guards:
 the leading `WITH` rejection to MySQL's `INSERT` (live: 8.0 `ER_PARSE_ERROR`),
 and `TOP` beside `LIMIT`/`OFFSET`/`FETCH` to every dialect, since `TOP` is SQL
 Server's alone and SQL Server rejects it beside `OFFSET`/`FETCH`
-(`TopWithOffsetFetch_IsRejectedByTheEngine`). **The #400 pairings stay
+(`TopWithOffsetFetch_IsRejectedByTheEngine`) in one query block; it runs a
+compound's `OFFSET ROWS` / `FETCH` beside a branch's `TOP`
+(`TopInBranchWithCompoundOffset_IsAcceptedByTheEngine`, #669). **The #400 pairings stay
 Build()-time by decision** (pass 7): narrowing the `Output(...)` continuation
 types to withhold `Returning`/`Using`/upsert would split three interface
 families for a rejection the guard already states exactly, so ADR 0007's

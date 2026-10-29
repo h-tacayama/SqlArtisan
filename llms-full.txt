@@ -1231,7 +1231,7 @@ SqlStatement sql =
 // ORDER BY age
 ```
 
-`Top(n)` also chains `.Percent()` (`TOP (n) PERCENT`) and combines with `DISTINCT` (`Select(Distinct, Top(n), ...)` → `SELECT DISTINCT TOP (n)`). `WITH TIES` requires an `ORDER BY` of its own query block, and `TOP` cannot appear with `LIMIT`, `OFFSET`, or `FETCH` in the same query — SqlArtisan throws at `Build()` on every dialect if either rule is broken, in a nested subquery's own clauses as much as in the statement's. A set-operator branch takes no `ORDER BY` of its own (the compound's sorts the combined result), so a tied branch goes in a derived table that carries its `ORDER BY`.
+`Top(n)` also chains `.Percent()` (`TOP (n) PERCENT`) and combines with `DISTINCT` (`Select(Distinct, Top(n), ...)` → `SELECT DISTINCT TOP (n)`). `WITH TIES` requires an `ORDER BY` of its own query block, and `TOP` cannot appear with `LIMIT`, `OFFSET`, or `FETCH` in the same query block (a compound's `OffsetRows(...)` / `FetchNext(...)` page the combined result, so they may follow a branch's `TOP`) — SqlArtisan throws at `Build()` on every dialect if either rule is broken, in a nested subquery's own clauses as much as in the statement's. A set-operator branch takes no `ORDER BY` of its own (the compound's sorts the combined result), so a tied branch goes in a derived table that carries its `ORDER BY`.
 
 **Dialect note:** `TOP` is SQL Server only — on MySQL, Oracle, PostgreSQL, and SQLite use the `LIMIT` or `OFFSET/FETCH` families above; those families expose no `WITH TIES` option in SqlArtisan.
 
