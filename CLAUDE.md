@@ -160,9 +160,9 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships sixteen diagnostics:
   Both report only where the value flows straight into a SqlArtisan argument or
   operator operand (**ADR 0023**).
 - **SQLA0303** — A comparison (`col == Sql.Null`, `<>`, `<`, …) or a simple CASE
-  `When(Null)` against `Sql.Null`, which is never true, so it matches no row. An
-  `==` that may still be a `SET` assignment (one passed to a `SET`-style clause or
-  held in a `var`) stays silent.
+  `When(Null)` against `Sql.Null`, which is never true, so it matches no row.
+  Since `==` also writes a `SET` assignment, an `==` is reported only where it is
+  read as a `SqlCondition` (`docs/analyzer.md` names the silent cases).
 
 Each ID sits in a numbered band that **is** its category, so a family gains a
 rule without renumbering and a bulk-severity setting reaches one family only

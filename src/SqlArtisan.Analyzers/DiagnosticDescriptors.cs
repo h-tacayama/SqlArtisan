@@ -16,8 +16,9 @@ internal static class DiagnosticDescriptors
     private const string DialectCategory = "SqlArtisan.Dialect";
     private const string SchemaCategory = "SqlArtisan.Schema";
 
-    // Statements that cannot mean what they say: one Build() rejects (SQLA0300), or
-    // one C# resolves without SqlArtisan so it binds a C# value (SQLA0301-0302).
+    // Statements that cannot mean what they say: one Build() rejects (SQLA0300), one C#
+    // resolves without SqlArtisan so it binds a C# value (SQLA0301-0302), or a
+    // comparison with NULL that is never true (SQLA0303).
     private const string ValidityCategory = "SqlArtisan.Validity";
 
     // Shared so the two SQLA0104 descriptors cannot drift apart in an IDE's rule

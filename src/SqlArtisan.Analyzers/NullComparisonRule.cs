@@ -9,9 +9,9 @@ namespace SqlArtisan.Analyzers;
 /// which is never true, so the predicate matches no row and the branch is never taken.
 /// </summary>
 /// <remarks>
-/// <c>==</c> also spells a <c>SET</c> assignment, which takes an <c>EqualityCondition</c>,
-/// so an <c>==</c> is judged only where it is read as a <c>SqlCondition</c>; no <c>SET</c>
-/// takes <c>!=</c> or an ordering comparison, so those are judged wherever they appear.
+/// <c>==</c> also spells a <c>SET</c> assignment, so it is judged only where it is read as a
+/// <c>SqlCondition</c>; a <c>SET</c> rejects <c>!=</c> at <c>Build()</c> and takes no ordering
+/// comparison, so those are judged wherever they appear.
 /// </remarks>
 internal static class NullComparisonRule
 {

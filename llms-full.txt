@@ -420,8 +420,8 @@ Built-in function catalog, grouped by family, plus bind-parameter types.
 An opt-in Roslyn analyzer that reports configuration problems; constructs,
 identifiers and argument values a target dialect doesn't support; what the
 generated table classes' schema metadata says about a query; and validity
-problems — a correlated DML target `Build()` would reject, or C# that binds a
-value instead of building SQL.
+problems — a correlated DML target `Build()` would reject, C# that binds a
+value instead of building SQL, or a comparison with NULL that is never true.
 
 [Enabling It](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it) ·
 [Rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules) ·
@@ -5039,8 +5039,9 @@ column to NULL — so an `==` is reported only where it converts to a
 `SqlCondition` (passed, assigned, returned or combined as one), directly or as a
 branch of a conditional (`flag ? a : b`). An `==` held in a `var` stays silent,
 since it may still be assigned; a `switch` expression arm or an explicit cast is
-not followed, so one there can stay silent too. No `SET` takes `!=` or an ordering
-comparison, so those are reported wherever they are written.
+not followed, so one there can stay silent too. A `SET`-style clause rejects `!=`
+at `Build()` and takes no ordering comparison, so neither can be an assignment, and
+both are reported wherever they are written.
 
 SQL Server's deprecated `SET ANSI_NULLS OFF` reads `= NULL` and `<> NULL` as
 NULL tests (SQL Server 2022, live); code that relies on it suppresses the rule the standard

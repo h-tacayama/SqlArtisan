@@ -86,7 +86,8 @@ public class NullComparisonAnalyzerTests
     public Task EqualsNull_HeldAsSqlCondition_ReportsSqla0303() =>
         RunReporting("SqlCondition c = {|#0:t.Name == Null|};", "=", "IsNull");
 
-    // No SET takes `!=` or an ordering comparison, so a variable holding one is reported.
+    // Neither `!=` (rejected at Build()) nor an ordering comparison can be a SET
+    // assignment, so a variable holding one is reported.
     [Fact]
     public Task NotEqualsNull_HeldInVar_ReportsSqla0303() =>
         RunReporting("var c = {|#0:t.Name != Null|};", "<>", "IsNotNull");
