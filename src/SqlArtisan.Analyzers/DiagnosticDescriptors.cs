@@ -264,4 +264,13 @@ internal static class DiagnosticDescriptors
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
+
+    public static readonly DiagnosticDescriptor NullComparison = new(
+        id: "SQLA0303",
+        title: "A comparison with NULL is never true",
+        messageFormat: "'{0}' compares with NULL and is never true; test for NULL with {1}",
+        category: ValidityCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
 }

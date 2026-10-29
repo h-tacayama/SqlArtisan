@@ -49,7 +49,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.TypeCategoryMismatch,
         DiagnosticDescriptors.CorrelatedDmlTargetNotAliased,
         DiagnosticDescriptors.ReferenceEqualityBound,
-        DiagnosticDescriptors.QueryObjectAsText);
+        DiagnosticDescriptors.QueryObjectAsText,
+        DiagnosticDescriptors.NullComparison);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -101,6 +102,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         Register(AnalyzeCorrelatedDml, OperationKind.Invocation);
         Register(AnalyzeCSharpFallback, OperationKind.Binary);
         Register(AnalyzeInterpolation, OperationKind.InterpolatedString);
+        Register(AnalyzeNullComparison, OperationKind.Binary);
+        Register(AnalyzeNullComparison, OperationKind.Invocation);
         context.RegisterCompilationEndAction(ValidateConfiguration);
     }
 
@@ -756,6 +759,27 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
         CSharpFallbackRule.CheckInterpolation(
             context, (IInterpolatedStringOperation)context.Operation);
+    }
+
+    private static void AnalyzeNullComparison(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
+    {
+        if (GetTargets(context, cache).IsEmpty)
+        {
+            return;
+        }
+
+        switch (context.Operation)
+        {
+            case IBinaryOperation binary:
+                NullComparisonRule.CheckComparison(context, binary);
+                break;
+            case IInvocationOperation invocation:
+                NullComparisonRule.CheckSimpleCaseWhen(context, invocation);
+                break;
+        }
     }
 
     private static void AnalyzeIdentifierLength(

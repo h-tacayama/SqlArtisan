@@ -245,6 +245,11 @@ SqlStatement sql =
 // OR (id IS NOT NULL)
 ```
 
+> [!NOTE]
+> A comparison with `Null` (`u.Id == Null`, `u.Id != Null`, a simple CASE `When(Null)`) is
+> never true, so it matches no row; test with `IsNull` / `IsNotNull`. The analyzer reports it
+> as [`SQLA0303`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#comparisons-with-null-sqla0303).
+
 ### Pattern Matching Condition
 ```csharp
 UsersTable u = new();
