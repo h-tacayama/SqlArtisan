@@ -1268,11 +1268,12 @@ Test for NULL with `u.Name.IsNull` or `IsNotNull`, and in a CASE with a searched
 and names `IsNull`; `Sql.Null` is the spelling that reaches the engine.
 
 `==` also writes a `SET` assignment — `Update(u).Set(u.Name == Null)` sets the
-column to NULL — so an `==` is reported only where it is read as a condition: an
-argument or an operand that takes a `SqlCondition`, a variable of that type, or a
-conditional (`flag ? a : b`) passed to one. An `==` held in a `var` stays silent,
-since it may still be assigned. No `SET` takes `!=` or an ordering comparison, so
-those are reported wherever they are written.
+column to NULL — so an `==` is reported only where it converts to a
+`SqlCondition` (passed, assigned, returned or combined as one), directly or as a
+branch of a conditional (`flag ? a : b`). An `==` held in a `var` stays silent,
+since it may still be assigned; a `switch` expression arm or an explicit cast is
+not followed, so one there can stay silent too. No `SET` takes `!=` or an ordering
+comparison, so those are reported wherever they are written.
 
 SQL Server's deprecated `SET ANSI_NULLS OFF` reads `= NULL` and `<> NULL` as
 NULL tests (SQL Server 2022, live); code that relies on it suppresses the rule the standard
