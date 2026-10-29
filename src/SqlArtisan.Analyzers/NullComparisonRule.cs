@@ -10,7 +10,8 @@ namespace SqlArtisan.Analyzers;
 /// </summary>
 /// <remarks>
 /// <c>==</c> also spells a <c>SET</c> assignment, which takes an <c>EqualityCondition</c>,
-/// so a comparison is judged only where it is read as a <c>SqlCondition</c>.
+/// so an <c>==</c> is judged only where it is read as a <c>SqlCondition</c>; no <c>SET</c>
+/// takes <c>!=</c> or an ordering comparison, so those are judged wherever they appear.
 /// </remarks>
 internal static class NullComparisonRule
 {
@@ -20,7 +21,7 @@ internal static class NullComparisonRule
             || !DialectUsageAnalyzer.IsFromSqlArtisan(method.ContainingAssembly)
             || Token(binary.OperatorKind) is not { } token
             || !(IsSqlNull(binary.LeftOperand) || IsSqlNull(binary.RightOperand))
-            || !IsReadAsCondition(binary))
+            || (binary.OperatorKind == BinaryOperatorKind.Equals && !IsReadAsCondition(binary)))
         {
             return;
         }
@@ -85,10 +86,17 @@ internal static class NullComparisonRule
     private static bool IsReadAsCondition(IOperation operation)
     {
         ITypeSymbol? type = operation.Type;
-        while (operation.Parent is IConversionOperation { IsImplicit: true } conversion)
+        while (operation.Parent is IConversionOperation { IsImplicit: true }
+            or IConditionalOperation)
         {
-            operation = conversion;
-            type = conversion.Type;
+            if (operation.Parent is IConditionalOperation conditional
+                && conditional.Condition == operation)
+            {
+                break;
+            }
+
+            operation = operation.Parent;
+            type = operation.Type;
         }
 
         return type is { Name: "SqlCondition" }

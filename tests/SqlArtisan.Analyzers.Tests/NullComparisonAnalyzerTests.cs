@@ -86,6 +86,23 @@ public class NullComparisonAnalyzerTests
     public Task EqualsNull_HeldAsSqlCondition_ReportsSqla0303() =>
         RunReporting("SqlCondition c = {|#0:t.Name == Null|};", "=", "IsNull");
 
+    // No SET takes `!=` or an ordering comparison, so a variable holding one is reported.
+    [Fact]
+    public Task NotEqualsNull_HeldInVar_ReportsSqla0303() =>
+        RunReporting("var c = {|#0:t.Name != Null|};", "<>", "IsNotNull");
+
+    [Fact]
+    public Task OrderingWithNull_HeldInVar_ReportsSqla0303() =>
+        RunReporting("var c = {|#0:t.Id < Null|};", "<", "IsNull or IsNotNull");
+
+    [Fact]
+    public Task EqualsNull_InConditionalPassedToWhere_ReportsSqla0303() =>
+        RunReporting(
+            "bool flag = true; "
+                + "var q = Select(t.Id).From(t).Where(flag ? {|#0:t.Name == Null|} : t.Id == 1);",
+            "=",
+            "IsNull");
+
     [Fact]
     public Task SimpleCaseWhenNull_ReportsSqla0303() =>
         RunReporting(
@@ -97,6 +114,12 @@ public class NullComparisonAnalyzerTests
     [Fact]
     public Task EqualsNull_AsSetAssignment_StaysSilent() =>
         RunSilent("var q = Update(t).Set(t.Name == Null).Where(t.Id == 1);");
+
+    [Fact]
+    public Task EqualsNull_InConditionalPassedToSet_StaysSilent() =>
+        RunSilent(
+            "bool flag = true; "
+                + "var q = Update(t).Set(flag ? t.Name == Null : t.Name == 1).Where(t.Id == 1);");
 
     // An EqualityCondition held in a variable may still become an assignment.
     [Fact]

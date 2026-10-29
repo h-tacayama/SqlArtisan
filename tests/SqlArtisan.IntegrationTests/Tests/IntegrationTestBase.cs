@@ -1137,8 +1137,8 @@ public abstract class IntegrationTestBase
         Assert.Equal(new DateTime(2020, 3, 15, 10, 30, 0), value);
     }
 
-    // #742: a comparison with NULL, the shape SQLA0303 reports, matches no row; the seeded
-    // users all leave is_active NULL, which IS NULL finds.
+    // #742: a comparison with NULL, the shape SQLA0303 reports, matches no row. The seeded
+    // users all leave is_active NULL, which IS NULL finds; id is never NULL.
     [Fact]
     public void ComparisonWithNull_MatchesNoRow()
     {
@@ -1153,9 +1153,13 @@ public abstract class IntegrationTestBase
             Select(Count(Asterisk))
             .From(u)
             .Where(Case(u.IsActive, When(Null).Then(1), Else(0)) == 1)));
+        SqlCondition[] others =
+            [u.Id != Null, u.Id < Null, u.Id <= Null, u.Id > Null, u.Id >= Null];
 
         Assert.Equal(5, isNull);
         Assert.Equal(0, equalsNull);
         Assert.Equal(0, whenNull);
+        Assert.All(others, condition => Assert.Equal(0, Convert.ToInt64(
+            connection.ExecuteScalar(Select(Count(Asterisk)).From(u).Where(condition)))));
     }
 }

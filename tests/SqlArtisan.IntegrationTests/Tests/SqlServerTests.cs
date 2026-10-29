@@ -1603,24 +1603,30 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.NotEmpty(ids);
     }
 
-    // #742: why SQLA0303 reports `= NULL` instead of Build() rejecting it: under the
-    // deprecated ANSI_NULLS OFF, SQL Server reads it as a NULL test.
+    // #742: why SQLA0303 reports `= NULL` and `<> NULL` instead of Build() rejecting
+    // them: under the deprecated ANSI_NULLS OFF, SQL Server reads each as a NULL test.
     [Fact]
-    public void EqualsNull_UnderAnsiNullsOff_MatchesNullRows()
+    public void ComparisonWithNull_UnderAnsiNullsOff_ReadsANullTest()
     {
         UsersTable u = new();
-        SqlStatement sql =
+        SqlStatement equalsNull =
             Select(Count(Asterisk))
             .From(u)
             .Where(u.IsActive == Null)
+            .Build(Dbms.SqlServer);
+        SqlStatement notEqualsNull =
+            Select(Count(Asterisk))
+            .From(u)
+            .Where(u.Id != Null)
             .Build(Dbms.SqlServer);
         using IDbConnection connection = _fixture.OpenConnection();
 
         try
         {
-            long count = connection.ExecuteScalar<long>("SET ANSI_NULLS OFF; " + sql.Text);
+            connection.Execute("SET ANSI_NULLS OFF");
 
-            Assert.Equal(5, count);
+            Assert.Equal(5, connection.ExecuteScalar<long>(equalsNull.Text));
+            Assert.Equal(5, connection.ExecuteScalar<long>(notEqualsNull.Text));
         }
         finally
         {
