@@ -221,7 +221,7 @@ JSON paths are emitted as inline string literals: an expression index over a JSO
 - `JsonValue(jsonDoc, path)` for `JSON_VALUE(jsonDoc, 'path')` (MySQL, Oracle, PostgreSQL, SQL Server)
 - `JsonQuery(jsonDoc, path)` for `JSON_QUERY(jsonDoc, 'path')` (Oracle, PostgreSQL, SQL Server)
 
-PostgreSQL gained `JSON_VALUE` and `JSON_QUERY` in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
+`JsonValue` (MySQL, PostgreSQL) and `JsonQuery` (PostgreSQL) have a minimum engine version there — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 JSON **operators** (`->`, `->>`, `#>`, `#>>`, and the JSONB predicates
 `@>` / `?` / `?|` / `?&`) live in

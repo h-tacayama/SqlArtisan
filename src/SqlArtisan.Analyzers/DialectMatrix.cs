@@ -733,8 +733,8 @@ internal static class DialectMatrix
         // plain DELETE ... USING — see the MatrixKey collision caveat above; the entry is
         // their support union. See the JOIN's arity-2 entry above (#197) for USING(column).
         [new MatrixKey("Using")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
-        // Sql.Values(alias, columnNames, rows) — the MERGE USING literal-row source; arity 3
-        // keeps it out of the arity-less Values union above (the builder's instance
+        // Sql.Values(alias, columnNames, rows) — the FROM, join or MERGE USING literal-row
+        // source; arity 3 keeps it out of the arity-less Values union above (the builder's instance
         // Values(...) overloads are all arity 1). Oracle has no VALUES row constructor in USING.
         [new MatrixKey("Values", 3)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("WhenMatched")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
