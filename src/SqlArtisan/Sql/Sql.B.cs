@@ -23,6 +23,13 @@ public static partial class Sql
             throw new ArgumentNullException(nameof(value), BindValue.NullValueMessage);
         }
 
+        // ADO.NET's NULL has its own remedy, so it leaves the invalid-type message.
+        if (value is DBNull)
+        {
+            throw new ArgumentException(
+                "DBNull.Value cannot be bound; use Sql.BindNull to bind SQL NULL.");
+        }
+
         if (!IsBindable(value))
         {
             throw UnresolvableValue(nameof(Bind), value);

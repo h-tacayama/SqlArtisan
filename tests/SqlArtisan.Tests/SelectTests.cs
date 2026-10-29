@@ -797,6 +797,68 @@ public class SelectTests
             ex.Message);
     }
 
+    // SQL Server 2022 runs a compound's OFFSET ROWS / FETCH beside a branch's TOP (#669).
+    [Fact]
+    public void Top_SqlServer_InCompoundBranch_WithCompoundOffsetFetch_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Top(1), _t.Code)
+            .From(_t)
+            .UnionAll
+            .Select(_t.Code)
+            .From(_t)
+            .OrderBy(_t.Code)
+            .OffsetRows(0)
+            .FetchNext(5)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT TOP (@0) \"t\".code FROM test_table \"t\" ");
+        expected.Append("UNION ALL ");
+        expected.Append("SELECT \"t\".code FROM test_table \"t\" ");
+        expected.Append("ORDER BY \"t\".code ");
+        expected.Append("OFFSET @1 ROWS FETCH NEXT @2 ROWS ONLY");
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(3, sql.Parameters.Count);
+    }
+
+    // The compound lift covers OFFSET ROWS / FETCH alone; LIMIT is not SQL Server's.
+    [Fact]
+    public void Top_SqlServer_InCompoundBranch_WithCompoundLimit_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Top(1), _t.Code)
+            .From(_t)
+            .UnionAll
+            .Select(_t.Code)
+            .From(_t)
+            .Limit(5)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "TOP cannot be combined with LIMIT, OFFSET, or FETCH; use one or the other.",
+            ex.Message);
+    }
+
+    // The compound lift needs OFFSET ROWS; FetchFirst, like LIMIT, is not SQL Server's.
+    [Fact]
+    public void Top_SqlServer_InCompoundBranch_WithCompoundFetchFirst_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Top(1), _t.Code)
+            .From(_t)
+            .UnionAll
+            .Select(_t.Code)
+            .From(_t)
+            .OrderBy(_t.Code)
+            .FetchFirst(5)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "TOP cannot be combined with LIMIT, OFFSET, or FETCH; use one or the other.",
+            ex.Message);
+    }
+
     // TOP is SQL Server's alone and LIMIT is not, so the pairing is invalid on every
     // target, not only where the OFFSET / FETCH check used to run.
     [Theory]

@@ -1626,4 +1626,21 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
             "SELECT COUNT(*) FROM users WHERE id NOT IN ()"));
     }
+
+    // #669: RegexpOptions.None emits an empty match parameter, which Oracle reads as
+    // NULL; it must filter as the two-argument form does.
+    [Fact]
+    public void RegexpLike_EmptyMatchParameter_FiltersAsTheTwoArgumentForm()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        int twoArguments = connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM users WHERE REGEXP_LIKE(name, 'A')");
+        int emptyMatchParameter = connection.ExecuteScalar<int>(
+            Select(Count(Asterisk)).From(u).Where(RegexpLike(u.Name, "A", RegexpOptions.None)));
+
+        Assert.True(twoArguments > 0);
+        Assert.Equal(twoArguments, emptyMatchParameter);
+    }
 }

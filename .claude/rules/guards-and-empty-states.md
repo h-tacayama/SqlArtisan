@@ -242,7 +242,8 @@ over-guard finding at any tier.
 
 **Which clause pairs no dialect runs get a guard (decided — do not re-file):** a
 pair of statement clauses no dialect accepts together is rejected when both
-halves spell one slot (`TOP` beside `LIMIT` / `OFFSET` / `FETCH`), or when one
+halves spell one slot (`TOP` beside `LIMIT` / `OFFSET` / `FETCH`, save a compound's
+`OFFSET ROWS` / `FETCH`, which SQL Server 2022 runs beside a branch's `TOP`, #669), or when one
 half is a DML clause or statement form only some engines take and those engines
 refuse the other half: another DML clause or form, or a clause they take in a
 `SELECT` but refuse in that position (a `WITH` between `INSERT INTO` and its
@@ -731,7 +732,9 @@ second stage on one statement is refused — and widened two dialect guards:
 the leading `WITH` rejection to MySQL's `INSERT` (live: 8.0 `ER_PARSE_ERROR`),
 and `TOP` beside `LIMIT`/`OFFSET`/`FETCH` to every dialect, since `TOP` is SQL
 Server's alone and SQL Server rejects it beside `OFFSET`/`FETCH`
-(`TopWithOffsetFetch_IsRejectedByTheEngine`). **The #400 pairings stay
+(`TopWithOffsetFetch_IsRejectedByTheEngine`) in one query block; it runs a
+compound's `OFFSET ROWS` / `FETCH` beside a branch's `TOP`
+(`TopInBranchWithCompoundOffset_IsAcceptedByTheEngine`, #669). **The #400 pairings stay
 Build()-time by decision** (pass 7): narrowing the `Output(...)` continuation
 types to withhold `Returning`/`Using`/upsert would split three interface
 families for a rejection the guard already states exactly, so ADR 0007's
@@ -1122,12 +1125,13 @@ the offending type, never saying what the caller did wrong, and leaks an
 internal name into the public failure surface: that is how three `SET`-list
 guards said `Invalid type for EqualityCondition` until #497. The one type name
 in the family is `SqlExpression`, for the generic value position whose
-requirement *is* that — not a precedent for a narrower position. Three values a
+requirement *is* that — not a precedent for a narrower position. Four values a
 caller writes in a reachable slip leave the family for a remedy of their own:
 a `SELECT` prefix (`Distinct`, `DistinctOn(...)`, `Top(n)`, `Hints(...)`)
 written out of the order the `Select(...)` overloads take, which lands in an
 item slot; a `Group(...)` grouping set outside `GroupingSets`, `Rollup` or
-`Cube`; and an array among the values an `INSERT` or MERGE `Values(...)` call
+`Cube`; `DBNull.Value` passed to `Bind(...)`, which names `Sql.BindNull()`
+(#669); and an array among the values an `INSERT` or MERGE `Values(...)` call
 passes, which `params object[]` makes of several rows, of a row of another
 element type, or of an array value, which PostgreSQL binds through
 `BindArray(...)`, named before the

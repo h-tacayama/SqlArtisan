@@ -1231,7 +1231,7 @@ SqlStatement sql =
 // ORDER BY age
 ```
 
-`Top(n)` also chains `.Percent()` (`TOP (n) PERCENT`) and combines with `DISTINCT` (`Select(Distinct, Top(n), ...)` → `SELECT DISTINCT TOP (n)`). `WITH TIES` requires an `ORDER BY` of its own query block, and `TOP` cannot appear with `LIMIT`, `OFFSET`, or `FETCH` in the same query — SqlArtisan throws at `Build()` on every dialect if either rule is broken, in a nested subquery's own clauses as much as in the statement's. A set-operator branch takes no `ORDER BY` of its own (the compound's sorts the combined result), so a tied branch goes in a derived table that carries its `ORDER BY`.
+`Top(n)` also chains `.Percent()` (`TOP (n) PERCENT`) and combines with `DISTINCT` (`Select(Distinct, Top(n), ...)` → `SELECT DISTINCT TOP (n)`). `WITH TIES` requires an `ORDER BY` of its own query block, and `TOP` cannot appear with `LIMIT`, `OFFSET`, or `FETCH` in the same query block (a compound's `OffsetRows(...)` / `FetchNext(...)` page the combined result, so they may follow a branch's `TOP`) — SqlArtisan throws at `Build()` on every dialect if either rule is broken, in a nested subquery's own clauses as much as in the statement's. A set-operator branch takes no `ORDER BY` of its own (the compound's sorts the combined result), so a tied branch goes in a derived table that carries its `ORDER BY`.
 
 **Dialect note:** `TOP` is SQL Server only — on MySQL, Oracle, PostgreSQL, and SQLite use the `LIMIT` or `OFFSET/FETCH` families above; those families expose no `WITH TIES` option in SqlArtisan.
 
@@ -3736,7 +3736,7 @@ That list is what SqlArtisan accepts as a bind value; whether a value reaches th
 
 A `byte[]` is not in the list: `In(...)` reads an array as one value per element, so bind binary data with `new BindValue(bytes)`.
 
-`Sql.Bind(value)` rejects `null`. For a bound `NULL`, use `Sql.BindNull()`: `Sql.Null` inlines the `NULL` keyword into the SQL text — as does a bare C# `null` in a `VALUES` row, the one position that takes one; anywhere else it throws — while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
+`Sql.Bind(value)` rejects `null` and `DBNull.Value`. For a bound `NULL`, use `Sql.BindNull()`: `Sql.Null` inlines the `NULL` keyword into the SQL text — as does a bare C# `null` in a `VALUES` row, the one position that takes one; anywhere else it throws — while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
 
 Two kinds of string never become a bind parameter, and they behave differently:
 

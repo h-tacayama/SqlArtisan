@@ -1583,4 +1583,23 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
             "SELECT COUNT(*) FROM users WHERE id NOT IN ()"));
     }
+
+    // #669: the engine rejects TOP beside OFFSET/FETCH in one block
+    // (TopWithOffsetFetch_IsRejectedByTheEngine), not beside a compound's.
+    [Fact]
+    public void TopInBranchWithCompoundOffset_IsAcceptedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            Select(Top(1), u.Id).From(u)
+            .UnionAll
+            .Select(u.Id).From(u)
+            .OrderBy(u.Id)
+            .OffsetRows(0)
+            .FetchNext(5));
+
+        Assert.NotEmpty(ids);
+    }
 }

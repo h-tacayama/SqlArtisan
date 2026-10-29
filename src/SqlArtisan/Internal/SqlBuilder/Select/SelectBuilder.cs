@@ -480,12 +480,13 @@ internal class SelectBuilder :
             return;
         }
 
-        // TOP is SQL Server's alone, and SQL Server rejects it beside OFFSET/FETCH
-        // (TopWithOffsetFetch_IsRejectedByTheEngine), so no target runs the pairing.
+        // TOP is SQL Server's alone, and SQL Server 2022 rejects OFFSET ROWS/FETCH beside it in
+        // one block; only the pairing it runs, a compound's beside a branch's TOP, is lifted.
+        bool hasOffsetRows = FindPart<OffsetRowsClause>() is not null;
         if (FindPart<LimitClause>() is not null
             || FindPart<OffsetClause>() is not null
-            || FindPart<OffsetRowsClause>() is not null
-            || FindPart<FetchClause>() is not null)
+            || (!hasOffsetRows && FindPart<FetchClause>() is not null)
+            || (hasOffsetRows && !HasSetOperator()))
         {
             throw new ArgumentException(
                 "TOP cannot be combined with LIMIT, OFFSET, or FETCH; use one or the other.");
