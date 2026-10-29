@@ -242,8 +242,8 @@ over-guard finding at any tier.
 
 **Which clause pairs no dialect runs get a guard (decided — do not re-file):** a
 pair of statement clauses no dialect accepts together is rejected when both
-halves spell one slot (`TOP` beside `LIMIT` / `OFFSET` / `FETCH`, where a compound's
-`OFFSET ROWS` / `FETCH` is not the branch's slot, #669), or when one
+halves spell one slot (`TOP` beside `LIMIT` / `OFFSET` / `FETCH`, save a compound's
+`OFFSET ROWS` / `FETCH`, which SQL Server 2022 runs beside a branch's `TOP`, #669), or when one
 half is a DML clause or statement form only some engines take and those engines
 refuse the other half: another DML clause or form, or a clause they take in a
 `SELECT` but refuse in that position (a `WITH` between `INSERT INTO` and its

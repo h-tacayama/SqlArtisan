@@ -480,8 +480,8 @@ internal class SelectBuilder :
             return;
         }
 
-        // TOP is SQL Server's alone, and SQL Server rejects OFFSET ROWS/FETCH beside it in
-        // one block but runs a compound's beside a branch's TOP (its twins, #669).
+        // TOP is SQL Server's alone, and SQL Server 2022 rejects OFFSET ROWS/FETCH beside it in
+        // one block; only the pairing it runs, a compound's beside a branch's TOP, is lifted.
         if (FindPart<LimitClause>() is not null
             || FindPart<OffsetClause>() is not null
             || (!HasSetOperator()

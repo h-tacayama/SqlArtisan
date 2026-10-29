@@ -800,7 +800,7 @@ public class SelectTests
     // A compound's OFFSET/FETCH sorts and pages the combined result, so it is not the
     // branch's own (#669).
     [Fact]
-    public void Top_InCompoundBranch_WithCompoundOffsetFetch_BuildsSql()
+    public void Top_SqlServer_InCompoundBranch_WithCompoundOffsetFetch_CorrectSql()
     {
         SqlStatement sql =
             Select(Top(1), _t.Code)
@@ -825,7 +825,7 @@ public class SelectTests
 
     // The compound lift covers OFFSET ROWS / FETCH alone; LIMIT is not SQL Server's.
     [Fact]
-    public void Top_InCompoundBranch_WithCompoundLimit_ThrowsArgumentException()
+    public void Top_SqlServer_InCompoundBranch_WithCompoundLimit_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Select(Top(1), _t.Code)
