@@ -731,7 +731,7 @@ public static partial class Sql
     /// <summary>
     /// The <c>CURRENT_DATE</c> function (the current date).
     /// </summary>
-    /// <remarks>Not supported by SQL Server.</remarks>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite, and SQL Server (2025+).</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static SqlExpression CurrentDate => new CurrentDateFunction();
 

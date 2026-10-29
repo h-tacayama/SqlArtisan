@@ -46,7 +46,7 @@ public static partial class Sql
     /// <returns>An <c>IIF</c> function expression.</returns>
     /// <exception cref="ArgumentException"><paramref name="condition"/> is empty
     /// (every operand excluded).</exception>
-    /// <remarks>SQLite (3.32+) and SQL Server (2012+) syntax; on MySQL use
+    /// <remarks>SQLite (3.32+) and SQL Server syntax; on MySQL use
     /// <see cref="If(SqlCondition, object, object)"/>.</remarks>
     public static SqlExpression Iif(SqlCondition condition, object then, object @else) =>
         new IifFunction(condition, Resolve(then, nameof(then)), Resolve(@else, nameof(@else)));

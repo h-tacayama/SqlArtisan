@@ -3512,7 +3512,7 @@ On Oracle and SQLite, use `Instr()` above instead.
 ## Date and Time Functions
 
 - `AddMonths()` for `ADD_MONTHS` (Oracle)
-- `CurrentDate` for `CURRENT_DATE` (not supported by SQL Server)
+- `CurrentDate` for `CURRENT_DATE` (SQL Server gained it in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs))
 - `CurrentTime()` for `CURRENT_TIME` (not supported by Oracle or SQL Server); `CurrentTime(precision)` for `CURRENT_TIME(precision)` (MySQL, PostgreSQL)
 - `CurrentTimestamp()` for `CURRENT_TIMESTAMP`; `CurrentTimestamp(precision)` for `CURRENT_TIMESTAMP(precision)` (MySQL, Oracle, PostgreSQL — MySQL's bare form has whole-second precision)
 - `Date(timevalue[, modifier, ...])` for `DATE` (SQLite; 1-argument form also MySQL/PostgreSQL)
@@ -3605,8 +3605,10 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 JSON paths are emitted as inline string literals: an expression index over a JSON field matches only the literal path, and Oracle requires a literal there in any case. On SQL Server a path holding a non-ASCII character is written `N'...'`, which keeps the character whatever the database's code page.
 
 - `JsonExtract(jsonDoc, path)` for `JSON_EXTRACT(jsonDoc, 'path')` (MySQL, SQLite)
-- `JsonValue(jsonDoc, path)` for `JSON_VALUE(jsonDoc, 'path')` (MySQL, Oracle, SQL Server)
-- `JsonQuery(jsonDoc, path)` for `JSON_QUERY(jsonDoc, 'path')` (Oracle, SQL Server)
+- `JsonValue(jsonDoc, path)` for `JSON_VALUE(jsonDoc, 'path')` (MySQL, Oracle, PostgreSQL, SQL Server)
+- `JsonQuery(jsonDoc, path)` for `JSON_QUERY(jsonDoc, 'path')` (Oracle, PostgreSQL, SQL Server)
+
+`JsonValue` (MySQL, PostgreSQL) and `JsonQuery` (PostgreSQL) have a minimum engine version there — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 JSON **operators** (`->`, `->>`, `#>`, `#>>`, and the JSONB predicates
 `@>` / `?` / `?|` / `?&`) live in
@@ -4252,17 +4254,18 @@ verdict exactly; where the bound sits above the dialect's verified baseline
 | Construct | Dialect | Minimum version | Why |
 |---|---|---|---|
 | `WithRecursive` | MySQL | 8.0 | `WITH RECURSIVE` needs MySQL's CTE support, added in 8.0. |
-| `Grouping` (1-argument form) | MySQL | 8.0.1 | `GROUPING(expr)` landed in 8.0.1. |
+| `Grouping` (both forms) | MySQL | 8.0 | `GROUPING(...)` needs 8.0. |
 | `Except`, `Intersect`, `ExceptAll`, `IntersectAll` | MySQL | 8.0.31 | `EXCEPT`/`INTERSECT` landed in 8.0.31. |
 | `Nowait`, `SkipLocked` | MySQL | 8.0 | `FOR UPDATE NOWAIT`/`SKIP LOCKED` need 8.0. |
 | `OnDuplicateKeyUpdate`, `Excluded` | MySQL | 8.0.19 | SqlArtisan always emits the row-alias UPSERT form (`... AS new ON DUPLICATE KEY UPDATE col = new.col`), which needs the row alias MySQL added in 8.0.19 — the pre-8.0.19 `VALUES()` function form is never emitted. |
 | `JsonValue` | MySQL | 8.0.21 | `JSON_VALUE` landed in 8.0.21. |
 | `Except`, `ExceptAll`, `IntersectAll`, `MinusAll` | Oracle | 21 | `EXCEPT`, `EXCEPT ALL`, `INTERSECT ALL`, and `MINUS ALL` landed in Oracle 21c (plain `INTERSECT`/`MINUS` predate it) — live-verified forward-compatible on Oracle 23ai too. |
 | `L2Distance`, `CosineDistance`, `NegativeInnerProduct` | Oracle | 23 | The `<->`, `<=>`, and `<#>` vector distance shorthands landed with Oracle 23ai's AI Vector Search (the other three pgvector operators have no Oracle spelling at any version). |
-| `MergeInto`, `WhenMatched`, `WhenNotMatched`, `ThenInsert`, `ThenUpdateSet`, `ThenDelete`, the 3-argument `Values` (MERGE `USING` literal rows) | PostgreSQL | 15 | `MERGE` landed in PostgreSQL 15. `Using` itself carries no bound — the key is shared with `DeleteBuilder`'s plain `DELETE ... USING`, which predates and does not require PostgreSQL 15; the `MergeInto` bound still flags a MERGE statement below 15. |
+| `MergeInto`, `WhenMatched`, `WhenNotMatched`, `ThenInsert`, `ThenUpdateSet`, `ThenDelete` | PostgreSQL | 15 | `MERGE` landed in PostgreSQL 15. `Using` itself carries no bound — the key is shared with `DeleteBuilder`'s plain `DELETE ... USING`, which predates and does not require PostgreSQL 15; the `MergeInto` bound still flags a MERGE statement below 15. |
 | `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr`, `RegexpInstr` | PostgreSQL | 15 | `regexp_like`, `regexp_count`, `regexp_substr`, and `regexp_instr` landed in PostgreSQL 15. `regexp_replace` predates it — 15 is where it gained the position and occurrence arguments — so the bound covers only `RegexpReplace`'s position/occurrence/options overloads (4+ arguments); the 3-argument call is not reported below 15. MySQL's `REGEXP_SUBSTR`/`REGEXP_INSTR` top out at 5/6 arguments respectively (neither has `subexpr`), so `RegexpSubstr`'s 6-argument and `RegexpInstr`'s 7-argument overloads are MySQL-unsupported at any version, independent of this PostgreSQL bound. |
 | `Log10` | PostgreSQL | 12 | `log10()` landed in PostgreSQL 12; before it, base-10 was spelled `log(x)`. |
 | `WhenNotMatchedBySource` (both forms) | PostgreSQL | 17 | `MERGE ... WHEN NOT MATCHED BY SOURCE` landed in PostgreSQL 17 — live-verified on the PostgreSQL 17 lane. |
+| `JsonValue`, `JsonQuery` | PostgreSQL | 17 | `JSON_VALUE` and `JSON_QUERY` landed in PostgreSQL 17 — live-verified on the PostgreSQL 17 lane. |
 | `RightJoin`, `FullJoin`, `NaturalRightJoin`, `NaturalFullJoin` | SQLite | 3.39 | `RIGHT JOIN`/`FULL JOIN` landed in SQLite 3.39. |
 | `Returning` | SQLite | 3.35 | `RETURNING` landed in SQLite 3.35. |
 | `Ceil`, `Ceiling`, `Exp`, `Floor`, `Ln`, `Log` (both forms), `Log10`, `Mod`, `Power`, `Sign`, `Sqrt` | SQLite | 3.35 | The `SQLITE_ENABLE_MATH_FUNCTIONS` extension landed in 3.35 (enabled in the project's pinned `bundle_e_sqlite3`), and `sign()` arrived in the same release as a core function; none of these functions exist below it. |
@@ -4271,9 +4274,9 @@ verdict exactly; where the bound sits above the dialect's verified baseline
 | `NullsFirst`, `NullsLast` | SQLite | 3.30 | `NULLS FIRST`/`NULLS LAST` landed in SQLite 3.30. |
 | `Iif` | SQLite | 3.32 | `IIF(...)` landed in SQLite 3.32. |
 | `If` | SQLite | 3.48 | SQLite registered `IF` as a second name for `IIF` in 3.48; earlier versions have `IIF` only. MySQL's own `IF` predates its 8.0 baseline, so that dialect carries no bound. |
-| `Iif` | SQL Server | 2012 | `IIF(...)` has been available since SQL Server 2012. |
 | `Trim` (both forms), `ConcatWs` | SQL Server | 2017 | `TRIM(...)`, its `characters FROM` argument included, and `CONCAT_WS(...)` landed in SQL Server 2017. |
 | `Datetrunc`, `Greatest`, `Least`, the 2-argument `Ltrim`/`Rtrim` forms | SQL Server | 2022 | `DATETRUNC`, `GREATEST`/`LEAST`, and the `LTRIM`/`RTRIM` trim-characters overloads all landed in SQL Server 2022. |
+| `CurrentDate` | SQL Server | 2025 | `CURRENT_DATE` landed in SQL Server 2025 — live-verified on the SQL Server 2025 lane. |
 | `DoublePipe`, `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr`, `RegexpInstr` (every form) | SQL Server | 2025 | The `\|\|` concatenation operator and the `REGEXP_*` family landed in SQL Server 2025 — live-verified on the SQL Server 2025 lane. `REGEXP_LIKE` also needs the database at compatibility level 170: at 160, which an upgraded database can keep, SQL Server 2025 does not recognize it, and the declared version cannot tell the two apart. |
 
 Four `SQLA0102` DML rules carry the same kind of floor — a version from which
@@ -4312,9 +4315,9 @@ version (Oracle 23ai, PostgreSQL 17, SQL Server 2025) reproduces the support.
 - [row-alias `INSERT ... AS new ON DUPLICATE KEY UPDATE`](https://dev.mysql.com/doc/refman/8.0/en/insert-on-duplicate.html) — 8.0.19.
 - [`JSON_VALUE()`](https://dev.mysql.com/doc/refman/8.0/en/json-search-functions.html) — 8.0.21.
 
-(`WITH RECURSIVE` and `NOWAIT` / `SKIP LOCKED` arrived in the 8.0.1 development
-milestone; their bounds round to `8.0`, whose first production release — 8.0.11
-— already includes them.)
+(`WITH RECURSIVE`, `GROUPING()` and `NOWAIT` / `SKIP LOCKED` arrived in the 8.0.1
+development milestone; their bounds round to `8.0`, whose first production release
+— 8.0.11 — already includes them.)
 
 **Oracle** — `EXCEPT [ALL]`, `INTERSECT ALL`, and `MINUS ALL` are new in Oracle
 Database 21c, per the
@@ -4345,7 +4348,8 @@ list both `MERGE` and the `regexp_count` / `regexp_instr` / `regexp_like` /
 [version 12 release notes](https://www.postgresql.org/docs/12/release-12.html)
 add `log10()` as a named alias for the base-10 `log()`, and the
 [version 17 release notes](https://www.postgresql.org/docs/17/release-17.html)
-add `WHEN NOT MATCHED BY SOURCE` to `MERGE`.
+add `WHEN NOT MATCHED BY SOURCE` to `MERGE` and the `JSON_VALUE()` / `JSON_QUERY()`
+functions.
 
 **SQLite** — the per-release change logs:
 
@@ -4364,7 +4368,7 @@ add `WHEN NOT MATCHED BY SOURCE` to `MERGE`.
 - [`TRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/trim-transact-sql) — 2017, its `characters FROM` argument included; the `LEADING` / `TRAILING` / `BOTH` keywords, which SqlArtisan does not emit, need 2022 at compatibility level 160.
 - [`CONCAT_WS`](https://learn.microsoft.com/en-us/sql/t-sql/functions/concat-ws-transact-sql) — 2017.
 - [`DATETRUNC`](https://learn.microsoft.com/en-us/sql/t-sql/functions/datetrunc-transact-sql), [`GREATEST`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-greatest-transact-sql), [`LEAST`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-least-transact-sql), and the [`LTRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/ltrim-transact-sql) / [`RTRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/rtrim-transact-sql) trim-characters argument — 2022 (16.x).
-- [`IIF`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-iif-transact-sql) — 2012 (11.x).
+- [`CURRENT_DATE`](https://learn.microsoft.com/en-us/sql/t-sql/functions/current-date-transact-sql) — 2025 (17.x).
 - The [`||`](https://learn.microsoft.com/en-us/sql/t-sql/language-elements/string-concatenation-pipes-transact-sql) operator and the [`REGEXP_*` functions](https://learn.microsoft.com/en-us/sql/t-sql/functions/regular-expressions-functions-transact-sql) — 2025 (17.x); [`REGEXP_LIKE`](https://learn.microsoft.com/en-us/sql/t-sql/functions/regexp-like-transact-sql) also needs database compatibility level 170.
 
 </details>

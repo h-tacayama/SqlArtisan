@@ -125,7 +125,7 @@ internal static class SmokeCatalog
         Add("Case", () => Scalar(Case(When(u.Age > 30).Then("old"), Else("young"))), All);
 
         // --- Niladic date/time functions ---
-        // CURRENT_TIMESTAMP is universal; CURRENT_DATE has no SQL Server form;
+        // CURRENT_TIMESTAMP is universal; CURRENT_DATE has no SQL Server form before 2025;
         // CURRENT_TIME exists only on MySQL / PostgreSQL / SQLite.
         Add("CurrentTimestamp", () => Scalar(CurrentTimestamp()), All);
         Add("CurrentDate", () => Scalar(CurrentDate),

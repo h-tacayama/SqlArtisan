@@ -125,7 +125,7 @@ On Oracle and SQLite, use `Instr()` above instead.
 ## Date and Time Functions
 
 - `AddMonths()` for `ADD_MONTHS` (Oracle)
-- `CurrentDate` for `CURRENT_DATE` (not supported by SQL Server)
+- `CurrentDate` for `CURRENT_DATE` (SQL Server gained it in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs))
 - `CurrentTime()` for `CURRENT_TIME` (not supported by Oracle or SQL Server); `CurrentTime(precision)` for `CURRENT_TIME(precision)` (MySQL, PostgreSQL)
 - `CurrentTimestamp()` for `CURRENT_TIMESTAMP`; `CurrentTimestamp(precision)` for `CURRENT_TIMESTAMP(precision)` (MySQL, Oracle, PostgreSQL — MySQL's bare form has whole-second precision)
 - `Date(timevalue[, modifier, ...])` for `DATE` (SQLite; 1-argument form also MySQL/PostgreSQL)
@@ -218,8 +218,10 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 JSON paths are emitted as inline string literals: an expression index over a JSON field matches only the literal path, and Oracle requires a literal there in any case. On SQL Server a path holding a non-ASCII character is written `N'...'`, which keeps the character whatever the database's code page.
 
 - `JsonExtract(jsonDoc, path)` for `JSON_EXTRACT(jsonDoc, 'path')` (MySQL, SQLite)
-- `JsonValue(jsonDoc, path)` for `JSON_VALUE(jsonDoc, 'path')` (MySQL, Oracle, SQL Server)
-- `JsonQuery(jsonDoc, path)` for `JSON_QUERY(jsonDoc, 'path')` (Oracle, SQL Server)
+- `JsonValue(jsonDoc, path)` for `JSON_VALUE(jsonDoc, 'path')` (MySQL, Oracle, PostgreSQL, SQL Server)
+- `JsonQuery(jsonDoc, path)` for `JSON_QUERY(jsonDoc, 'path')` (Oracle, PostgreSQL, SQL Server)
+
+`JsonValue` (MySQL, PostgreSQL) and `JsonQuery` (PostgreSQL) have a minimum engine version there — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 JSON **operators** (`->`, `->>`, `#>`, `#>>`, and the JSONB predicates
 `@>` / `?` / `?|` / `?&`) live in
