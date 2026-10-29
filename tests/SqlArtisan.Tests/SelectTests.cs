@@ -840,6 +840,25 @@ public class SelectTests
             ex.Message);
     }
 
+    // The compound lift needs OFFSET ROWS; FetchFirst, like LIMIT, is not SQL Server's.
+    [Fact]
+    public void Top_SqlServer_InCompoundBranch_WithCompoundFetchFirst_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Top(1), _t.Code)
+            .From(_t)
+            .UnionAll
+            .Select(_t.Code)
+            .From(_t)
+            .OrderBy(_t.Code)
+            .FetchFirst(5)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "TOP cannot be combined with LIMIT, OFFSET, or FETCH; use one or the other.",
+            ex.Message);
+    }
+
     // TOP is SQL Server's alone and LIMIT is not, so the pairing is invalid on every
     // target, not only where the OFFSET / FETCH check used to run.
     [Theory]
