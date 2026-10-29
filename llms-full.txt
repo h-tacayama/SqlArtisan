@@ -5040,8 +5040,8 @@ column to NULL — so an `==` is reported only where it converts to a
 branch of a conditional (`flag ? a : b`). An `==` held in a `var` stays silent,
 since it may still be assigned; a `switch` expression arm or an explicit cast is
 not followed, so one there can stay silent too. A `SET`-style clause rejects `!=`
-at `Build()` and takes no ordering comparison, so neither can be an assignment, and
-both are reported wherever they are written.
+when it is called and takes no ordering comparison, so neither can be an
+assignment, and both are reported wherever they are written.
 
 SQL Server's deprecated `SET ANSI_NULLS OFF` reads `= NULL` and `<> NULL` as
 NULL tests (SQL Server 2022, live); code that relies on it suppresses the rule the standard

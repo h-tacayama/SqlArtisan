@@ -10,7 +10,7 @@ namespace SqlArtisan.Analyzers;
 /// </summary>
 /// <remarks>
 /// <c>==</c> also spells a <c>SET</c> assignment, so it is judged only where it is read as a
-/// <c>SqlCondition</c>; a <c>SET</c> rejects <c>!=</c> at <c>Build()</c> and takes no ordering
+/// <c>SqlCondition</c>; a <c>SET</c> rejects <c>!=</c> at the call and takes no ordering
 /// comparison, so those are judged wherever they appear.
 /// </remarks>
 internal static class NullComparisonRule
