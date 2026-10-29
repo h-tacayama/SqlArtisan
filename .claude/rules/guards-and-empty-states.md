@@ -434,7 +434,7 @@ as written, and `docs/query-statements.md` § ORDER BY carries the
 
 **A bound value is no sort, group, partition or `DISTINCT ON` key, nor a number
 an expression-position sort key (decided — do not re-file):** a
-bound `string`, `char`, `bool`, date/time or enum value is a constant, which
+bound `string`, `char`, `bool`, date/time, GUID or enum value is a constant, which
 sorts or groups nothing (`ORDER BY $1` bound to `'a'` or to an enum's integer
 returned the rows unsorted on PostgreSQL 16 and SQLite 3.45.1, live), so
 `OrderByItemResolver` and `GroupByItemResolver` reject one at the call, on every

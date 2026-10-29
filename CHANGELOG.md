@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- `Guid`, `DateTimeOffset` and `TimeSpan` values bind implicitly wherever a
+  `string` or `DateTime` does, and `Sql.Bind(...)` and `BindArray(...)` take
+  them; they threw `ArgumentException`. A `byte[]` still does not bind
+  implicitly: `new BindValue(bytes)` binds one. (#669)
 - `SQLA0001` reports a `sqlartisan_construct_*` key that names no SqlArtisan
   member, or no declared parameter count of one — a typo, an arity the member
   lacks, or a key for a renamed or removed member such as #588's
@@ -993,6 +997,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   that conditions the earlier matched branch (#685).
 
 ### Docs
+- `docs/expressions.md` § String Concatenation warns that `+` between strings
+  runs as numeric addition, with no error, on MySQL and SQLite
+  (observed on MySQL 8.0 and SQLite 3.50.4), and names `Concat(...)` and
+  `DoublePipe(...)` there. (#669)
 - `docs/analyzer.md` records that `SQLA0103` counts MySQL, Oracle and PostgreSQL
   identifiers in UTF-8 bytes (a PostgreSQL 16.15 `EUC_JP` database keeps a name
   it reports), lists a method group among the known limitations, and names a

@@ -365,7 +365,8 @@ internal static class ExpressionResolver
         || IsCharacter(value)
         || IsDateTime(value)
         || IsNumeric(value)
-        || IsEnum(value);
+        || IsEnum(value)
+        || value is Guid;
 
     // Type-level twin of IsBindable for BindArray's element check: the element
     // type is fixed at the call site, so even an empty array validates
@@ -377,8 +378,10 @@ internal static class ExpressionResolver
             || unwrapped == typeof(char)
             || unwrapped == typeof(string)
             || unwrapped == typeof(DateTime)
+            || unwrapped == typeof(DateTimeOffset)
             || unwrapped == typeof(DateOnly)
             || unwrapped == typeof(TimeOnly)
+            || unwrapped == typeof(TimeSpan)
             || unwrapped == typeof(sbyte)
             || unwrapped == typeof(byte)
             || unwrapped == typeof(short)
@@ -393,7 +396,8 @@ internal static class ExpressionResolver
             || unwrapped == typeof(double)
             || unwrapped == typeof(decimal)
             || unwrapped == typeof(Complex)
-            || unwrapped.IsEnum;
+            || unwrapped.IsEnum
+            || unwrapped == typeof(Guid);
     }
 
     internal static bool IsBoolean(object value) =>
@@ -405,8 +409,10 @@ internal static class ExpressionResolver
 
     internal static bool IsDateTime(object value) =>
         value is DateTime
+        || value is DateTimeOffset
         || value is DateOnly
-        || value is TimeOnly;
+        || value is TimeOnly
+        || value is TimeSpan;
 
     internal static bool IsNumeric(object value) =>
         value is sbyte

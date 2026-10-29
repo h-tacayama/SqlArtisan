@@ -144,8 +144,8 @@ override — so every build path (including `Returning()`, which funnels through
   `ON DUPLICATE KEY UPDATE` subquery reading the `INSERT` target, which MySQL
   cannot alias: it reaches the inserted row through `Excluded(...)` and has no
   spelling for the existing row's other columns (`guards-and-empty-states.md`,
-  recorded exception). The sixth is a `string`, `char`, `bool`, date/time or
-  enum value as a sort or group key (#678): bound, it is a constant that sorts
+  recorded exception). The sixth is a `string`, `char`, `bool`, date/time, GUID
+  or enum value as a sort or group key (#678, GUID since #669): bound, it is a constant that sorts
   or groups nothing (PostgreSQL 16 and SQLite 3.45.1 run `ORDER BY $1` and leave
   the rows unsorted, and run `GROUP BY $1` as one group, live), so `OrderBy(...)`
   and `GroupBy(...)` reject it at the call on every dialect, even where an engine

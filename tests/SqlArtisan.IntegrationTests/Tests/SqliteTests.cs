@@ -1363,4 +1363,18 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
             "SELECT * FROM (VALUES (1)) \"\" (a)"));
     }
+
+    // #669: `+` between strings is numeric addition here, not concatenation, as
+    // docs/expressions.md § String Concatenation warns; concatenated, the name is text.
+    [Fact]
+    public void StringPlusTextColumn_AddsNumerically()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(0, connection.ExecuteScalar<int>(
+            Select("Dr. " + u.Name).From(u).Where(u.Id == 1)));
+        Assert.Equal(0, connection.ExecuteScalar<int>(
+            Select(u.Name + " ").From(u).Where(u.Id == 1)));
+    }
 }

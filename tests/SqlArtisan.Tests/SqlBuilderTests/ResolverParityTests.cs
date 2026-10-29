@@ -15,7 +15,8 @@ public class ResolverParityTests
 
     public static TheoryData<string> Values => new()
     {
-        "column", "subquery", "int", "string", "datetime", "bindvalue",
+        "column", "subquery", "int", "string", "datetime", "datetimeoffset", "timespan",
+        "guid", "bindvalue",
     };
 
     [Theory]
@@ -55,6 +56,9 @@ public class ResolverParityTests
             "int" => 42,
             "string" => "x",
             "datetime" => new DateTime(2026, 1, 1),
+            "datetimeoffset" => new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero),
+            "timespan" => TimeSpan.FromHours(1),
+            "guid" => Guid.Empty,
             _ => Bind(7),
         };
     }
