@@ -201,8 +201,9 @@ public static partial class Sql
     /// <summary>
     /// The <c>JSON_QUERY(jsonDoc, 'path')</c> function: extracts a JSON object
     /// or array from a JSON document at the given <paramref name="path"/>
-    /// (Oracle, SQL Server).
+    /// (Oracle, PostgreSQL, SQL Server).
     /// </summary>
+    /// <remarks>Oracle, PostgreSQL (17+), and SQL Server syntax.</remarks>
     /// <param name="jsonDoc">The JSON document expression.</param>
     /// <param name="path">The JSON path (e.g. <c>"$.address"</c>). Emitted as an
     /// inline string literal.</param>
@@ -213,9 +214,9 @@ public static partial class Sql
     /// <summary>
     /// The <c>JSON_VALUE(jsonDoc, 'path')</c> function: extracts a scalar value
     /// from a JSON document at the given <paramref name="path"/>
-    /// (MySQL, Oracle, SQL Server).
+    /// (MySQL, Oracle, PostgreSQL, SQL Server).
     /// </summary>
-    /// <remarks>MySQL (8.0.21+), Oracle, and SQL Server syntax.</remarks>
+    /// <remarks>MySQL (8.0.21+), Oracle, PostgreSQL (17+), and SQL Server syntax.</remarks>
     /// <param name="jsonDoc">The JSON document expression.</param>
     /// <param name="path">The JSON path (e.g. <c>"$.name"</c>). Emitted as an
     /// inline string literal.</param>

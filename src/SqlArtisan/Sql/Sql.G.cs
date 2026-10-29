@@ -192,7 +192,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The grouping-extension column to test.</param>
     /// <returns>An expression emitting <c>GROUPING(expr)</c>.</returns>
-    /// <remarks>MySQL (8.0.1+), Oracle, PostgreSQL, and SQL Server; not SQLite,
+    /// <remarks>MySQL (8.0+), Oracle, PostgreSQL, and SQL Server; not SQLite,
     /// which has no grouping extensions.</remarks>
     public static SqlExpression Grouping(object expr) =>
         new GroupingFunction(Resolve(expr, nameof(expr)));
@@ -206,7 +206,7 @@ public static partial class Sql
     /// <param name="expr2">The second grouping-extension column.</param>
     /// <param name="others">Any further grouping-extension columns.</param>
     /// <returns>An expression emitting <c>GROUPING(a, b, ...)</c>.</returns>
-    /// <remarks>MySQL (8.0.1+) and PostgreSQL only; Oracle accepts only the single-argument
+    /// <remarks>MySQL (8.0+) and PostgreSQL only; Oracle accepts only the single-argument
     /// form (use <see cref="GroupingId(object, object[])"/> there instead), and
     /// neither SQLite nor SQL Server support it.</remarks>
     public static SqlExpression Grouping(object expr1, object expr2, params object[] others) =>

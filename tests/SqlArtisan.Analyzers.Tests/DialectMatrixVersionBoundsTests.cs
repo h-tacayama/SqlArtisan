@@ -170,6 +170,29 @@ public class DialectMatrixVersionBoundsTests
         Assert.True(missing.Count == 0, $"Undocumented bound(s): {string.Join("; ", missing)}");
     }
 
+    // 8.0.11 is MySQL 8.0's first production release, so a floor between 8.0 and it names
+    // a development milestone and reports code every production 8.0 runs (#681).
+    [Fact]
+    public void MySqlBound_NeverNamesAPreGaMilestone()
+    {
+        EngineVersion series = EngineVersion.Parse("8.0");
+        EngineVersion firstGa = EngineVersion.Parse("8.0.11");
+
+        List<string> milestones = [];
+        foreach ((MatrixKey key, VersionBounds bounds) in DialectMatrix.AllBounds)
+        {
+            if (bounds.MySql is { } min && min > series && min < firstGa)
+            {
+                milestones.Add($"{Label(key)}: {min}");
+            }
+        }
+
+        Assert.True(
+            milestones.Count == 0,
+            "MySQL bound(s) on a pre-GA 8.0 milestone; round to 8.0: "
+                + string.Join(", ", milestones));
+    }
+
     private static string Label(MatrixKey key) =>
         key.Arity is { } arity ? $"{key.MemberName} (arity {arity})" : key.MemberName;
 

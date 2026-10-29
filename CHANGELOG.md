@@ -33,14 +33,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   operator operand; a log line, a reference check elsewhere, a null check, a
   comparison with a table on either side, or one passed as `ConditionIf`'s
   `when` or to `Bind(...)` stays silent. (#614)
-- The analyzer knows SQL Server 2025's `||` and `REGEXP_*` functions: with
-  `sqlartisan_syntax_sqlserver` declaring 2025 or later, `DoublePipe` and the
-  `Regexp*` functions are no longer reported, and below it they report
+- The analyzer knows SQL Server 2025's `||`, `CURRENT_DATE` and `REGEXP_*`
+  functions: with `sqlartisan_syntax_sqlserver` declaring 2025 or later,
+  `DoublePipe`, `CurrentDate` and the `Regexp*` functions are no longer
+  reported, and below it they report
   `SQLA0101` instead of `SQLA0100`. `SQLA0104` reads SQL Server 2025's
   match-parameter alphabet, which has no letter for `RegexpOptions.NewLine` or
   `ExcludingWhiteSpace`. `REGEXP_LIKE` also needs the database at compatibility
   level 170, which the declared version cannot show. Live-verified on SQL
-  Server 2025. (#614)
+  Server 2025. (#614, #681)
+- The analyzer knows PostgreSQL 17's `JSON_VALUE` and `JSON_QUERY`: with
+  `sqlartisan_syntax_postgresql` declaring 17 or later, `JsonValue` and
+  `JsonQuery` are no longer reported, and below it they report `SQLA0101`
+  instead of `SQLA0100`. Live-verified on PostgreSQL 17. (#681)
 - `SQLA0102` reports a `Returning(...)` consumed without `.Into(...)` on
   Oracle — built, or passed on as an `ISqlBuilder` — since Oracle takes
   `RETURNING` only as `RETURNING ... INTO` (live-verified on XE 21.3.0). A
@@ -665,6 +670,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#654)
 
 ### Fixed
+- `SQLA0101` no longer reports `Grouping` on a declared MySQL `8.0`: its floor
+  rounds from 8.0.1 to 8.0, as `WithRecursive`'s does, since 8.0.11, the first
+  production release, has it. Nor does it report `Sql.Values(alias, columns,
+  rows)` below PostgreSQL 15: that floor was `MERGE`'s, which `MergeInto` still
+  reports, while the factory feeds `FROM` and joins too. `Iif` drops its SQL Server 2012 floor, below
+  which no engine is in support. (#681)
 - `Sql.Bind(DBNull.Value)` names `Sql.BindNull()`, where it said
   `Invalid type for Bind: System.DBNull`. (#669)
 - A null argument to a `Sql.*` factory, to an arithmetic operator's right

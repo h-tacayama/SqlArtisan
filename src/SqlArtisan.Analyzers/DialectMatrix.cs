@@ -73,7 +73,7 @@ internal static class DialectMatrix
         // (deprecated in favor of ROLLUP(...) — live-verified on SQL Server 2022).
         [new MatrixKey("WithRollup")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         // Grouping/GroupingId (Sql.G.cs XML docs, #235): single-arg GROUPING(expr) is
-        // MySQL 8.0.1+/Oracle/PostgreSQL/SQL Server; the multi-column bitmask splits by
+        // MySQL 8.0+/Oracle/PostgreSQL/SQL Server; the multi-column bitmask splits by
         // dialect spelling — GROUPING(a, b, ...) on MySQL/PostgreSQL, GROUPING_ID(a, ...)
         // on Oracle/SQL Server — so the two forms have disjoint dialect support.
         [new MatrixKey("Grouping", 1)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
@@ -189,7 +189,7 @@ internal static class DialectMatrix
         [new MatrixKey("JsonExtract")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
         // JsonValue: MySQL added JSON_VALUE in 8.0.21 (dev.mysql.com; the mysql:8.0 baseline
         // is past that).
-        // PostgreSQL's JSON_VALUE arrived in 17 — the PostgreSQL 16 baseline lacks it.
+        // PostgreSQL's JSON_VALUE and JSON_QUERY arrived in 17 — the 16 baseline lacks them.
         [new MatrixKey("JsonValue")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("JsonQuery")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("JsonArrow")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
@@ -245,7 +245,7 @@ internal static class DialectMatrix
         // func.c's aBuiltinFunc[] table — no "if" entry at tag version-3.47.0, present at
         // version-3.48.0), so its sqlite cell carries a Bounds row like Iif's below.
         [new MatrixKey("If")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
-        // IIF: SQL Server (2012+) and SQLite (3.32+, live-verified by the dialect sweep) both
+        // IIF: SQL Server and SQLite (3.32+, live-verified by the dialect sweep) both
         // spell it IIF; MySQL/Oracle/PostgreSQL have no equivalent single-call form.
         [new MatrixKey("Iif")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: true, sqlServer: true),
         // NUMTOYMINTERVAL/NUMTODSINTERVAL: Oracle-only conversion functions (Sql.N.cs XML
@@ -652,8 +652,8 @@ internal static class DialectMatrix
         [new MatrixKey("op_BitwiseOr")] = DbmsSupport.All,
 
         // --- Date/time keywords with gaps ---
-        // CurrentDate/CurrentTime: T-SQL supports neither ANSI keyword (only CURRENT_TIMESTAMP);
-        // Oracle has CURRENT_DATE and CURRENT_TIMESTAMP but no CURRENT_TIME (no TIME type).
+        // CurrentDate/CurrentTime: T-SQL had neither until SQL Server 2025's CURRENT_DATE (Bounds
+        // below); Oracle has CURRENT_DATE but no CURRENT_TIME (no TIME type).
         [new MatrixKey("CurrentDate")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("CurrentTime")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         // SQLite's CURRENT_TIME is bare-only, like its CURRENT_TIMESTAMP (#553).
@@ -801,9 +801,12 @@ internal static class DialectMatrix
         [new MatrixKey("NegativeInnerProduct")] = new VersionBounds(oracle: V("23")),
 
         // --- MySQL 8.0.x point releases (matrix comments above; #263 register) ---
-        [new MatrixKey("Grouping", 1)] = new VersionBounds(mySql: V("8.0.1")),
-        [new MatrixKey("Grouping", 3)] = new VersionBounds(mySql: V("8.0.1")),
-        [new MatrixKey("JsonValue")] = new VersionBounds(mySql: V("8.0.21")),
+        // GROUPING landed in the 8.0.1 milestone; rounded to 8.0 like Nowait and SkipLocked,
+        // since 8.0.11, the first GA release, already has it (#681).
+        [new MatrixKey("Grouping", 1)] = new VersionBounds(mySql: V("8.0")),
+        [new MatrixKey("Grouping", 3)] = new VersionBounds(mySql: V("8.0")),
+        // JsonValue's PostgreSQL 17 bound shares this row (the PostgreSQL 17 group below).
+        [new MatrixKey("JsonValue")] = new VersionBounds(mySql: V("8.0.21"), postgreSql: V("17")),
         [new MatrixKey("Nowait")] = new VersionBounds(mySql: V("8.0")),
         [new MatrixKey("SkipLocked")] = new VersionBounds(mySql: V("8.0")),
         // OnDuplicateKeyUpdate/Excluded: SqlArtisan always emits MySQL's 8.0.19+ row-alias
@@ -823,9 +826,12 @@ internal static class DialectMatrix
         [new MatrixKey("ThenInsert")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("ThenUpdateSet")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("ThenDelete")] = new VersionBounds(postgreSql: V("15")),
-        [new MatrixKey("Values", 3)] = new VersionBounds(postgreSql: V("15")),
+        // ("Values", 3) carries no bound: the factory feeds FROM and joins too, which
+        // predate PostgreSQL 15, and MergeInto's own bound still flags MERGE (#681).
+
         // PostgreSQL 17 release notes; proven by the PostgreSql17 lane's bound sweep.
         [new MatrixKey("WhenNotMatchedBySource")] = new VersionBounds(postgreSql: V("17")),
+        [new MatrixKey("JsonQuery")] = new VersionBounds(postgreSql: V("17")),
         // The sqlServer bounds in this group: SQL Server 2025 added the REGEXP_* family
         // (#614). REGEXP_LIKE also needs compatibility level 170, which no bound can express.
         [new MatrixKey("RegexpLike")] = new VersionBounds(postgreSql: V("15"), sqlServer: V("2025")),
@@ -882,9 +888,9 @@ internal static class DialectMatrix
         [new MatrixKey("ConcatWs")] = new VersionBounds(sqlite: V("3.44"), sqlServer: V("2017")),
         [new MatrixKey("NullsFirst")] = new VersionBounds(sqlite: V("3.30")),
         [new MatrixKey("NullsLast")] = new VersionBounds(sqlite: V("3.30")),
-        // IIF: SQLite 3.32+ and SQL Server 2012+ (T-SQL Reference) — both bounds share this
-        // one row since VersionBounds is keyed per-entry, not per-dialect-group.
-        [new MatrixKey("Iif")] = new VersionBounds(sqlite: V("3.32"), sqlServer: V("2012")),
+        // IIF: SQLite 3.32+. SQL Server's 2012 floor carries no row: no engine below it is in
+        // support, which ADR 0015's seed criterion (b) excludes (#681).
+        [new MatrixKey("Iif")] = new VersionBounds(sqlite: V("3.32")),
         // If: SQLite only — MySQL has had IF since long before its 8.0 baseline, so that
         // dialect's cell needs no bound.
         [new MatrixKey("If")] = new VersionBounds(sqlite: V("3.48")),
@@ -897,8 +903,10 @@ internal static class DialectMatrix
         [new MatrixKey("Rtrim", 2)] = new VersionBounds(sqlServer: V("2022")),
         [new MatrixKey("Trim", 2)] = new VersionBounds(sqlServer: V("2017")),
         [new MatrixKey("Trim")] = new VersionBounds(sqlServer: V("2017")),
-        // SQL Server 2025 added || (#614), proven by the SqlServer2025 lane's bound sweep.
+        // SQL Server 2025 added || (#614) and CURRENT_DATE (#681), proven by the
+        // SqlServer2025 lane's bound sweep.
         [new MatrixKey("DoublePipe")] = new VersionBounds(sqlServer: V("2025")),
+        [new MatrixKey("CurrentDate")] = new VersionBounds(sqlServer: V("2025")),
     };
 
     internal static EngineVersion V(string text) => EngineVersion.Parse(text);
