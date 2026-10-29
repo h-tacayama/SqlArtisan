@@ -186,6 +186,16 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Bind_DbNullValue_ThrowsArgumentException()
+    {
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => Bind(DBNull.Value));
+
+        Assert.Equal(
+            "DBNull.Value cannot be bound; use Sql.BindNull to bind SQL NULL.", ex.Message);
+    }
+
+    [Fact]
     public void Bind_NonBindableValue_ThrowsArgumentException()
     {
         ArgumentException ex =

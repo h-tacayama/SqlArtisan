@@ -662,6 +662,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#654)
 
 ### Fixed
+- `Sql.Bind(DBNull.Value)` names `Sql.BindNull()`, where it said
+  `Invalid type for Bind: System.DBNull`. (#669)
 - A null argument to a `Sql.*` factory, to an arithmetic operator's right
   operand, to a CASE `Then(...)` or to `Match(...).AgainstScore(...)` reports
   the caller's parameter as its `ParamName` (`Abs(null!)` reports `expr`),

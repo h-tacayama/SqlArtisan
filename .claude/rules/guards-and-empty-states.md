@@ -1122,12 +1122,13 @@ the offending type, never saying what the caller did wrong, and leaks an
 internal name into the public failure surface: that is how three `SET`-list
 guards said `Invalid type for EqualityCondition` until #497. The one type name
 in the family is `SqlExpression`, for the generic value position whose
-requirement *is* that — not a precedent for a narrower position. Three values a
+requirement *is* that — not a precedent for a narrower position. Four values a
 caller writes in a reachable slip leave the family for a remedy of their own:
 a `SELECT` prefix (`Distinct`, `DistinctOn(...)`, `Top(n)`, `Hints(...)`)
 written out of the order the `Select(...)` overloads take, which lands in an
 item slot; a `Group(...)` grouping set outside `GroupingSets`, `Rollup` or
-`Cube`; and an array among the values an `INSERT` or MERGE `Values(...)` call
+`Cube`; `DBNull.Value` passed to `Bind(...)`, which names `Sql.BindNull()`
+(#669); and an array among the values an `INSERT` or MERGE `Values(...)` call
 passes, which `params object[]` makes of several rows, of a row of another
 element type, or of an array value, which PostgreSQL binds through
 `BindArray(...)`, named before the

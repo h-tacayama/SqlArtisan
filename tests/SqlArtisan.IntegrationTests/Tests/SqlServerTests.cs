@@ -1583,4 +1583,21 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
             "SELECT COUNT(*) FROM users WHERE id NOT IN ()"));
     }
+
+    // #669: whether a compound is one query for TopWithOffsetFetch's rule, as Build()
+    // assumes when it rejects TOP in a branch beside the compound's OFFSET.
+    [Fact]
+    public void TopInBranchWithCompoundOffset_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>(
+            "SELECT TOP (1) id FROM users UNION ALL SELECT id FROM users ORDER BY id");
+        connection.Query<int>(
+            "SELECT id FROM users UNION ALL SELECT id FROM users ORDER BY id OFFSET 0 ROWS");
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "SELECT TOP (1) id FROM users UNION ALL SELECT id FROM users "
+                + "ORDER BY id OFFSET 0 ROWS"));
+    }
 }
