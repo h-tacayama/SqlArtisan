@@ -797,8 +797,7 @@ public class SelectTests
             ex.Message);
     }
 
-    // A compound's OFFSET/FETCH sorts and pages the combined result, so it is not the
-    // branch's own (#669).
+    // SQL Server 2022 runs a compound's OFFSET ROWS / FETCH beside a branch's TOP (#669).
     [Fact]
     public void Top_SqlServer_InCompoundBranch_WithCompoundOffsetFetch_CorrectSql()
     {

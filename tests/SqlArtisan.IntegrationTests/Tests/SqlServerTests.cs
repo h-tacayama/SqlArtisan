@@ -1584,8 +1584,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT COUNT(*) FROM users WHERE id NOT IN ()"));
     }
 
-    // #669: a compound's OFFSET/FETCH is not TopWithOffsetFetch's pairing, so Build()
-    // lets a branch's TOP stand beside it.
+    // #669: the engine rejects TOP beside OFFSET/FETCH in one block
+    // (TopWithOffsetFetch_IsRejectedByTheEngine), not beside a compound's.
     [Fact]
     public void TopInBranchWithCompoundOffset_IsAcceptedByTheEngine()
     {
