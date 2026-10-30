@@ -1164,7 +1164,7 @@ public abstract class IntegrationTestBase
     }
 
     // #742: SQLite reads a negative scale as 0, the cell SQLA0104 reports; the other
-    // engines round order 5's 75.00 to the tens.
+    // engines round to the tens. 75.6 tells a scale of 0 (76) from one ignored (75.6).
     [Fact]
     public void RoundNegativeScale_RoundsToTheTensExceptOnSqlite()
     {
@@ -1173,7 +1173,10 @@ public abstract class IntegrationTestBase
 
         decimal rounded = Convert.ToDecimal(connection.ExecuteScalar(
             Select(Round(o.Amount, -1)).From(o).Where(o.Id == 5)));
+        decimal fractional = Convert.ToDecimal(connection.ExecuteScalar(
+            Select(Round(75.6m, -1)).From(o).Where(o.Id == 5)));
 
         Assert.Equal(_fixture.Dbms == Dbms.Sqlite ? 75m : 80m, rounded);
+        Assert.Equal(_fixture.Dbms == Dbms.Sqlite ? 76m : 80m, fractional);
     }
 }

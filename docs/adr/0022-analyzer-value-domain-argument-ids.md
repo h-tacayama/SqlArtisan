@@ -182,14 +182,14 @@ value run with another meaning and Oracle leaves the non-integer set (the
 earlier twins selected an ungrouped column, which fails whatever the key).
 It reports under `SQLA0104` for the reasons above,
 and its cells live in `ArgumentValueValidity` beside the other two, so the
-three domains this ADR decided are four today; the decision is unchanged.
+three domains this ADR decided were four then; the decision is unchanged.
 
 ### A fifth domain, added under this decision
 
 #742 (from #661) added a negative `Round` scale: SQLite 3.50.4 reads it as 0,
-so `ROUND(75.00, -1)` returns 75, where MySQL 8.0, Oracle XE 21.3.0, PostgreSQL
-16.15 and SQL Server 2022 round to the tens and return 80
-(`RoundNegativeScale_RoundsToTheTensExceptOnSqlite`). It is a value run with
+so `ROUND(75.00, -1)` returns 75 and `ROUND(75.6, -1)` 76, where MySQL 8.0,
+Oracle XE 21.3.0, PostgreSQL 16.15 and SQL Server 2022 round to the tens and
+return 80 (`RoundNegativeScale_RoundsToTheTensExceptOnSqlite`). It is a value run with
 another meaning, as #684 widened the verdict, so it reports under `SQLA0104`,
 and its cell lives in `ArgumentValueValidity`.
 
