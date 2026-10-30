@@ -126,8 +126,8 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships sixteen diagnostics:
   `Timestampdiff`); a `RegexpOptions` member outside an engine's
   match-parameter alphabet; a negative constant
   `Top`/`FetchFirst`/`FetchNext`/`Limit` count; a `GroupBy` column ordinal
-  on an engine with no `GROUP BY` positions; and a negative constant `Round`
-  scale, which SQLite reads as 0. The silence cells are
+  on an engine with no `GROUP BY` positions; and a negative integer constant
+  `Round` scale, which SQLite reads as 0. The silence cells are
   load-bearing — Oracle executes a negative `FETCH` and SQLite reads `LIMIT -1`
   as "no limit". Enum values resolve by matching the argument's constant
   against the enum's own members (never the underlying integer), the same

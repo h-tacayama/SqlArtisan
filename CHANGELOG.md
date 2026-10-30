@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
-- `SQLA0104` reports a negative constant `Round` scale on SQLite, which reads it
-  as 0: `Round(x, -1)` rounds to a whole number there, where MySQL, Oracle,
+- `SQLA0104` reports a negative integer constant `Round` scale on SQLite, which
+  reads it as 0: `Round(x, -1)` rounds to a whole number there, where MySQL, Oracle,
   PostgreSQL and SQL Server round to the tens. (#742)
 - `SQLA0303` reports a comparison (`==`, `!=`, `<`, `<=`, `>`, `>=`) or a simple
   CASE `When(...)` against `Sql.Null`, which is never true, so the predicate

@@ -57,7 +57,7 @@ for `numeric` only, so a `double precision` argument fails at the database,
 not at the SqlArtisan layer.
 
 > [!WARNING]
-> **`Round(x, n)` with a negative `n` rounds to a whole number on SQLite**, which reads a negative scale as 0: `Round(o.Amount, -1)` returns `75` for `75.00` there, where MySQL, Oracle, PostgreSQL and SQL Server round to the tens and return `80`. `SQLA0104` reports a constant negative scale on SQLite; a scale held in a variable is not checked. Rounding left of the decimal point is not available there.
+> **`Round(x, n)` with a negative `n` rounds to a whole number on SQLite**, which reads a negative scale as 0: `Round(o.Amount, -1)` returns `75` for `75.00` there, where MySQL, Oracle, PostgreSQL and SQL Server round to the tens and return `80`. `SQLA0104` reports a negative integer constant scale on SQLite; a fractional constant or a scale held in a variable is not checked. Rounding left of the decimal point is not available there.
 
 ---
 
