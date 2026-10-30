@@ -32,7 +32,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Log10()` for `LOG10` (not supported by Oracle — spell it `Log(10, x)` there)
 - `Mod()` for `MOD` (not supported by SQL Server — use the `%` operator there; PostgreSQL rejects a `double precision` argument, taking `numeric` — observed on 16.15)
 - `Power()` for `POWER`
-- `Round()` for `ROUND` (single-argument `Round(expr)` is not supported by SQL Server — pass the scale explicitly there; PostgreSQL rejects `Round(x, n)` on a `double precision` `x`, taking `numeric` — observed on 16.15)
+- `Round()` for `ROUND` (single-argument `Round(expr)` is not supported by SQL Server — pass the scale explicitly there; PostgreSQL rejects `Round(x, n)` on a `double precision` `x`, taking `numeric` — observed on 16.15; **a negative scale differs on SQLite, see below**)
 - `Sign()` for `SIGN`
 - `Sqrt()` for `SQRT`
 - `Trunc()` for `TRUNC` (numeric argument; Oracle, PostgreSQL, SQLite — the two-argument scale form is Oracle/PostgreSQL only)
@@ -55,6 +55,9 @@ To allow that one call, wrap it in `#pragma warning disable SQLA0100`;
 in its `.editorconfig` scope instead. On PostgreSQL, `Log(base, x)` is defined
 for `numeric` only, so a `double precision` argument fails at the database,
 not at the SqlArtisan layer.
+
+> [!WARNING]
+> **`Round(x, n)` with a negative `n` rounds to a whole number on SQLite**, which reads a negative scale as 0: `Round(o.Amount, -1)` returns `75` for `75.00` there, where MySQL, Oracle, PostgreSQL and SQL Server round to the tens and return `80`. `SQLA0104` reports a constant negative scale on SQLite; a scale held in a variable is not checked. Rounding left of the decimal point is not available there.
 
 ---
 

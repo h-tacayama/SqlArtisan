@@ -288,6 +288,46 @@ public class ArgumentValueValidityAnalyzerTests
             """,
             AnalyzerVerifier.EditorConfig("mysql"));
 
+    // --- Negative ROUND scales (#742) ---
+
+    [Fact]
+    public Task Round_Sqlite_NegativeScale_ReportsSqla0104() =>
+        RunReporting(
+            """var q = Select(Round(t.Id, {|#0:-1|})).From(t);""",
+            AnalyzerVerifier.EditorConfig("sqlite"),
+            "Round", "-1", "scale", "SQLite");
+
+    [Theory]
+    [InlineData("-1L")]
+    [InlineData("(short)-1")]
+    public Task Round_Sqlite_NegativeScaleOfAnotherIntegralType_ReportsSqla0104(
+        string literal) =>
+        RunReporting(
+            $$"""var q = Select(Round(t.Id, {|#0:{{literal}}|})).From(t);""",
+            AnalyzerVerifier.EditorConfig("sqlite"));
+
+    // PostgreSQL rounds left of the decimal point, so the value means what it says.
+    [Fact]
+    public Task Round_PostgreSql_NegativeScale_StaysSilent() =>
+        RunSilent(
+            """var q = Select(Round(t.Id, -1)).From(t);""",
+            AnalyzerVerifier.EditorConfig("postgresql"));
+
+    [Fact]
+    public Task Round_Sqlite_ZeroScale_StaysSilent() =>
+        RunSilent(
+            """var q = Select(Round(t.Id, 0)).From(t);""",
+            AnalyzerVerifier.EditorConfig("sqlite"));
+
+    [Fact]
+    public Task Round_Sqlite_NonConstantScale_StaysSilent() =>
+        RunSilent(
+            """
+            int n = System.DateTime.Now.Second - 1;
+            var q = Select(Round(t.Id, n)).From(t);
+            """,
+            AnalyzerVerifier.EditorConfig("sqlite"));
+
     // --- The shared never-both-fire contract ---
 
     [Fact]

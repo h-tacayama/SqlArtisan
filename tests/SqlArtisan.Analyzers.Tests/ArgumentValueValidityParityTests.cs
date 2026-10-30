@@ -131,6 +131,17 @@ public class ArgumentValueValidityParityTests
             wrong.Add($"GroupBy -> '{ArgumentValueValidity.GroupByItemsParameterName}'");
         }
 
+        bool roundFound = typeof(Sql)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Where(m => m.Name == "Round")
+            .SelectMany(m => m.GetParameters())
+            .Any(p => p.Name == ArgumentValueValidity.RoundScaleParameterName);
+
+        if (!roundFound)
+        {
+            wrong.Add($"Round -> '{ArgumentValueValidity.RoundScaleParameterName}'");
+        }
+
         Assert.True(
             wrong.Count == 0,
             "entries naming a parameter the factory does not have, so SQLA0104 reads nothing: "

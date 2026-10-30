@@ -1162,4 +1162,18 @@ public abstract class IntegrationTestBase
         Assert.All(others, condition => Assert.Equal(0, Convert.ToInt64(
             connection.ExecuteScalar(Select(Count(Asterisk)).From(u).Where(condition)))));
     }
+
+    // #742: SQLite reads a negative scale as 0, the cell SQLA0104 reports; the other
+    // engines round order 5's 75.00 to the tens.
+    [Fact]
+    public void RoundNegativeScale_RoundsToTheTensExceptOnSqlite()
+    {
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        decimal rounded = Convert.ToDecimal(connection.ExecuteScalar(
+            Select(Round(o.Amount, -1)).From(o).Where(o.Id == 5)));
+
+        Assert.Equal(_fixture.Dbms == Dbms.Sqlite ? 75m : 80m, rounded);
+    }
 }

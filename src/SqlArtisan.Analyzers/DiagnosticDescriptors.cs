@@ -149,9 +149,9 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
-    // A second SQLA0104 reason, on the SQLA0001 principle: none of the four
+    // A second SQLA0104 reason, on the SQLA0001 principle: none of the five
     // value domains is a nag, so a lever silencing one should silence the rest.
-    // {2} names the kind of value, which is what lets one format serve three (ADR 0022).
+    // {2} names the kind of value, which is what lets one format serve four (ADR 0022).
     public static readonly DiagnosticDescriptor InvalidArgumentValue = new(
         id: "SQLA0104",
         title: ArgumentValueTitle,

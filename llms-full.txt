@@ -3425,7 +3425,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Log10()` for `LOG10` (not supported by Oracle — spell it `Log(10, x)` there)
 - `Mod()` for `MOD` (not supported by SQL Server — use the `%` operator there; PostgreSQL rejects a `double precision` argument, taking `numeric` — observed on 16.15)
 - `Power()` for `POWER`
-- `Round()` for `ROUND` (single-argument `Round(expr)` is not supported by SQL Server — pass the scale explicitly there; PostgreSQL rejects `Round(x, n)` on a `double precision` `x`, taking `numeric` — observed on 16.15)
+- `Round()` for `ROUND` (single-argument `Round(expr)` is not supported by SQL Server — pass the scale explicitly there; PostgreSQL rejects `Round(x, n)` on a `double precision` `x`, taking `numeric` — observed on 16.15; **a negative scale differs on SQLite, see below**)
 - `Sign()` for `SIGN`
 - `Sqrt()` for `SQRT`
 - `Trunc()` for `TRUNC` (numeric argument; Oracle, PostgreSQL, SQLite — the two-argument scale form is Oracle/PostgreSQL only)
@@ -3448,6 +3448,9 @@ To allow that one call, wrap it in `#pragma warning disable SQLA0100`;
 in its `.editorconfig` scope instead. On PostgreSQL, `Log(base, x)` is defined
 for `numeric` only, so a `double precision` argument fails at the database,
 not at the SqlArtisan layer.
+
+> [!WARNING]
+> **`Round(x, n)` with a negative `n` rounds to a whole number on SQLite**, which reads a negative scale as 0: `Round(o.Amount, -1)` returns `75` for `75.00` there, where MySQL, Oracle, PostgreSQL and SQL Server round to the tens and return `80`. `SQLA0104` reports a constant negative scale on SQLite; a scale held in a variable is not checked. Rounding left of the decimal point is not available there.
 
 ---
 
@@ -3872,7 +3875,7 @@ still needs naming by ID.
 | `SQLA0101` | Warning | A construct is supported on a configured dialect, but not at its declared version — see [Version-aware warnings](#version-aware-warnings-sqla0101). Checking more than one dialect reports one diagnostic per failing dialect. |
 | `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
 | `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` or `Unnest(...).AsTable(...)` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
-| `SQLA0104` | Warning | A literal argument value a configured dialect rejects, or runs with another meaning, where the construct itself runs there: a `DateTimePart` the function's grammar does not accept or reads as another field, a `RegexpOptions` member outside that engine's match-parameter alphabet, a negative `Top`/`FetchFirst`/`FetchNext`/`Limit` count, or a `GroupBy` column ordinal on an engine that has no `GROUP BY` positions — see [Argument value validity](#argument-value-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
+| `SQLA0104` | Warning | A literal argument value a configured dialect rejects, or runs with another meaning, where the construct itself runs there: a `DateTimePart` the function's grammar does not accept or reads as another field, a `RegexpOptions` member outside that engine's match-parameter alphabet, a negative `Top`/`FetchFirst`/`FetchNext`/`Limit` count, a `GroupBy` column ordinal on an engine that has no `GROUP BY` positions, or a negative `Round` scale on SQLite — see [Argument value validity](#argument-value-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join or super-aggregate grouping on its own spine — past one, the anti-join or the grand-total row makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0201` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0202` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
@@ -4726,8 +4729,8 @@ A construct can exist on a dialect while one *value* of one of its arguments
 does not. The dialect matrix keys on the construct — `Extract`, `RegexpLike`,
 `Limit` — so it has nothing to say about that, and the mismatch surfaces only
 when the database runs the statement. `SQLA0104` closes that gap at the
-argument level, for four kinds of value the analyzer can read at the call
-site. All four share one ID: the verdict is the same in each case, and so is
+argument level, for five kinds of value the analyzer can read at the call
+site. All five share one ID: the verdict is the same in each case, and so is
 the remedy — change the value, or stop targeting that dialect.
 
 ### A `DateTimePart` a function does not accept
@@ -4851,7 +4854,20 @@ site — is not where it turns bad. Clamp the page number before computing the
 offset; see
 [Pagination](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination).
 
-Every match-option, `GROUP BY` and row-count verdict above — the rejections
+### A negative `ROUND` scale
+
+`Round(x, n)` with a negative `n` rounds left of the decimal point on MySQL,
+Oracle, PostgreSQL and SQL Server. SQLite reads a negative scale as 0, so
+`Round(o.Amount, -1)` returns `75` for `75.00` where the other four return `80`.
+Only SQLite is reported.
+
+```csharp
+// sqlartisan_syntax_sqlite = any
+var q = Select(Round(o.Amount, -1)).From(o);
+// warning SQLA0104: '-1' is not a valid scale for 'Round' on SQLite
+```
+
+Every match-option, `GROUP BY`, row-count and scale verdict above — the rejections
 and the acceptances that keep the other engines silent — is checked against the
 engine versions in [Verified-against versions](#verified-against-versions).
 The datepart lists carry the narrower claim stated with them.
@@ -4860,9 +4876,9 @@ The datepart lists carry the narrower claim stated with them.
 
 Three cases, never a false positive:
 
-- **The argument is not a compile-time constant** — a datepart, an option or a
-  count that arrives through a variable or a computed expression cannot be
-  resolved, the same provable-from-the-expression-or-silent contract [Context
+- **The argument is not a compile-time constant** — a datepart, an option, a
+  count or a scale that arrives through a variable or a computed expression
+  cannot be resolved, the same provable-from-the-expression-or-silent contract [Context
   rules](#context-rules-sqla0102) follows.
 - **This rule has no fact for the pair** — `Extract` targeting SQL Server,
   which `SQLA0100` already rejects outright; or an engine absent from this
@@ -4873,7 +4889,7 @@ Three cases, never a false positive:
 
 Suppression is per rule ID (`#pragma warning disable SQLA0104`, a
 `[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0104.severity`), and
-it covers all four value domains together; a `sqlartisan_construct_*` override
+it covers all five value domains together; a `sqlartisan_construct_*` override
 never silences a value verdict on a dialect where the construct runs. An
 `unsupported` override hands the whole usage to `SQLA0100`, and a `supported`
 override on a dialect the matrix flags unsupported re-arms this check there —
@@ -5402,9 +5418,9 @@ client-side before it reaches the engine.
 
 ## Verified-against versions
 
-The matrix's `verified` entries, and the match-option, `GROUP BY` and row-count
-facts [Argument value validity](#argument-value-validity-sqla0104) reports, were
-checked against one representative version per dialect (the same engines the
+The matrix's `verified` entries, and the match-option, `GROUP BY`, row-count
+and scale facts [Argument value validity](#argument-value-validity-sqla0104)
+reports, were checked against one representative version per dialect (the same engines the
 integration test matrix runs against):
 
 | Dialect | Verified against |
