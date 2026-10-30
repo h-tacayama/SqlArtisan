@@ -93,6 +93,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         Register(AnalyzeIdentifierLength, OperationKind.ObjectCreation);
         Register(AnalyzeDatepartValidity, OperationKind.Invocation);
         Register(AnalyzeArgumentValueValidity, OperationKind.Invocation);
+        Register(AnalyzeStringPlusOperand, OperationKind.Binary);
+        Register(AnalyzeStringPlusOperand, OperationKind.CompoundAssignment);
         Register(AnalyzeSchemaNullability, OperationKind.PropertyReference);
         Register(AnalyzeNotInSubquery, OperationKind.Invocation);
         Register(AnalyzeInsertColumns, OperationKind.Invocation);
@@ -570,6 +572,43 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
 
         ArgumentValueValidityRule.Check(context, invocation, targets);
+    }
+
+    // SqlExpression's own + only: a string beside an interval is MySQL's date
+    // arithmetic, and the other types' string overloads do not compile (#613, #666).
+    private static void AnalyzeStringPlusOperand(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
+    {
+        IMethodSymbol? method;
+        IOperation[] operands;
+        if (context.Operation is IBinaryOperation binary)
+        {
+            method = binary.OperatorMethod;
+            operands = [binary.LeftOperand, binary.RightOperand];
+        }
+        else
+        {
+            var compound = (ICompoundAssignmentOperation)context.Operation;
+            method = compound.OperatorMethod;
+            operands = [compound.Value];
+        }
+
+        if (method is not { Name: "op_Addition", ContainingType.Name: "SqlExpression" }
+            || !IsFromSqlArtisan(method.ContainingAssembly))
+        {
+            return;
+        }
+
+        DialectTargetSet targets = GetTargets(context, cache);
+        if (targets.IsEmpty)
+        {
+            return;
+        }
+
+        ArgumentValueValidityRule.CheckStringPlusOperands(
+            context, method, context.Operation, targets, operands);
     }
 
     // IsNull / IsNotNull are SqlExpression properties, so the column under test is

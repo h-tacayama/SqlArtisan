@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -31,13 +32,23 @@ internal readonly struct ValueDomainScope
     /// </summary>
     public static ValueDomainScope? For(
         OperationAnalysisContext context,
-        IInvocationOperation invocation)
+        IInvocationOperation invocation) =>
+        For(context, invocation.TargetMethod, invocation);
+
+    /// <summary>
+    /// The scope for <paramref name="operation"/>, a call of <paramref name="method"/>
+    /// written as an invocation or an operator.
+    /// </summary>
+    public static ValueDomainScope? For(
+        OperationAnalysisContext context,
+        IMethodSymbol method,
+        IOperation operation)
     {
-        string memberName = invocation.TargetMethod.Name;
-        int arity = invocation.TargetMethod.Parameters.Length;
+        string memberName = method.Name;
+        int arity = method.Parameters.Length;
 
         AnalyzerConfigOptions options =
-            context.Options.AnalyzerConfigOptionsProvider.GetOptions(invocation.Syntax.SyntaxTree);
+            context.Options.AnalyzerConfigOptionsProvider.GetOptions(operation.Syntax.SyntaxTree);
         DialectSupportResolver.OverrideResult? overrideResult =
             DialectSupportResolver.ResolveOverride(options, memberName, arity);
 

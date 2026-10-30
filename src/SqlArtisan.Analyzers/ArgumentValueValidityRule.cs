@@ -25,6 +25,7 @@ internal static class ArgumentValueValidityRule
     private const string OrdinalNoun = "column ordinal";
     private const string GroupKeyNoun = "group key";
     private const string ScaleNoun = "scale";
+    private const string OperandNoun = "operand";
 
     public static void Check(
         OperationAnalysisContext context,
@@ -55,6 +56,56 @@ internal static class ArgumentValueValidityRule
             CheckRoundScale(context, invocation, targets, memberName);
         }
     }
+
+    /// <summary>
+    /// Reports a string constant among <paramref name="operands"/>, the operands of a
+    /// SqlArtisan <c>+</c> written as <paramref name="operation"/>.
+    /// </summary>
+    public static void CheckStringPlusOperands(
+        OperationAnalysisContext context,
+        IMethodSymbol method,
+        IOperation operation,
+        DialectTargetSet targets,
+        params IOperation[] operands)
+    {
+        if (!Array.Exists(operands, operand => StringConstant(operand) is not null)
+            || ValueDomainScope.For(context, method, operation) is not { } scope)
+        {
+            return;
+        }
+
+        List<string> invalidOn = [];
+
+        foreach (TargetDbms dbms in targets.Members)
+        {
+            if (ArgumentValueValidity.ConcatenatesNoStringPlusOperand(dbms)
+                && scope.Covers(dbms, targets))
+            {
+                invalidOn.Add(TargetDbmsNames.Display(dbms));
+            }
+        }
+
+        if (invalidOn.Count == 0)
+        {
+            return;
+        }
+
+        foreach (IOperation operand in operands)
+        {
+            if (StringConstant(operand) is { } text)
+            {
+                Report(context, Unwrap(operand), "operator +", text, OperandNoun, invalidOn);
+            }
+        }
+    }
+
+    private static string? StringConstant(IOperation operand) => Unwrap(operand) is
+    {
+        Type.SpecialType: SpecialType.System_String,
+        ConstantValue: { HasValue: true, Value: string text },
+    }
+        ? text
+        : null;
 
     private static void CheckRoundScale(
         OperationAnalysisContext context,

@@ -193,6 +193,16 @@ return 80 (`RoundNegativeScale_RoundsToTheTensExceptOnSqlite`). It is a value ru
 another meaning, as #684 widened the verdict, so it reports under `SQLA0104`,
 and its cell lives in `ArgumentValueValidity`.
 
+### A sixth domain, added under this decision
+
+#742 (from #669) added a string constant beside `SqlExpression`'s `+`. MySQL 8.0
+and SQLite 3.50.4 add it as a number (`StringPlusTextColumn_AddsNumerically`),
+Oracle XE 21.3.0 and PostgreSQL 16 reject it
+(`StringPlusTextColumn_IsRejectedByTheEngine`), and SQL Server 2022 concatenates
+it (`StringPlusTextColumn_Concatenates`). The two overloads share the matrix's
+`op_Addition` key, so only the operand's value can tell them apart, and it
+reports under `SQLA0104` with its cell in `ArgumentValueValidity`.
+
 Related: #528, #529 (this change), #523 (the triage that surfaced both),
 ADR 0012 (why none is a `Build()` guard, and where it classified the
 `RegexpOptions` gap), ADR 0013 (the context dimension and the

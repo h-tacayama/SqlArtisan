@@ -32,18 +32,22 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Equal(new[] { 2, 3 }, ids);
     }
 
-    // #613's string-left + emits `@0 + name`, which T-SQL reads as concatenation.
+    // #613's string-left + emits `@0 + name`, which T-SQL reads as concatenation, as it
+    // does the string-right form; the other four engines do not (#742, SQLA0104).
     [Fact]
-    public void StringLeftAddition_Concatenates()
+    public void StringPlusTextColumn_Concatenates()
     {
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
         string name = connection.ExecuteScalar<string>("SELECT name FROM users WHERE id = 1")!;
 
-        string? concatenated = connection.ExecuteScalar<string>(
+        string? stringFirst = connection.ExecuteScalar<string>(
             Select("Dr. " + u.Name).From(u).Where(u.Id == 1));
+        string? stringSecond = connection.ExecuteScalar<string>(
+            Select(u.Name + " ").From(u).Where(u.Id == 1));
 
-        Assert.Equal("Dr. " + name, concatenated);
+        Assert.Equal("Dr. " + name, stringFirst);
+        Assert.Equal(name + " ", stringSecond);
     }
 
     [Fact]
