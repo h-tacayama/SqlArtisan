@@ -23,6 +23,7 @@ your code until you configure a target; only a problem in that configuration
 - [Argument value validity (SQLA0104)](#argument-value-validity-sqla0104)
 - [Correlated DML target (SQLA0300)](#correlated-dml-target-sqla0300)
 - [C# fallbacks (SQLA0301, SQLA0302)](#c-fallbacks-sqla0301-sqla0302)
+- [Comparisons with NULL (SQLA0303)](#comparisons-with-null-sqla0303)
 - [Schema-aware warnings (SQLA0200)](#schema-aware-warnings-sqla0200)
 - [Mixed-dialect projects](#mixed-dialect-projects)
 - [CI gates and stricter enforcement](#ci-gates-and-stricter-enforcement)
@@ -114,6 +115,7 @@ still needs naming by ID.
 | `SQLA0300` | Warning | A correlated UPDATE, DELETE, or MERGE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0300). |
 | `SQLA0301` | Warning | `==` or `!=` that C# resolves as reference equality, because the left operand is not a SqlArtisan expression, passed to a SqlArtisan member or operator — it binds a `bool` instead of comparing in SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
 | `SQLA0302` | Warning | A SqlArtisan object interpolated or concatenated into a string passed to a SqlArtisan member or operator — it binds the object's type name instead of SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
+| `SQLA0303` | Warning | A comparison (`==`, `!=`, `<`, `<=`, `>`, `>=`) or a simple CASE `When(...)` against `Sql.Null`, which is never true, so the predicate matches no row; see [Comparisons with NULL](#comparisons-with-null-sqla0303). |
 
 `SQLA0001` is a compilation-end diagnostic with no file location: it appears in **build** output (CLI and CI, and an IDE's Error
 List after an explicit build — check that the list's source filter includes
@@ -1248,6 +1250,39 @@ keys do not apply.
 
 ---
 
+## Comparisons with NULL (SQLA0303)
+
+SQL compares a value with NULL as unknown, never true, so `col = NULL`,
+`col <> NULL` and the ordering comparisons (`<`, `<=`, `>`, `>=`) match no row, and
+a simple CASE `WHEN NULL` branch is never taken (all five engines the suite runs,
+live). `SQLA0303` reports a
+comparison operator and a simple CASE `When(...)` whose operand is `Sql.Null`:
+
+```csharp
+var q = Select(u.Id).From(u).Where(u.Name == Null);
+// warning SQLA0303: '=' compares with NULL and is never true; test for NULL with IsNull
+```
+
+Test for NULL with `u.Name.IsNull` or `IsNotNull`, and in a CASE with a searched
+`When(u.Name.IsNull)`. A C# `null` there (`u.Name == null`) throws at the call
+and names `IsNull`; `Sql.Null` is the spelling that reaches the engine.
+
+`==` also writes a `SET` assignment — `Update(u).Set(u.Name == Null)` sets the
+column to NULL — so an `==` is reported only where it converts to a
+`SqlCondition` (passed, assigned, returned or combined as one), directly or as a
+branch of a conditional (`flag ? a : b`). An `==` held in a `var` stays silent,
+since it may still be assigned; a `switch` expression arm or an explicit cast is
+not followed, so one there can stay silent too. A `SET`-style clause rejects `!=`
+when it is called and takes no ordering comparison, so neither can be an
+assignment, and both are reported wherever they are written.
+
+SQL Server's deprecated `SET ANSI_NULLS OFF` reads `= NULL` and `<> NULL` as
+NULL tests (SQL Server 2022, live); code that relies on it suppresses the rule the standard
+Roslyn way (`#pragma warning disable SQLA0303`, a `[SuppressMessage]` attribute,
+or `dotnet_diagnostic.SQLA0303.severity`).
+
+---
+
 ## Schema-aware warnings (SQLA0200)
 
 `SqlArtisan.TableClassGen` records what the catalog says about each column on
@@ -1691,7 +1726,7 @@ for, not a bug in the matrix.
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)
   for what's entered.
 - **The dialect-independent rules need a configured target too.**
-  `SQLA0300`–`SQLA0302` and the schema-aware `SQLA0200`–`SQLA0205` report
+  `SQLA0300`–`SQLA0303` and the schema-aware `SQLA0200`–`SQLA0205` report
   facts that hold on every engine, but every rule from `SQLA0100` on stays
   silent until a dialect is configured — without one, `SQLA0300`'s `Build()`
   guard is the only report and the schema rules have none.

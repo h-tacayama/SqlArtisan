@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- `SQLA0303` reports a comparison (`==`, `!=`, `<`, `<=`, `>`, `>=`) or a simple
+  CASE `When(...)` against `Sql.Null`, which is never true, so the predicate
+  matches no row and the branch is never taken. Since `==` also writes a `SET`
+  assignment, an `==` is reported only where it is read as a `SqlCondition`;
+  `docs/analyzer.md` names the cases that stay silent. (#742)
 - `Guid`, `DateTimeOffset` and `TimeSpan` values bind implicitly wherever a
   `string` or `DateTime` does, and `Sql.Bind(...)` and `BindArray(...)` take
   them; they threw `ArgumentException`. A `byte[]` still does not bind

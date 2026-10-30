@@ -112,8 +112,8 @@ Built-in function catalog, grouped by family, plus bind-parameter types.
 An opt-in Roslyn analyzer that reports configuration problems; constructs,
 identifiers and argument values a target dialect doesn't support; what the
 generated table classes' schema metadata says about a query; and validity
-problems — a correlated DML target `Build()` would reject, or C# that binds a
-value instead of building SQL.
+problems — a correlated DML target `Build()` would reject, C# that binds a
+value instead of building SQL, or a comparison with NULL that is never true.
 
 [Enabling It](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it) ·
 [Rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules) ·
@@ -125,6 +125,7 @@ value instead of building SQL.
 [Argument Value Validity (SQLA0104)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#argument-value-validity-sqla0104) ·
 [Correlated DML Target (SQLA0300)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#correlated-dml-target-sqla0300) ·
 [C# Fallbacks (SQLA0301, SQLA0302)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#c-fallbacks-sqla0301-sqla0302) ·
+[Comparisons with NULL (SQLA0303)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#comparisons-with-null-sqla0303) ·
 [Schema-Aware Warnings (SQLA0200)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#schema-aware-warnings-sqla0200) ·
 [Mixed-Dialect Projects](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#mixed-dialect-projects) ·
 [CI Gates](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#ci-gates-and-stricter-enforcement) ·

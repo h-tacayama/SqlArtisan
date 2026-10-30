@@ -821,7 +821,13 @@ the caller did not mean. Judge a null argument by which failure it produces:
   `REGEXP_LIKE`, the array and JSONB predicates bar a `?&` / `?|` key, `@@`),
   where `Sql.Null` builds a comparison with NULL rather than a NULL test, so a
   new predicate factory resolves its operands with `ResolveCompared`, which
-  names `.IsNull` (#614). A grouping, partition or `DISTINCT ON` key is another:
+  names `.IsNull` (#614). `Sql.Null` beside a comparison operator or in a
+  simple CASE `When(...)` is `SQLA0303`'s to report, not a guard's: unlike a C#
+  `null`, it is a NULL the caller wrote as SQL, and the text runs on every engine
+  (`ComparisonWithNull_MatchesNoRow`), so it is emitted as written (ADR 0001);
+  SQL Server 2022 even reads `= NULL` and `<> NULL` as NULL tests under the
+  deprecated `SET ANSI_NULLS OFF`
+  (`ComparisonWithNull_UnderAnsiNullsOff_ReadsANullTest`) (#742). A grouping, partition or `DISTINCT ON` key is another:
   `Sql.Null` there is a constant key, silent where it runs (`PARTITION BY NULL`
   is one partition on PostgreSQL 16 and SQLite, `GROUP BY NULL` one group on
   SQLite) and rejected by PostgreSQL 16 in `GROUP BY`, a grouping element and

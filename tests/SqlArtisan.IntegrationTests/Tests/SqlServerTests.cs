@@ -1602,4 +1602,35 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
 
         Assert.NotEmpty(ids);
     }
+
+    // #742: why SQLA0303 reports `= NULL` and `<> NULL` instead of Build() rejecting
+    // them: under the deprecated ANSI_NULLS OFF, SQL Server reads each as a NULL test.
+    [Fact]
+    public void ComparisonWithNull_UnderAnsiNullsOff_ReadsANullTest()
+    {
+        UsersTable u = new();
+        SqlStatement equalsNull =
+            Select(Count(Asterisk))
+            .From(u)
+            .Where(u.IsActive == Null)
+            .Build(Dbms.SqlServer);
+        SqlStatement notEqualsNull =
+            Select(Count(Asterisk))
+            .From(u)
+            .Where(u.Id != Null)
+            .Build(Dbms.SqlServer);
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        try
+        {
+            connection.Execute("SET ANSI_NULLS OFF");
+
+            Assert.Equal(5, connection.ExecuteScalar<long>(equalsNull.Text));
+            Assert.Equal(5, connection.ExecuteScalar<long>(notEqualsNull.Text));
+        }
+        finally
+        {
+            connection.Execute("SET ANSI_NULLS ON");
+        }
+    }
 }
