@@ -127,8 +127,8 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships sixteen diagnostics:
   match-parameter alphabet; a negative constant
   `Top`/`FetchFirst`/`FetchNext`/`Limit` count; a `GroupBy` column ordinal
   on an engine with no `GROUP BY` positions; a negative integer-typed
-  constant `Round` scale, which SQLite reads as 0; and a string constant beside
-  `+`, which only SQL Server concatenates. The silence cells are
+  constant `Round` scale, which SQLite reads as 0; and a string or `char`
+  constant beside `+`, which only SQL Server concatenates. The silence cells are
   load-bearing — Oracle executes a negative `FETCH` and SQLite reads `LIMIT -1`
   as "no limit". Enum values resolve by matching the argument's constant
   against the enum's own members (never the underlying integer), the same

@@ -6,10 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
-- `SQLA0104` reports a string constant beside `+` (`"Dr. " + u.Name`,
-  `u.Name + " "`) on every engine but SQL Server: MySQL and SQLite add it as a
-  number with no error, and Oracle and PostgreSQL reject it. A string variable
-  and two text columns are not checked. (#742)
+- `SQLA0104` reports a string or `char` constant beside `+` (`"Dr. " + u.Name`,
+  `u.Name + ' '`) on every engine but SQL Server, the one that concatenates it:
+  MySQL and SQLite add it as a number with no error, Oracle does too and fails
+  on text that is not a number, and PostgreSQL rejects it. A string variable and
+  two text columns are not checked. (#742)
 - `SQLA0104` reports a negative `Round` scale written as an integer-typed
   constant on SQLite, which reads it as 0: `Round(x, -1)` rounds to a whole number there, where MySQL, Oracle,
   PostgreSQL and SQL Server round to the tens. (#742)

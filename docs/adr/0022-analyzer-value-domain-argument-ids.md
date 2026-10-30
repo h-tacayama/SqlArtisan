@@ -195,11 +195,12 @@ and its cell lives in `ArgumentValueValidity`.
 
 ### A sixth domain, added under this decision
 
-#742 (from #669) added a string constant beside `SqlExpression`'s `+`. MySQL 8.0
-and SQLite 3.50.4 add it as a number (`StringPlusTextColumn_AddsNumerically`),
-Oracle XE 21.3.0 and PostgreSQL 16 reject it
-(`StringPlusTextColumn_IsRejectedByTheEngine`), and SQL Server 2022 concatenates
-it (`StringPlusTextColumn_Concatenates`). The two overloads share the matrix's
+#742 (from #669) added a string or `char` constant beside `SqlExpression`'s `+`.
+MySQL 8.0 and SQLite 3.50.4 add it as a number (`StringPlusTextColumn_AddsNumerically`),
+and so does Oracle XE 21.3.0 (`NumericStringPlusNumberColumn_AddsNumerically`), which
+fails on text that is not a number (`StringPlusTextColumn_IsRejectedByTheEngine`);
+PostgreSQL 16 rejects it (the same twin), and SQL Server 2022 concatenates it
+(`StringPlusTextColumn_Concatenates`). The two overloads share the matrix's
 `op_Addition` key, so only the operand's value can tell them apart, and it
 reports under `SQLA0104` with its cell in `ArgumentValueValidity`.
 

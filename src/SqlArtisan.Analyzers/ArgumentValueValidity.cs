@@ -114,8 +114,9 @@ internal static class ArgumentValueValidity
 
     // --- String operands of +: where a string is not concatenated (#742) ---
 
-    // MySQL 8.0 and SQLite 3.50.4 add a string beside + numerically, Oracle XE 21.3.0
-    // and PostgreSQL 16 reject it, and SQL Server 2022 concatenates it.
+    // MySQL 8.0, Oracle XE 21.3.0 and SQLite 3.50.4 add a string beside + as a number,
+    // Oracle failing on text that is none; PostgreSQL 16 rejects it, and SQL Server 2022
+    // concatenates it.
     private static readonly HashSet<TargetDbms> StringPlusNotConcatenated =
         [TargetDbms.MySql, TargetDbms.Oracle, TargetDbms.PostgreSql, TargetDbms.Sqlite];
 

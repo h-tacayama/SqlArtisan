@@ -1644,8 +1644,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Equal(twoArguments, emptyMatchParameter);
     }
 
-    // #742: `+` between a string and a text column, which MySQL and SQLite run as
-    // numeric addition, is rejected here; DoublePipe concatenates the same operands.
+    // #742: Oracle converts a string beside `+` to a number, so beside a name it fails;
+    // DoublePipe concatenates the same operands.
     [Fact]
     public void StringPlusTextColumn_IsRejectedByTheEngine()
     {
@@ -1663,7 +1663,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             Select(u.Name + ' ').From(u).Where(u.Id == 1)));
     }
 
-    // #742: whether Oracle adds a numeric string to a number, as MySQL and SQLite do.
+    // #742: a numeric string beside `+` adds as a number here, as on MySQL and SQLite.
     [Fact]
     public void NumericStringPlusNumberColumn_AddsNumerically()
     {
