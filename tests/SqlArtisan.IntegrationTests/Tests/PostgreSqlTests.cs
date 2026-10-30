@@ -1944,8 +1944,9 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar("SELECT INTERVAL ' ' DAY"));
     }
 
-    // #742: `+` between a string and a text column, which MySQL and SQLite run as
-    // numeric addition, is rejected here; DoublePipe concatenates the same operands.
+    // #742: `+` beside a string is rejected here, a numeric string beside a number
+    // column included, where MySQL and SQLite add numerically; DoublePipe concatenates
+    // the same text operands.
     [Fact]
     public void StringPlusTextColumn_IsRejectedByTheEngine()
     {
