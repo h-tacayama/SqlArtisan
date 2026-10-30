@@ -1164,7 +1164,7 @@ public abstract class IntegrationTestBase
     }
 
     // #742: SQLite reads a negative scale as 0, the cell SQLA0104 reports; the other
-    // engines round to the tens. 75.6 tells a scale of 0 (76) from one ignored (75.6).
+    // engines round to the tens. 75.6 tells a scale of 0 (76) from no rounding (75.6).
     [Fact]
     public void RoundNegativeScale_RoundsToTheTensExceptOnSqlite()
     {
