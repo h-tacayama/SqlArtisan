@@ -1376,5 +1376,7 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
             Select("Dr. " + u.Name).From(u).Where(u.Id == 1)));
         Assert.Equal(0, connection.ExecuteScalar<int>(
             Select(u.Name + " ").From(u).Where(u.Id == 1)));
+        Assert.Equal(0, connection.ExecuteScalar<int>(
+            Select(u.Name + ' ').From(u).Where(u.Id == 1)));
     }
 }

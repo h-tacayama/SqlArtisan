@@ -1643,4 +1643,34 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.True(twoArguments > 0);
         Assert.Equal(twoArguments, emptyMatchParameter);
     }
+
+    // #742: Oracle converts a string beside `+` to a number, so beside a name it fails;
+    // DoublePipe concatenates the same operands.
+    [Fact]
+    public void StringPlusTextColumn_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal("Dr. Alice", connection.ExecuteScalar<string>(
+            Select(DoublePipe("Dr. ", u.Name)).From(u).Where(u.Id == 1)));
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select("Dr. " + u.Name).From(u).Where(u.Id == 1)));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(u.Name + " ").From(u).Where(u.Id == 1)));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(u.Name + ' ').From(u).Where(u.Id == 1)));
+    }
+
+    // #742: a numeric string beside `+` adds as a number here, as on MySQL and SQLite.
+    [Fact]
+    public void NumericStringPlusNumberColumn_AddsNumerically()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(31, connection.ExecuteScalar<int>(
+            Select("1" + u.Age).From(u).Where(u.Id == 1)));
+    }
 }

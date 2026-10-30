@@ -328,6 +328,83 @@ public class ArgumentValueValidityAnalyzerTests
             """,
             AnalyzerVerifier.EditorConfig("sqlite"));
 
+    // --- String operands of + (#742) ---
+
+    [Fact]
+    public Task Plus_MySql_StringFirst_ReportsSqla0104() =>
+        RunReporting(
+            """var q = Select({|#0:"Dr. "|} + t.Name).From(t);""",
+            AnalyzerVerifier.EditorConfig("mysql"),
+            "operator +", "Dr. ", "operand", "MySQL");
+
+    [Fact]
+    public Task Plus_Sqlite_StringSecond_ReportsSqla0104() =>
+        RunReporting(
+            """var q = Select(t.Name + {|#0:" "|}).From(t);""",
+            AnalyzerVerifier.EditorConfig("sqlite"),
+            "operator +", " ", "operand", "SQLite");
+
+    [Fact]
+    public Task Plus_MySql_Char_ReportsSqla0104() =>
+        RunReporting(
+            """var q = Select(t.Name + {|#0:' '|} + t.Name).From(t);""",
+            AnalyzerVerifier.EditorConfig("mysql"),
+            "operator +", " ", "operand", "MySQL");
+
+    [Fact]
+    public Task Plus_CompoundAssignment_ReportsSqla0104() =>
+        RunReporting(
+            """
+            SqlExpression e = t.Name;
+            e += {|#0:" "|};
+            """,
+            AnalyzerVerifier.EditorConfig("postgresql"));
+
+    [Fact]
+    public Task Plus_MultipleDialects_JoinsTheFailingOnes() =>
+        RunReporting(
+            """var q = Select({|#0:"Dr. "|} + t.Name).From(t);""",
+            """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_mysql = any
+            sqlartisan_syntax_oracle = any
+            sqlartisan_syntax_postgresql = any
+            sqlartisan_syntax_sqlite = any
+            sqlartisan_syntax_sqlserver = any
+            """,
+            "operator +", "Dr. ", "operand", "MySQL, Oracle, PostgreSQL and SQLite");
+
+    // SQL Server's + concatenates a string.
+    [Fact]
+    public Task Plus_SqlServer_String_StaysSilent() =>
+        RunSilent(
+            """var q = Select("Dr. " + t.Name).From(t);""",
+            AnalyzerVerifier.EditorConfig("sqlserver"));
+
+    [Fact]
+    public Task Plus_MySql_NonConstantString_StaysSilent() =>
+        RunSilent(
+            """
+            string prefix = System.DateTime.Now.ToString();
+            var q = Select(prefix + t.Name).From(t);
+            """,
+            AnalyzerVerifier.EditorConfig("mysql"));
+
+    // MySQL reads a string beside an interval as a date.
+    [Fact]
+    public Task Plus_MySql_StringBesideInterval_StaysSilent() =>
+        RunSilent(
+            """var q = Select("2024-01-01" + Interval(1, DateTimePart.Day)).From(t);""",
+            AnalyzerVerifier.EditorConfig("mysql"));
+
+    [Fact]
+    public Task Plus_MySql_Number_StaysSilent() =>
+        RunSilent(
+            """var q = Select(t.Id + 1).From(t);""",
+            AnalyzerVerifier.EditorConfig("mysql"));
+
     // --- The shared never-both-fire contract ---
 
     [Fact]

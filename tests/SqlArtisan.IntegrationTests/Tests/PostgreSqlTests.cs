@@ -1943,4 +1943,26 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar("SELECT INTERVAL '' DAY"));
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar("SELECT INTERVAL ' ' DAY"));
     }
+
+    // #742: `+` beside a string is rejected here, a numeric string beside a number
+    // column included, where MySQL and SQLite add numerically; DoublePipe concatenates
+    // the same text operands.
+    [Fact]
+    public void StringPlusTextColumn_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal("Dr. Alice", connection.ExecuteScalar<string>(
+            Select(DoublePipe("Dr. ", u.Name)).From(u).Where(u.Id == 1)));
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select("Dr. " + u.Name).From(u).Where(u.Id == 1)));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(u.Name + " ").From(u).Where(u.Id == 1)));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(u.Name + ' ').From(u).Where(u.Id == 1)));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select("1" + u.Age).From(u).Where(u.Id == 1)));
+    }
 }

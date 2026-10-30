@@ -112,6 +112,14 @@ internal static class ArgumentValueValidity
     private static readonly HashSet<TargetDbms> NegativeRoundScaleReadAsZero =
         [TargetDbms.Sqlite];
 
+    // --- String operands of +: where a string is not concatenated (#742) ---
+
+    // MySQL 8.0, Oracle XE 21.3.0 and SQLite 3.50.4 add a string beside + as a number,
+    // Oracle failing on text that is none; PostgreSQL 16 rejects it, and SQL Server 2022
+    // concatenates it.
+    private static readonly HashSet<TargetDbms> StringPlusNotConcatenated =
+        [TargetDbms.MySql, TargetDbms.Oracle, TargetDbms.PostgreSql, TargetDbms.Sqlite];
+
     // --- GROUP BY ordinals: where a select-list position is not read as one
     // (#521 item 2) ---
 
@@ -137,6 +145,13 @@ internal static class ArgumentValueValidity
     /// </summary>
     public static bool ReadsNoGroupByOrdinal(TargetDbms dbms) =>
         OrdinalGroupByUnread.Contains(dbms);
+
+    /// <summary>
+    /// Whether <paramref name="dbms"/> is measured not to concatenate a string
+    /// operand of <c>+</c>.
+    /// </summary>
+    public static bool ConcatenatesNoStringPlusOperand(TargetDbms dbms) =>
+        StringPlusNotConcatenated.Contains(dbms);
 
     /// <summary>
     /// Whether <paramref name="dbms"/> is measured to read a negative constant

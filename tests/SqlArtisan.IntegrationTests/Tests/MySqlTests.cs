@@ -1463,5 +1463,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             Select("Dr. " + u.Name).From(u).Where(u.Id == 1)));
         Assert.Equal(0, connection.ExecuteScalar<int>(
             Select(u.Name + " ").From(u).Where(u.Id == 1)));
+        Assert.Equal(0, connection.ExecuteScalar<int>(
+            Select(u.Name + ' ').From(u).Where(u.Id == 1)));
     }
 }

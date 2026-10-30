@@ -239,9 +239,10 @@ public class CSharpFallbackAnalyzerTests
     public Task PendingNodeConcatenatedIntoSelect_ReportsSqla0302() =>
         RunReporting("var q = Select({|#0:RowNumber()|} + \"\").From(t);", "SQLA0302");
 
+    // On SQL Server, whose + concatenates, so SQLA0104 has no string-operand report to add.
     [Fact]
     public Task ColumnConcatenated_BindsSqlArtisansOperator_StaysSilent() =>
-        RunSilent("var q = Select(\"n\" + t.Name, t.Name + \"n\").From(t);");
+        RunSilent("var q = Select(\"n\" + t.Name, t.Name + \"n\").From(t);", "sqlserver");
 
     // Nothing proves an object holds a query object.
     [Fact]
