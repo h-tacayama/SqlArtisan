@@ -10,8 +10,7 @@ namespace SqlArtisan.Analyzers;
 
 /// <summary>
 /// Reports SQLA0104 for a literal argument value <see cref="ArgumentValueValidity"/> says the
-/// target dialect rejects: a <c>RegexpOptions</c> member outside its match-parameter alphabet
-/// (#528), a negative row count (#529), or a <c>GROUP BY</c> position or non-integer key (#537).
+/// target dialect rejects or runs with another meaning, one check per value domain there.
 /// </summary>
 /// <remarks>
 /// The sibling of <see cref="DatepartValidityRule"/> under the same id — same
@@ -25,6 +24,7 @@ internal static class ArgumentValueValidityRule
     private const string RowCountNoun = "row count";
     private const string OrdinalNoun = "column ordinal";
     private const string GroupKeyNoun = "group key";
+    private const string ScaleNoun = "scale";
 
     public static void Check(
         OperationAnalysisContext context,
@@ -49,6 +49,48 @@ internal static class ArgumentValueValidityRule
         {
             CheckGroupByOrdinal(context, invocation, targets, memberName);
         }
+
+        if (memberName == "Round")
+        {
+            CheckRoundScale(context, invocation, targets, memberName);
+        }
+    }
+
+    private static void CheckRoundScale(
+        OperationAnalysisContext context,
+        IInvocationOperation invocation,
+        DialectTargetSet targets,
+        string memberName)
+    {
+        if (FindArgument(invocation.Arguments, ArgumentValueValidity.RoundScaleParameterName)
+                is not { } argument
+            || Unwrap(argument.Value) is not { } scale
+            || scale.ConstantValue is not { HasValue: true, Value: { } value }
+            || IsOrdinalType(scale.Type) is not true
+            || ToOrdinal(value) is not < 0
+            || ValueDomainScope.For(context, invocation) is not { } scope)
+        {
+            return;
+        }
+
+        List<string>? invalidOn = null;
+
+        foreach (TargetDbms dbms in targets.Members)
+        {
+            if (ArgumentValueValidity.ReadsNegativeRoundScaleAsZero(dbms)
+                && scope.Covers(dbms, targets))
+            {
+                (invalidOn ??= []).Add(TargetDbmsNames.Display(dbms));
+            }
+        }
+
+        Report(
+            context,
+            argument,
+            memberName,
+            Convert.ToString(value, CultureInfo.InvariantCulture),
+            ScaleNoun,
+            invalidOn);
     }
 
     private static void CheckGroupByOrdinal(

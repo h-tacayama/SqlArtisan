@@ -102,6 +102,16 @@ internal static class ArgumentValueValidity
             ("Top", TargetDbms.SqlServer),
         };
 
+    // --- ROUND scales: where a negative constant is read as 0 (#742) ---
+
+    // The parameter SQLA0104 reads the scale out of.
+    internal const string RoundScaleParameterName = "decimals";
+
+    // sqlite.org round(X,Y): a negative Y is taken to be 0, so SQLite 3.50.4 rounds
+    // ROUND(75, -1) to 75 where the other four engines give 80 (#742).
+    private static readonly HashSet<TargetDbms> NegativeRoundScaleReadAsZero =
+        [TargetDbms.Sqlite];
+
     // --- GROUP BY ordinals: where a select-list position is not read as one
     // (#521 item 2) ---
 
@@ -127,6 +137,13 @@ internal static class ArgumentValueValidity
     /// </summary>
     public static bool ReadsNoGroupByOrdinal(TargetDbms dbms) =>
         OrdinalGroupByUnread.Contains(dbms);
+
+    /// <summary>
+    /// Whether <paramref name="dbms"/> is measured to read a negative constant
+    /// <c>ROUND</c> scale as 0.
+    /// </summary>
+    public static bool ReadsNegativeRoundScaleAsZero(TargetDbms dbms) =>
+        NegativeRoundScaleReadAsZero.Contains(dbms);
 
     /// <summary>
     /// Whether <paramref name="dbms"/> is measured to reject a non-integer
