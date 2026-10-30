@@ -1659,5 +1659,18 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             Select("Dr. " + u.Name).From(u).Where(u.Id == 1)));
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             Select(u.Name + " ").From(u).Where(u.Id == 1)));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(u.Name + ' ').From(u).Where(u.Id == 1)));
+    }
+
+    // #742: whether Oracle adds a numeric string to a number, as MySQL and SQLite do.
+    [Fact]
+    public void NumericStringPlusNumberColumn_AddsNumerically()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(31, connection.ExecuteScalar<int>(
+            Select("1" + u.Age).From(u).Where(u.Id == 1)));
     }
 }

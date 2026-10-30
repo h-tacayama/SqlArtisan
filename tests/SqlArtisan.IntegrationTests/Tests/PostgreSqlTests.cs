@@ -1959,5 +1959,9 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             Select("Dr. " + u.Name).From(u).Where(u.Id == 1)));
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             Select(u.Name + " ").From(u).Where(u.Id == 1)));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(u.Name + ' ').From(u).Where(u.Id == 1)));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select("1" + u.Age).From(u).Where(u.Id == 1)));
     }
 }

@@ -45,9 +45,12 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             Select("Dr. " + u.Name).From(u).Where(u.Id == 1));
         string? stringSecond = connection.ExecuteScalar<string>(
             Select(u.Name + " ").From(u).Where(u.Id == 1));
+        string? charSecond = connection.ExecuteScalar<string>(
+            Select(u.Name + ' ').From(u).Where(u.Id == 1));
 
         Assert.Equal("Dr. " + name, stringFirst);
         Assert.Equal(name + " ", stringSecond);
+        Assert.Equal(name + " ", charSecond);
     }
 
     [Fact]

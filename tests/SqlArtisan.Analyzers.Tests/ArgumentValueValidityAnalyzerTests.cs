@@ -345,6 +345,13 @@ public class ArgumentValueValidityAnalyzerTests
             "operator +", " ", "operand", "SQLite");
 
     [Fact]
+    public Task Plus_MySql_Char_ReportsSqla0104() =>
+        RunReporting(
+            """var q = Select(t.Name + {|#0:' '|} + t.Name).From(t);""",
+            AnalyzerVerifier.EditorConfig("mysql"),
+            "operator +", " ", "operand", "MySQL");
+
+    [Fact]
     public Task Plus_CompoundAssignment_ReportsSqla0104() =>
         RunReporting(
             """

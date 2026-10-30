@@ -58,7 +58,7 @@ internal static class ArgumentValueValidityRule
     }
 
     /// <summary>
-    /// Reports a string constant among <paramref name="operands"/>, the operands of a
+    /// Reports a string or char constant among <paramref name="operands"/>, the operands of a
     /// SqlArtisan <c>+</c> written as <paramref name="operation"/>.
     /// </summary>
     public static void CheckStringPlusOperands(
@@ -99,13 +99,14 @@ internal static class ArgumentValueValidityRule
         }
     }
 
-    private static string? StringConstant(IOperation operand) => Unwrap(operand) is
-    {
-        Type.SpecialType: SpecialType.System_String,
-        ConstantValue: { HasValue: true, Value: string text },
-    }
-        ? text
-        : null;
+    // A char binds as text too, so it reaches + as a string does.
+    private static string? StringConstant(IOperation operand) =>
+        Unwrap(operand).ConstantValue switch
+        {
+            { HasValue: true, Value: string text } => text,
+            { HasValue: true, Value: char c } => c.ToString(),
+            _ => null,
+        };
 
     private static void CheckRoundScale(
         OperationAnalysisContext context,
