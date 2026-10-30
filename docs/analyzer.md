@@ -105,7 +105,7 @@ still needs naming by ID.
 | `SQLA0101` | Warning | A construct is supported on a configured dialect, but not at its declared version — see [Version-aware warnings](#version-aware-warnings-sqla0101). Checking more than one dialect reports one diagnostic per failing dialect. |
 | `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
 | `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` or `Unnest(...).AsTable(...)` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
-| `SQLA0104` | Warning | A literal argument value a configured dialect rejects, or runs with another meaning, where the construct itself runs there: a `DateTimePart` the function's grammar does not accept or reads as another field, a `RegexpOptions` member outside that engine's match-parameter alphabet, a negative `Top`/`FetchFirst`/`FetchNext`/`Limit` count, a `GroupBy` column ordinal on an engine that has no `GROUP BY` positions, or a negative integer `Round` scale on SQLite — see [Argument value validity](#argument-value-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
+| `SQLA0104` | Warning | A literal argument value a configured dialect rejects, or runs with another meaning, where the construct itself runs there: a `DateTimePart` the function's grammar does not accept or reads as another field, a `RegexpOptions` member outside that engine's match-parameter alphabet, a negative `Top`/`FetchFirst`/`FetchNext`/`Limit` count, a `GroupBy` column ordinal on an engine that has no `GROUP BY` positions, or a negative integer-typed `Round` scale on SQLite — see [Argument value validity](#argument-value-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join or super-aggregate grouping on its own spine — past one, the anti-join or the grand-total row makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0201` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0202` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
@@ -1089,8 +1089,9 @@ offset; see
 `Round(x, n)` with a negative `n` rounds left of the decimal point on MySQL,
 Oracle, PostgreSQL and SQL Server. SQLite reads a negative scale as 0, so
 `Round(o.Amount, -1)` returns `75` for `75.00` where the other four return `80`.
-Only SQLite is reported, and only for an integer constant: a fractional scale is
-not checked.
+Only SQLite is reported, and only for a constant of an integer type: a `double`,
+`float` or `decimal` constant such as `-1.0` is not checked, whatever its value,
+though it reaches SQLite as the same negative scale.
 
 ```csharp
 // sqlartisan_syntax_sqlite = any
@@ -1105,7 +1106,7 @@ The datepart lists carry the narrower claim stated with them.
 
 ### When it stays silent
 
-Three cases, never a false positive:
+Four cases, never a false positive:
 
 - **The argument is not a compile-time constant** — a datepart, an option, a
   count or a scale that arrives through a variable or a computed expression
@@ -1117,6 +1118,8 @@ Three cases, never a false positive:
 - **The matrix already flags the construct unsupported on that dialect at its
   declared version** — `SQLA0100`/`SQLA0101` own that verdict; `SQLA0104`
   would otherwise double-report the same usage.
+- **A `Round` scale typed `double`, `float` or `decimal`** — `Round(x, -1.0)` is
+  not checked; see [A negative `ROUND` scale](#a-negative-round-scale).
 
 Suppression is per rule ID (`#pragma warning disable SQLA0104`, a
 `[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0104.severity`), and

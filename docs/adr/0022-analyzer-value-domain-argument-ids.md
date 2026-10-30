@@ -186,7 +186,7 @@ three domains this ADR decided were four then; the decision is unchanged.
 
 ### A fifth domain, added under this decision
 
-#742 (from #661) added a negative integer `Round` scale: SQLite 3.50.4 reads it as 0,
+#742 (from #661) added a negative integer-typed `Round` scale: SQLite 3.50.4 reads it as 0,
 so `ROUND(75.00, -1)` returns 75 and `ROUND(75.6, -1)` 76, where MySQL 8.0,
 Oracle XE 21.3.0, PostgreSQL 16.15 and SQL Server 2022 round to the tens and
 return 80 (`RoundNegativeScale_RoundsToTheTensExceptOnSqlite`). It is a value run with
