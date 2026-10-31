@@ -1297,7 +1297,7 @@ a simple CASE `WHEN NULL` branch is never taken (all five engines the suite runs
 live). So do `NOT IN` over a list holding a NULL, `IN` over NULLs alone, `BETWEEN`
 with a NULL bound and `LIKE` / `NOT LIKE` against a NULL pattern (the same five,
 `NullInComparedPosition_MatchesNoRow`). `SQLA0303` reports each of these where
-the NULL is written as `Sql.Null` or `BindNull()`; the same twin runs both. A
+the NULL is written as `Sql.Null` or `BindNull()`; the twins run both. A
 simple CASE `When(...)` reports `Sql.Null` alone: Oracle XE 21.3.0 binds an
 untyped `BindNull()` as text and rejects the CASE there rather than skipping the
 branch (`OracleTests.SimpleCaseWhenUntypedBindNull_IsRejectedByTheEngine`).
