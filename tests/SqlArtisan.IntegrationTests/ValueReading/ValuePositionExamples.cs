@@ -174,8 +174,8 @@ public static class ValuePositionCatalog
         "NotLike" => l.NotLike(v),
         "Between" => l.Between(v, v),
         "NotBetween" => l.NotBetween(v, v),
-        "In" => l.In(new[] { v }),
-        _ => l.NotIn(new[] { v }),
+        "In" => l.In([v]),
+        _ => l.NotIn([v]),
     };
 
     private static SqlExpression Arith(SqlExpression l, string op, object v) => op switch

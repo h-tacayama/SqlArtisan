@@ -8,8 +8,7 @@ namespace SqlArtisan.IntegrationTests.ValueReading;
 internal static class ValuePositionOracle
 {
     private static readonly (int Id, string A, int B, DateTime D)[] Rows =
-        ExampleCatalog.Rows.Select(r => (r.Id, r.A, r.B, new DateTime(2024, 1, r.Id, 10, 0, 0)))
-            .ToArray();
+        [.. ExampleCatalog.Rows.Select(r => (r.Id, r.A, r.B, new DateTime(2024, 1, r.Id, 10, 0, 0)))];
 
     internal static string? Expected(ValuePositionExample e)
     {
