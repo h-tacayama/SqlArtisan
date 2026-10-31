@@ -1590,7 +1590,8 @@ bound values names no column, so neither reports.
 The seventh reads a text column under `+`, which only SQL Server concatenates.
 MySQL and SQLite add the two sides as numbers, with no error, so
 `t.FirstName + t.LastName` returns `0` for two names; Oracle and PostgreSQL fail
-on two names. Unlike the others, it names the engines it reports on, since the
+on two names. Observed on MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite
+3.50.4 and SQL Server 2022 (`TextColumnPlusTextColumn_*`). Unlike the others, it names the engines it reports on, since the
 column's category is the table class's fact but what `+` does with it is the
 engine's.
 
@@ -1623,7 +1624,8 @@ cannot read in full (a column array built elsewhere), since a column it failed
 to read would otherwise look omitted.
 
 Like every rule here, it stays silent until a dialect is configured, even
-though the verdict itself is dialect-independent. Suppression is per rule
+though its verdict is dialect-independent, as is every rule's here but
+`SQLA0206`'s. Suppression is per rule
 ID, the standard Roslyn way; the `sqlartisan_construct_*` override keys do not
 apply, since the construct's dialect support is not what this rule reports.
 

@@ -82,7 +82,7 @@ public class TextColumnPlusAnalyzerTests
             "Last",
             "Oracle");
 
-    // A text column holding digits adds as meant on MySQL, but PostgreSQL rejects it.
+    // The rule reads the column's category, not its value, so digits held as text report too.
     [Fact]
     public Task TextColumnBesideNumber_PostgreSql_ReportsSqla0206() =>
         RunReporting(
