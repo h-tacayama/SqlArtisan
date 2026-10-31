@@ -175,8 +175,11 @@ public abstract class IntegrationTestBase
             "Union" => user.Union,
             "UnionAll" => user.UnionAll,
             "Intersect" => user.Intersect,
+            "IntersectAll" => user.IntersectAll,
             "Except" => user.Except,
+            "ExceptAll" => user.ExceptAll,
             "Minus" => user.Minus,
+            "MinusAll" => user.MinusAll,
             _ => throw new ArgumentOutOfRangeException(nameof(setOperator), setOperator, null),
         };
 

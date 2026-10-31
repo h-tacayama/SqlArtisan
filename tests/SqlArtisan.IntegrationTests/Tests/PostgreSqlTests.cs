@@ -1389,7 +1389,9 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     [InlineData("Union")]
     [InlineData("UnionAll")]
     [InlineData("Intersect")]
+    [InlineData("IntersectAll")]
     [InlineData("Except")]
+    [InlineData("ExceptAll")]
     public void ContextRule_ForUpdateAfterSetOperator_Rejected(string setOperator)
     {
         using IDbConnection connection = _fixture.OpenConnection();

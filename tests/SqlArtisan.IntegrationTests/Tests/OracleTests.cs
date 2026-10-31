@@ -1223,7 +1223,11 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     [InlineData("Union")]
     [InlineData("UnionAll")]
     [InlineData("Intersect")]
+    [InlineData("IntersectAll")]
+    [InlineData("Except")]
+    [InlineData("ExceptAll")]
     [InlineData("Minus")]
+    [InlineData("MinusAll")]
     public void ContextRule_ForUpdateAfterSetOperator_Rejected(string setOperator)
     {
         using IDbConnection connection = _fixture.OpenConnection();

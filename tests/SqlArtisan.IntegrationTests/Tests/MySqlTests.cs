@@ -1011,7 +1011,9 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     [InlineData("Union")]
     [InlineData("UnionAll")]
     [InlineData("Intersect")]
+    [InlineData("IntersectAll")]
     [InlineData("Except")]
+    [InlineData("ExceptAll")]
     public void ForUpdateAfterSetOperator_LocksOnlyTheLastBranch(string setOperator)
     {
         using IDbConnection a = _fixture.OpenConnection();
