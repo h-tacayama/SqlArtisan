@@ -235,7 +235,8 @@ public abstract class ValuePositionTestBase
             counts[verdict] = counts.GetValueOrDefault(verdict) + 1;
             lines.Add($"{e.Id}\t{verdict}\t{expected}\t{observed}");
 
-            if (verdict is "ORACLE-MISMATCH" or "BUILD-UNEXPECTED")
+            if (verdict is "ORACLE-MISMATCH" or "BUILD-UNEXPECTED"
+                || (verdict == "ORACLE-LOUD" && e.Family == "ODKU" && dbms == Dbms.MySql))
             {
                 printed.Add(
                     $"VR5\t{_lane}\t{verdict}\t{e.Id}\t{Short(expected)}\t{Short(observed)}");
