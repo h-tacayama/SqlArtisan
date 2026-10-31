@@ -384,6 +384,12 @@ public static class ValueReadingModel
     {
         Dbms d = DbmsOf(lane);
 
+        // A short or byte reads as the int it holds wherever it compiles (added in step 4).
+        if (v is ValueKind.Short or ValueKind.Byte)
+        {
+            v = ValueKind.IntPositive;
+        }
+
         if (v == ValueKind.CSharpNull && c is PositionClass.ExpressionOnly
             or PositionClass.SubqueryOnly or PositionClass.TextPlusLeft
             or PositionClass.PositionBoundOnly)
@@ -524,6 +530,14 @@ public static class ValueReadingModel
                 return new(Outcome.Executes, Shape.Marker, UserEnumBinds);
         }
 
+        // ODP.NET reading back a bound bool from Oracle XE 21 throws InvalidCastException
+        // (run 41159686928); 23ai returns it. A driver mapping, the Q10 class.
+        if (v == ValueKind.Bool && lane == Lane.Oracle && c == PositionClass.SelectItem)
+        {
+            return new(Outcome.Question, Shape.Marker, "driver mapping, unrecorded",
+                QuestionId: "Q10");
+        }
+
         if (c == PositionClass.PlusOperand && v is ValueKind.Text or ValueKind.Char)
         {
             return StringPlusCell(d);
@@ -606,6 +620,9 @@ public static class ValueReadingModel
             case ValueKind.IntNegative:
                 return d is Dbms.PostgreSql or Dbms.Sqlite or Dbms.SqlServer
                     ? new(Outcome.BuildRejects, Shape.None, NegOrdinal)
+                    : ctx == Context.SetOperationBranch && d == Dbms.Oracle
+                        ? new(Outcome.EngineRejects, Shape.None, "Oracle ORA-01785 (a compound's "
+                            + "ORDER BY item must be a select-list number); run 41159686928")
                     : new(Outcome.Executes, Shape.ConstantKey, NegOrdinal,
                         QuestionId: "Q2", Meaning: "constant (unsorted)");
             case ValueKind.Double:

@@ -1,0 +1,725 @@
+BindValue	BindValue(Object, Nullable<DbType>, Nullable<ParameterDirection>, Nullable<Int32>)	value	Object	Object
+BindValue	BindValue(Object, Nullable<DbType>, Nullable<ParameterDirection>, Nullable<Int32>)	size	Nullable<Int32>	Numeric
+Cte	Column(DbColumn)	source	DbColumn	Expression
+Cte	Column(String)	name	String	Text
+Cte	Cte(String)	name	String	Text
+CteBase	As(ISubquery)	subquery	ISubquery	Subquery
+DbColumn	DbColumn(TableReference, String)	name	String	Text
+DbColumnMetadataAttribute	set_HasDefault(Boolean)	value	Boolean	Boolean
+DbColumnMetadataAttribute	set_Indexed(Boolean)	value	Boolean	Boolean
+DbColumnMetadataAttribute	set_Nullable(Boolean)	value	Boolean	Boolean
+DbColumnMetadataAttribute	set_TypeCategory(DbTypeCategory)	value	DbTypeCategory	Enum
+DbmsResolver	RegisterProvider(String, Dbms)	typeFullName	String	Text
+DbmsResolver	RegisterProvider(String, Dbms)	dbms	Dbms	Enum
+DbTable	Column(DbColumn)	source	DbColumn	Expression
+DbTable	Column(String)	name	String	Text
+DbTable	DbTable(String, String)	tableName	String	Text
+DbTable	DbTable(String, String)	tableAlias	String	Text
+DbTableBase	DbTableBase(String, String)	tableName	String	Text
+DbTableBase	DbTableBase(String, String)	tableAlias	String	Text
+DerivedTable	Column(DbColumn)	source	DbColumn	Expression
+DerivedTable	Column(String)	name	String	Text
+DerivedTable	DerivedTable(String)	name	String	Text
+IDeleteBuilderDeleteOutput	Output(Object[])	items	Object[]	ObjectArray
+IDeleteBuilderFromJoinOn	Using(DbColumn, DbColumn[])	column	DbColumn	Expression
+IDeleteBuilderFromJoinOn	Using(DbColumn, DbColumn[])	additionalColumns	DbColumn[]	Expression
+IDeleteBuilderOutputInto	Into(DbTableBase, DbColumn[])	columns	DbColumn[]	Expression
+IInsertBuilder	InsertInto(DbTableBase, DbColumn[])	columns	DbColumn[]	Expression
+IInsertBuilderColumns	Values(IEnumerable<Object[]>)	rows	IEnumerable<Object[]>	ObjectRows
+IInsertBuilderColumns	Values(Object[])	values	Object[]	ObjectArray
+IInsertBuilderColumns	Values(Object[][])	rows	Object[][]	ObjectRows
+IInsertBuilderColumnsOutput	Output(Object[])	items	Object[]	ObjectArray
+IInsertBuilderConflictAction	Returning(Object[])	expressions	Object[]	ObjectArray
+IInsertBuilderOutputColumns	Values(IEnumerable<Object[]>)	rows	IEnumerable<Object[]>	ObjectRows
+IInsertBuilderOutputColumns	Values(Object[])	values	Object[]	ObjectArray
+IInsertBuilderOutputColumns	Values(Object[][])	rows	Object[][]	ObjectRows
+IInsertBuilderOutputInto	Into(DbTableBase, DbColumn[])	columns	DbColumn[]	Expression
+IInsertBuilderTable	Values(IEnumerable<Object[]>)	rows	IEnumerable<Object[]>	ObjectRows
+IInsertBuilderTable	Values(Object[])	values	Object[]	ObjectArray
+IInsertBuilderTable	Values(Object[][])	rows	Object[][]	ObjectRows
+IInsertBuilderValues	Values(Object[])	values	Object[]	ObjectArray
+IInsertIgnoreBuilderColumns	Values(IEnumerable<Object[]>)	rows	IEnumerable<Object[]>	ObjectRows
+IInsertIgnoreBuilderColumns	Values(Object[])	values	Object[]	ObjectArray
+IInsertIgnoreBuilderColumns	Values(Object[][])	rows	Object[][]	ObjectRows
+IInsertIgnoreBuilderTable	Values(IEnumerable<Object[]>)	rows	IEnumerable<Object[]>	ObjectRows
+IInsertIgnoreBuilderTable	Values(Object[])	values	Object[]	ObjectArray
+IInsertIgnoreBuilderTable	Values(Object[][])	rows	Object[][]	ObjectRows
+IInsertIgnoreBuilderValues	Values(Object[])	values	Object[]	ObjectArray
+IJoinOperator	CrossApply(ISubquery, DerivedTableBase)	subquery	ISubquery	Subquery
+IJoinOperator	CrossJoinLateral(ISubquery, DerivedTableBase)	subquery	ISubquery	Subquery
+IJoinOperator	LeftJoinLateral(ISubquery, DerivedTableBase)	subquery	ISubquery	Subquery
+IJoinOperator	OuterApply(ISubquery, DerivedTableBase)	subquery	ISubquery	Subquery
+IJoinOperator	JoinLateral(ISubquery, DerivedTableBase)	subquery	ISubquery	Subquery
+IMergeBuilderThenInsert	Values(Object[])	values	Object[]	ObjectArray
+IMergeBuilderWhenNotMatched	ThenInsert(DbColumn[])	columns	DbColumn[]	Expression
+IMergeBuilderWhenNotMatchedAnd	ThenInsert(DbColumn[])	columns	DbColumn[]	Expression
+IMergeBuilderWhenNotMatchedAndThenInsert	Values(Object[])	values	Object[]	ObjectArray
+IntervalExpression	op_Addition(IntervalExpression, Object)	this	IntervalExpression	PositionBound
+IntervalExpression	op_Addition(IntervalExpression, Object)	rightSide	Object	Object
+IntervalExpression	op_Addition(String, IntervalExpression)	leftSide	String	Text
+IntervalExpression	op_Addition(String, IntervalExpression)	rightSide	IntervalExpression	PositionBound
+IPagination	Limit(Int32)	count	Int32	Numeric
+IPagination	OffsetRows(Int32)	start	Int32	Numeric
+IPagination	FetchFirst(Int32)	count	Int32	Numeric
+IPagination	Offset(Int32)	start	Int32	Numeric
+IReturning	Returning(Object[])	expressions	Object[]	ObjectArray
+ISelectBuilder	Select(DistinctKeyword, TopClause, Object[])	selectItems	Object[]	ObjectArray
+ISelectBuilder	Select(DistinctKeyword, Object[])	selectItems	Object[]	ObjectArray
+ISelectBuilder	Select(DistinctOnKeyword, Object[])	selectItems	Object[]	ObjectArray
+ISelectBuilder	Select(SqlHints, DistinctKeyword, Object[])	selectItems	Object[]	ObjectArray
+ISelectBuilder	Select(SqlHints, DistinctOnKeyword, Object[])	selectItems	Object[]	ObjectArray
+ISelectBuilder	Select(SqlHints, Object[])	selectItems	Object[]	ObjectArray
+ISelectBuilder	Select(TopClause, Object[])	selectItems	Object[]	ObjectArray
+ISelectBuilder	Select(Object[])	selectItems	Object[]	ObjectArray
+ISelectBuilderFrom	GroupBy(Object[])	groupByItems	Object[]	ObjectArray
+ISelectBuilderFrom	OrderBy(Object[])	orderByItems	Object[]	ObjectArray
+ISelectBuilderGroupBy	OrderBy(Object[])	orderByItems	Object[]	ObjectArray
+ISelectBuilderHaving	OrderBy(Object[])	orderByItems	Object[]	ObjectArray
+ISelectBuilderJoin	Using(DbColumn, DbColumn[])	column	DbColumn	Expression
+ISelectBuilderJoin	Using(DbColumn, DbColumn[])	additionalColumns	DbColumn[]	Expression
+ISelectBuilderLimitOffset	Offset(Int32)	start	Int32	Numeric
+ISelectBuilderOffsetFetch	FetchNext(Int32)	count	Int32	Numeric
+ISelectBuilderWhere	GroupBy(Object[])	groupByItems	Object[]	ObjectArray
+ISelectBuilderWhere	OrderBy(Object[])	orderByItems	Object[]	ObjectArray
+ISelectBuilderWithRollup	OrderBy(Object[])	orderByItems	Object[]	ObjectArray
+ISqlBuilder	Build(Dbms)	dbms	Dbms	Enum
+ISubquery	As(String)	alias	String	Text
+ISubquery	AsTable(String)	alias	String	Text
+IUpdateBuilderFromJoinOn	Using(DbColumn, DbColumn[])	column	DbColumn	Expression
+IUpdateBuilderFromJoinOn	Using(DbColumn, DbColumn[])	additionalColumns	DbColumn[]	Expression
+IUpdateBuilderJoinOn	Using(DbColumn, DbColumn[])	column	DbColumn	Expression
+IUpdateBuilderJoinOn	Using(DbColumn, DbColumn[])	additionalColumns	DbColumn[]	Expression
+IUpdateBuilderOutputInto	Into(DbTableBase, DbColumn[])	columns	DbColumn[]	Expression
+IUpdateBuilderSetOutput	Output(Object[])	items	Object[]	ObjectArray
+IUpsert	OnConflict(DbColumn[])	conflictTarget	DbColumn[]	Expression
+LikeCondition	Escape(Char)	escapeChar	Char	Character
+MatchFunction	Against(Object)	searchExpr	Object	Object
+MatchFunction	Against(Object, SearchModifier)	searchExpr	Object	Object
+MatchFunction	Against(Object, SearchModifier)	modifier	SearchModifier	Enum
+MatchFunction	AgainstScore(Object)	searchExpr	Object	Object
+MatchFunction	AgainstScore(Object, SearchModifier)	searchExpr	Object	Object
+MatchFunction	AgainstScore(Object, SearchModifier)	modifier	SearchModifier	Enum
+NotLikeCondition	Escape(Char)	escapeChar	Char	Character
+OutputParameter	OutputParameter(String, DbType, Nullable<Int32>)	variable	String	Text
+OutputParameter	OutputParameter(String, DbType, Nullable<Int32>)	size	Nullable<Int32>	Numeric
+PartitionByClause	OrderBy(Object[])	orderByItems	Object[]	ObjectArray
+SearchedCaseWhenCondition	Then(Object)	thenExpr	Object	Object
+SimpleCaseWhenExpression	Then(Object)	thenExpr	Object	Object
+Sql	Lag(Object)	expr	Object	Object
+Sql	Lag(Object, Int32)	expr	Object	Object
+Sql	Lag(Object, Int32)	offset	Int32	Numeric
+Sql	Lag(Object, Int32, Object)	expr	Object	Object
+Sql	Lag(Object, Int32, Object)	offset	Int32	Numeric
+Sql	Lag(Object, Int32, Object)	defaultValue	Object	Object
+Sql	Lead(Object)	expr	Object	Object
+Sql	Lead(Object, Int32)	expr	Object	Object
+Sql	Lead(Object, Int32)	offset	Int32	Numeric
+Sql	Lead(Object, Int32, Object)	expr	Object	Object
+Sql	Lead(Object, Int32, Object)	offset	Int32	Numeric
+Sql	Lead(Object, Int32, Object)	defaultValue	Object	Object
+Sql	Ntile(Int32)	buckets	Int32	Numeric
+Sql	BindArray(IReadOnlyCollection<T>)	values	IReadOnlyCollection<T>	Generic
+Sql	BindArray(T[])	values	T[]	Generic
+Sql	Bind(Object)	value	Object	Object
+Sql	Else(Object)	thenExpr	Object	Object
+Sql	Sequence(String)	name	String	Text
+Sql	Avg(DistinctKeyword, Object)	expr	Object	Object
+Sql	Count(DistinctKeyword, Object)	expr	Object	Object
+Sql	Sum(DistinctKeyword, Object)	expr	Object	Object
+Sql	DistinctOn(Object[])	expressions	Object[]	ObjectArray
+Sql	Following(Int32)	offset	Int32	Numeric
+Sql	Preceding(Int32)	offset	Int32	Numeric
+Sql	Group(Object[])	columns	Object[]	ObjectArray
+Sql	InsertInto(DbTableBase, DbColumn[])	columns	DbColumn[]	Expression
+Sql	InsertIgnoreInto(DbTableBase, DbColumn[])	columns	DbColumn[]	Expression
+Sql	Select(DistinctKeyword, TopClause, Object[])	selectItems	Object[]	ObjectArray
+Sql	Select(DistinctKeyword, Object[])	selectItems	Object[]	ObjectArray
+Sql	Select(DistinctOnKeyword, Object[])	selectItems	Object[]	ObjectArray
+Sql	Select(SqlHints, DistinctKeyword, Object[])	selectItems	Object[]	ObjectArray
+Sql	Select(SqlHints, DistinctOnKeyword, Object[])	selectItems	Object[]	ObjectArray
+Sql	Select(SqlHints, Object[])	selectItems	Object[]	ObjectArray
+Sql	Select(TopClause, Object[])	selectItems	Object[]	ObjectArray
+Sql	Select(Object[])	selectItems	Object[]	ObjectArray
+Sql	Interval(Object, DateTimePart)	quantity	Object	Object
+Sql	Interval(Object, DateTimePart)	unit	DateTimePart	Enum
+Sql	Day(Int32)	precision	Int32	Numeric
+Sql	Hour(Int32)	precision	Int32	Numeric
+Sql	Minute(Int32)	precision	Int32	Numeric
+Sql	Month(Int32)	precision	Int32	Numeric
+Sql	ToSecond(Int32)	precision	Int32	Numeric
+Sql	Year(Int32)	precision	Int32	Numeric
+Sql	IntervalLiteral(String)	text	String	Text
+Sql	IntervalLiteral(String, IntervalField)	value	String	Text
+Sql	IntervalLiteral(String, IntervalField, IntervalField)	value	String	Text
+Sql	Listagg(Object, Object)	expr	Object	Object
+Sql	Listagg(Object, Object)	separator	Object	Object
+Sql	Wait(Int32)	seconds	Int32	Numeric
+Sql	Match(Object, Object[])	column	Object	Object
+Sql	Match(Object, Object[])	otherColumns	Object[]	ObjectArray
+Sql	Of(DbColumn)	tableIdentifier	DbColumn	Expression
+Sql	OrderBy(Object[])	orderByItems	Object[]	ObjectArray
+Sql	PartitionBy(Object[])	expressions	Object[]	ObjectArray
+Sql	PercentileCont(Double)	fraction	Double	Numeric
+Sql	PercentileDisc(Double)	fraction	Double	Numeric
+Sql	All(SqlExpression)	array	SqlExpression	Expression
+Sql	Any(SqlExpression)	array	SqlExpression	Expression
+Sql	Some(SqlExpression)	array	SqlExpression	Expression
+Sql	All(ISubquery)	subquery	ISubquery	Subquery
+Sql	Any(ISubquery)	subquery	ISubquery	Subquery
+Sql	Some(ISubquery)	subquery	ISubquery	Subquery
+Sql	Separator(String)	separator	String	Text
+Sql	When(Object)	whenExpr	Object	Object
+Sql	ArrayContainedBy(Object, Object)	leftArray	Object	Object
+Sql	ArrayContainedBy(Object, Object)	rightArray	Object	Object
+Sql	ArrayContains(Object, Object)	leftArray	Object	Object
+Sql	ArrayContains(Object, Object)	rightArray	Object	Object
+Sql	ArrayOverlaps(Object, Object)	leftArray	Object	Object
+Sql	ArrayOverlaps(Object, Object)	rightArray	Object	Object
+Sql	ConditionIf(Boolean, SqlCondition)	when	Boolean	Boolean
+Sql	Contains(Object, Object)	column	Object	Object
+Sql	Contains(Object, Object)	searchCondition	Object	Object
+Sql	Exists(ISubquery)	subquery	ISubquery	Subquery
+Sql	Freetext(Object, Object)	column	Object	Object
+Sql	Freetext(Object, Object)	freetext	Object	Object
+Sql	JsonbContains(Object, Object)	jsonExpr	Object	Object
+Sql	JsonbContains(Object, Object)	jsonValue	Object	Object
+Sql	JsonbExists(Object, Object)	jsonExpr	Object	Object
+Sql	JsonbExists(Object, Object)	key	Object	Object
+Sql	JsonbExistsAll(Object, Object[])	jsonExpr	Object	Object
+Sql	JsonbExistsAll(Object, Object[])	keys	Object[]	ObjectArray
+Sql	JsonbExistsAny(Object, Object[])	jsonExpr	Object	Object
+Sql	JsonbExistsAny(Object, Object[])	keys	Object[]	ObjectArray
+Sql	Match(DbTableBase, Object)	pattern	Object	Object
+Sql	NotExists(ISubquery)	subquery	ISubquery	Subquery
+Sql	RegexpLike(Object, Object)	source	Object	Object
+Sql	RegexpLike(Object, Object)	pattern	Object	Object
+Sql	RegexpLike(Object, Object, RegexpOptions)	source	Object	Object
+Sql	RegexpLike(Object, Object, RegexpOptions)	pattern	Object	Object
+Sql	RegexpLike(Object, Object, RegexpOptions)	options	RegexpOptions	Enum
+Sql	TsMatch(Object, Object)	vector	Object	Object
+Sql	TsMatch(Object, Object)	query	Object	Object
+Sql	Abs(Object)	expr	Object	Object
+Sql	AddMonths(Object, Object)	dateTime	Object	Object
+Sql	AddMonths(Object, Object)	months	Object	Object
+Sql	Array(Object[])	elements	Object[]	ObjectArray
+Sql	Case(SearchedCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(SearchedCaseWhenClause, SearchedCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, SearchedCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(SearchedCaseWhenClause[], CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(Object, SimpleCaseWhenClause, CaseElseExpression)	expr	Object	Object
+Sql	Case(Object, SimpleCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	expr	Object	Object
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	expr	Object	Object
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	expr	Object	Object
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	expr	Object	Object
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	expr	Object	Object
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	expr	Object	Object
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	expr	Object	Object
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	expr	Object	Object
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	expr	Object	Object
+Sql	Case(Object, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, SimpleCaseWhenClause, CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Case(Object, SimpleCaseWhenClause[])	expr	Object	Object
+Sql	Case(Object, SimpleCaseWhenClause[], CaseElseExpression)	expr	Object	Object
+Sql	Case(Object, SimpleCaseWhenClause[], CaseElseExpression)	elseExpr	CaseElseExpression	Expression
+Sql	Cast(Object, String)	expr	Object	Object
+Sql	Cast(Object, String)	type	String	Text
+Sql	Ceil(Object)	expr	Object	Object
+Sql	Ceiling(Object)	expr	Object	Object
+Sql	CharLength(Object)	source	Object	Object
+Sql	Coalesce(Object, Object, Object[])	primary	Object	Object
+Sql	Coalesce(Object, Object, Object[])	secondary	Object	Object
+Sql	Coalesce(Object, Object, Object[])	others	Object[]	ObjectArray
+Sql	Concat(Object, Object)	primary	Object	Object
+Sql	Concat(Object, Object)	secondary	Object	Object
+Sql	Concat(Object, Object, Object, Object[])	primary	Object	Object
+Sql	Concat(Object, Object, Object, Object[])	secondary	Object	Object
+Sql	Concat(Object, Object, Object, Object[])	third	Object	Object
+Sql	Concat(Object, Object, Object, Object[])	others	Object[]	ObjectArray
+Sql	ConcatWs(Object, Object, Object, Object[])	separator	Object	Object
+Sql	ConcatWs(Object, Object, Object, Object[])	primary	Object	Object
+Sql	ConcatWs(Object, Object, Object, Object[])	secondary	Object	Object
+Sql	ConcatWs(Object, Object, Object, Object[])	others	Object[]	ObjectArray
+Sql	ContainsScore(Object, Object)	column	Object	Object
+Sql	ContainsScore(Object, Object)	query	Object	Object
+Sql	ContainsScore(Object, Object, Int32)	column	Object	Object
+Sql	ContainsScore(Object, Object, Int32)	query	Object	Object
+Sql	ContainsScore(Object, Object, Int32)	label	Int32	Numeric
+Sql	CosineDistance(Object, Object)	leftVector	Object	Object
+Sql	CosineDistance(Object, Object)	rightVector	Object	Object
+Sql	CurrentTime(Int32)	precision	Int32	Numeric
+Sql	CurrentTimestamp(Int32)	precision	Int32	Numeric
+Sql	Currval(String)	sequenceName	String	Text
+Sql	Date(Object)	timevalue	Object	Object
+Sql	Date(Object, Object, Object[])	timevalue	Object	Object
+Sql	Date(Object, Object, Object[])	modifier	Object	Object
+Sql	Date(Object, Object, Object[])	modifiers	Object[]	ObjectArray
+Sql	DateAdd(Object, IntervalExpression)	date	Object	Object
+Sql	DateAdd(Object, IntervalExpression)	interval	IntervalExpression	PositionBound
+Sql	DateAdd(Object, IntervalLiteralExpression)	date	Object	Object
+Sql	DateAdd(Object, IntervalLiteralExpression)	interval	IntervalLiteralExpression	Expression
+Sql	DateFormat(Object, Object)	date	Object	Object
+Sql	DateFormat(Object, Object)	format	Object	Object
+Sql	DateSub(Object, IntervalExpression)	date	Object	Object
+Sql	DateSub(Object, IntervalExpression)	interval	IntervalExpression	PositionBound
+Sql	DateSub(Object, IntervalLiteralExpression)	date	Object	Object
+Sql	DateSub(Object, IntervalLiteralExpression)	interval	IntervalLiteralExpression	Expression
+Sql	DateTrunc(DateTimePart, Object)	datepart	DateTimePart	Enum
+Sql	DateTrunc(DateTimePart, Object)	source	Object	Object
+Sql	Dateadd(DateTimePart, Object, Object)	datepart	DateTimePart	Enum
+Sql	Dateadd(DateTimePart, Object, Object)	number	Object	Object
+Sql	Dateadd(DateTimePart, Object, Object)	dateTime	Object	Object
+Sql	Datediff(DateTimePart, Object, Object)	datepart	DateTimePart	Enum
+Sql	Datediff(DateTimePart, Object, Object)	startDate	Object	Object
+Sql	Datediff(DateTimePart, Object, Object)	endDate	Object	Object
+Sql	Datepart(DateTimePart, Object)	datepart	DateTimePart	Enum
+Sql	Datepart(DateTimePart, Object)	source	Object	Object
+Sql	Datetime(Object, Object[])	timevalue	Object	Object
+Sql	Datetime(Object, Object[])	modifiers	Object[]	ObjectArray
+Sql	Datetrunc(DateTimePart, Object)	datepart	DateTimePart	Enum
+Sql	Datetrunc(DateTimePart, Object)	date	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, Object)	expr	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, Object)	searchResultPair	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, Object)	default	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	expr	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair1	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair2	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	default	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	expr	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair1	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair2	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair3	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	default	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	expr	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair1	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair2	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair3	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair4	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	default	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	expr	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair1	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair2	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair3	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair4	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair5	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	default	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	expr	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair1	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair2	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair3	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair4	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair5	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair6	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	default	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	expr	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair1	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair2	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair3	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair4	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair5	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair6	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair7	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	default	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	expr	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair1	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair2	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair3	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair4	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair5	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair6	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair7	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair8	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	default	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	expr	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair1	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair2	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair3	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair4	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair5	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair6	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair7	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair8	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair9	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	default	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	expr	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair1	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair2	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair3	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair4	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair5	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair6	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair7	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair8	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair9	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	searchResultPair10	ValueTuple<Object, Object>	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, ValueTuple<Object, Object>, Object)	default	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>[], Object)	expr	Object	Object
+Sql	Decode(Object, ValueTuple<Object, Object>[], Object)	searchResultPairs	ValueTuple<Object, Object>[]	ObjectPair
+Sql	Decode(Object, ValueTuple<Object, Object>[], Object)	default	Object	Object
+Sql	Deleted(DbColumn)	column	DbColumn	Expression
+Sql	DoublePipe(Object, Object, Object[])	primary	Object	Object
+Sql	DoublePipe(Object, Object, Object[])	secondary	Object	Object
+Sql	DoublePipe(Object, Object, Object[])	others	Object[]	ObjectArray
+Sql	Excluded(DbColumn)	column	DbColumn	Expression
+Sql	Exp(Object)	expr	Object	Object
+Sql	Extract(DateTimePart, Object)	datepart	DateTimePart	Enum
+Sql	Extract(DateTimePart, Object)	source	Object	Object
+Sql	Floor(Object)	expr	Object	Object
+Sql	Format(Object, Object)	value	Object	Object
+Sql	Format(Object, Object)	format	Object	Object
+Sql	Format(Object, Object, Object)	value	Object	Object
+Sql	Format(Object, Object, Object)	format	Object	Object
+Sql	Format(Object, Object, Object)	culture	Object	Object
+Sql	Greatest(Object[])	expressions	Object[]	ObjectArray
+Sql	GroupConcat(DistinctKeyword, Object)	expr	Object	Object
+Sql	GroupConcat(DistinctKeyword, Object, OrderByClause)	expr	Object	Object
+Sql	GroupConcat(DistinctKeyword, Object, OrderByClause, SeparatorClause)	expr	Object	Object
+Sql	GroupConcat(DistinctKeyword, Object, SeparatorClause)	expr	Object	Object
+Sql	GroupConcat(Object)	expr	Object	Object
+Sql	GroupConcat(Object, OrderByClause)	expr	Object	Object
+Sql	GroupConcat(Object, OrderByClause, SeparatorClause)	expr	Object	Object
+Sql	GroupConcat(Object, SeparatorClause)	expr	Object	Object
+Sql	GroupConcat(Object, Object)	expr	Object	Object
+Sql	GroupConcat(Object, Object)	separator	Object	Object
+Sql	Grouping(Object)	expr	Object	Object
+Sql	Grouping(Object, Object, Object[])	expr1	Object	Object
+Sql	Grouping(Object, Object, Object[])	expr2	Object	Object
+Sql	Grouping(Object, Object, Object[])	others	Object[]	ObjectArray
+Sql	GroupingId(Object, Object[])	expr	Object	Object
+Sql	GroupingId(Object, Object[])	others	Object[]	ObjectArray
+Sql	HammingDistance(Object, Object)	leftBits	Object	Object
+Sql	HammingDistance(Object, Object)	rightBits	Object	Object
+Sql	If(SqlCondition, Object, Object)	then	Object	Object
+Sql	If(SqlCondition, Object, Object)	else	Object	Object
+Sql	Ifnull(Object, Object)	expr	Object	Object
+Sql	Ifnull(Object, Object)	alt	Object	Object
+Sql	Iif(SqlCondition, Object, Object)	then	Object	Object
+Sql	Iif(SqlCondition, Object, Object)	else	Object	Object
+Sql	Inserted(DbColumn)	column	DbColumn	Expression
+Sql	Instr(Object, Object)	source	Object	Object
+Sql	Instr(Object, Object)	substring	Object	Object
+Sql	Instr(Object, Object, Object)	source	Object	Object
+Sql	Instr(Object, Object, Object)	substring	Object	Object
+Sql	Instr(Object, Object, Object)	position	Object	Object
+Sql	Instr(Object, Object, Object, Object)	source	Object	Object
+Sql	Instr(Object, Object, Object, Object)	substring	Object	Object
+Sql	Instr(Object, Object, Object, Object)	position	Object	Object
+Sql	Instr(Object, Object, Object, Object)	occurrence	Object	Object
+Sql	Isnull(Object, Object)	expr	Object	Object
+Sql	Isnull(Object, Object)	alt	Object	Object
+Sql	JaccardDistance(Object, Object)	leftBits	Object	Object
+Sql	JaccardDistance(Object, Object)	rightBits	Object	Object
+Sql	JsonArrow(Object, Char)	jsonExpr	Object	Object
+Sql	JsonArrow(Object, Char)	key	Char	Character
+Sql	JsonArrow(Object, Int32)	jsonExpr	Object	Object
+Sql	JsonArrow(Object, Int32)	index	Int32	Numeric
+Sql	JsonArrow(Object, SqlExpression)	jsonExpr	Object	Object
+Sql	JsonArrow(Object, SqlExpression)	key	SqlExpression	Expression
+Sql	JsonArrow(Object, String)	jsonExpr	Object	Object
+Sql	JsonArrow(Object, String)	key	String	Text
+Sql	JsonArrowText(Object, Char)	jsonExpr	Object	Object
+Sql	JsonArrowText(Object, Char)	key	Char	Character
+Sql	JsonArrowText(Object, Int32)	jsonExpr	Object	Object
+Sql	JsonArrowText(Object, Int32)	index	Int32	Numeric
+Sql	JsonArrowText(Object, SqlExpression)	jsonExpr	Object	Object
+Sql	JsonArrowText(Object, SqlExpression)	key	SqlExpression	Expression
+Sql	JsonArrowText(Object, String)	jsonExpr	Object	Object
+Sql	JsonArrowText(Object, String)	key	String	Text
+Sql	JsonExtract(Object, String)	jsonDoc	Object	Object
+Sql	JsonExtract(Object, String)	path	String	Text
+Sql	JsonHashArrow(Object, Object)	jsonExpr	Object	Object
+Sql	JsonHashArrow(Object, Object)	path	Object	Object
+Sql	JsonHashArrowText(Object, Object)	jsonExpr	Object	Object
+Sql	JsonHashArrowText(Object, Object)	path	Object	Object
+Sql	JsonQuery(Object, String)	jsonDoc	Object	Object
+Sql	JsonQuery(Object, String)	path	String	Text
+Sql	JsonValue(Object, String)	jsonDoc	Object	Object
+Sql	JsonValue(Object, String)	path	String	Text
+Sql	Julianday(Object, Object[])	timevalue	Object	Object
+Sql	Julianday(Object, Object[])	modifiers	Object[]	ObjectArray
+Sql	L1Distance(Object, Object)	leftVector	Object	Object
+Sql	L1Distance(Object, Object)	rightVector	Object	Object
+Sql	L2Distance(Object, Object)	leftVector	Object	Object
+Sql	L2Distance(Object, Object)	rightVector	Object	Object
+Sql	LastDay(Object)	date	Object	Object
+Sql	Least(Object[])	expressions	Object[]	ObjectArray
+Sql	Left(Object, Object)	source	Object	Object
+Sql	Left(Object, Object)	length	Object	Object
+Sql	Length(Object)	source	Object	Object
+Sql	Lengthb(Object)	source	Object	Object
+Sql	Ln(Object)	expr	Object	Object
+Sql	Log(Object)	expr	Object	Object
+Sql	Log(Object, Object)	base	Object	Object
+Sql	Log(Object, Object)	expr	Object	Object
+Sql	Log10(Object)	expr	Object	Object
+Sql	Lower(Object)	source	Object	Object
+Sql	Lpad(Object, Object)	source	Object	Object
+Sql	Lpad(Object, Object)	length	Object	Object
+Sql	Lpad(Object, Object, Object)	source	Object	Object
+Sql	Lpad(Object, Object, Object)	length	Object	Object
+Sql	Lpad(Object, Object, Object)	padding	Object	Object
+Sql	Ltrim(Object)	source	Object	Object
+Sql	Ltrim(Object, Object)	source	Object	Object
+Sql	Ltrim(Object, Object)	trimChars	Object	Object
+Sql	Mod(Object, Object)	dividend	Object	Object
+Sql	Mod(Object, Object)	divisor	Object	Object
+Sql	MonthsBetween(Object, Object)	date1	Object	Object
+Sql	MonthsBetween(Object, Object)	date2	Object	Object
+Sql	NegativeInnerProduct(Object, Object)	leftVector	Object	Object
+Sql	NegativeInnerProduct(Object, Object)	rightVector	Object	Object
+Sql	NextValueFor(String)	sequenceName	String	Text
+Sql	Nextval(String)	sequenceName	String	Text
+Sql	Nullif(Object, Object)	expr1	Object	Object
+Sql	Nullif(Object, Object)	expr2	Object	Object
+Sql	Numtodsinterval(Object, DateTimePart)	n	Object	Object
+Sql	Numtodsinterval(Object, DateTimePart)	unit	DateTimePart	Enum
+Sql	Numtoyminterval(Object, DateTimePart)	n	Object	Object
+Sql	Numtoyminterval(Object, DateTimePart)	unit	DateTimePart	Enum
+Sql	Nvl(Object, Object)	expr1	Object	Object
+Sql	Nvl(Object, Object)	expr2	Object	Object
+Sql	PlaintoTsquery(Object)	text	Object	Object
+Sql	PlaintoTsquery(String, Object)	config	String	Text
+Sql	PlaintoTsquery(String, Object)	text	Object	Object
+Sql	Position(Object, Object)	substring	Object	Object
+Sql	Position(Object, Object)	source	Object	Object
+Sql	Power(Object, Object)	base	Object	Object
+Sql	Power(Object, Object)	exponent	Object	Object
+Sql	RegexpCount(Object, Object)	source	Object	Object
+Sql	RegexpCount(Object, Object)	pattern	Object	Object
+Sql	RegexpCount(Object, Object, Object)	source	Object	Object
+Sql	RegexpCount(Object, Object, Object)	pattern	Object	Object
+Sql	RegexpCount(Object, Object, Object)	position	Object	Object
+Sql	RegexpCount(Object, Object, Object, RegexpOptions)	source	Object	Object
+Sql	RegexpCount(Object, Object, Object, RegexpOptions)	pattern	Object	Object
+Sql	RegexpCount(Object, Object, Object, RegexpOptions)	position	Object	Object
+Sql	RegexpCount(Object, Object, Object, RegexpOptions)	options	RegexpOptions	Enum
+Sql	RegexpInstr(Object, Object)	source	Object	Object
+Sql	RegexpInstr(Object, Object)	pattern	Object	Object
+Sql	RegexpInstr(Object, Object, Object)	source	Object	Object
+Sql	RegexpInstr(Object, Object, Object)	pattern	Object	Object
+Sql	RegexpInstr(Object, Object, Object)	position	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object)	source	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object)	pattern	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object)	position	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object)	occurrence	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object)	source	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object)	pattern	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object)	position	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object)	occurrence	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object)	returnOption	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object, RegexpOptions)	source	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object, RegexpOptions)	pattern	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object, RegexpOptions)	position	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object, RegexpOptions)	occurrence	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object, RegexpOptions)	returnOption	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object, RegexpOptions)	options	RegexpOptions	Enum
+Sql	RegexpInstr(Object, Object, Object, Object, Object, RegexpOptions, Object)	source	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object, RegexpOptions, Object)	pattern	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object, RegexpOptions, Object)	position	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object, RegexpOptions, Object)	occurrence	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object, RegexpOptions, Object)	returnOption	Object	Object
+Sql	RegexpInstr(Object, Object, Object, Object, Object, RegexpOptions, Object)	options	RegexpOptions	Enum
+Sql	RegexpInstr(Object, Object, Object, Object, Object, RegexpOptions, Object)	subPatternPos	Object	Object
+Sql	RegexpReplace(Object, Object, Object)	source	Object	Object
+Sql	RegexpReplace(Object, Object, Object)	pattern	Object	Object
+Sql	RegexpReplace(Object, Object, Object)	replacement	Object	Object
+Sql	RegexpReplace(Object, Object, Object, Object)	source	Object	Object
+Sql	RegexpReplace(Object, Object, Object, Object)	pattern	Object	Object
+Sql	RegexpReplace(Object, Object, Object, Object)	replacement	Object	Object
+Sql	RegexpReplace(Object, Object, Object, Object)	position	Object	Object
+Sql	RegexpReplace(Object, Object, Object, Object, Object)	source	Object	Object
+Sql	RegexpReplace(Object, Object, Object, Object, Object)	pattern	Object	Object
+Sql	RegexpReplace(Object, Object, Object, Object, Object)	replacement	Object	Object
+Sql	RegexpReplace(Object, Object, Object, Object, Object)	position	Object	Object
+Sql	RegexpReplace(Object, Object, Object, Object, Object)	occurrence	Object	Object
+Sql	RegexpReplace(Object, Object, Object, Object, Object, RegexpOptions)	source	Object	Object
+Sql	RegexpReplace(Object, Object, Object, Object, Object, RegexpOptions)	pattern	Object	Object
+Sql	RegexpReplace(Object, Object, Object, Object, Object, RegexpOptions)	replacement	Object	Object
+Sql	RegexpReplace(Object, Object, Object, Object, Object, RegexpOptions)	position	Object	Object
+Sql	RegexpReplace(Object, Object, Object, Object, Object, RegexpOptions)	occurrence	Object	Object
+Sql	RegexpReplace(Object, Object, Object, Object, Object, RegexpOptions)	options	RegexpOptions	Enum
+Sql	RegexpSubstr(Object, Object)	source	Object	Object
+Sql	RegexpSubstr(Object, Object)	pattern	Object	Object
+Sql	RegexpSubstr(Object, Object, Object)	source	Object	Object
+Sql	RegexpSubstr(Object, Object, Object)	pattern	Object	Object
+Sql	RegexpSubstr(Object, Object, Object)	position	Object	Object
+Sql	RegexpSubstr(Object, Object, Object, Object)	source	Object	Object
+Sql	RegexpSubstr(Object, Object, Object, Object)	pattern	Object	Object
+Sql	RegexpSubstr(Object, Object, Object, Object)	position	Object	Object
+Sql	RegexpSubstr(Object, Object, Object, Object)	occurrence	Object	Object
+Sql	RegexpSubstr(Object, Object, Object, Object, RegexpOptions)	source	Object	Object
+Sql	RegexpSubstr(Object, Object, Object, Object, RegexpOptions)	pattern	Object	Object
+Sql	RegexpSubstr(Object, Object, Object, Object, RegexpOptions)	position	Object	Object
+Sql	RegexpSubstr(Object, Object, Object, Object, RegexpOptions)	occurrence	Object	Object
+Sql	RegexpSubstr(Object, Object, Object, Object, RegexpOptions)	options	RegexpOptions	Enum
+Sql	RegexpSubstr(Object, Object, Object, Object, RegexpOptions, Object)	source	Object	Object
+Sql	RegexpSubstr(Object, Object, Object, Object, RegexpOptions, Object)	pattern	Object	Object
+Sql	RegexpSubstr(Object, Object, Object, Object, RegexpOptions, Object)	position	Object	Object
+Sql	RegexpSubstr(Object, Object, Object, Object, RegexpOptions, Object)	occurrence	Object	Object
+Sql	RegexpSubstr(Object, Object, Object, Object, RegexpOptions, Object)	options	RegexpOptions	Enum
+Sql	RegexpSubstr(Object, Object, Object, Object, RegexpOptions, Object)	subPatternPos	Object	Object
+Sql	Replace(Object, Object, Object)	source	Object	Object
+Sql	Replace(Object, Object, Object)	search	Object	Object
+Sql	Replace(Object, Object, Object)	replacement	Object	Object
+Sql	Right(Object, Object)	source	Object	Object
+Sql	Right(Object, Object)	length	Object	Object
+Sql	Round(Object)	expr	Object	Object
+Sql	Round(Object, Object)	expr	Object	Object
+Sql	Round(Object, Object)	decimals	Object	Object
+Sql	Rpad(Object, Object)	source	Object	Object
+Sql	Rpad(Object, Object)	length	Object	Object
+Sql	Rpad(Object, Object, Object)	source	Object	Object
+Sql	Rpad(Object, Object, Object)	length	Object	Object
+Sql	Rpad(Object, Object, Object)	padding	Object	Object
+Sql	Rtrim(Object)	source	Object	Object
+Sql	Rtrim(Object, Object)	source	Object	Object
+Sql	Rtrim(Object, Object)	trimChars	Object	Object
+Sql	Score(Int32)	label	Int32	Numeric
+Sql	Sign(Object)	expr	Object	Object
+Sql	Sqrt(Object)	expr	Object	Object
+Sql	Strftime(Object, Object, Object[])	format	Object	Object
+Sql	Strftime(Object, Object, Object[])	timevalue	Object	Object
+Sql	Strftime(Object, Object, Object[])	modifiers	Object[]	ObjectArray
+Sql	StringAgg(Object, String, OrderByClause)	expr	Object	Object
+Sql	StringAgg(Object, String, OrderByClause)	separator	String	Text
+Sql	Strpos(Object, Object)	source	Object	Object
+Sql	Strpos(Object, Object)	substring	Object	Object
+Sql	Substr(Object, Object)	source	Object	Object
+Sql	Substr(Object, Object)	position	Object	Object
+Sql	Substr(Object, Object, Object)	source	Object	Object
+Sql	Substr(Object, Object, Object)	position	Object	Object
+Sql	Substr(Object, Object, Object)	length	Object	Object
+Sql	Substrb(Object, Object)	source	Object	Object
+Sql	Substrb(Object, Object)	position	Object	Object
+Sql	Substrb(Object, Object, Object)	source	Object	Object
+Sql	Substrb(Object, Object, Object)	position	Object	Object
+Sql	Substrb(Object, Object, Object)	length	Object	Object
+Sql	Substring(Object, Object, Object)	source	Object	Object
+Sql	Substring(Object, Object, Object)	position	Object	Object
+Sql	Substring(Object, Object, Object)	length	Object	Object
+Sql	Timestampadd(DateTimePart, Object, Object)	unit	DateTimePart	Enum
+Sql	Timestampadd(DateTimePart, Object, Object)	number	Object	Object
+Sql	Timestampadd(DateTimePart, Object, Object)	dateTime	Object	Object
+Sql	Timestampdiff(DateTimePart, Object, Object)	unit	DateTimePart	Enum
+Sql	Timestampdiff(DateTimePart, Object, Object)	startDate	Object	Object
+Sql	Timestampdiff(DateTimePart, Object, Object)	endDate	Object	Object
+Sql	ToChar(Object)	expr	Object	Object
+Sql	ToChar(Object, Object)	expr	Object	Object
+Sql	ToChar(Object, Object)	format	Object	Object
+Sql	ToDate(Object, Object)	text	Object	Object
+Sql	ToDate(Object, Object)	format	Object	Object
+Sql	ToNumber(Object)	expr	Object	Object
+Sql	ToNumber(Object, Object)	expr	Object	Object
+Sql	ToNumber(Object, Object)	numericFormat	Object	Object
+Sql	ToTimestamp(Object, Object)	text	Object	Object
+Sql	ToTimestamp(Object, Object)	format	Object	Object
+Sql	ToTsquery(Object)	text	Object	Object
+Sql	ToTsquery(String, Object)	config	String	Text
+Sql	ToTsquery(String, Object)	text	Object	Object
+Sql	ToTsvector(Object)	document	Object	Object
+Sql	ToTsvector(String, Object)	config	String	Text
+Sql	ToTsvector(String, Object)	document	Object	Object
+Sql	Trim(Object)	source	Object	Object
+Sql	Trim(Object, Object)	source	Object	Object
+Sql	Trim(Object, Object)	trimChar	Object	Object
+Sql	Trunc(Object)	expr	Object	Object
+Sql	Trunc(Object, Object)	expr	Object	Object
+Sql	Trunc(Object, Object)	format	Object	Object
+Sql	Upper(Object)	source	Object	Object
+Sql	Hints(String)	hints	String	Text
+Sql	Cube(Object, Object[])	element	Object	Object
+Sql	Cube(Object, Object[])	elements	Object[]	ObjectArray
+Sql	Rollup(Object, Object[])	element	Object	Object
+Sql	Rollup(Object, Object[])	elements	Object[]	ObjectArray
+Sql	StringAgg(Object, String)	expr	Object	Object
+Sql	StringAgg(Object, String)	separator	String	Text
+Sql	Top(Int32)	count	Int32	Numeric
+Sql	Avg(Object)	expr	Object	Object
+Sql	Count(Object)	expr	Object	Object
+Sql	Max(Object)	expr	Object	Object
+Sql	Min(Object)	expr	Object	Object
+Sql	Stddev(Object)	expr	Object	Object
+Sql	StddevPop(Object)	expr	Object	Object
+Sql	StddevSamp(Object)	expr	Object	Object
+Sql	Stdev(Object)	expr	Object	Object
+Sql	Stdevp(Object)	expr	Object	Object
+Sql	Sum(Object)	expr	Object	Object
+Sql	Var(Object)	expr	Object	Object
+Sql	VarPop(Object)	expr	Object	Object
+Sql	VarSamp(Object)	expr	Object	Object
+Sql	Variance(Object)	expr	Object	Object
+Sql	Varp(Object)	expr	Object	Object
+Sql	Unnest(Object[])	arrays	Object[]	ObjectArray
+Sql	FirstValue(Object)	expr	Object	Object
+Sql	LastValue(Object)	expr	Object	Object
+Sql	NthValue(Object, Int32)	expr	Object	Object
+Sql	NthValue(Object, Int32)	n	Int32	Numeric
+Sql	Values(String, String[], Object[][])	alias	String	Text
+Sql	Values(String, String[], Object[][])	columnNames	String[]	Text
+Sql	Values(String, String[], Object[][])	rows	Object[][]	ObjectRows
+SqlArtisanConfig	SetDefaultDbms(Dbms)	dbms	Dbms	Enum
+SqlExpression	op_Equality(SqlExpression, Object)	this	SqlExpression	Expression
+SqlExpression	op_Equality(SqlExpression, Object)	rightSide	Object	Object
+SqlExpression	op_Inequality(SqlExpression, Object)	this	SqlExpression	Expression
+SqlExpression	op_Inequality(SqlExpression, Object)	rightSide	Object	Object
+SqlExpression	As(DbColumn)	column	DbColumn	Expression
+SqlExpression	As(String)	alias	String	Text
+SqlExpression	Like(Object)	rightSide	Object	Object
+SqlExpression	NotLike(Object)	rightSide	Object	Object
+SqlExpression	Between(Object, Object)	rightSide1	Object	Object
+SqlExpression	Between(Object, Object)	rightSide2	Object	Object
+SqlExpression	In(ISubquery)	subquery	ISubquery	Subquery
+SqlExpression	In(Object[])	expressions	Object[]	ObjectArray
+SqlExpression	In(IReadOnlyCollection<T>)	values	IReadOnlyCollection<T>	Generic
+SqlExpression	In(T[])	values	T[]	Generic
+SqlExpression	NotBetween(Object, Object)	rightSide1	Object	Object
+SqlExpression	NotBetween(Object, Object)	rightSide2	Object	Object
+SqlExpression	NotIn(ISubquery)	subquery	ISubquery	Subquery
+SqlExpression	NotIn(Object[])	expressions	Object[]	ObjectArray
+SqlExpression	NotIn(IReadOnlyCollection<T>)	values	IReadOnlyCollection<T>	Generic
+SqlExpression	NotIn(T[])	values	T[]	Generic
+SqlExpression	op_GreaterThan(SqlExpression, Object)	this	SqlExpression	Expression
+SqlExpression	op_GreaterThan(SqlExpression, Object)	rightSide	Object	Object
+SqlExpression	op_GreaterThanOrEqual(SqlExpression, Object)	this	SqlExpression	Expression
+SqlExpression	op_GreaterThanOrEqual(SqlExpression, Object)	rightSide	Object	Object
+SqlExpression	op_LessThan(SqlExpression, Object)	this	SqlExpression	Expression
+SqlExpression	op_LessThan(SqlExpression, Object)	rightSide	Object	Object
+SqlExpression	op_LessThanOrEqual(SqlExpression, Object)	this	SqlExpression	Expression
+SqlExpression	op_LessThanOrEqual(SqlExpression, Object)	rightSide	Object	Object
+SqlExpression	op_Addition(SqlExpression, Object)	this	SqlExpression	Expression
+SqlExpression	op_Addition(SqlExpression, Object)	rightSide	Object	Object
+SqlExpression	op_Addition(String, SqlExpression)	leftSide	String	Text
+SqlExpression	op_Addition(String, SqlExpression)	rightSide	SqlExpression	Expression
+SqlExpression	op_Division(SqlExpression, Object)	this	SqlExpression	Expression
+SqlExpression	op_Division(SqlExpression, Object)	rightSide	Object	Object
+SqlExpression	op_Modulus(SqlExpression, Object)	this	SqlExpression	Expression
+SqlExpression	op_Modulus(SqlExpression, Object)	rightSide	Object	Object
+SqlExpression	op_Multiply(SqlExpression, Object)	this	SqlExpression	Expression
+SqlExpression	op_Multiply(SqlExpression, Object)	rightSide	Object	Object
+SqlExpression	op_Subtraction(SqlExpression, Object)	this	SqlExpression	Expression
+SqlExpression	op_Subtraction(SqlExpression, Object)	rightSide	Object	Object
+SqlParameters	Get(String)	name	String	Text
+SubqueryDerivedTable	Column(DbColumn)	source	DbColumn	Expression
+SubqueryDerivedTable	Column(String)	name	String	Text
+UnnestDerivedTable	Column(DbColumn)	source	DbColumn	Expression
+UnnestDerivedTable	Column(String)	name	String	Text
+UnnestFunction	AsTable(String)	alias	String	Text
+UnnestFunction	AsTable(String, String[])	alias	String	Text
+UnnestFunction	AsTable(String, String[])	columns	String[]	Text
+ValuesDerivedTable	Column(DbColumn)	source	DbColumn	Expression
+ValuesDerivedTable	Column(String)	name	String	Text
+# members=418 structural=299

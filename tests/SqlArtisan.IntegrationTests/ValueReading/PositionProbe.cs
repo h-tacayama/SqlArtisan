@@ -96,7 +96,9 @@ public static class PositionProbe
         bool bound = false;
         sql.Parameters.ForEach((_, b) =>
         {
-            if (Equals(b.Value, probe))
+            if (Equals(b.Value, probe)
+                || (b.Value is short or byte or int && probe is short or byte or int
+                    && Convert.ToInt32(b.Value) == Convert.ToInt32(probe)))
             {
                 bound = true;
             }
@@ -199,6 +201,11 @@ public static class PositionProbe
         if (t == typeof(int) && sample is char c)
         {
             return (int)c;
+        }
+
+        if (t == typeof(int) && sample is short or byte)
+        {
+            return Convert.ToInt32(sample);
         }
 
         return sample;

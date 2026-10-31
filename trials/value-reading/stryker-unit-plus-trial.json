@@ -16,8 +16,7 @@
       "**/Internal/SqlPart/Clause/Insert/InsertValueResolver.cs",
       "**/SqlPart/Clause/OrderBy/OrderByClause.cs",
       "**/SqlPart/Clause/Over/PartitionByClause.cs",
-      "**/Internal/SqlBuilder/Select/SelectBuilder.cs{275..300}",
-      "**/Internal/SqlBuilder/Select/SelectBuilder.cs{445..485}"
+      "**/Internal/SqlBuilder/Select/SelectBuilder.cs"
     ],
     "coverage-analysis": "perTest",
     "reporters": ["json", "cleartext", "progress"],

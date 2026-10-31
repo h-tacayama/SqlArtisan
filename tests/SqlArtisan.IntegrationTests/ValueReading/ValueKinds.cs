@@ -3,7 +3,8 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.IntegrationTests.ValueReading;
 
 /// <summary>The value-kind axis: every kind the trial brief names, plus four the
-/// records cover (double, a whole double, a user enum, Sql.Null, a subquery) and the two
+/// records cover (double, a whole double, a user enum, Sql.Null, a subquery), the short and
+/// byte integers mutation testing showed missing (step 4), and the two
 /// position-bound operands.</summary>
 public enum ValueKind
 {
@@ -11,6 +12,8 @@ public enum ValueKind
     IntPositive,
     IntNegative,
     Long,
+    Short,
+    Byte,
     Double,
     DoubleWhole,
     Decimal,
@@ -57,6 +60,8 @@ internal static class ValueKinds
         ValueKind.IntPositive => Ordinal,
         ValueKind.IntNegative => -1,
         ValueKind.Long => (long)Ordinal,
+        ValueKind.Short => (short)Ordinal,
+        ValueKind.Byte => (byte)Ordinal,
         ValueKind.Double => 2.5,
         ValueKind.DoubleWhole => 2.0,
         ValueKind.Decimal => 2.5m,
@@ -94,6 +99,10 @@ internal static class ValueKinds
     {
         [typeof(int)] = [typeof(long), typeof(float), typeof(double), typeof(decimal)],
         [typeof(long)] = [typeof(float), typeof(double), typeof(decimal)],
+        [typeof(short)] = [typeof(int), typeof(long), typeof(float), typeof(double),
+            typeof(decimal)],
+        [typeof(byte)] = [typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long),
+            typeof(ulong), typeof(float), typeof(double), typeof(decimal)],
         [typeof(char)] = [typeof(int), typeof(long), typeof(float), typeof(double),
             typeof(decimal), typeof(ushort), typeof(uint), typeof(ulong)],
     };
