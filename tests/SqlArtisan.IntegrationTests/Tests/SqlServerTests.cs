@@ -1640,4 +1640,16 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             connection.Execute("SET ANSI_NULLS ON");
         }
     }
+
+    // #742: two text columns under `+` concatenate here, as a string beside one does.
+    [Fact]
+    public void TextColumnPlusTextColumn_Concatenates()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        string name = connection.ExecuteScalar<string>("SELECT name FROM users WHERE id = 1")!;
+
+        Assert.Equal(name + name, connection.ExecuteScalar<string>(
+            Select(u.Name + u.Name).From(u).Where(u.Id == 1)));
+    }
 }

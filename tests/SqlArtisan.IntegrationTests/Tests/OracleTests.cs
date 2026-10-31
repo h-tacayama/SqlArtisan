@@ -1673,4 +1673,16 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Equal(31, connection.ExecuteScalar<int>(
             Select("1" + u.Age).From(u).Where(u.Id == 1)));
     }
+
+    // #742: two text columns under `+` fail here, as a string beside one does
+    // (StringPlusTextColumn_IsRejectedByTheEngine).
+    [Fact]
+    public void TextColumnPlusTextColumn_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(u.Name + u.Name).From(u).Where(u.Id == 1)));
+    }
 }

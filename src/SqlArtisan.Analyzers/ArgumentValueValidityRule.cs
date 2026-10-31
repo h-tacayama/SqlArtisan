@@ -100,7 +100,7 @@ internal static class ArgumentValueValidityRule
     }
 
     // A char binds as text too, so it reaches + as a string does.
-    private static string? StringConstant(IOperation operand) =>
+    internal static string? StringConstant(IOperation operand) =>
         Unwrap(operand).ConstantValue switch
         {
             { HasValue: true, Value: string text } => text,

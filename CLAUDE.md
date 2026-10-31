@@ -102,7 +102,7 @@ categories under `src/SqlArtisan/SqlPart/Expression/Function/`.
 
 ## Analyzer
 
-The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships sixteen diagnostics:
+The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships seventeen diagnostics:
 
 - **SQLA0001** — Analyzer configuration problem: an unrecognized key name or
   value (a `sqlartisan_construct_*` key naming no member or arity, a blank
@@ -152,6 +152,9 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships sixteen diagnostics:
   (`docs/analyzer.md`). The category is the public `DbTypeCategory` enum, which TableClassGen
   emits symbolically and the analyzer resolves by member name (never by the
   underlying integer), gated by `SchemaMetadataParityTests`.
+- **SQLA0206** — a column the generated table class declares text under `+`,
+  which only SQL Server concatenates; the one schema rule that names the engines
+  it reports on.
 - **SQLA0300** — Correlated `UPDATE`/`DELETE`/`MERGE` with an unaliased target — the
   same violation `Build()` rejects, surfaced early.
 - **SQLA0301** — A C# reference comparison (`o == col`, the left operand not a
@@ -173,7 +176,7 @@ rule without renumbering and a bulk-severity setting reaches one family only
 `SqlArtisan.Validity`. A new rule takes the next ID **inside its band**, never
 the next free number overall; `DiagnosticOrderingTests` gates the pairing.
 
-SQLA0200–0205 read the `DbColumnMetadata` attributes TableClassGen emits;
+SQLA0200–0206 read the `DbColumnMetadata` attributes TableClassGen emits;
 absence of a fact is silence. What Tier 2 may collect and conclude —
 and the parity catalog every rule reading the query must stay silent on
 (`SchemaRuleParityTests`) — is fixed by **ADR 0010**; add a hazard shape

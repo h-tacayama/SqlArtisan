@@ -1379,4 +1379,16 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.Equal(0, connection.ExecuteScalar<int>(
             Select(u.Name + ' ').From(u).Where(u.Id == 1)));
     }
+
+    // #742: two text columns under `+` add as numbers here too, as a string beside one
+    // does (StringPlusTextColumn_AddsNumerically).
+    [Fact]
+    public void TextColumnPlusTextColumn_AddsNumerically()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(0, connection.ExecuteScalar<int>(
+            Select(u.Name + u.Name).From(u).Where(u.Id == 1)));
+    }
 }

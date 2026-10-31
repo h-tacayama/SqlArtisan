@@ -82,6 +82,11 @@ against every rule that reads the query (`SchemaRuleParityTests`), and a
 coverage test that fails when the core ships a join step the analyzer has not
 classified.
 
+A rule that reads only the column's own facts may still name the engines it
+reports on, where the fact is the schema's but what an operator does with it is
+the engine's: `SQLA0206` (#742) reads a column's `TypeCategory` and reports a
+text column under `+` everywhere but SQL Server, whose `+` concatenates it.
+
 **Corollary: opinions live in docs and the analyzer, never in API holes.** No
 legitimate SQL spelling is omitted to steer users; guidance is delivered as
 an explicit, sourced, suppressible diagnostic or a docs note.

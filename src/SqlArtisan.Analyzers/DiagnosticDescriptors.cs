@@ -235,6 +235,18 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
+    // The one schema rule that names a dialect: the column's category is the table
+    // class's fact, but whether + concatenates text is the engine's, and SQL Server's
+    // does (#742).
+    public static readonly DiagnosticDescriptor TextColumnPlus = new(
+        id: "SQLA0206",
+        title: "Text column under + on an engine that does not concatenate it",
+        messageFormat: "'{0}' is text, and '+' does not concatenate it on {1}",
+        category: SchemaCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
+
     // Mirrors the Build()-time guard's message (parity-tested, modulo the period
     // RS1032 forbids): the same finding surfaced earlier; suppressing it keeps the throw.
     public static readonly DiagnosticDescriptor CorrelatedDmlTargetNotAliased = new(
