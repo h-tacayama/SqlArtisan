@@ -1385,6 +1385,55 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         transaction.Rollback();
     }
 
+    // #742 probe: which branch's rows a FOR UPDATE after a UNION locks, if it runs.
+    [Fact]
+    public void ForUpdateOverUnion_Probe()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection a = _fixture.OpenConnection();
+        using IDbTransaction ta = a.BeginTransaction();
+        string outcome;
+        try
+        {
+            IEnumerable<int> ids = a.Query<int>(
+                Select(u.Id).From(u).Where(u.Id == 1)
+                .Union
+                .Select(o.Id).From(o).Where(o.Id == 1)
+                .ForUpdate(),
+                ta);
+            outcome = $"ran, rows [{string.Join(",", ids)}]; users locked: "
+                + $"{IsRowLocked("users")}; orders locked: {IsRowLocked("orders")}";
+        }
+        catch (DbException ex)
+        {
+            outcome = $"rejected: {ex.Message}";
+        }
+
+        ta.Rollback();
+        Assert.Fail(outcome);
+    }
+
+    private bool IsRowLocked(string table)
+    {
+        using IDbConnection b = _fixture.OpenConnection();
+        using IDbTransaction tb = b.BeginTransaction();
+        try
+        {
+            b.Query<int>($"SELECT id FROM {table} WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb)
+                .ToList();
+            return false;
+        }
+        catch (DbException)
+        {
+            return true;
+        }
+        finally
+        {
+            tb.Rollback();
+        }
+    }
+
     // #520: why PostgreSQL is absent from the row-limiting FOR UPDATE context rule
     // — it runs both row-limiting families beside the lock, where Oracle rejects them.
     [Fact]
