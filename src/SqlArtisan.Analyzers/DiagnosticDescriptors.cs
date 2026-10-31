@@ -281,7 +281,7 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor NullComparison = new(
         id: "SQLA0303",
         title: "A comparison with NULL is never true",
-        messageFormat: "'{0}' compares with NULL and is never true; test for NULL with {1}",
+        messageFormat: "'{0}' compares with NULL and is never true; {1}",
         category: ValidityCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,

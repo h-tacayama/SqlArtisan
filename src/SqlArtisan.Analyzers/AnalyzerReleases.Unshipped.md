@@ -21,4 +21,4 @@ SQLA0206 | SqlArtisan.Schema | Warning | A column the generated table class decl
 SQLA0300 | SqlArtisan.Validity | Warning | A correlated UPDATE, DELETE, or MERGE has an unaliased target — the same violation Build() rejects.
 SQLA0301 | SqlArtisan.Validity | Warning | A C# reference comparison involving a SqlArtisan object is passed to a SqlArtisan member or operator, which binds the bool result instead of building a SQL comparison.
 SQLA0302 | SqlArtisan.Validity | Warning | A SqlArtisan object interpolated or concatenated into a string passed to a SqlArtisan member or operator, which binds its type name instead of SQL.
-SQLA0303 | SqlArtisan.Validity | Warning | A comparison operator or a simple CASE WHEN against Sql.Null, which is never true, so the predicate matches no row and the branch is never taken.
+SQLA0303 | SqlArtisan.Validity | Warning | A comparison operator, a simple CASE WHEN, a NOT IN list, an IN list of NULLs alone, a BETWEEN bound or a LIKE pattern against Sql.Null or BindNull(), which is never true, so the predicate matches no row and the branch is never taken.

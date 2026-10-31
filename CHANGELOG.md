@@ -21,9 +21,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `SQLA0104` reports a negative `Round` scale written as an integer-typed
   constant on SQLite, which reads it as 0: `Round(x, -1)` rounds to a whole number there, where MySQL, Oracle,
   PostgreSQL and SQL Server round to the tens. (#742)
-- `SQLA0303` reports a comparison (`==`, `!=`, `<`, `<=`, `>`, `>=`) or a simple
-  CASE `When(...)` against `Sql.Null`, which is never true, so the predicate
-  matches no row and the branch is never taken. Since `==` also writes a `SET`
+- `SQLA0303` reports a comparison (`==`, `!=`, `<`, `<=`, `>`, `>=`), a simple
+  CASE `When(...)`, a `NotIn(...)` list, an `In(...)` list of NULLs alone, a
+  `Between(...)` bound or a `Like(...)` / `NotLike(...)` pattern that is
+  `Sql.Null` or `BindNull()`, which is never true, so the predicate matches no
+  row and the branch is never taken. Since `==` also writes a `SET`
   assignment, an `==` is reported only where it is read as a `SqlCondition`;
   `docs/analyzer.md` names the cases that stay silent. (#742)
 - `Guid`, `DateTimeOffset` and `TimeSpan` values bind implicitly wherever a

@@ -249,7 +249,8 @@ SqlStatement sql =
 
 > [!NOTE]
 > A comparison with `Null` (`u.Id == Null`, `u.Id != Null`, a simple CASE `When(Null)`) is
-> never true, so it matches no row; test with `IsNull` / `IsNotNull`. The analyzer reports it
+> never true, so it matches no row, and so are `NotIn(..., Null)`, `Between(Null, x)` and
+> `Like(Null)`; test with `IsNull` / `IsNotNull`. The analyzer reports it
 > as [`SQLA0303`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#comparisons-with-null-sqla0303).
 
 ### Pattern Matching Condition

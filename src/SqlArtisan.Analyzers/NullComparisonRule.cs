@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -5,8 +6,8 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reports SQLA0303: a comparison or a simple CASE <c>WHEN</c> against <c>Sql.Null</c>,
-/// which is never true, so the predicate matches no row and the branch is never taken.
+/// Reports SQLA0303: a comparison, a simple CASE <c>WHEN</c>, or an <c>IN</c>, <c>BETWEEN</c>
+/// or <c>LIKE</c> predicate against a written NULL that is never true (#742).
 /// </summary>
 /// <remarks>
 /// <c>==</c> also spells a <c>SET</c> assignment, so it is judged only where it is read as a
@@ -28,12 +29,44 @@ internal static class NullComparisonRule
 
         string remedy = binary.OperatorKind switch
         {
-            BinaryOperatorKind.Equals => "IsNull",
-            BinaryOperatorKind.NotEquals => "IsNotNull",
-            _ => "IsNull or IsNotNull",
+            BinaryOperatorKind.Equals => TestWith("IsNull"),
+            BinaryOperatorKind.NotEquals => TestWith("IsNotNull"),
+            _ => TestWith("IsNull or IsNotNull"),
         };
-        context.ReportDiagnostic(Diagnostic.Create(
-            DiagnosticDescriptors.NullComparison, binary.Syntax.GetLocation(), token, remedy));
+        Report(context, binary, token, remedy);
+    }
+
+    // IN reports only when every value is NULL: one other value can still match.
+    public static void CheckPredicate(OperationAnalysisContext context, IInvocationOperation call)
+    {
+        IMethodSymbol method = call.TargetMethod;
+        if (method.ContainingType.Name != "SqlExpression"
+            || !DialectUsageAnalyzer.IsFromSqlArtisan(method.ContainingAssembly))
+        {
+            return;
+        }
+
+        switch (method.Name)
+        {
+            case "NotIn" when ListValues(call) is { } values && values.Exists(IsSqlNull):
+                Report(context, call, "NOT IN", "drop the NULL from the list");
+                break;
+            case "In" when ListValues(call) is { Count: > 0 } values
+                && values.TrueForAll(IsSqlNull):
+                Report(context, call, "IN", TestWith("IsNull"));
+                break;
+            case "Between" when call.Arguments.Length == 2 && AnyArgumentIsNull(call):
+                Report(context, call, "BETWEEN", "compare the other bound with >= or <=");
+                break;
+            case "Like" or "NotLike" when call.Arguments.Length == 1
+                && IsSqlNull(call.Arguments[0].Value):
+                Report(
+                    context,
+                    call,
+                    method.Name == "Like" ? "LIKE" : "NOT LIKE",
+                    TestWith("IsNull or IsNotNull"));
+                break;
+        }
     }
 
     public static void CheckSimpleCaseWhen(
@@ -51,12 +84,36 @@ internal static class NullComparisonRule
             return;
         }
 
-        context.ReportDiagnostic(Diagnostic.Create(
-            DiagnosticDescriptors.NullComparison,
-            invocation.Syntax.GetLocation(),
-            "WHEN NULL",
-            "a searched When(x.IsNull)"));
+        Report(context, invocation, "WHEN NULL", TestWith("a searched When(x.IsNull)"));
     }
+
+    private static bool AnyArgumentIsNull(IInvocationOperation call)
+    {
+        foreach (IArgumentOperation argument in call.Arguments)
+        {
+            if (IsSqlNull(argument.Value))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string TestWith(string test) => "test for NULL with " + test;
+
+    private static void Report(
+        OperationAnalysisContext context, IOperation operation, string token, string remedy) =>
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.NullComparison, operation.Syntax.GetLocation(), token, remedy));
+
+    // The values of a params list written at the call; an array built elsewhere is unread.
+    private static List<IOperation>? ListValues(IInvocationOperation call) =>
+        call.Arguments.Length == 1
+        && call.TargetMethod.Parameters[0].Type is IArrayTypeSymbol
+        && call.Arguments[0].Value is IArrayCreationOperation { Initializer: { } list }
+            ? [.. list.ElementValues]
+            : null;
 
     private static string? Token(BinaryOperatorKind kind) => kind switch
     {
@@ -76,11 +133,19 @@ internal static class NullComparisonRule
             operand = conversion.Operand;
         }
 
-        return operand is IPropertyReferenceOperation
+        // BindNull() binds the same NULL as a parameter.
+        return operand switch
         {
-            Property: { Name: "Null", ContainingType.Name: "Sql" } property,
-        }
-            && DialectUsageAnalyzer.IsFromSqlArtisan(property.ContainingAssembly);
+            IPropertyReferenceOperation
+            {
+                Property: { Name: "Null", ContainingType.Name: "Sql" } property,
+            } => DialectUsageAnalyzer.IsFromSqlArtisan(property.ContainingAssembly),
+            IInvocationOperation
+            {
+                TargetMethod: { Name: "BindNull", ContainingType.Name: "Sql" } bindNull,
+            } => DialectUsageAnalyzer.IsFromSqlArtisan(bindNull.ContainingAssembly),
+            _ => false,
+        };
     }
 
     private static bool IsReadAsCondition(IOperation operation)

@@ -47,12 +47,16 @@ public class NullComparisonAnalyzerTests
     [Fact]
     public Task EqualsNull_InWhere_ReportsSqla0303() =>
         RunReporting(
-            "var q = Select(t.Id).From(t).Where({|#0:t.Name == Null|});", "=", "IsNull");
+            "var q = Select(t.Id).From(t).Where({|#0:t.Name == Null|});",
+            "=",
+            "test for NULL with IsNull");
 
     [Fact]
     public Task NotEqualsNull_InWhere_ReportsSqla0303() =>
         RunReporting(
-            "var q = Select(t.Id).From(t).Where({|#0:t.Name != Null|});", "<>", "IsNotNull");
+            "var q = Select(t.Id).From(t).Where({|#0:t.Name != Null|});",
+            "<>",
+            "test for NULL with IsNotNull");
 
     [Theory]
     [InlineData("<")]
@@ -63,38 +67,42 @@ public class NullComparisonAnalyzerTests
         RunReporting(
             $"var q = Select(t.Id).From(t).Where({{|#0:t.Id {op} Null|}});",
             op,
-            "IsNull or IsNotNull");
+            "test for NULL with IsNull or IsNotNull");
 
     [Fact]
     public Task NullOnTheLeft_ReportsSqla0303() =>
         RunReporting(
-            "var q = Select(t.Id).From(t).Where({|#0:Null == t.Name|});", "=", "IsNull");
+            "var q = Select(t.Id).From(t).Where({|#0:Null == t.Name|});",
+            "=",
+            "test for NULL with IsNull");
 
     [Fact]
     public Task EqualsNull_BesideAnotherCondition_ReportsSqla0303() =>
         RunReporting(
             "var q = Select(t.Id).From(t).Where(t.Id == 1 & {|#0:t.Name == Null|});",
             "=",
-            "IsNull");
+            "test for NULL with IsNull");
 
     [Fact]
     public Task EqualsNull_InSearchedCaseWhen_ReportsSqla0303() =>
         RunReporting(
-            "var q = Select(Case(When({|#0:t.Name == Null|}).Then(1))).From(t);", "=", "IsNull");
+            "var q = Select(Case(When({|#0:t.Name == Null|}).Then(1))).From(t);",
+            "=",
+            "test for NULL with IsNull");
 
     [Fact]
     public Task EqualsNull_HeldAsSqlCondition_ReportsSqla0303() =>
-        RunReporting("SqlCondition c = {|#0:t.Name == Null|};", "=", "IsNull");
+        RunReporting("SqlCondition c = {|#0:t.Name == Null|};", "=", "test for NULL with IsNull");
 
     // Neither `!=` (rejected at the SET call) nor an ordering comparison can be a SET
     // assignment, so a variable holding one is reported.
     [Fact]
     public Task NotEqualsNull_HeldInVar_ReportsSqla0303() =>
-        RunReporting("var c = {|#0:t.Name != Null|};", "<>", "IsNotNull");
+        RunReporting("var c = {|#0:t.Name != Null|};", "<>", "test for NULL with IsNotNull");
 
     [Fact]
     public Task OrderingWithNull_HeldInVar_ReportsSqla0303() =>
-        RunReporting("var c = {|#0:t.Id < Null|};", "<", "IsNull or IsNotNull");
+        RunReporting("var c = {|#0:t.Id < Null|};", "<", "test for NULL with IsNull or IsNotNull");
 
     [Fact]
     public Task EqualsNull_InConditionalPassedToWhere_ReportsSqla0303() =>
@@ -102,14 +110,81 @@ public class NullComparisonAnalyzerTests
             "bool flag = true; "
                 + "var q = Select(t.Id).From(t).Where(flag ? {|#0:t.Name == Null|} : t.Id == 1);",
             "=",
-            "IsNull");
+            "test for NULL with IsNull");
 
     [Fact]
     public Task SimpleCaseWhenNull_ReportsSqla0303() =>
         RunReporting(
             "var q = Select(Case(t.Name, {|#0:When(Null)|}.Then(1))).From(t);",
             "WHEN NULL",
-            "a searched When(x.IsNull)");
+            "test for NULL with a searched When(x.IsNull)");
+
+    [Fact]
+    public Task NotInWithNull_ReportsSqla0303() =>
+        RunReporting(
+            "var q = Select(t.Id).From(t).Where({|#0:t.Id.NotIn(1, Null)|});",
+            "NOT IN",
+            "drop the NULL from the list");
+
+    [Fact]
+    public Task InWithOnlyNull_ReportsSqla0303() =>
+        RunReporting(
+            "var q = Select(t.Id).From(t).Where({|#0:t.Id.In(Null)|});",
+            "IN",
+            "test for NULL with IsNull");
+
+    [Theory]
+    [InlineData("Null, 10")]
+    [InlineData("1, Null")]
+    public Task BetweenWithNullBound_ReportsSqla0303(string bounds) =>
+        RunReporting(
+            $"var q = Select(t.Id).From(t).Where({{|#0:t.Id.Between({bounds})|}});",
+            "BETWEEN",
+            "compare the other bound with >= or <=");
+
+    [Theory]
+    [InlineData("Like", "LIKE")]
+    [InlineData("NotLike", "NOT LIKE")]
+    public Task LikeNull_ReportsSqla0303(string member, string token) =>
+        RunReporting(
+            $"var q = Select(t.Id).From(t).Where({{|#0:t.Name.{member}(Null)|}});",
+            token,
+            "test for NULL with IsNull or IsNotNull");
+
+    [Theory]
+    [InlineData("==", "=", "test for NULL with IsNull")]
+    [InlineData("!=", "<>", "test for NULL with IsNotNull")]
+    [InlineData("<", "<", "test for NULL with IsNull or IsNotNull")]
+    public Task ComparisonWithBindNull_ReportsSqla0303(string op, string token, string remedy) =>
+        RunReporting(
+            $"var q = Select(t.Id).From(t).Where({{|#0:t.Id {op} BindNull()|}});", token, remedy);
+
+    [Fact]
+    public Task SimpleCaseWhenBindNull_ReportsSqla0303() =>
+        RunReporting(
+            "var q = Select(Case(t.Name, {|#0:When(BindNull())|}.Then(1))).From(t);",
+            "WHEN NULL",
+            "test for NULL with a searched When(x.IsNull)");
+
+    // One other value can still match.
+    [Fact]
+    public Task InWithNullBesideAValue_StaysSilent() =>
+        RunSilent("var q = Select(t.Id).From(t).Where(t.Id.In(1, Null));");
+
+    // The other bound still decides, so the predicate can be true.
+    [Fact]
+    public Task NotBetweenWithNullBound_StaysSilent() =>
+        RunSilent("var q = Select(t.Id).From(t).Where(t.Id.NotBetween(Null, 10));");
+
+    // A list built elsewhere is not read.
+    [Fact]
+    public Task NotInWithArrayVariable_StaysSilent() =>
+        RunSilent(
+            "object[] ids = { 1, Null }; var q = Select(t.Id).From(t).Where(t.Id.NotIn(ids));");
+
+    [Fact]
+    public Task BindNullAsSetAssignment_StaysSilent() =>
+        RunSilent("var q = Update(t).Set(t.Name == BindNull()).Where(t.Id == 1);");
 
     // `==` in SET is an assignment: SET name = NULL writes the NULL.
     [Fact]

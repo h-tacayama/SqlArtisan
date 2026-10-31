@@ -116,7 +116,7 @@ still needs naming by ID.
 | `SQLA0300` | Warning | A correlated UPDATE, DELETE, or MERGE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0300). |
 | `SQLA0301` | Warning | `==` or `!=` that C# resolves as reference equality, because the left operand is not a SqlArtisan expression, passed to a SqlArtisan member or operator — it binds a `bool` instead of comparing in SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
 | `SQLA0302` | Warning | A SqlArtisan object interpolated or concatenated into a string passed to a SqlArtisan member or operator — it binds the object's type name instead of SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
-| `SQLA0303` | Warning | A comparison (`==`, `!=`, `<`, `<=`, `>`, `>=`) or a simple CASE `When(...)` against `Sql.Null`, which is never true, so the predicate matches no row; see [Comparisons with NULL](#comparisons-with-null-sqla0303). |
+| `SQLA0303` | Warning | A comparison (`==`, `!=`, `<`, `<=`, `>`, `>=`), a simple CASE `When(...)`, a `NotIn(...)` list, an `In(...)` list of NULLs alone, a `Between(...)` bound or a `Like(...)` / `NotLike(...)` pattern that is `Sql.Null` or `BindNull()`, which is never true, so the predicate matches no row; see [Comparisons with NULL](#comparisons-with-null-sqla0303). |
 
 `SQLA0001` is a compilation-end diagnostic with no file location: it appears in **build** output (CLI and CI, and an IDE's Error
 List after an explicit build — check that the list's source filter includes
@@ -1294,8 +1294,10 @@ keys do not apply.
 SQL compares a value with NULL as unknown, never true, so `col = NULL`,
 `col <> NULL` and the ordering comparisons (`<`, `<=`, `>`, `>=`) match no row, and
 a simple CASE `WHEN NULL` branch is never taken (all five engines the suite runs,
-live). `SQLA0303` reports a
-comparison operator and a simple CASE `When(...)` whose operand is `Sql.Null`:
+live). So do `NOT IN` over a list holding a NULL, `IN` over NULLs alone, `BETWEEN`
+with a NULL bound and `LIKE` / `NOT LIKE` against a NULL pattern (the same five,
+`NullInComparedPosition_MatchesNoRow`). `SQLA0303` reports each of these where
+the NULL is written as `Sql.Null` or `BindNull()`, which binds the same NULL:
 
 ```csharp
 var q = Select(u.Id).From(u).Where(u.Name == Null);
@@ -1303,7 +1305,10 @@ var q = Select(u.Id).From(u).Where(u.Name == Null);
 ```
 
 Test for NULL with `u.Name.IsNull` or `IsNotNull`, and in a CASE with a searched
-`When(u.Name.IsNull)`. A C# `null` there (`u.Name == null`) throws at the call
+`When(u.Name.IsNull)`; drop the NULL from a `NotIn(...)` list, and compare a
+`Between(...)` column with `>=` or `<=` on the bound that is not NULL. `In(1, Null)`
+stays silent, since `1` can still match, and so does `NotBetween(...)`, whose other
+bound still decides; a list held in an array variable is not read. A C# `null` there (`u.Name == null`) throws at the call
 and names `IsNull`; `Sql.Null` is the spelling that reaches the engine.
 
 `==` also writes a `SET` assignment — `Update(u).Set(u.Name == Null)` sets the
