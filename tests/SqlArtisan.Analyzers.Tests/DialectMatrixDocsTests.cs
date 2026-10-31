@@ -91,7 +91,8 @@ public class DialectMatrixDocsTests
         string image = Regex.Match(source, @"\.WithImage\(""([^""]+)""\)").Groups[1].Value;
 
         Assert.NotEmpty(image);
-        Assert.Contains($"`{image}`", DialectMatrix.VerifiedAgainstVersion[Enum.Parse<TargetDbms>(dbms)]);
+        Assert.Contains(
+            $"`{image}`", DialectMatrix.VerifiedAgainstVersion[Enum.Parse<TargetDbms>(dbms)]);
     }
 
     private static string FindRepoRoot()

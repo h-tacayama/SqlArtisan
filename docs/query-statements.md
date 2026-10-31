@@ -579,11 +579,16 @@ SqlStatement sql =
 - `IntersectAll` for `INTERSECT ALL`
 
 `Minus` / `MinusAll` are Oracle's own spelling of `EXCEPT` / `EXCEPT ALL` and
-run only there. `ExceptAll` / `IntersectAll` are MySQL, Oracle, and PostgreSQL
+run only there; on SQL Server, use `Except`. `ExceptAll` / `IntersectAll` are MySQL, Oracle, and PostgreSQL
 only — SQLite and SQL Server take `ALL` on `UNION` alone. Several of these
 arrived in a specific engine release; the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)
 lists each one, and the analyzer reports it against a declared target version.
+
+> [!NOTE]
+> **`Minus` on SQL Server runs without subtracting anything.** SQL Server 2022 reads the
+> text without a set operation, so the query returns the first branch's rows. `SQLA0100`
+> reports `Minus` there.
 
 > [!WARNING]
 > **A chain mixing `Intersect` with `Union` or `Except` groups differently by

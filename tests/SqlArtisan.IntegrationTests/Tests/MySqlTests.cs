@@ -21,33 +21,46 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         _fixture = fixture;
     }
 
-    // #681 probe: what the engine returns for a cell the matrix marks false.
+    // #681: the other meanings behind three false cells, each run where the matrix reports it.
     [Fact]
-    public void OtherMeaning_Probe()
+    public void DoublePipe_ReadsAsLogicalOr()
     {
         UsersTable u = new();
-        OrdersTable o = new();
         using IDbConnection connection = _fixture.OpenConnection();
-        List<string> results = [];
-        results.Add(Run("DoublePipe", () => connection.ExecuteScalar<object>(Select(DoublePipe("a", "b")).From(u).Where(u.Id == 1))));
-        results.Add(Run("CosineDistance", () => connection.ExecuteScalar<object>(Select(CosineDistance(u.Id, u.Id)).From(u).Where(u.Id == 1))));
-        results.Add(Run("Format", () => connection.ExecuteScalar<object>(Select(Format(u.CreatedAt, "yyyy-MM")).From(u).Where(u.Id == 1))));
-        Assert.Fail(string.Join(" | ", results));
 
-        static string Run(string name, Func<object?> run)
-        {
-            try
-            {
-                object? value = run();
-                return value is System.Collections.IEnumerable rows and not string
-                    ? $"{name}: rows [{string.Join(",", rows.Cast<object>())}]"
-                    : $"{name}: {value ?? "NULL"} ({value?.GetType().Name})";
-            }
-            catch (Exception ex)
-            {
-                return $"{name}: threw {ex.GetType().Name}: {ex.Message}";
-            }
-        }
+        Assert.Equal(
+            0L,
+            connection.ExecuteScalar<long>(Select(DoublePipe("a", "b")).From(u).Where(u.Id == 1)));
+    }
+
+    // A plain = would give NULL against NULL; <=> gives 0.
+    [Fact]
+    public void CosineDistance_ReadsAsNullSafeEquality()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            1L,
+            connection.ExecuteScalar<long>(
+                Select(CosineDistance(u.Id, u.Id)).From(u).Where(u.Id == 1)));
+        Assert.Equal(
+            0L,
+            connection.ExecuteScalar<long>(
+                Select(CosineDistance(u.Id, Null)).From(u).Where(u.Id == 1)));
+    }
+
+    // MySQL's FORMAT(X, D) reads the format string as a decimal count.
+    [Fact]
+    public void Format_ReadsAsNumberFormatting()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            "20,200,315,103,000",
+            connection.ExecuteScalar<string>(
+                Select(Format(u.CreatedAt, "yyyy-MM")).From(u).Where(u.Id == 1)));
     }
 
     [Fact]

@@ -1025,11 +1025,16 @@ SqlStatement sql =
 - `IntersectAll` for `INTERSECT ALL`
 
 `Minus` / `MinusAll` are Oracle's own spelling of `EXCEPT` / `EXCEPT ALL` and
-run only there. `ExceptAll` / `IntersectAll` are MySQL, Oracle, and PostgreSQL
+run only there; on SQL Server, use `Except`. `ExceptAll` / `IntersectAll` are MySQL, Oracle, and PostgreSQL
 only — SQLite and SQL Server take `ALL` on `UNION` alone. Several of these
 arrived in a specific engine release; the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)
 lists each one, and the analyzer reports it against a declared target version.
+
+> [!NOTE]
+> **`Minus` on SQL Server runs without subtracting anything.** SQL Server 2022 reads the
+> text without a set operation, so the query returns the first branch's rows. `SQLA0100`
+> reports `Minus` there.
 
 > [!WARNING]
 > **A chain mixing `Intersect` with `Union` or `Except` groups differently by
@@ -2389,8 +2394,8 @@ SqlStatement sql =
 > [!NOTE]
 > `DoublePipe(...)` is a trap on MySQL: under the default `sql_mode`, `||` is
 > **logical OR**, not concatenation — valid SQL with a completely different
-> result, not a syntax error. `SQLA0100` flags it there; use `Concat(...)`
-> instead.
+> result, not a syntax error (`DoublePipe("a", "b")` returns `0` on MySQL 8.0).
+> `SQLA0100` flags it there; use `Concat(...)` instead.
 
 > [!WARNING]
 > **`+` between strings adds numbers on MySQL and SQLite.** `"Dr. " + u.LastName`
@@ -2792,7 +2797,12 @@ SqlStatement sql =
 
 `L2Distance` (`<->`), `CosineDistance` (`<=>`), and `NegativeInnerProduct` (`<#>`) work on Oracle and PostgreSQL (Oracle gained the three shared operators in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)); `L1Distance` (`<+>`), `HammingDistance` (`<~>`), and `JaccardDistance` (`<%>`) are PostgreSQL only, via the pgvector extension. On PostgreSQL all six need the [pgvector](https://github.com/pgvector/pgvector) extension installed in the database (`CREATE EXTENSION vector`); on Oracle the three shared operators are built in.
 
-A bound vector literal reaches PostgreSQL as `text` — wrap it in `Cast(text, "vector")` (or `Cast(bits, "bit(n)")` for the bit operators) as above. On Oracle, drop the `Cast` — Oracle rejects `CAST(... AS vector)` outright (ORA-22849); pass the vector string bare (`L2Distance(u.Embedding, "[0.1,0.2,0.3]")`) and Oracle converts the bound string implicitly. `NegativeInnerProduct` returns the **negative** inner product, so the smallest value is still the most similar. On MySQL, `<=>` is the NULL-safe equality operator — the same glyph as `CosineDistance` with entirely different meaning — so keep cosine-distance queries off MySQL connections.
+A bound vector literal reaches PostgreSQL as `text` — wrap it in `Cast(text, "vector")` (or `Cast(bits, "bit(n)")` for the bit operators) as above. On Oracle, drop the `Cast` — Oracle rejects `CAST(... AS vector)` outright (ORA-22849); pass the vector string bare (`L2Distance(u.Embedding, "[0.1,0.2,0.3]")`) and Oracle converts the bound string implicitly. `NegativeInnerProduct` returns the **negative** inner product, so the smallest value is still the most similar.
+
+> [!NOTE]
+> **`CosineDistance` on MySQL is NULL-safe equality.** Its `<=>` is MySQL's own operator
+> there: MySQL 8.0 runs `CosineDistance(u.Id, u.Id)` and returns `1`, not a distance.
+> `SQLA0100` reports it on MySQL; keep cosine-distance queries off MySQL connections.
 
 To bind a `Pgvector.Vector` instance instead of a cast string literal, construct the bind directly — `new BindValue(vector)` — and register pgvector's Dapper type handler (`VectorTypeHandler`, from the `Pgvector.Dapper` package) plus `UseVector()` on the Npgsql data source (from the `Pgvector` package); the held value then flows to the driver untouched.
 
@@ -3592,10 +3602,10 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 - `ToTimestamp()` for `TO_TIMESTAMP` (Oracle, PostgreSQL)
 
 > [!NOTE]
-> MySQL, PostgreSQL, and SQLite each have their own same-named but incompatible
-> `FORMAT()` (MySQL: fixed decimals; PostgreSQL and SQLite: `printf()`-style), none
-> matching SQL Server's .NET-style format strings. PostgreSQL's takes `text` first,
-> so a number or a date errors outright; elsewhere the call runs with other semantics.
+> MySQL, PostgreSQL, and SQLite each have their own `FORMAT()`, none matching SQL Server's
+> .NET-style format strings: MySQL 8.0 formats a number (`Format(u.CreatedAt, "yyyy-MM")`
+> returns `20,200,315,103,000`), SQLite 3.50's `printf()`-style one returns the timestamp
+> unchanged, and PostgreSQL's takes `text` first, so a number or a date errors outright.
 
 > [!NOTE]
 > Both names have a near-twin elsewhere in the API: `Isnull(expr, alt)` is this

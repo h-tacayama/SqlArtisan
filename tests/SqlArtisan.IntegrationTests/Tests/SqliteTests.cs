@@ -18,32 +18,17 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         _fixture = fixture;
     }
 
-    // #681 probe: what the engine returns for a cell the matrix marks false.
+    // #681: SQLite's format() is printf, which reads the value as the format string.
     [Fact]
-    public void OtherMeaning_Probe()
+    public void Format_ReadsAsPrintf()
     {
         UsersTable u = new();
-        OrdersTable o = new();
         using IDbConnection connection = _fixture.OpenConnection();
-        List<string> results = [];
-        results.Add(Run("Format", () => connection.ExecuteScalar<object>(Select(Format(u.CreatedAt, "yyyy-MM")).From(u).Where(u.Id == 1))));
-        results.Add(Run("CreatedAt", () => connection.ExecuteScalar<object>(Select(u.CreatedAt).From(u).Where(u.Id == 1))));
-        Assert.Fail(string.Join(" | ", results));
 
-        static string Run(string name, Func<object?> run)
-        {
-            try
-            {
-                object? value = run();
-                return value is System.Collections.IEnumerable rows and not string
-                    ? $"{name}: rows [{string.Join(",", rows.Cast<object>())}]"
-                    : $"{name}: {value ?? "NULL"} ({value?.GetType().Name})";
-            }
-            catch (Exception ex)
-            {
-                return $"{name}: threw {ex.GetType().Name}: {ex.Message}";
-            }
-        }
+        Assert.Equal(
+            "2020-03-15 10:30:00",
+            connection.ExecuteScalar<string>(
+                Select(Format(u.CreatedAt, "yyyy-MM")).From(u).Where(u.Id == 1)));
     }
 
     [Fact]

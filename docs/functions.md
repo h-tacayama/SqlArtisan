@@ -190,10 +190,10 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 - `ToTimestamp()` for `TO_TIMESTAMP` (Oracle, PostgreSQL)
 
 > [!NOTE]
-> MySQL, PostgreSQL, and SQLite each have their own same-named but incompatible
-> `FORMAT()` (MySQL: fixed decimals; PostgreSQL and SQLite: `printf()`-style), none
-> matching SQL Server's .NET-style format strings. PostgreSQL's takes `text` first,
-> so a number or a date errors outright; elsewhere the call runs with other semantics.
+> MySQL, PostgreSQL, and SQLite each have their own `FORMAT()`, none matching SQL Server's
+> .NET-style format strings: MySQL 8.0 formats a number (`Format(u.CreatedAt, "yyyy-MM")`
+> returns `20,200,315,103,000`), SQLite 3.50's `printf()`-style one returns the timestamp
+> unchanged, and PostgreSQL's takes `text` first, so a number or a date errors outright.
 
 > [!NOTE]
 > Both names have a near-twin elsewhere in the API: `Isnull(expr, alt)` is this
