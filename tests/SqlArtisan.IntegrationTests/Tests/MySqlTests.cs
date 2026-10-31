@@ -21,6 +21,35 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         _fixture = fixture;
     }
 
+    // #681 probe: what the engine returns for a cell the matrix marks false.
+    [Fact]
+    public void OtherMeaning_Probe()
+    {
+        UsersTable u = new();
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        List<string> results = [];
+        results.Add(Run("DoublePipe", () => connection.ExecuteScalar<object>(Select(DoublePipe("a", "b")).From(u).Where(u.Id == 1))));
+        results.Add(Run("CosineDistance", () => connection.ExecuteScalar<object>(Select(CosineDistance(u.Id, u.Id)).From(u).Where(u.Id == 1))));
+        results.Add(Run("Format", () => connection.ExecuteScalar<object>(Select(Format(u.CreatedAt, "yyyy-MM")).From(u).Where(u.Id == 1))));
+        Assert.Fail(string.Join(" | ", results));
+
+        static string Run(string name, Func<object?> run)
+        {
+            try
+            {
+                object? value = run();
+                return value is System.Collections.IEnumerable rows and not string
+                    ? $"{name}: rows [{string.Join(",", rows.Cast<object>())}]"
+                    : $"{name}: {value ?? "NULL"} ({value?.GetType().Name})";
+            }
+            catch (Exception ex)
+            {
+                return $"{name}: threw {ex.GetType().Name}: {ex.Message}";
+            }
+        }
+    }
+
     [Fact]
     public void Pagination_LimitOffset_Executes()
     {
