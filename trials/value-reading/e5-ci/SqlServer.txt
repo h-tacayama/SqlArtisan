@@ -60,10 +60,16 @@ VR5-SIG	SqlServer	COALESCE-Text	E-- E-- E-- E-- E-- E-- E-- E-- E-- -69 -69 E-- 
 VR5-SIG	SqlServer	INS-Date	E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- B-- E-- -B8 E-- VB8 VCB VFB B-- E-- E-- -FB -FB E-- E-- E-- B-- B--
 VR5-SIG	SqlServer	INS-Int	-5F -D4 -1B -D4 -D4 -D4 VD4 -D4 VD4 E-- E-- V6B B-- -D4 E-- E-- E-- E-- VFB B-- -D4 E-- -FB -FB E-- E-- -D5 B-- B--
 VR5-SIG	SqlServer	INS-Text	V5F VD4 V1B VD4 VD4 VD4 VB8 VD4 VB8 -3E -3E V6B B-- VD4 V1F V90 VCB V9C VFB B-- VD4 -3E -FB -FB E-- E-- VD5 B-- B--
+VR5-SIG	SqlServer	ODKU-Date	E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- B-- E-- --- E-- E-- E-- B-- B-- E-- E-- --- --- E-- E-- E-- B-- B--
+VR5-SIG	SqlServer	ODKU-Int	--- --- --- --- --- --- E-- --- E-- E-- E-- E-- B-- --- E-- E-- E-- E-- B-- B-- --- E-- --- --- E-- E-- E-- B-- B--
+VR5-SIG	SqlServer	ODKU-Text	E-- E-- E-- E-- E-- E-- E-- E-- E-- --- --- E-- B-- E-- E-- E-- E-- E-- B-- B-- E-- --- --- --- E-- E-- E-- B-- B--
 VR5-SIG	SqlServer	SEL-Int	-5F -D4 -1B -D4 -D4 -D4 -B8 -D4 -B8 -3E -3E -6B B-- -D4 -B8 V90 VFE VB7 B-- B-- -D4 -3E -FB -FB -1A -03 -D5 B-- B--
 VR5-SIG	SqlServer	SET-Date	E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- B-- E-- -B8 E-- VB8 VCB B-- B-- E-- E-- -FB -FB E-- E-- E-- B-- B--
 VR5-SIG	SqlServer	SET-Int	-5F -D4 -1B -D4 -D4 -D4 VD4 -D4 VD4 E-- E-- V6B B-- -D4 E-- E-- E-- E-- B-- B-- -D4 E-- -FB -FB E-- E-- VD5 B-- B--
 VR5-SIG	SqlServer	SET-Text	V5F VD4 V1B VD4 VD4 VD4 VB8 VD4 VB8 -3E -3E V6B B-- VD4 V1F V90 VCB V9C B-- B-- VD4 -3E -FB -FB E-- E-- VD5 B-- B--
+VR5-SIG	SqlServer	SET2-Date	E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- B-- E-- -6C E-- V6C V26 B-- B-- E-- E-- -B6 -B6 E-- E-- E-- B-- B--
+VR5-SIG	SqlServer	SET2-Int	-6A -BB -2E -BB -BB -BB VBB -BB VBB E-- E-- VB3 B-- -BB E-- E-- E-- E-- B-- B-- -BB E-- -62 -62 E-- E-- V3D B-- B--
+VR5-SIG	SqlServer	SET2-Text	VDB V4B V28 V4B V4B V4B VE4 V4B VE4 -64 -64 V55 B-- V4B VB3 V5A VB7 VDF B-- B-- V4B -64 -44 -44 E-- E-- VDD B-- B--
 VR5-SIG	SqlServer	THEN-Int	-5F -D4 -1B -D4 -D4 -D4 -B8 -D4 -B8 -3E -3E -6B B-- -D4 -B8 V90 VFE VB7 B-- B-- -D4 -3E -FB --- -1A -03 -D5 B-- B--
 VR5-SIG	SqlServer	UPPER-Int	V5F VD4 V1B VD4 VD4 VD4 VB8 VD4 VB8 -DF -DF V6B B-- VD4 VC9 V90 VCB V9C B-- B-- VD4 -DF -FB -FB V1A V03 VD5 B-- B--
-VR5-SUMMARY	SqlServer	total=1972	hash=D9CB143DB5C7	BUILD-AS-MODEL=313	NO-ORACLE-ERROR=894	NO-ORACLE-VALUE=299	ORACLE-LOUD=3	ORACLE-MATCH=463
+VR5-SUMMARY	SqlServer	total=2146	hash=99EBC14523F9	BUILD-AS-MODEL=343	NO-ORACLE-ERROR=977	NO-ORACLE-VALUE=322	ORACLE-LOUD=22	ORACLE-MATCH=482

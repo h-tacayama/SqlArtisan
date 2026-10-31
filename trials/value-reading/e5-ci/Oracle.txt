@@ -60,10 +60,16 @@ VR5-SIG	Oracle	COALESCE-Text	E-- E-- E-- E-- E-- E-- E-- E-- E-- -69 -69 E-- B--
 VR5-SIG	Oracle	INS-Date	E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- B-- E-- -B8 D-- VB8 E-- VFB B-- E-- E-- -FB -FB E-- E-- E-- B-- B--
 VR5-SIG	Oracle	INS-Int	-5F -D4 -1B -D4 -D4 -D4 V4E -D4 V4E E-- E-- E-- B-- -D4 E-- D-- E-- E-- VFB B-- -D4 E-- -FB -FB E-- E-- -D5 B-- B--
 VR5-SIG	Oracle	INS-Text	V5F VD4 V1B VD4 VD4 VD4 VB8 VD4 VB8 -3E -3E E-- B-- VD4 V55 D-- V67 V55 VFB B-- VD4 -3E -FB -FB E-- E-- VD5 B-- B--
+VR5-SIG	Oracle	ODKU-Date	E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- B-- E-- --- D-- E-- E-- B-- B-- E-- E-- --- --- E-- E-- E-- B-- B--
+VR5-SIG	Oracle	ODKU-Int	--- --- --- --- --- --- E-- --- E-- E-- E-- E-- B-- --- E-- D-- E-- E-- B-- B-- --- E-- --- --- E-- E-- E-- B-- B--
+VR5-SIG	Oracle	ODKU-Text	E-- E-- E-- E-- E-- E-- E-- E-- E-- --- --- E-- B-- E-- E-- D-- E-- E-- B-- B-- E-- --- --- --- E-- E-- E-- B-- B--
 VR5-SIG	Oracle	SEL-Int	-5F -D4 -1B -D4 -D4 -D4 -B8 -D4 -B8 -3E -3E --- B-- -D4 -B8 D-- VFE VB7 B-- B-- -D4 -3E -FB -FB -1A -03 -D5 B-- B--
 VR5-SIG	Oracle	SET-Date	E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- B-- E-- -B8 D-- VB8 E-- B-- B-- E-- E-- -FB -FB E-- E-- E-- B-- B--
 VR5-SIG	Oracle	SET-Int	-5F -D4 -1B -D4 -D4 -D4 V4E -D4 V4E E-- E-- E-- B-- -D4 E-- D-- E-- E-- B-- B-- -D4 E-- -FB -FB E-- E-- VD5 B-- B--
 VR5-SIG	Oracle	SET-Text	V5F VD4 V1B VD4 VD4 VD4 VB8 VD4 VB8 -3E -3E E-- B-- VD4 V55 D-- V67 V55 B-- B-- VD4 -3E -FB -FB E-- E-- VD5 B-- B--
+VR5-SIG	Oracle	SET2-Date	E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- B-- E-- -6C D-- V6C E-- B-- B-- E-- E-- -B6 -B6 E-- E-- E-- B-- B--
+VR5-SIG	Oracle	SET2-Int	-6A -BB -2E -BB -BB -BB V87 -BB V87 E-- E-- E-- B-- -BB E-- D-- E-- E-- B-- B-- -BB E-- -62 -62 E-- E-- V3D B-- B--
+VR5-SIG	Oracle	SET2-Text	VDB V4B V28 V4B V4B V4B VE4 V4B VE4 -64 -64 E-- B-- V4B V54 D-- V54 V51 B-- B-- V4B -64 -44 -44 E-- E-- VDD B-- B--
 VR5-SIG	Oracle	THEN-Int	-5F -D4 -1B -D4 -D4 -D4 -B8 -D4 -B8 -3E -3E --- B-- -D4 -B8 D-- VFE VB7 B-- B-- -D4 -3E -FB -FB -1A -03 -D5 B-- B--
 VR5-SIG	Oracle	UPPER-Int	V5F VD4 V1B VD4 VD4 VD4 VB8 VD4 VB8 -DF -DF E-- B-- VD4 V55 D-- V67 V55 B-- B-- VD4 -DF -FB -FB V1A V03 VD5 B-- B--
-VR5-SUMMARY	Oracle	total=1972	hash=8751F84D659C	BUILD-AS-MODEL=313	NO-ORACLE-ERROR=940	NO-ORACLE-VALUE=253	ORACLE-LOUD=7	ORACLE-MATCH=459
+VR5-SUMMARY	Oracle	total=2146	hash=5168E46C8EBC	BUILD-AS-MODEL=343	NO-ORACLE-ERROR=1027	NO-ORACLE-VALUE=272	ORACLE-LOUD=26	ORACLE-MATCH=478

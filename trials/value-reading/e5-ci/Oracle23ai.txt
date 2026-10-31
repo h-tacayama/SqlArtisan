@@ -60,10 +60,16 @@ VR5-SIG	Oracle23ai	COALESCE-Text	E-- E-- E-- E-- E-- E-- E-- E-- E-- -69 -69 E--
 VR5-SIG	Oracle23ai	INS-Date	E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- B-- E-- -B8 D-- VB8 E-- VFB B-- E-- E-- -FB -FB E-- E-- E-- B-- B--
 VR5-SIG	Oracle23ai	INS-Int	-5F -D4 -1B -D4 -D4 -D4 V4E -D4 V4E E-- E-- V6B B-- -D4 E-- D-- E-- E-- VFB B-- -D4 E-- -FB -FB E-- E-- -D5 B-- B--
 VR5-SIG	Oracle23ai	INS-Text	V5F VD4 V1B VD4 VD4 VD4 VB8 VD4 VB8 -3E -3E VDF B-- VD4 V55 D-- V67 V55 VFB B-- VD4 -3E -FB -FB E-- E-- VD5 B-- B--
+VR5-SIG	Oracle23ai	ODKU-Date	E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- B-- E-- --- D-- E-- E-- B-- B-- E-- E-- --- --- E-- E-- E-- B-- B--
+VR5-SIG	Oracle23ai	ODKU-Int	--- --- --- --- --- --- E-- --- E-- E-- E-- E-- B-- --- E-- D-- E-- E-- B-- B-- --- E-- --- --- E-- E-- E-- B-- B--
+VR5-SIG	Oracle23ai	ODKU-Text	E-- E-- E-- E-- E-- E-- E-- E-- E-- --- --- E-- B-- E-- E-- D-- E-- E-- B-- B-- E-- --- --- --- E-- E-- E-- B-- B--
 VR5-SIG	Oracle23ai	SEL-Int	-5F -D4 -1B -D4 -D4 -D4 -B8 -D4 -B8 -3E -3E -6B B-- -D4 -B8 D-- VFE VB7 B-- B-- -D4 -3E -FB -FB -1A -03 -D5 B-- B--
 VR5-SIG	Oracle23ai	SET-Date	E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- B-- E-- -B8 D-- VB8 E-- B-- B-- E-- E-- -FB -FB E-- E-- E-- B-- B--
 VR5-SIG	Oracle23ai	SET-Int	-5F -D4 -1B -D4 -D4 -D4 V4E -D4 V4E E-- E-- V6B B-- -D4 E-- D-- E-- E-- B-- B-- -D4 E-- -FB -FB E-- E-- VD5 B-- B--
 VR5-SIG	Oracle23ai	SET-Text	V5F VD4 V1B VD4 VD4 VD4 VB8 VD4 VB8 -3E -3E VDF B-- VD4 V55 D-- V67 V55 B-- B-- VD4 -3E -FB -FB E-- E-- VD5 B-- B--
+VR5-SIG	Oracle23ai	SET2-Date	E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- E-- B-- E-- -6C D-- V6C E-- B-- B-- E-- E-- -B6 -B6 E-- E-- E-- B-- B--
+VR5-SIG	Oracle23ai	SET2-Int	-6A -BB -2E -BB -BB -BB V87 -BB V87 E-- E-- VB3 B-- -BB E-- D-- E-- E-- B-- B-- -BB E-- -62 -62 E-- E-- V3D B-- B--
+VR5-SIG	Oracle23ai	SET2-Text	VDB V4B V28 V4B V4B V4B VE4 V4B VE4 -64 -64 V79 B-- V4B V54 D-- V54 V51 B-- B-- V4B -64 -44 -44 E-- E-- VDD B-- B--
 VR5-SIG	Oracle23ai	THEN-Int	-5F -D4 -1B -D4 -D4 -D4 -B8 -D4 -B8 -3E -3E -6B B-- -D4 -B8 D-- VFE VB7 B-- B-- -D4 -3E -FB -FB -1A -03 -D5 B-- B--
 VR5-SIG	Oracle23ai	UPPER-Int	V5F VD4 V1B VD4 VD4 VD4 VB8 VD4 VB8 -DF -DF VDF B-- VD4 V55 D-- V67 V55 B-- B-- VD4 -DF -FB -FB V1A V03 VD5 B-- B--
-VR5-SUMMARY	Oracle23ai	total=1972	hash=A32576B07706	BUILD-AS-MODEL=313	NO-ORACLE-ERROR=912	NO-ORACLE-VALUE=281	ORACLE-LOUD=4	ORACLE-MATCH=462
+VR5-SUMMARY	Oracle23ai	total=2146	hash=6F5B14686279	BUILD-AS-MODEL=343	NO-ORACLE-ERROR=997	NO-ORACLE-VALUE=302	ORACLE-LOUD=23	ORACLE-MATCH=481

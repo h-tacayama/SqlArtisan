@@ -558,3 +558,29 @@ Oracle 23ai 281、Oracle XE 21 253、PostgreSQL 113。
 ファイル: `e5-baseline-pg16.tsv`（最初に作った PostgreSQL の基準。最終の判定は C# の照合に切り替えた）、
 `e5-local-PostgreSql.tsv.gz`・`e5-local-Sqlite.tsv.gz`（このコンテナの全件）、`e5-ci/*.txt`（CI 6 本の
 要約・外れ・符号行）。
+
+### 13.1 SET の評価順（F4）を E5 に入れた再測定
+
+統合テスト run 41163342522 と 41163647129（8 本）、このコンテナの SQLite・PostgreSQL 16。
+
+- **足した位置**: `Update(w).Set(X == v, X2 == X)`（2 つ目の代入が、1 つ目で書いた X を読む）と、同じ組を
+  `InsertInto(w, id, X).Values(1, v).OnDuplicateKeyUpdate(X == v, X2 == X)` で。左辺の型 3 つ × 値 29 種
+  × 2 族 = 174 件を足し、E5 は 1 本の流れあたり 2,146 件、8 本で計 17,168 件になった。
+- **意図した結果**: 標準 SQL どおり、UPDATE の右辺はすべて更新前の行を読むので、X2 には X の元の値が入る。
+  C# の照合はこれを期待にした（書き込む値の型が列とそろう組だけ。`SET` 族と同じ条件）。
+
+| 流れ | `SET X = v, X2 = X`（照合できる 19 組 × 左辺 3 型のうち書き込みが通るもの） | `ON DUPLICATE KEY UPDATE` |
+|---|---|---|
+| MySQL 8.0 | **19 件すべてで X2 に書いた後の値が入る**（整数 0・2・-1・long・short・byte・2.0・Bind・ユーザー enum、文字・char・Bind 文字、日時、BindNull・Sql.Null。例: `2:10` を期待して `2:2`、`NULL:x` を期待して `NULL:NULL`） | 19 件すべて `Column 'i' in field list is ambiguous` で失敗（大きな失敗） |
+| PostgreSQL 16 / 17、SQLite、SQL Server 2022 / 2025、Oracle XE 21 / 23ai | すべて元の値を読む（照合と一致） | MySQL だけの構文なので、ほかはエンジンが拒む（方言の表どおり） |
+
+- **F4 は値の種類によらない**: MySQL では、書き込みが通る値ならどの型・どの値でも、後の代入は書いた後の値を
+  読んだ。NULL を書いた場合も同じ。
+- **`ON DUPLICATE KEY UPDATE` は黙らない**: SqlArtisan は `... AS new ON DUPLICATE KEY UPDATE i = ?, i2 = i`
+  を出し、裸の `i` が対象の列と `new` の行の別名のどちらか決まらず、MySQL 8.0 が拒んだ。レビューが心配した
+  「書いた後の値を黙って読む」は、この書き方では起きない。新しい行の値は `Excluded(i)` で明示して読める。
+  一方、対象の行の更新前の値を名前で読む書き方は無い（MySQL の INSERT 対象には別名を付けられない、ADR 0011）。
+- 意図した結果が決まる組では、SET 系の外れは MySQL の F4（19 件）と F3（4 件）だけ。
+
+ファイル: `e5-ci/*.txt`（CI 6 本、2 回目の run 41163342522 の要約・外れ・符号行）、`e5-local-*.tsv.gz`
+（このコンテナの全 2,146 件）。
