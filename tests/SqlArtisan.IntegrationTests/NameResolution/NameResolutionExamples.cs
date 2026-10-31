@@ -305,11 +305,15 @@ public static class NameResolutionExamples
                 _ => Select(T.Column("id"), S.Column("b")).From(T).InnerJoin(S)
                     .Using(W.Column("id")).OrderBy(T.Column("id")),
                 null, Other: "1|30,2|10,3|20", Supported: NotSqlServer),
-            new("FOU-Q-OWN", [K(NrPosition.ForUpdateOf, Q, Own)],
+            new("FOU-T-OWN", [K(NrPosition.ForUpdateOf, NrRef.TableName, Own)],
                 _ => Select(T.Column("id")).From(T).Where(T.Column("id") == 1)
                     .ForUpdate(Of(T), Nowait),
                 "1", Supported: ForUpdate),
-            new("FOU-Q-UNLISTED", [K(NrPosition.ForUpdateOf, Q, Unl)],
+            new("FOU-COL-OWN", [K(NrPosition.ForUpdateOf, Q, Own)],
+                _ => Select(T.Column("id")).From(T).Where(T.Column("id") == 1)
+                    .ForUpdate(Of(T.Column("id")), Nowait),
+                "1", Supported: d => d == Dbms.Oracle),
+            new("FOU-T-UNLISTED", [K(NrPosition.ForUpdateOf, NrRef.TableName, Unl)],
                 _ => Select(T.Column("id")).From(T).Where(T.Column("id") == 1)
                     .ForUpdate(Of(S), Nowait),
                 null, Supported: ForUpdate),

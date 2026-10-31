@@ -1,0 +1,67 @@
+NR	Sqlite	SEL-Q	Binds	1|10,2|20,3|30	1|10,2|20,3|30	OK
+NR	Sqlite	SEL-B	Binds	1|10,2|20,3|30	1|10,2|20,3|30	OK
+NR	Sqlite	SEL-B-SIBLING	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: SQLite Error 1: 'ambiguous column name: b'.	OK
+NR	Sqlite	WHERE-B-UNLISTED-SIBLING	Permissive	(- / other 2)	2	RECORDED:=other
+NR	Sqlite	WHERE-B-UNLISTED	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: SQLite Error 1: 'no such column: k'.	OK
+NR	Sqlite	WHERE-Q-UNLISTED	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: SQLite Error 1: 'no such column: t.b'.	OK
+NR	Sqlite	PRED-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	Sqlite	PRED-Q-OUTER	Binds	1	1	OK
+NR	Sqlite	PRED-B-OWN	Binds	2	2	OK
+NR	Sqlite	SCALAR-Q-OUTER	Binds	1|2,2|3,3|1	1|2,2|3,3|1	OK
+NR	Sqlite	SCALAR-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	Sqlite	DERIVED-B-OWN	Binds	1|10,2|20,3|30	1|10,2|20,3|30	OK
+NR	Sqlite	DERIVED-B-UNLISTED	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	Sqlite	CTE-B-OWN	Binds	2,3	2,3	OK
+NR	Sqlite	CTE-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	Sqlite	LATERAL-Q-OUTER	Binds	1|2,2|3,3|1	UNSUPPORTED	DELEGATED
+NR	Sqlite	LATERAL-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	Sqlite	BRANCH-B-UNLISTED	Question[N10]	(- / other 1,2)	1,2	RECORDED:=other
+NR	Sqlite	CORD-Q	Binds	1|10,2|10,2|20,3|20,1|30,3|30	1|10,2|10,2|20,3|20,1|30,3|30	OK
+NR	Sqlite	CORD-A-FIRST	Binds	1|10,2|10,2|20,3|20,1|30,3|30	1|10,2|10,2|20,3|20,1|30,3|30	OK
+NR	Sqlite	CORD-A-LATER	Question[N8]	(1|10,2|10,2|20,3|20,1|30,3|30 / other -)	1|10,2|10,2|20,3|20,1|30,3|30	RECORDED:=intended
+NR	Sqlite	ORD-A-OWN	Binds	3|-30,2|-20,1|-10	3|-30,2|-20,1|-10	OK
+NR	Sqlite	ORD-B-ALIAS	Permissive	(1|-10,2|-20,3|-30 / other 3|-30,2|-20,1|-10)	3|-30,2|-20,1|-10	RECORDED:=other
+NR	Sqlite	ORD-Q-ALIAS	Binds	1|-10,2|-20,3|-30	1|-10,2|-20,3|-30	OK
+NR	Sqlite	ORD-A-UNSELECTED	Permissive	(3,2,1 / other 1,2,3)	1,2,3	RECORDED:=other
+NR	Sqlite	GRP-B-ALIAS	Question[N1]	(1|0,2|0 / other 3|0)	1|0,2|0	RECORDED:=intended
+NR	Sqlite	GRP-A	Question[N7]	(1|2,2|1 / other -)	BUILD-THROW: Invalid type for GroupByItem: SqlArtisan.ExpressionAlias	RECORDED:build-throw
+NR	Sqlite	HAV-B-ALIAS	Question[N1]	(2 / other 1)	2	RECORDED:=intended
+NR	Sqlite	WHERE-B-ALIAS	Question[N1]	(1|-10 / other )	1|-10	RECORDED:=intended
+NR	Sqlite	WORD-B-ALIAS	Binds	1|-10|1,2|-20|2,3|-30|3	1|-10|1,2|-20|2,3|-30|3	OK
+NR	Sqlite	WPART-B-ALIAS	Binds	1|0|1,2|0|2,3|0|1	1|0|1,2|0|2,3|0|1	OK
+NR	Sqlite	AGG-B-ALIAS	Binds	p,q,r|-10	p,q,r|-10	OK
+NR	Sqlite	WORD-A	BuildRejects	BUILD-THROW	BUILD-THROW: An ORDER BY inside OVER, WITHIN GROUP or an aggregate cannot sort by a select alias; pass the aliased expression instead. (Parameter 'orderB	OK
+NR	Sqlite	DON-B-ALIAS	Question[N1]	(1|0,3|0 / other 1|0)	UNSUPPORTED	DELEGATED
+NR	Sqlite	PRED-Q-SAMEALIAS	Question[N3]	(1 / other 1,2,3)	1,2,3	RECORDED:=other
+NR	Sqlite	ON-Q-SAMEALIAS	Question[N4]	(- / other -)	ENGINE-ERROR: SQLite Error 1: 'ambiguous column name: x.id'.	RECORDED:error
+NR	Sqlite	USING-Q	Question[N5]	(1|10,2|20,3|30 / other -)	1|10,2|20,3|30	RECORDED:=intended
+NR	Sqlite	USING-B	Binds	1|100,2|200,3|300	1|100,2|200,3|300	OK
+NR	Sqlite	USING-OTHER	Question[N6]	(- / other 1|30,2|10,3|20)	1|30,2|10,3|20	RECORDED:=other
+NR	Sqlite	FOU-T-OWN	Binds	1	UNSUPPORTED	DELEGATED
+NR	Sqlite	FOU-COL-OWN	Delegated	(1 / other -)	UNSUPPORTED	DELEGATED
+NR	Sqlite	FOU-T-UNLISTED	Question[N9]	(- / other -)	UNSUPPORTED	DELEGATED
+NR	Sqlite	SEL-P	AnalyzerWarns	(- / other -)	ENGINE-ERROR: SQLite Error 1: 'no such column: excluded.b'.	RECORDED:error
+NR	Sqlite	UPD-B-OWN	Binds	1|99,2|20,3|30	1|99,2|20,3|30	OK
+NR	Sqlite	UPD-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: The SET assignment list must assign only columns of the target table.	OK
+NR	Sqlite	UPD-Q-OTHER-SWAP	BuildRejects	BUILD-THROW	BUILD-THROW: The SET assignment list must assign only columns of the target table.	OK
+NR	Sqlite	UPD-Q-OUTER	Binds	1|2,2|3,3|1	1|2,2|3,3|1	OK
+NR	Sqlite	UPD-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a correlated UPDATE, DELETE, or MERGE must be aliased.	OK
+NR	Sqlite	DEL-Q-OUTER	Binds	2|20,3|30	2|20,3|30	OK
+NR	Sqlite	INS-B-OWN	Binds	1|10,2|20,3|30,4|40	1|10,2|20,3|30,4|40	OK
+NR	Sqlite	INS-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: An INSERT column list must name only columns of the target table.	OK
+NR	Sqlite	UPS-P-OWN	Delegated	(1|77,2|20,3|30 / other -)	1|77,2|20,3|30	RECORDED:=intended
+NR	Sqlite	UPS-P-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: excluded must name a column of the INSERT target table; read another table's value through a subquery.	OK
+NR	Sqlite	UPS-B-VALUE	Binds	1|11,2|20,3|30	1|11,2|20,3|30	OK
+NR	Sqlite	UPS-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	Sqlite	UPS-B-SUBQUERY-OWN	Binds	1|30,2|20,3|30	1|30,2|20,3|30	OK
+NR	Sqlite	UPS-B-TARGET-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: The DO UPDATE SET assignment list must assign only columns of the target table.	OK
+NR	Sqlite	CONFLICT-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: An ON CONFLICT target must name only columns of the target table.	OK
+NR	Sqlite	MRG-Q-OWN	Binds	1|30,2|10,3|20	UNSUPPORTED	DELEGATED
+NR	Sqlite	MRG-Q-OTHER-SWAP	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
+NR	Sqlite	MRG-INSLIST-OTHER	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
+NR	Sqlite	MRG-B-SIBLING	EngineRejects	ENGINE-ERROR	UNSUPPORTED	DELEGATED
+NR	Sqlite	RET-Q-OWN	Binds	5	5	OK
+NR	Sqlite	RET-Q-SAMETABLE	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: SQLite Error 1: 'no such column: w.id'.	OK
+NR	Sqlite	OUT-P-OWN	Delegated	(5 / other -)	UNSUPPORTED	DELEGATED
+NR	Sqlite	OUT-P-OTHER	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
+NR	Sqlite	OUT-B-OWN	Binds	?	UNSUPPORTED	DELEGATED

@@ -49,6 +49,7 @@ public enum NrRef
     BareColumn,      // owner unaliased: b
     SelectAlias,     // an ExpressionAlias key: "x"
     PseudoRow,       // Excluded / Inserted / Deleted (col)
+    TableName,       // a relation named by its alias or name: Of(table)
 }
 
 /// <summary>Where the reference's owner is listed, relative to the block it sits in.</summary>
@@ -160,6 +161,8 @@ public static class NameResolutionModel
             ["N8"] = "A select alias in a compound's trailing ORDER BY that only a later "
                 + "branch names: #672 records PostgreSQL (first branch) and SQLite (any).",
             ["N9"] = "FOR UPDATE OF a table the block does not list. No record.",
+            ["N11"] = "A bare target column in MySQL's ON DUPLICATE KEY UPDATE value, beside "
+                + "the AS new row alias the library always emits. No record.",
             ["N10"] = "A bare column of a top-level compound branch whose table only another "
                 + "branch lists: is the branch top-level for #677?",
         };
@@ -295,6 +298,18 @@ public static class NameResolutionModel
         bool query = QueryPositions.Contains(k.Position);
         bool target = TargetPositions.Contains(k.Position);
 
+        if ((k.Ref == NrRef.TableName) != (k.Position == NrPosition.ForUpdateOf
+            && k.Ref is not (NrRef.QualifiedColumn or NrRef.BareColumn)))
+        {
+            return false;
+        }
+
+        if (k.Ref == NrRef.TableName)
+        {
+            return k.Owner is NrOwner.Own or NrOwner.Unlisted && k.Shadow == NrShadow.None
+                && k.Block == NrBlock.Top;
+        }
+
         if (k.Position == NrPosition.CompoundOrderBy && k.Block != NrBlock.CompoundBranch)
         {
             return false;
@@ -313,7 +328,7 @@ public static class NameResolutionModel
 
         if (k.Owner == NrOwner.OtherTable)
         {
-            return target || k.Ref == NrRef.PseudoRow;
+            return (target || k.Ref == NrRef.PseudoRow) && k.Shadow == NrShadow.None;
         }
 
         if (k.Owner == NrOwner.OuterListed && !IsNested(k.Block))
@@ -396,6 +411,19 @@ public static class NameResolutionModel
                 : new(NrOutcome.Question, "not recorded", "N6");
         }
 
+        if (k.Position == NrPosition.ForUpdateOf && k.Ref != NrRef.TableName
+            && d != Dbms.Oracle)
+        {
+            return new(NrOutcome.Delegated, "DialectMatrix: Of(column) is Oracle's form only",
+                Diagnostic: "SQLA0100");
+        }
+
+        if (k.Ref == NrRef.TableName && d == Dbms.Oracle)
+        {
+            return new(NrOutcome.Delegated, "DialectMatrix: Of(table) is SQLA0100 on Oracle, "
+                + "Of(column) its form", Diagnostic: "SQLA0100");
+        }
+
         if (k.Position == NrPosition.ForUpdateOf && k.Owner != NrOwner.Own)
         {
             return new(NrOutcome.Question, "not recorded", "N9");
@@ -448,7 +476,11 @@ public static class NameResolutionModel
 
         if (k.Position == NrPosition.UpsertSetValue)
         {
-            return new(NrOutcome.Binds, Rule721);
+            // #721 decides ON CONFLICT only; MySQL's ODKU beside its AS new row alias has
+            // no record (the first CI run had assumed Binds here: a model error).
+            return d == Dbms.MySql
+                ? new(NrOutcome.Question, "not recorded", "N11")
+                : new(NrOutcome.Binds, Rule721);
         }
 
         if (k.Position == NrPosition.Output && d == Dbms.SqlServer)

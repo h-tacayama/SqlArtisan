@@ -59,6 +59,15 @@ public abstract class NameResolutionTestBase
             File.WriteAllLines(Path.Combine(dir, $"nr-{_lane}.tsv"), lines);
         }
 
+        // Under mutation testing the baseline replaces the always-fail: only a changed
+        // line (a reading, a verdict or a message) kills the mutant.
+        string? baseline = Environment.GetEnvironmentVariable("NR_BASELINE_DIR");
+        if (baseline is not null)
+        {
+            Assert.Equal(File.ReadAllLines(Path.Combine(baseline, $"nr-{_lane}.tsv")), lines);
+            return;
+        }
+
         Assert.Fail(string.Join("\n", lines));
     }
 

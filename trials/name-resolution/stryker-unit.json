@@ -1,0 +1,32 @@
+{
+  "stryker-config": {
+    "project": "SqlArtisan.csproj",
+    "mutate": [
+      "**/SqlPart/Expression/DbColumn.cs",
+      "**/Internal/SqlBuilder/SqlBuildingBuffer.cs",
+      "**/Internal/SqlPart/Clause/AssignmentResolver.cs",
+      "**/Internal/SqlBuilder/Validation/ColumnListGuard.cs",
+      "**/Internal/SqlPart/Clause/Join/JoinUsingClause.cs",
+      "**/Internal/SqlPart/Expression/ExcludedColumn.cs",
+      "**/Internal/SqlPart/Expression/InsertedColumn.cs",
+      "**/Internal/SqlPart/Expression/DeletedColumn.cs",
+      "**/SqlPart/TableReference/TableReference.cs",
+      "**/SqlPart/TableReference/DbTableBase.cs"
+    ],
+    "coverage-analysis": "perTest",
+    "reporters": [
+      "json",
+      "cleartext",
+      "progress"
+    ],
+    "concurrency": 4,
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 0
+    },
+    "test-projects": [
+      "tests/SqlArtisan.Tests/SqlArtisan.Tests.csproj"
+    ]
+  }
+}
