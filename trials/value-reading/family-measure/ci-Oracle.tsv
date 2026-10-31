@@ -1,0 +1,155 @@
+FM	Oracle	4	ORD-2	5,4,3,2,1
+FM	Oracle	4	GRP-2	#groups=1
+FM	Oracle	4	CORD-2	ENGINE-ERROR: ORA-00904: "t"."ID": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	4	DON-2	ENGINE-ERROR: ORA-00936: missing expression https://docs.oracle.com/error-help/db/ora-00936/
+FM	Oracle	4	PART-2	BUILD-THROW: Invalid type for PartitionByItem: System.Int32
+FM	Oracle	4	ORD-99	ENGINE-ERROR: ORA-01785: ORDER BY item must be the number of a SELECT-list expression https://docs.oracle.com/error-help/db/ora-01785/
+FM	Oracle	4	GRP-99	#groups=1
+FM	Oracle	4	CORD-99	ENGINE-ERROR: ORA-00904: "t"."ID": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	4	DON-99	ENGINE-ERROR: ORA-00936: missing expression https://docs.oracle.com/error-help/db/ora-00936/
+FM	Oracle	4	PART-99	BUILD-THROW: Invalid type for PartitionByItem: System.Int32
+FM	Oracle	4	ORD-2147483647	ENGINE-ERROR: ORA-01785: ORDER BY item must be the number of a SELECT-list expression https://docs.oracle.com/error-help/db/ora-01785/
+FM	Oracle	4	GRP-2147483647	#groups=1
+FM	Oracle	4	CORD-2147483647	ENGINE-ERROR: ORA-00904: "t"."ID": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	4	DON-2147483647	ENGINE-ERROR: ORA-00936: missing expression https://docs.oracle.com/error-help/db/ora-00936/
+FM	Oracle	4	PART-2147483647	BUILD-THROW: Invalid type for PartitionByItem: System.Int32
+FM	Oracle	4	ORD-2147483648	ENGINE-ERROR: ORA-01785: ORDER BY item must be the number of a SELECT-list expression https://docs.oracle.com/error-help/db/ora-01785/
+FM	Oracle	4	GRP-2147483648	#groups=1
+FM	Oracle	4	CORD-2147483648	ENGINE-ERROR: ORA-00904: "t"."ID": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	4	DON-2147483648	ENGINE-ERROR: ORA-00936: missing expression https://docs.oracle.com/error-help/db/ora-00936/
+FM	Oracle	4	PART-2147483648	BUILD-THROW: Invalid type for PartitionByItem: System.Int64
+FM	Oracle	4	ORD-LongMax	ENGINE-ERROR: ORA-01785: ORDER BY item must be the number of a SELECT-list expression https://docs.oracle.com/error-help/db/ora-01785/
+FM	Oracle	4	GRP-LongMax	#groups=1
+FM	Oracle	4	CORD-LongMax	ENGINE-ERROR: ORA-00904: "t"."ID": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	4	DON-LongMax	ENGINE-ERROR: ORA-00936: missing expression https://docs.oracle.com/error-help/db/ora-00936/
+FM	Oracle	4	PART-LongMax	BUILD-THROW: Invalid type for PartitionByItem: System.Int64
+FM	Oracle	11	SUBSTR-pos-0	abcde
+FM	Oracle	11	SUBSTR-len-0	NULL
+FM	Oracle	11	SUBSTRING-pos-0	ENGINE-ERROR: ORA-00904: "SUBSTRING": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	SUBSTRING-len-0	ENGINE-ERROR: ORA-00904: "SUBSTRING": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	LEFT-0	ENGINE-ERROR: ORA-00904: "LEFT": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	RIGHT-0	ENGINE-ERROR: ORA-00904: "RIGHT": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	LPAD-0	NULL
+FM	Oracle	11	RPAD-0	NULL
+FM	Oracle	11	INSTR-pos-0	0
+FM	Oracle	11	RCOUNT-pos-0	ENGINE-ERROR: ORA-01428: argument '0' is out of range https://docs.oracle.com/error-help/db/ora-01428/
+FM	Oracle	11	RSUBSTR-pos-0	ENGINE-ERROR: ORA-01428: argument '0' is out of range https://docs.oracle.com/error-help/db/ora-01428/
+FM	Oracle	11	RREPLACE-pos-0	ENGINE-ERROR: ORA-01428: argument '0' is out of range https://docs.oracle.com/error-help/db/ora-01428/
+FM	Oracle	11	TRUNC-0	75
+FM	Oracle	11	ROUND-0	76
+FM	Oracle	11	SUBSTR-pos--1	e
+FM	Oracle	11	SUBSTR-len--1	NULL
+FM	Oracle	11	SUBSTRING-pos--1	ENGINE-ERROR: ORA-00904: "SUBSTRING": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	SUBSTRING-len--1	ENGINE-ERROR: ORA-00904: "SUBSTRING": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	LEFT--1	ENGINE-ERROR: ORA-00904: "LEFT": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	RIGHT--1	ENGINE-ERROR: ORA-00904: "RIGHT": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	LPAD--1	NULL
+FM	Oracle	11	RPAD--1	NULL
+FM	Oracle	11	INSTR-pos--1	5
+FM	Oracle	11	RCOUNT-pos--1	ENGINE-ERROR: ORA-01428: argument '-1' is out of range https://docs.oracle.com/error-help/db/ora-01428/
+FM	Oracle	11	RSUBSTR-pos--1	ENGINE-ERROR: ORA-01428: argument '-1' is out of range https://docs.oracle.com/error-help/db/ora-01428/
+FM	Oracle	11	RREPLACE-pos--1	ENGINE-ERROR: ORA-01428: argument '-1' is out of range https://docs.oracle.com/error-help/db/ora-01428/
+FM	Oracle	11	TRUNC--1	70
+FM	Oracle	11	ROUND--1	80
+FM	Oracle	11	SUBSTR-pos--2	de
+FM	Oracle	11	SUBSTR-len--2	NULL
+FM	Oracle	11	SUBSTRING-pos--2	ENGINE-ERROR: ORA-00904: "SUBSTRING": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	SUBSTRING-len--2	ENGINE-ERROR: ORA-00904: "SUBSTRING": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	LEFT--2	ENGINE-ERROR: ORA-00904: "LEFT": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	RIGHT--2	ENGINE-ERROR: ORA-00904: "RIGHT": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	LPAD--2	NULL
+FM	Oracle	11	RPAD--2	NULL
+FM	Oracle	11	INSTR-pos--2	5
+FM	Oracle	11	RCOUNT-pos--2	ENGINE-ERROR: ORA-01428: argument '-2' is out of range https://docs.oracle.com/error-help/db/ora-01428/
+FM	Oracle	11	RSUBSTR-pos--2	ENGINE-ERROR: ORA-01428: argument '-2' is out of range https://docs.oracle.com/error-help/db/ora-01428/
+FM	Oracle	11	RREPLACE-pos--2	ENGINE-ERROR: ORA-01428: argument '-2' is out of range https://docs.oracle.com/error-help/db/ora-01428/
+FM	Oracle	11	TRUNC--2	0
+FM	Oracle	11	ROUND--2	100
+FM	Oracle	11	SUBSTR-pos-1	abcde
+FM	Oracle	11	SUBSTR-len-1	b
+FM	Oracle	11	SUBSTRING-pos-1	ENGINE-ERROR: ORA-00904: "SUBSTRING": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	SUBSTRING-len-1	ENGINE-ERROR: ORA-00904: "SUBSTRING": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	LEFT-1	ENGINE-ERROR: ORA-00904: "LEFT": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	RIGHT-1	ENGINE-ERROR: ORA-00904: "RIGHT": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	LPAD-1	a
+FM	Oracle	11	RPAD-1	a
+FM	Oracle	11	INSTR-pos-1	2
+FM	Oracle	11	RCOUNT-pos-1	2
+FM	Oracle	11	RSUBSTR-pos-1	bc
+FM	Oracle	11	RREPLACE-pos-1	aXcaXc
+FM	Oracle	11	TRUNC-1	75.6
+FM	Oracle	11	ROUND-1	75.7
+FM	Oracle	11	SUBSTR-pos-2	bcde
+FM	Oracle	11	SUBSTR-len-2	bc
+FM	Oracle	11	SUBSTRING-pos-2	ENGINE-ERROR: ORA-00904: "SUBSTRING": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	SUBSTRING-len-2	ENGINE-ERROR: ORA-00904: "SUBSTRING": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	LEFT-2	ENGINE-ERROR: ORA-00904: "LEFT": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	RIGHT-2	ENGINE-ERROR: ORA-00904: "RIGHT": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	LPAD-2	ab
+FM	Oracle	11	RPAD-2	ab
+FM	Oracle	11	INSTR-pos-2	2
+FM	Oracle	11	RCOUNT-pos-2	2
+FM	Oracle	11	RSUBSTR-pos-2	bc
+FM	Oracle	11	RREPLACE-pos-2	aXcaXc
+FM	Oracle	11	TRUNC-2	75.65
+FM	Oracle	11	ROUND-2	75.65
+FM	Oracle	11	SUBSTR-pos-100	NULL
+FM	Oracle	11	SUBSTR-len-100	bcde
+FM	Oracle	11	SUBSTRING-pos-100	ENGINE-ERROR: ORA-00904: "SUBSTRING": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	SUBSTRING-len-100	ENGINE-ERROR: ORA-00904: "SUBSTRING": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	LEFT-100	ENGINE-ERROR: ORA-00904: "LEFT": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	RIGHT-100	ENGINE-ERROR: ORA-00904: "RIGHT": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	LPAD-100	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxabc
+FM	Oracle	11	RPAD-100	abcxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+FM	Oracle	11	INSTR-pos-100	0
+FM	Oracle	11	RCOUNT-pos-100	0
+FM	Oracle	11	RSUBSTR-pos-100	NULL
+FM	Oracle	11	RREPLACE-pos-100	abcabc
+FM	Oracle	11	TRUNC-100	75.65
+FM	Oracle	11	ROUND-100	75.65
+FM	Oracle	11	SUBSTR-pos-2.5	bcde
+FM	Oracle	11	SUBSTR-len-2.5	bc
+FM	Oracle	11	SUBSTRING-pos-2.5	ENGINE-ERROR: ORA-00904: "SUBSTRING": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	SUBSTRING-len-2.5	ENGINE-ERROR: ORA-00904: "SUBSTRING": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	LEFT-2.5	ENGINE-ERROR: ORA-00904: "LEFT": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	RIGHT-2.5	ENGINE-ERROR: ORA-00904: "RIGHT": invalid identifier https://docs.oracle.com/error-help/db/ora-00904/
+FM	Oracle	11	LPAD-2.5	ab
+FM	Oracle	11	RPAD-2.5	ab
+FM	Oracle	11	INSTR-pos-2.5	2
+FM	Oracle	11	RCOUNT-pos-2.5	2
+FM	Oracle	11	RSUBSTR-pos-2.5	bc
+FM	Oracle	11	RREPLACE-pos-2.5	aXcaXc
+FM	Oracle	11	TRUNC-2.5	75.65
+FM	Oracle	11	ROUND-2.5	75.65
+FM	Oracle	11	RSUBSTR-occ-0	ENGINE-ERROR: ORA-01428: argument '0' is out of range https://docs.oracle.com/error-help/db/ora-01428/
+FM	Oracle	11	RREPLACE-occ-0	aXcaXc
+FM	Oracle	11	RINSTR-occ-0	ENGINE-ERROR: ORA-01428: argument '0' is out of range https://docs.oracle.com/error-help/db/ora-01428/
+FM	Oracle	11	RINSTR-ret-0	2
+FM	Oracle	11	MOD-div-0	7
+FM	Oracle	11	POWER-exp-0	1
+FM	Oracle	11	RSUBSTR-occ--1	ENGINE-ERROR: ORA-01428: argument '-1' is out of range https://docs.oracle.com/error-help/db/ora-01428/
+FM	Oracle	11	RREPLACE-occ--1	ENGINE-ERROR: ORA-01428: argument '-1' is out of range https://docs.oracle.com/error-help/db/ora-01428/
+FM	Oracle	11	RINSTR-occ--1	ENGINE-ERROR: ORA-01428: argument '-1' is out of range https://docs.oracle.com/error-help/db/ora-01428/
+FM	Oracle	11	RINSTR-ret--1	ENGINE-ERROR: ORA-01428: argument '-1' is out of range https://docs.oracle.com/error-help/db/ora-01428/
+FM	Oracle	11	MOD-div--1	0
+FM	Oracle	11	POWER-exp--1	0.5
+FM	Oracle	11	RSUBSTR-occ-1	bc
+FM	Oracle	11	RREPLACE-occ-1	aXcabc
+FM	Oracle	11	RINSTR-occ-1	2
+FM	Oracle	11	RINSTR-ret-1	3
+FM	Oracle	11	MOD-div-1	0
+FM	Oracle	11	POWER-exp-1	2
+FM	Oracle	11	RSUBSTR-occ-2	bc
+FM	Oracle	11	RREPLACE-occ-2	abcaXc
+FM	Oracle	11	RINSTR-occ-2	5
+FM	Oracle	11	RINSTR-ret-2	3
+FM	Oracle	11	MOD-div-2	1
+FM	Oracle	11	POWER-exp-2	4
+FM	Oracle	11	RSUBSTR-occ-2.5	bc
+FM	Oracle	11	RREPLACE-occ-2.5	abcaXc
+FM	Oracle	11	RINSTR-occ-2.5	5
+FM	Oracle	11	RINSTR-ret-2.5	3
+FM	Oracle	11	MOD-div-2.5	2
+FM	Oracle	11	POWER-exp-2.5	DRIVER-ERROR: InvalidCastException Specified cast is not valid.
+FM	Oracle	11	MOD-neg	-1
+FM	Oracle	11	POWER-zero-neg	ENGINE-ERROR: ORA-01426: numeric overflow https://docs.oracle.com/error-help/db/ora-01426/

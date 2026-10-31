@@ -1,0 +1,155 @@
+FM	SqlServer2025	4	ORD-2	5,4,3,2,1
+FM	SqlServer2025	4	GRP-2	ENGINE-ERROR: Each GROUP BY expression must contain at least one column that is not an outer reference.
+FM	SqlServer2025	4	CORD-2	5,4,3,2,1
+FM	SqlServer2025	4	DON-2	ENGINE-ERROR: Incorrect syntax near the keyword 'ON'.
+FM	SqlServer2025	4	PART-2	BUILD-THROW: Invalid type for PartitionByItem: System.Int32
+FM	SqlServer2025	4	ORD-99	ENGINE-ERROR: The ORDER BY position number 99 is out of range of the number of items in the select list.
+FM	SqlServer2025	4	GRP-99	ENGINE-ERROR: Each GROUP BY expression must contain at least one column that is not an outer reference.
+FM	SqlServer2025	4	CORD-99	ENGINE-ERROR: The ORDER BY position number 99 is out of range of the number of items in the select list. ORDER BY items must appear in
+FM	SqlServer2025	4	DON-99	ENGINE-ERROR: Incorrect syntax near the keyword 'ON'.
+FM	SqlServer2025	4	PART-99	BUILD-THROW: Invalid type for PartitionByItem: System.Int32
+FM	SqlServer2025	4	ORD-2147483647	ENGINE-ERROR: The ORDER BY position number 2147483647 is out of range of the number of items in the select list.
+FM	SqlServer2025	4	GRP-2147483647	ENGINE-ERROR: Each GROUP BY expression must contain at least one column that is not an outer reference.
+FM	SqlServer2025	4	CORD-2147483647	ENGINE-ERROR: The ORDER BY position number 2147483647 is out of range of the number of items in the select list. ORDER BY items must a
+FM	SqlServer2025	4	DON-2147483647	ENGINE-ERROR: Incorrect syntax near the keyword 'ON'.
+FM	SqlServer2025	4	PART-2147483647	BUILD-THROW: Invalid type for PartitionByItem: System.Int32
+FM	SqlServer2025	4	ORD-2147483648	ENGINE-ERROR: A constant expression was encountered in the ORDER BY list, position 1.
+FM	SqlServer2025	4	GRP-2147483648	ENGINE-ERROR: Each GROUP BY expression must contain at least one column that is not an outer reference.
+FM	SqlServer2025	4	CORD-2147483648	ENGINE-ERROR: A constant expression was encountered in the ORDER BY list, position 1.
+FM	SqlServer2025	4	DON-2147483648	ENGINE-ERROR: Incorrect syntax near the keyword 'ON'.
+FM	SqlServer2025	4	PART-2147483648	BUILD-THROW: Invalid type for PartitionByItem: System.Int64
+FM	SqlServer2025	4	ORD-LongMax	ENGINE-ERROR: A constant expression was encountered in the ORDER BY list, position 1.
+FM	SqlServer2025	4	GRP-LongMax	ENGINE-ERROR: Each GROUP BY expression must contain at least one column that is not an outer reference.
+FM	SqlServer2025	4	CORD-LongMax	ENGINE-ERROR: A constant expression was encountered in the ORDER BY list, position 1.
+FM	SqlServer2025	4	DON-LongMax	ENGINE-ERROR: Incorrect syntax near the keyword 'ON'.
+FM	SqlServer2025	4	PART-LongMax	BUILD-THROW: Invalid type for PartitionByItem: System.Int64
+FM	SqlServer2025	11	SUBSTR-pos-0	ENGINE-ERROR: 'SUBSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	SUBSTR-len-0	ENGINE-ERROR: 'SUBSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	SUBSTRING-pos-0	a
+FM	SqlServer2025	11	SUBSTRING-len-0	''
+FM	SqlServer2025	11	LEFT-0	''
+FM	SqlServer2025	11	RIGHT-0	''
+FM	SqlServer2025	11	LPAD-0	ENGINE-ERROR: 'LPAD' is not a recognized built-in function name.
+FM	SqlServer2025	11	RPAD-0	ENGINE-ERROR: 'RPAD' is not a recognized built-in function name.
+FM	SqlServer2025	11	INSTR-pos-0	ENGINE-ERROR: 'INSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	RCOUNT-pos-0	ENGINE-ERROR: 'START' value should be greater than or equal to 1 but '0' is provided in 'REGEXP_COUNT' function.
+FM	SqlServer2025	11	RSUBSTR-pos-0	ENGINE-ERROR: 'START' value should be greater than or equal to 1 but '0' is provided in 'REGEXP_SUBSTR' function.
+FM	SqlServer2025	11	RREPLACE-pos-0	ENGINE-ERROR: 'START' value should be greater than or equal to 1 but '0' is provided in 'REGEXP_REPLACE' function.
+FM	SqlServer2025	11	TRUNC-0	ENGINE-ERROR: 'TRUNC' is not a recognized built-in function name.
+FM	SqlServer2025	11	ROUND-0	76
+FM	SqlServer2025	11	SUBSTR-pos--1	ENGINE-ERROR: 'SUBSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	SUBSTR-len--1	ENGINE-ERROR: 'SUBSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	SUBSTRING-pos--1	''
+FM	SqlServer2025	11	SUBSTRING-len--1	ENGINE-ERROR: Invalid length parameter passed to the LEFT or SUBSTRING function.
+FM	SqlServer2025	11	LEFT--1	ENGINE-ERROR: Invalid length parameter passed to the LEFT or SUBSTRING function.
+FM	SqlServer2025	11	RIGHT--1	ENGINE-ERROR: Invalid length parameter passed to the RIGHT function.
+FM	SqlServer2025	11	LPAD--1	ENGINE-ERROR: 'LPAD' is not a recognized built-in function name.
+FM	SqlServer2025	11	RPAD--1	ENGINE-ERROR: 'RPAD' is not a recognized built-in function name.
+FM	SqlServer2025	11	INSTR-pos--1	ENGINE-ERROR: 'INSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	RCOUNT-pos--1	ENGINE-ERROR: 'START' value should be greater than or equal to 1 but '-1' is provided in 'REGEXP_COUNT' function.
+FM	SqlServer2025	11	RSUBSTR-pos--1	ENGINE-ERROR: 'START' value should be greater than or equal to 1 but '-1' is provided in 'REGEXP_SUBSTR' function.
+FM	SqlServer2025	11	RREPLACE-pos--1	ENGINE-ERROR: 'START' value should be greater than or equal to 1 but '-1' is provided in 'REGEXP_REPLACE' function.
+FM	SqlServer2025	11	TRUNC--1	ENGINE-ERROR: 'TRUNC' is not a recognized built-in function name.
+FM	SqlServer2025	11	ROUND--1	80
+FM	SqlServer2025	11	SUBSTR-pos--2	ENGINE-ERROR: 'SUBSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	SUBSTR-len--2	ENGINE-ERROR: 'SUBSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	SUBSTRING-pos--2	''
+FM	SqlServer2025	11	SUBSTRING-len--2	ENGINE-ERROR: Invalid length parameter passed to the LEFT or SUBSTRING function.
+FM	SqlServer2025	11	LEFT--2	ENGINE-ERROR: Invalid length parameter passed to the LEFT or SUBSTRING function.
+FM	SqlServer2025	11	RIGHT--2	ENGINE-ERROR: Invalid length parameter passed to the RIGHT function.
+FM	SqlServer2025	11	LPAD--2	ENGINE-ERROR: 'LPAD' is not a recognized built-in function name.
+FM	SqlServer2025	11	RPAD--2	ENGINE-ERROR: 'RPAD' is not a recognized built-in function name.
+FM	SqlServer2025	11	INSTR-pos--2	ENGINE-ERROR: 'INSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	RCOUNT-pos--2	ENGINE-ERROR: 'START' value should be greater than or equal to 1 but '-2' is provided in 'REGEXP_COUNT' function.
+FM	SqlServer2025	11	RSUBSTR-pos--2	ENGINE-ERROR: 'START' value should be greater than or equal to 1 but '-2' is provided in 'REGEXP_SUBSTR' function.
+FM	SqlServer2025	11	RREPLACE-pos--2	ENGINE-ERROR: 'START' value should be greater than or equal to 1 but '-2' is provided in 'REGEXP_REPLACE' function.
+FM	SqlServer2025	11	TRUNC--2	ENGINE-ERROR: 'TRUNC' is not a recognized built-in function name.
+FM	SqlServer2025	11	ROUND--2	ENGINE-ERROR: Arithmetic overflow error converting expression to data type numeric.
+FM	SqlServer2025	11	SUBSTR-pos-1	ENGINE-ERROR: 'SUBSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	SUBSTR-len-1	ENGINE-ERROR: 'SUBSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	SUBSTRING-pos-1	ab
+FM	SqlServer2025	11	SUBSTRING-len-1	b
+FM	SqlServer2025	11	LEFT-1	a
+FM	SqlServer2025	11	RIGHT-1	e
+FM	SqlServer2025	11	LPAD-1	ENGINE-ERROR: 'LPAD' is not a recognized built-in function name.
+FM	SqlServer2025	11	RPAD-1	ENGINE-ERROR: 'RPAD' is not a recognized built-in function name.
+FM	SqlServer2025	11	INSTR-pos-1	ENGINE-ERROR: 'INSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	RCOUNT-pos-1	2
+FM	SqlServer2025	11	RSUBSTR-pos-1	bc
+FM	SqlServer2025	11	RREPLACE-pos-1	aXcaXc
+FM	SqlServer2025	11	TRUNC-1	ENGINE-ERROR: 'TRUNC' is not a recognized built-in function name.
+FM	SqlServer2025	11	ROUND-1	75.7
+FM	SqlServer2025	11	SUBSTR-pos-2	ENGINE-ERROR: 'SUBSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	SUBSTR-len-2	ENGINE-ERROR: 'SUBSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	SUBSTRING-pos-2	bc
+FM	SqlServer2025	11	SUBSTRING-len-2	bc
+FM	SqlServer2025	11	LEFT-2	ab
+FM	SqlServer2025	11	RIGHT-2	de
+FM	SqlServer2025	11	LPAD-2	ENGINE-ERROR: 'LPAD' is not a recognized built-in function name.
+FM	SqlServer2025	11	RPAD-2	ENGINE-ERROR: 'RPAD' is not a recognized built-in function name.
+FM	SqlServer2025	11	INSTR-pos-2	ENGINE-ERROR: 'INSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	RCOUNT-pos-2	2
+FM	SqlServer2025	11	RSUBSTR-pos-2	bc
+FM	SqlServer2025	11	RREPLACE-pos-2	aXcaXc
+FM	SqlServer2025	11	TRUNC-2	ENGINE-ERROR: 'TRUNC' is not a recognized built-in function name.
+FM	SqlServer2025	11	ROUND-2	75.65
+FM	SqlServer2025	11	SUBSTR-pos-100	ENGINE-ERROR: 'SUBSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	SUBSTR-len-100	ENGINE-ERROR: 'SUBSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	SUBSTRING-pos-100	''
+FM	SqlServer2025	11	SUBSTRING-len-100	bcde
+FM	SqlServer2025	11	LEFT-100	abcde
+FM	SqlServer2025	11	RIGHT-100	abcde
+FM	SqlServer2025	11	LPAD-100	ENGINE-ERROR: 'LPAD' is not a recognized built-in function name.
+FM	SqlServer2025	11	RPAD-100	ENGINE-ERROR: 'RPAD' is not a recognized built-in function name.
+FM	SqlServer2025	11	INSTR-pos-100	ENGINE-ERROR: 'INSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	RCOUNT-pos-100	0
+FM	SqlServer2025	11	RSUBSTR-pos-100	NULL
+FM	SqlServer2025	11	RREPLACE-pos-100	abcabc
+FM	SqlServer2025	11	TRUNC-100	ENGINE-ERROR: 'TRUNC' is not a recognized built-in function name.
+FM	SqlServer2025	11	ROUND-100	75.65
+FM	SqlServer2025	11	SUBSTR-pos-2.5	ENGINE-ERROR: 'SUBSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	SUBSTR-len-2.5	ENGINE-ERROR: 'SUBSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	SUBSTRING-pos-2.5	ENGINE-ERROR: Argument data type float is invalid for argument 2 of substring function.
+FM	SqlServer2025	11	SUBSTRING-len-2.5	ENGINE-ERROR: Argument data type float is invalid for argument 3 of substring function.
+FM	SqlServer2025	11	LEFT-2.5	ab
+FM	SqlServer2025	11	RIGHT-2.5	de
+FM	SqlServer2025	11	LPAD-2.5	ENGINE-ERROR: 'LPAD' is not a recognized built-in function name.
+FM	SqlServer2025	11	RPAD-2.5	ENGINE-ERROR: 'RPAD' is not a recognized built-in function name.
+FM	SqlServer2025	11	INSTR-pos-2.5	ENGINE-ERROR: 'INSTR' is not a recognized built-in function name.
+FM	SqlServer2025	11	RCOUNT-pos-2.5	ENGINE-ERROR: Argument data type float is invalid for argument 3 of regexp_count function.
+FM	SqlServer2025	11	RSUBSTR-pos-2.5	ENGINE-ERROR: Argument data type float is invalid for argument 3 of regexp_substr function.
+FM	SqlServer2025	11	RREPLACE-pos-2.5	ENGINE-ERROR: Argument data type float is invalid for argument 4 of regexp_replace function.
+FM	SqlServer2025	11	TRUNC-2.5	ENGINE-ERROR: 'TRUNC' is not a recognized built-in function name.
+FM	SqlServer2025	11	ROUND-2.5	75.65
+FM	SqlServer2025	11	RSUBSTR-occ-0	ENGINE-ERROR: 'OCCURRENCE' value should be greater than or equal to 1 but '0' is provided in 'REGEXP_SUBSTR' function.
+FM	SqlServer2025	11	RREPLACE-occ-0	aXcaXc
+FM	SqlServer2025	11	RINSTR-occ-0	ENGINE-ERROR: 'OCCURRENCE' value should be greater than or equal to 1 but '0' is provided in 'REGEXP_INSTR' function.
+FM	SqlServer2025	11	RINSTR-ret-0	2
+FM	SqlServer2025	11	MOD-div-0	ENGINE-ERROR: 'MOD' is not a recognized built-in function name.
+FM	SqlServer2025	11	POWER-exp-0	1
+FM	SqlServer2025	11	RSUBSTR-occ--1	ENGINE-ERROR: 'OCCURRENCE' value should be greater than or equal to 1 but '-1' is provided in 'REGEXP_SUBSTR' function.
+FM	SqlServer2025	11	RREPLACE-occ--1	ENGINE-ERROR: 'OCCURRENCE' value should be greater than or equal to 0 but '-1' is provided in 'REGEXP_REPLACE' function.
+FM	SqlServer2025	11	RINSTR-occ--1	ENGINE-ERROR: 'OCCURRENCE' value should be greater than or equal to 1 but '-1' is provided in 'REGEXP_INSTR' function.
+FM	SqlServer2025	11	RINSTR-ret--1	ENGINE-ERROR: 'RETURN_OPTION' value should be greater than or equal to 0 but '-1' is provided in 'REGEXP_INSTR' function.
+FM	SqlServer2025	11	MOD-div--1	ENGINE-ERROR: 'MOD' is not a recognized built-in function name.
+FM	SqlServer2025	11	POWER-exp--1	0
+FM	SqlServer2025	11	RSUBSTR-occ-1	bc
+FM	SqlServer2025	11	RREPLACE-occ-1	aXcabc
+FM	SqlServer2025	11	RINSTR-occ-1	2
+FM	SqlServer2025	11	RINSTR-ret-1	3
+FM	SqlServer2025	11	MOD-div-1	ENGINE-ERROR: 'MOD' is not a recognized built-in function name.
+FM	SqlServer2025	11	POWER-exp-1	2
+FM	SqlServer2025	11	RSUBSTR-occ-2	bc
+FM	SqlServer2025	11	RREPLACE-occ-2	abcaXc
+FM	SqlServer2025	11	RINSTR-occ-2	5
+FM	SqlServer2025	11	RINSTR-ret-2	ENGINE-ERROR: 'RETURN_OPTION' value should be greater than or equal to 0 but '2' is provided in 'REGEXP_INSTR' function.
+FM	SqlServer2025	11	MOD-div-2	ENGINE-ERROR: 'MOD' is not a recognized built-in function name.
+FM	SqlServer2025	11	POWER-exp-2	4
+FM	SqlServer2025	11	RSUBSTR-occ-2.5	ENGINE-ERROR: Argument data type float is invalid for argument 4 of regexp_substr function.
+FM	SqlServer2025	11	RREPLACE-occ-2.5	ENGINE-ERROR: Argument data type float is invalid for argument 5 of regexp_replace function.
+FM	SqlServer2025	11	RINSTR-occ-2.5	ENGINE-ERROR: Argument data type float is invalid for argument 4 of regexp_instr function.
+FM	SqlServer2025	11	RINSTR-ret-2.5	ENGINE-ERROR: Argument data type float is invalid for argument 5 of regexp_instr function.
+FM	SqlServer2025	11	MOD-div-2.5	ENGINE-ERROR: 'MOD' is not a recognized built-in function name.
+FM	SqlServer2025	11	POWER-exp-2.5	5
+FM	SqlServer2025	11	MOD-neg	ENGINE-ERROR: 'MOD' is not a recognized built-in function name.
+FM	SqlServer2025	11	POWER-zero-neg	ENGINE-ERROR: Divide by zero error encountered.

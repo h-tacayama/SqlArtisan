@@ -309,3 +309,95 @@ guard を足す族（1・2）は、利用者の手元で `Build()` が新たに�
 
 この試しでは、どの決定もコードには入れていない（試しの約束: 不具合は直さず、成果物は作業ブランチに
 置くだけ）。
+
+---
+
+## 族 4・11 の測定（CI run 41176155594、8 レーン）
+
+- コード: `tests/SqlArtisan.IntegrationTests/ValueReading/FamilyMeasurements.cs`
+  - 族 4: 25 の場合
+  - 族 11: 130 の場合
+- 生の行と分類表: `family-measure/`
+- 意図した結果は置かず、レーンどうしの答えを比べた。DialectMatrix がその方言を対応外とする
+  セルは集計から外した。
+
+### 族 4: int の上限を超える整数のキー
+
+| キー | MySQL | Oracle 2 版 | PostgreSQL 2 版 | SQLite | SQL Server 2 版 |
+|---|---|---|---|---|---|
+| `OrderBy(2147483648L)`・`long.MaxValue` | 失敗（Unknown column） | 失敗（ORA-01785） | 失敗（non-integer constant） | **定数（並べない、静か）** | 失敗（constant expression） |
+| `GroupBy(2147483648L)`・`long.MaxValue` | 失敗 | 1 グループ | 失敗 | **1 グループ（静か）** | 失敗 |
+| `OrderBy(2147483647)`（int の上限）、`OrderBy(99)` | 失敗（範囲外） | 失敗 | 失敗 | 失敗 | 失敗 |
+| 複合の末尾 ORDER BY | （測り方の誤り。下記） | | | 失敗（2147483648） | |
+| `DistinctOn(2147483648L)` | — | — | 失敗 | — | — |
+| `PartitionBy(...)` の数 | Build が拒む（全レーン） | | | | |
+
+- 静かに通るのは SQLite だけ。
+- Oracle の GROUP BY の 1 グループは、Oracle がどの定数のキーも 1 グループとして読むという記録
+  （#684、`ArgumentValueValidity.OrdinalGroupByUnread`）どおりで、新しい事実ではない。
+- **測り方の誤り**: 複合の末尾 ORDER BY の場合では、2 つ目のキーを修飾列（`"t".id`）にしていた。
+  そのため MySQL・Oracle・PostgreSQL の失敗は修飾列によるもので、大きな値の読み方は分からない。
+  SQLite は修飾列でも動き、2147483648 では「どの結果の列にも合わない」で失敗した（単独の
+  ORDER BY では定数として通るのに、複合では拒む）。
+
+**案（族 4）**
+
+| 案 | 中身 |
+|---|---|
+| 4a（G、ADR 0012 の値の域） | 序数の guard に「int の上限を超える整数は列の位置にならない」を足し、呼び出し時に拒む |
+| 4b（A104） | SQLite の行を足す |
+| 4c（E） | 何もしない |
+
+- **推奨: 4a。**
+  - 前例は `OrderBy(0)` の guard で、記録の理由は「どのエンジンでも 0 は列の位置でない」。
+  - 2147483648 以上も、測った 8 レーンでは列の位置として読むものがない。7 レーンは拒み、
+    SQLite は位置でなく定数として読む。guards の境界の表の「書いた構文として読む」
+    （別の意味で動いても、その構文が有効になるわけではない）に従えば、どの方言でも無効になる。
+  - 序数は文の文字列に刷られる値なので、ADR 0012 の条件 2（文字列に埋め込まれ、呼び出し側で
+    決まる）も満たす。
+- **未確認**
+  - エンジンの列数の上限（SQLite 32767 など）を使えば境界をもっと低くできるが、測っていない。
+  - 複合の末尾 ORDER BY の、修飾列を外した測り直しはしていない。
+
+### 族 11: 関数の整数引数
+
+130 の場合の分類は次のとおり。
+
+- 全レーンで同じ値: 57
+- 一部は失敗し、値を返したレーンは同じ: 21
+- 全レーンで失敗: 11
+- **値を返したレーンで値が違う: 41**
+
+41 は次の 6 つに分かれる。
+
+| 小族 | 例（MySQL / Oracle / PostgreSQL / SQLite / SQL Server） | 件数 |
+|---|---|---|
+| 11a 整数の引数に小数（2.5） | `Substr('abcde', 2.5)`: MySQL `cde`（四捨五入して 3）/ Oracle・SQLite `bcde`（切り捨てて 2）/ PostgreSQL 失敗（double から int へ暗黙に変換しない）。`Left(.., 2.5)`: MySQL `abc` / SQL Server `ab`。REGEXP の出現回数 2.5: MySQL は 3 回目（該当なし）、Oracle は 2 回目 | 15 |
+| 11b 0・負の位置と長さ | `Substr(s, 0)`: MySQL `''` / ほか `abcde`。`Substr(s, -1)`: MySQL・Oracle・SQLite は末尾から（`e`）/ PostgreSQL は `abcde`。`Substring(s, -1, 2)`: MySQL・SQLite `e` / PostgreSQL・SQL Server `''`。`Substr(s, 2, -1)`: MySQL `''` / Oracle NULL / PostgreSQL 失敗 / SQLite `a`（位置の前の文字を取る）。`Left(s, -1)`: MySQL `''` / PostgreSQL `abcd`（末尾 1 字を除く）/ SQL Server 失敗。`Lpad(s, -1, 'x')`: MySQL・Oracle NULL / PostgreSQL `''` | 18 |
+| 11c Oracle の空文字列は NULL | `Substr(s, 2, 0)`・`Lpad(s, 0, 'x')`・`Substr(s, 100)`: Oracle だけ NULL、ほかは `''` | 4（11b と重なる行を除く） |
+| 11d `RegexpReplace(s, p, r, 位置)`（出現回数なし） | PostgreSQL は最初の 1 つだけ置き換える（`aXcabc`）/ MySQL・Oracle・SQL Server 2025 は全部（`aXcaXc`）。出現回数を明示した 5 引数（`0`=全部、`1`=最初）は全レーンで同じ | 2 |
+| 11e `Mod(7, 0)` | MySQL・SQLite NULL / Oracle 7 / PostgreSQL 失敗 | 1 |
+| 11f `Power(整数, 負・小数)` | SQL Server は底の整数型を返す（`Power(2, -1)` = 0、`Power(2, 2.5)` = 5）/ ほかは 0.5、5.65…。Oracle の `Power(2, 2.5)` はドライバーの読み戻しで失敗（族 12 の側） | 2 |
+
+既に記録があるもの:
+
+- 負の `Round` の桁を SQLite が 0 と読む件（SQLA0104、#742。今回も 76 で一致）
+- 負の `Lag`/`Lead` の offset（guards で決定済み。今回は測っていない）
+
+**案（族 11）**
+
+| 小族 | 案 | 推奨と理由 |
+|---|---|---|
+| 11a 小数 | A104 の行（定数の小数を整数の位置に置いたら、測った全方言で報告する。PostgreSQL は拒み、ほかは丸めか切り捨ての別の意味）／ E | **A104**。G（ADR 0012）は使えない。値は束縛されて文字列に埋め込まれないので、条件 2 に当たらない。定数なら解析器から見える |
+| 11b 0・負 | A104 の行を（関数 × 値の符号 × 方言）で足す。前例は負の `Round`（#742）／ D／ E | **A104 + D**。どの方言を「別の意味」とするかは関数ごとに決める必要がある。`SUBSTRING` は SQL 標準の読み方（PostgreSQL・SQL Server と同じ）を基準にでき、MySQL・SQLite を報告する。`Substr`・`Left`・`Lpad` には標準がないので、値を返す全方言で報告するか、文書だけにするかを決める |
+| 11c Oracle の空文字列 | E（Oracle の空文字列は、この関数に限らず NULL。エンジンの定義） | **E**。関数の引数の読み方ではない |
+| 11d `RegexpReplace` の 4 引数 | D（`[!WARNING]`。出現回数を明示する 5 引数を案内する）／ 行列の 4 引数のセルを PostgreSQL で false | **D**。`dbms-differences.md` は「同じ関数でエンジン定義の意味が違うもの（`LOG(x)` の底）」を true のまま文書に置く。案内する 5 引数は全レーンで同じ結果になることを測った |
+| 11e `Mod(x, 0)` | E + D | **E + D**。ゼロ除算の扱いは ADR 0003 の振る舞いの違い |
+| 11f SQL Server の `Power` | D／ A104（定数の整数の底 × 定数の負・小数の指数、SQL Server） | **D**。結果の型の規則（ADR 0003 の型の制限）。定数の組だけを報告しても、列が底のときは見えない |
+
+**測っていないもの**: 次のものは今回の値の組に入れていない。
+
+- `Instr` の 3 引数（Oracle だけが対応）の 2.5 以外の細かい値
+- `Trunc` の日時の書式
+- `Dateadd`・`AddMonths` の小数
+- `Ntile`・`NthValue`（guard 済み）

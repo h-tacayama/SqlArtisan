@@ -1,0 +1,155 @@
+FM	MySql	4	ORD-2	5,4,3,2,1
+FM	MySql	4	GRP-2	ENGINE-ERROR: Unknown column '2' in 'group statement'
+FM	MySql	4	CORD-2	ENGINE-ERROR: Table 't' from one of the SELECTs cannot be used in global ORDER clause
+FM	MySql	4	DON-2	ENGINE-ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+FM	MySql	4	PART-2	BUILD-THROW: Invalid type for PartitionByItem: System.Int32
+FM	MySql	4	ORD-99	ENGINE-ERROR: Unknown column '99' in 'order clause'
+FM	MySql	4	GRP-99	ENGINE-ERROR: Unknown column '99' in 'group statement'
+FM	MySql	4	CORD-99	ENGINE-ERROR: Table 't' from one of the SELECTs cannot be used in global ORDER clause
+FM	MySql	4	DON-99	ENGINE-ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+FM	MySql	4	PART-99	BUILD-THROW: Invalid type for PartitionByItem: System.Int32
+FM	MySql	4	ORD-2147483647	ENGINE-ERROR: Unknown column '2147483647' in 'order clause'
+FM	MySql	4	GRP-2147483647	ENGINE-ERROR: Unknown column '2147483647' in 'group statement'
+FM	MySql	4	CORD-2147483647	ENGINE-ERROR: Table 't' from one of the SELECTs cannot be used in global ORDER clause
+FM	MySql	4	DON-2147483647	ENGINE-ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+FM	MySql	4	PART-2147483647	BUILD-THROW: Invalid type for PartitionByItem: System.Int32
+FM	MySql	4	ORD-2147483648	ENGINE-ERROR: Unknown column '2147483648' in 'order clause'
+FM	MySql	4	GRP-2147483648	ENGINE-ERROR: Unknown column '2147483648' in 'group statement'
+FM	MySql	4	CORD-2147483648	ENGINE-ERROR: Table 't' from one of the SELECTs cannot be used in global ORDER clause
+FM	MySql	4	DON-2147483648	ENGINE-ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+FM	MySql	4	PART-2147483648	BUILD-THROW: Invalid type for PartitionByItem: System.Int64
+FM	MySql	4	ORD-LongMax	ENGINE-ERROR: Unknown column '9223372036854775807' in 'order clause'
+FM	MySql	4	GRP-LongMax	ENGINE-ERROR: Unknown column '9223372036854775807' in 'group statement'
+FM	MySql	4	CORD-LongMax	ENGINE-ERROR: Table 't' from one of the SELECTs cannot be used in global ORDER clause
+FM	MySql	4	DON-LongMax	ENGINE-ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+FM	MySql	4	PART-LongMax	BUILD-THROW: Invalid type for PartitionByItem: System.Int64
+FM	MySql	11	SUBSTR-pos-0	''
+FM	MySql	11	SUBSTR-len-0	''
+FM	MySql	11	SUBSTRING-pos-0	''
+FM	MySql	11	SUBSTRING-len-0	''
+FM	MySql	11	LEFT-0	''
+FM	MySql	11	RIGHT-0	''
+FM	MySql	11	LPAD-0	''
+FM	MySql	11	RPAD-0	''
+FM	MySql	11	INSTR-pos-0	ENGINE-ERROR: Incorrect parameter count in the call to native function 'INSTR'
+FM	MySql	11	RCOUNT-pos-0	ENGINE-ERROR: FUNCTION test.REGEXP_COUNT does not exist
+FM	MySql	11	RSUBSTR-pos-0	ENGINE-ERROR: Incorrect parameters in the call to native function 'regexp_substr'
+FM	MySql	11	RREPLACE-pos-0	ENGINE-ERROR: Incorrect parameters in the call to native function 'regexp_replace'
+FM	MySql	11	TRUNC-0	ENGINE-ERROR: FUNCTION test.TRUNC does not exist
+FM	MySql	11	ROUND-0	76
+FM	MySql	11	SUBSTR-pos--1	e
+FM	MySql	11	SUBSTR-len--1	''
+FM	MySql	11	SUBSTRING-pos--1	e
+FM	MySql	11	SUBSTRING-len--1	''
+FM	MySql	11	LEFT--1	''
+FM	MySql	11	RIGHT--1	''
+FM	MySql	11	LPAD--1	NULL
+FM	MySql	11	RPAD--1	NULL
+FM	MySql	11	INSTR-pos--1	ENGINE-ERROR: Incorrect parameter count in the call to native function 'INSTR'
+FM	MySql	11	RCOUNT-pos--1	ENGINE-ERROR: FUNCTION test.REGEXP_COUNT does not exist
+FM	MySql	11	RSUBSTR-pos--1	ENGINE-ERROR: Incorrect parameters in the call to native function 'regexp_substr'
+FM	MySql	11	RREPLACE-pos--1	ENGINE-ERROR: Incorrect parameters in the call to native function 'regexp_replace'
+FM	MySql	11	TRUNC--1	ENGINE-ERROR: FUNCTION test.TRUNC does not exist
+FM	MySql	11	ROUND--1	80
+FM	MySql	11	SUBSTR-pos--2	de
+FM	MySql	11	SUBSTR-len--2	''
+FM	MySql	11	SUBSTRING-pos--2	de
+FM	MySql	11	SUBSTRING-len--2	''
+FM	MySql	11	LEFT--2	''
+FM	MySql	11	RIGHT--2	''
+FM	MySql	11	LPAD--2	NULL
+FM	MySql	11	RPAD--2	NULL
+FM	MySql	11	INSTR-pos--2	ENGINE-ERROR: Incorrect parameter count in the call to native function 'INSTR'
+FM	MySql	11	RCOUNT-pos--2	ENGINE-ERROR: FUNCTION test.REGEXP_COUNT does not exist
+FM	MySql	11	RSUBSTR-pos--2	ENGINE-ERROR: Incorrect parameters in the call to native function 'regexp_substr'
+FM	MySql	11	RREPLACE-pos--2	ENGINE-ERROR: Incorrect parameters in the call to native function 'regexp_replace'
+FM	MySql	11	TRUNC--2	ENGINE-ERROR: FUNCTION test.TRUNC does not exist
+FM	MySql	11	ROUND--2	100
+FM	MySql	11	SUBSTR-pos-1	abcde
+FM	MySql	11	SUBSTR-len-1	b
+FM	MySql	11	SUBSTRING-pos-1	ab
+FM	MySql	11	SUBSTRING-len-1	b
+FM	MySql	11	LEFT-1	a
+FM	MySql	11	RIGHT-1	e
+FM	MySql	11	LPAD-1	a
+FM	MySql	11	RPAD-1	a
+FM	MySql	11	INSTR-pos-1	ENGINE-ERROR: Incorrect parameter count in the call to native function 'INSTR'
+FM	MySql	11	RCOUNT-pos-1	ENGINE-ERROR: FUNCTION test.REGEXP_COUNT does not exist
+FM	MySql	11	RSUBSTR-pos-1	bc
+FM	MySql	11	RREPLACE-pos-1	aXcaXc
+FM	MySql	11	TRUNC-1	ENGINE-ERROR: FUNCTION test.TRUNC does not exist
+FM	MySql	11	ROUND-1	75.7
+FM	MySql	11	SUBSTR-pos-2	bcde
+FM	MySql	11	SUBSTR-len-2	bc
+FM	MySql	11	SUBSTRING-pos-2	bc
+FM	MySql	11	SUBSTRING-len-2	bc
+FM	MySql	11	LEFT-2	ab
+FM	MySql	11	RIGHT-2	de
+FM	MySql	11	LPAD-2	ab
+FM	MySql	11	RPAD-2	ab
+FM	MySql	11	INSTR-pos-2	ENGINE-ERROR: Incorrect parameter count in the call to native function 'INSTR'
+FM	MySql	11	RCOUNT-pos-2	ENGINE-ERROR: FUNCTION test.REGEXP_COUNT does not exist
+FM	MySql	11	RSUBSTR-pos-2	bc
+FM	MySql	11	RREPLACE-pos-2	aXcaXc
+FM	MySql	11	TRUNC-2	ENGINE-ERROR: FUNCTION test.TRUNC does not exist
+FM	MySql	11	ROUND-2	75.65
+FM	MySql	11	SUBSTR-pos-100	''
+FM	MySql	11	SUBSTR-len-100	bcde
+FM	MySql	11	SUBSTRING-pos-100	''
+FM	MySql	11	SUBSTRING-len-100	bcde
+FM	MySql	11	LEFT-100	abcde
+FM	MySql	11	RIGHT-100	abcde
+FM	MySql	11	LPAD-100	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxabc
+FM	MySql	11	RPAD-100	abcxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+FM	MySql	11	INSTR-pos-100	ENGINE-ERROR: Incorrect parameter count in the call to native function 'INSTR'
+FM	MySql	11	RCOUNT-pos-100	ENGINE-ERROR: FUNCTION test.REGEXP_COUNT does not exist
+FM	MySql	11	RSUBSTR-pos-100	ENGINE-ERROR: Index out of bounds in regular expression search.
+FM	MySql	11	RREPLACE-pos-100	ENGINE-ERROR: Index out of bounds in regular expression search.
+FM	MySql	11	TRUNC-100	ENGINE-ERROR: FUNCTION test.TRUNC does not exist
+FM	MySql	11	ROUND-100	75.65
+FM	MySql	11	SUBSTR-pos-2.5	cde
+FM	MySql	11	SUBSTR-len-2.5	bcd
+FM	MySql	11	SUBSTRING-pos-2.5	cd
+FM	MySql	11	SUBSTRING-len-2.5	bcd
+FM	MySql	11	LEFT-2.5	abc
+FM	MySql	11	RIGHT-2.5	cde
+FM	MySql	11	LPAD-2.5	abc
+FM	MySql	11	RPAD-2.5	abc
+FM	MySql	11	INSTR-pos-2.5	ENGINE-ERROR: Incorrect parameter count in the call to native function 'INSTR'
+FM	MySql	11	RCOUNT-pos-2.5	ENGINE-ERROR: FUNCTION test.REGEXP_COUNT does not exist
+FM	MySql	11	RSUBSTR-pos-2.5	bc
+FM	MySql	11	RREPLACE-pos-2.5	abcaXc
+FM	MySql	11	TRUNC-2.5	ENGINE-ERROR: FUNCTION test.TRUNC does not exist
+FM	MySql	11	ROUND-2.5	75.65
+FM	MySql	11	RSUBSTR-occ-0	bc
+FM	MySql	11	RREPLACE-occ-0	aXcaXc
+FM	MySql	11	RINSTR-occ-0	2
+FM	MySql	11	RINSTR-ret-0	2
+FM	MySql	11	MOD-div-0	NULL
+FM	MySql	11	POWER-exp-0	1
+FM	MySql	11	RSUBSTR-occ--1	bc
+FM	MySql	11	RREPLACE-occ--1	aXcabc
+FM	MySql	11	RINSTR-occ--1	2
+FM	MySql	11	RINSTR-ret--1	ENGINE-ERROR: Incorrect arguments to regexp_instr: return_option must be 1 or 0.
+FM	MySql	11	MOD-div--1	0
+FM	MySql	11	POWER-exp--1	0.5
+FM	MySql	11	RSUBSTR-occ-1	bc
+FM	MySql	11	RREPLACE-occ-1	aXcabc
+FM	MySql	11	RINSTR-occ-1	2
+FM	MySql	11	RINSTR-ret-1	3
+FM	MySql	11	MOD-div-1	0
+FM	MySql	11	POWER-exp-1	2
+FM	MySql	11	RSUBSTR-occ-2	bc
+FM	MySql	11	RREPLACE-occ-2	abcaXc
+FM	MySql	11	RINSTR-occ-2	5
+FM	MySql	11	RINSTR-ret-2	ENGINE-ERROR: Incorrect arguments to regexp_instr: return_option must be 1 or 0.
+FM	MySql	11	MOD-div-2	1
+FM	MySql	11	POWER-exp-2	4
+FM	MySql	11	RSUBSTR-occ-2.5	NULL
+FM	MySql	11	RREPLACE-occ-2.5	abcabc
+FM	MySql	11	RINSTR-occ-2.5	0
+FM	MySql	11	RINSTR-ret-2.5	ENGINE-ERROR: Incorrect arguments to regexp_instr: return_option must be 1 or 0.
+FM	MySql	11	MOD-div-2.5	2
+FM	MySql	11	POWER-exp-2.5	5.656854249492
+FM	MySql	11	MOD-neg	-1
+FM	MySql	11	POWER-zero-neg	ENGINE-ERROR: DOUBLE value is out of range in 'pow(0,-(1))'
