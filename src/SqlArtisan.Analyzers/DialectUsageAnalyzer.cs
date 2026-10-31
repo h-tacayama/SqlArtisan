@@ -47,6 +47,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.CountNullableColumn,
         DiagnosticDescriptors.UnusableIndexPredicate,
         DiagnosticDescriptors.TypeCategoryMismatch,
+        DiagnosticDescriptors.TextColumnPlus,
         DiagnosticDescriptors.CorrelatedDmlTargetNotAliased,
         DiagnosticDescriptors.ReferenceEqualityBound,
         DiagnosticDescriptors.QueryObjectAsText,
@@ -101,6 +102,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         Register(AnalyzeCountArgument, OperationKind.Invocation);
         Register(AnalyzeIndexedColumnFilter, OperationKind.Invocation);
         Register(AnalyzeTypeCategoryMismatch, OperationKind.Binary);
+        Register(AnalyzeTextColumnPlus, OperationKind.Binary);
+        Register(AnalyzeTextColumnPlus, OperationKind.CompoundAssignment);
         Register(AnalyzeCorrelatedDml, OperationKind.Invocation);
         Register(AnalyzeCSharpFallback, OperationKind.Binary);
         Register(AnalyzeInterpolation, OperationKind.InterpolatedString);
@@ -201,6 +204,25 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
 
         TypeCategoryMismatchRule.Check(context, (IBinaryOperation)context.Operation);
+    }
+
+    private static void AnalyzeTextColumnPlus(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
+    {
+        if (SqlExpressionAddition(context.Operation, out IOperation[] operands) is null)
+        {
+            return;
+        }
+
+        DialectTargetSet targets = GetTargets(context, cache);
+        if (targets.IsEmpty)
+        {
+            return;
+        }
+
+        TextColumnPlusRule.Check(context, targets, operands);
     }
 
     private static void AnalyzeCompoundAssignment(
@@ -581,22 +603,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         ConcurrentDictionary<SyntaxTree,
         DialectTargetSet> cache)
     {
-        IMethodSymbol? method;
-        IOperation[] operands;
-        if (context.Operation is IBinaryOperation binary)
-        {
-            method = binary.OperatorMethod;
-            operands = [binary.LeftOperand, binary.RightOperand];
-        }
-        else
-        {
-            var compound = (ICompoundAssignmentOperation)context.Operation;
-            method = compound.OperatorMethod;
-            operands = [compound.Value];
-        }
-
-        if (method is not { Name: "op_Addition", ContainingType.Name: "SqlExpression" }
-            || !IsFromSqlArtisan(method.ContainingAssembly))
+        if (SqlExpressionAddition(context.Operation, out IOperation[] operands) is not { } method)
         {
             return;
         }
@@ -609,6 +616,30 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
         ArgumentValueValidityRule.CheckStringPlusOperands(
             context, method, context.Operation, targets, operands);
+    }
+
+    // The operator method of SqlExpression's own +, written as a binary or a
+    // compound assignment, with the operands a value can reach.
+    private static IMethodSymbol? SqlExpressionAddition(
+        IOperation operation, out IOperation[] operands)
+    {
+        IMethodSymbol? method;
+        if (operation is IBinaryOperation binary)
+        {
+            method = binary.OperatorMethod;
+            operands = [binary.LeftOperand, binary.RightOperand];
+        }
+        else
+        {
+            var compound = (ICompoundAssignmentOperation)operation;
+            method = compound.OperatorMethod;
+            operands = [compound.Value];
+        }
+
+        return method is { Name: "op_Addition", ContainingType.Name: "SqlExpression" }
+            && IsFromSqlArtisan(method.ContainingAssembly)
+            ? method
+            : null;
     }
 
     // IsNull / IsNotNull are SqlExpression properties, so the column under test is

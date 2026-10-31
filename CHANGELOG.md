@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- `SQLA0206` reports a column the generated table class declares text as an
+  operand of `+` (`t.FirstName + t.LastName`, `t.FirstName + separator`) on
+  every engine but SQL Server, which alone concatenates it: MySQL and SQLite add
+  it as a number with no error, and Oracle and PostgreSQL fail on two names. A
+  string constant beside the column is `SQLA0104`'s, so the `+` reports once.
+  (#742)
 - `SQLA0104` reports a string or `char` constant beside `+` (`"Dr. " + u.Name`,
   `u.Name + ' '`) on every engine but SQL Server, the one that concatenates it:
   MySQL and SQLite add it as a number with no error, Oracle does too and fails
