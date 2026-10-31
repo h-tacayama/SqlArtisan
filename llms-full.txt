@@ -1025,8 +1025,9 @@ SqlStatement sql =
 - `IntersectAll` for `INTERSECT ALL`
 
 `Minus` / `MinusAll` are Oracle's own spelling of `EXCEPT` / `EXCEPT ALL` and
-run only there; elsewhere, use `Except`. `ExceptAll` / `IntersectAll` are MySQL,
-Oracle, and PostgreSQL only — SQLite and SQL Server take `ALL` on `UNION` alone. Several of these
+run only there; elsewhere, use `Except` / `ExceptAll`. `ExceptAll` /
+`IntersectAll` are MySQL, Oracle, and PostgreSQL only — SQLite and SQL Server
+take `ALL` on `UNION` alone. Several of these
 arrived in a specific engine release; the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)
 lists each one, and the analyzer reports it against a declared target version.

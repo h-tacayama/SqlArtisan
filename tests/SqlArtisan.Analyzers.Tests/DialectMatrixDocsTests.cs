@@ -6,7 +6,7 @@ namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
 /// Ties <see cref="DialectMatrix.VerifiedAgainstVersion"/> to both ends: docs/analyzer.md's
-/// verified-against table, and the engine each integration lane pins. The Oracle row
+/// verified-against table, and the engine each dialect's baseline lane pins. The Oracle row
 /// has drifted from each: the doc once, the fixture until #681.
 /// </summary>
 public class DialectMatrixDocsTests
@@ -109,8 +109,10 @@ public class DialectMatrixDocsTests
             .Groups[1].Value;
 
         Assert.NotEmpty(version);
-        Assert.Contains(
-            $"{package} {version}", DialectMatrix.VerifiedAgainstVersion[TargetDbms.Sqlite]);
+        // Bounded, so a recorded 10.0.0-rc.2 does not pass for a pinned 10.0.0.
+        Assert.Matches(
+            $@"{Regex.Escape($"{package} {version}")}(?![\w.\-])",
+            DialectMatrix.VerifiedAgainstVersion[TargetDbms.Sqlite]);
     }
 
     private static string FindRepoRoot()
