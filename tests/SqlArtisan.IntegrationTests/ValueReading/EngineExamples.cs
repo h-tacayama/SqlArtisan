@@ -163,7 +163,7 @@ public static class ExampleCatalog
     }
 
     internal static bool IsOrdinalShaped(ValueKind k) => k is ValueKind.IntPositive
-        or ValueKind.Short or ValueKind.Byte
+        or ValueKind.Short or ValueKind.Byte or ValueKind.HugeInteger
         or ValueKind.Long or ValueKind.Double or ValueKind.DoubleWhole or ValueKind.Decimal
         or ValueKind.BindInt
         or ValueKind.IntNegative or ValueKind.IntZero;

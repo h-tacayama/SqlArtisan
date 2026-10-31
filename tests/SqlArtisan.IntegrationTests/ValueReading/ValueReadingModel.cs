@@ -288,6 +288,9 @@ public static class ValueReadingModel
                 + "every other object-typed value position rejects it (guards § Null "
                 + "arguments, 'pass Sql.Null'). Is #169 the recorded exception? No rule clause "
                 + "names it.",
+            ["Q17"] = "An integer ordinal past int.MaxValue in GROUP BY / ORDER BY / DISTINCT ON "
+                + "names no select-list position; SQLite 3.53 reads GROUP BY 2147483648 as one "
+                + "constant group. Is the upper bound to be guarded as the lower one is (#684)?",
             ["Q13"] = "A compound's trailing ORDER BY given a bound value, Sql.Null, a "
                 + "qualified column or an expression: no record states what MySQL, Oracle and "
                 + "SQL Server do (PostgreSQL and SQLite refuse it per their manuals).",
@@ -390,6 +393,20 @@ public static class ValueReadingModel
         if (v is ValueKind.Short or ValueKind.Byte)
         {
             v = ValueKind.IntPositive;
+        }
+
+        // An integer past int.MaxValue names no select-list position (panel audit, Opus); no
+        // record bounds an ordinal from above, so a key cell is a question, a value a value.
+        if (v == ValueKind.HugeInteger)
+        {
+            if (c is PositionClass.StatementOrderByKey or PositionClass.StatementGroupByKey
+                or PositionClass.DistinctOnKey)
+            {
+                return new(Outcome.Question, Shape.Ordinal, "no record bounds an ordinal from above",
+                    QuestionId: "Q17");
+            }
+
+            v = ValueKind.Long;
         }
 
         if (v == ValueKind.CSharpNull && c is PositionClass.ExpressionOnly

@@ -670,3 +670,62 @@ Oracle 23ai 281、Oracle XE 21 253、PostgreSQL 113。
   ただし T1 は sa-clause-audit の発見から選ばれた例なので、この比較には偏りがある。
 
 ファイル: `backtest/build-level-probe-at-11a6eca9.tsv.gz`、`backtest/engine-*-at-11a6eca9.tsv`。
+
+## 16. 検証 2: 既存スキル（sa-panel-audit）と並べて比べる
+
+### やり方
+
+- **範囲**: 今のコード（main `ce84e78` と同じ `src/`）の、値の解決とキーの位置を担う 19 ファイル（`ExpressionResolver`、
+  ORDER BY・GROUP BY・DISTINCT ON・PARTITION BY の解決、SELECT 項目・INSERT 値・代入の解決、`SqlExpression` の
+  演算子、`SelectBuilder` の序数ガード）。この手法が F1〜F4 を見つけた範囲と同じ。
+- **手順**: sa-panel-audit のとおり。決まった検査を一度だけ走らせ（ビルド 0 エラー、テスト 2,012・1,817・331 件
+  合格、整形 0 件）、同じ依頼文を Sonnet・Opus・Fable の `sa-reviewer` に渡した。この試しの表・結果・F1〜F7 は
+  渡していない。issue は作らず、直しもしない（試しの決まり）。
+- **sa-clause-audit**: 走らせていない。T1 の 12 件のうち 7 件が当時の sa-clause-audit（#558 の B3・B4・B5）で
+  見つかっていたことを、issue 本文の「Found in unit」で確かめたのを比較の材料にした（§ 15）。
+
+### パネルの結果（3 席すべて返った）
+
+| # | 指摘 | 席 | 判定 | 確かめ方 | この型か |
+|---|---|---|---|---|---|
+| P1 | `PartitionByClause.OrderBy` の XML 文書に `<exception>` が無い（数・別名で投げる） | Sonnet、Opus | CONFIRMED | `PartitionByClause.cs:24-29` と `Sql.O.cs` の比較 | 外（文書） |
+| P2 | `GroupBy(2147483648L)` が序数のガードを素通りし、SQLite は位置ではなく定数として 1 グループにまとめる | Opus | CONFIRMED | このコンテナの SQLite 3.53.1 で `GROUP BY 2147483648` → 1 グループ、`2147483647` → 範囲外エラー | **この型**（モデルの外） |
+| P3 | `OrderByClause` のコメント 2 か所が、ガードの方言を実際より狭く書いている | Opus | CONFIRMED | `OrderByClause.cs:94, 129-130` と `SelectBuilder.cs:458-472` | 外（コメント） |
+| P4 | `ISelectBuilderFrom.OrderBy` の文書が存在しない `Sql.Asc(...)` / `Sql.Desc(...)` を挙げる | Opus | CONFIRMED | `grep` で該当する静的メソッドなし | 外（文書） |
+| P5 | `Values(1, byte[])` の例外文が `BindArray`（PostgreSQL の配列）を勧め、文書の `new BindValue(bytes)` と食い違う | Fable | CONFIRMED | `InsertValueResolver.cs:12-22` と `docs/functions.md:355` | 外（文言） |
+
+- 3 席とも振る舞いの重大な不具合は無いと結論した。トークンは計約 61.5 万（Sonnet 18.4 万、Opus 21.1 万、
+  Fable 22.0 万）、壁時計は並列で約 11 分（Fable が最長）。
+- **F1〜F7 はどの席も挙げなかった**。Opus は「Oracle が `ORDER BY 2.0` を位置として読むか」を候補にしたが、
+  Oracle を走らせられず未確認として落とした（これは F2 そのもの）。F1（MySQL の束縛値）は、記録が「`Bind` は
+  意図した定数」と決めているので、どの席も問題にしなかった。
+
+### P2 を受けたモデルの更新（(b) モデルの外）
+
+- 値の種類に「int の上限を超える整数」（`2147483648L`）を足した（29 → 30 種）。キーの位置（文の ORDER BY・
+  GROUP BY・DISTINCT ON）では、上限を決める記録が無いので問い **Q17** にした。値の位置では long と同じ扱い。
+- 表は 9,744 → 10,080 セル（`model-cells.tsv`）、Build 段は 108,600 件で外れ 0（`build-level-probe.tsv.gz`）。
+- このコンテナで確かめた結果: SQLite は `ORDER BY 2147483648` を定数（並べない）、`GROUP BY 2147483648` を
+  1 グループ、PostgreSQL 16 は 3 か所とも「non-integer constant」で拒む。MySQL・Oracle・SQL Server は CI を
+  走らせていない。
+- やり直しの範囲: 手順 2〜3 のうち、キーの 6 区分の Example（E1）を 8 本の流れで回し直す。値の位置（E5）は
+  long と同じ結果になる見込みだが、確かめていない。
+
+### 比べて分かったこと
+
+| | この手法 | sa-panel-audit（3 席） | sa-clause-audit（当時の記録から） |
+|---|---|---|---|
+| 今のコードで見つけた、この型の不具合 | F1〜F4（F5〜F7 は候補） | P2 の 1 件 | — |
+| 見つけた、型の外の不具合 | 0（構造上見えない） | P1・P3・P4・P5 の 4 件 | — |
+| T1（既知の 12 件）を当時の時点で | 不具合 1・問い 6・見落とし 5（厳しい読み） | 走らせていない | 7 件を見つけていた |
+| 見落とし方 | 値の種類にない入力、委ねた区分、記録が誤りを明記、見分けるデータの穴、文言 | エンジンを走らせられない方言（MySQL・Oracle）、記録を信じた範囲 | — |
+| 手間 | 表作り〜統合テストで約 1.5〜2 時間（＋CI 7 回） | 約 11 分（並列）、約 61.5 万トークン | 条項ごとに 1 席（今回は未計測） |
+
+- **見つけたものが重ならない**: この手法とパネルの重なりは 0 件。この手法は「記録が確かめていない方言での
+  エンジンの読み方」を、パネルは「文書・文言の誤り」と「モデルの軸の外の値」を見つけた。
+- **パネルの限界は環境**: MySQL・Oracle・SQL Server を走らせられないと、F1・F2 のような食い違いは「未確認」
+  として落ちる。この手法の強みは CI の 8 本でエンジンを走らせることにある。
+- **この手法の限界は軸**: P2 は値の種類に無い区分だった。表の外はレビューでしか見つからない。
+
+**結論**: 置き換えではなく足すほうが合っている。sa-panel-audit（または sa-clause-audit）を残したうえで、
+エンジンでの網羅をこの手法で足すのがよい。ただし、比べたのは型 1 つ・範囲 1 つだけである。

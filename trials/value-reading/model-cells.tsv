@@ -47,6 +47,14 @@ ValueArgument	410	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values 
 ValueArgument	410	Byte	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ValueArgument	410	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ValueArgument	410	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ValueArgument	410	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ValueArgument	410	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ValueArgument	410	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ValueArgument	410	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ValueArgument	410	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ValueArgument	410	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ValueArgument	410	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ValueArgument	410	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ValueArgument	410	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ValueArgument	410	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ValueArgument	410	Double	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -279,6 +287,14 @@ RoundScale	1	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are b
 RoundScale	1	Byte	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 RoundScale	1	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 RoundScale	1	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+RoundScale	1	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+RoundScale	1	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+RoundScale	1	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+RoundScale	1	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+RoundScale	1	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+RoundScale	1	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+RoundScale	1	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+RoundScale	1	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 RoundScale	1	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 RoundScale	1	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 RoundScale	1	Double	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -511,6 +527,14 @@ SelectItem	16	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are 
 SelectItem	16	Byte	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 SelectItem	16	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 SelectItem	16	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SelectItem	16	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SelectItem	16	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SelectItem	16	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SelectItem	16	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SelectItem	16	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SelectItem	16	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SelectItem	16	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SelectItem	16	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 SelectItem	16	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 SelectItem	16	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 SelectItem	16	Double	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -743,6 +767,14 @@ OutputItem	5	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are b
 OutputItem	5	Byte	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 OutputItem	5	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 OutputItem	5	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+OutputItem	5	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+OutputItem	5	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+OutputItem	5	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+OutputItem	5	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+OutputItem	5	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+OutputItem	5	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+OutputItem	5	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+OutputItem	5	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 OutputItem	5	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 OutputItem	5	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 OutputItem	5	Double	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -975,6 +1007,14 @@ InsertValue	20	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are
 InsertValue	20	Byte	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 InsertValue	20	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 InsertValue	20	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+InsertValue	20	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+InsertValue	20	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+InsertValue	20	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+InsertValue	20	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+InsertValue	20	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+InsertValue	20	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+InsertValue	20	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+InsertValue	20	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 InsertValue	20	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 InsertValue	20	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 InsertValue	20	Double	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -1255,6 +1295,22 @@ QuantifiableOperand	14	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (value
 QuantifiableOperand	14	Byte	SqlServer	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 QuantifiableOperand	14	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 QuantifiableOperand	14	Byte	SqlServer2025	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	MySql	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	Oracle	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	Oracle23ai	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	PostgreSql	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	PostgreSql17	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	Sqlite	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	SqlServer	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+QuantifiableOperand	14	HugeInteger	SqlServer2025	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 QuantifiableOperand	14	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 QuantifiableOperand	14	Double	MySql	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 QuantifiableOperand	14	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -1671,6 +1727,14 @@ ComparedOperand	16	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values
 ComparedOperand	16	Byte	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ComparedOperand	16	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ComparedOperand	16	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ComparedOperand	16	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ComparedOperand	16	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ComparedOperand	16	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ComparedOperand	16	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ComparedOperand	16	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ComparedOperand	16	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ComparedOperand	16	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ComparedOperand	16	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ComparedOperand	16	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ComparedOperand	16	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ComparedOperand	16	Double	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -1903,6 +1967,14 @@ PlusOperand	1	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are 
 PlusOperand	1	Byte	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 PlusOperand	1	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 PlusOperand	1	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+PlusOperand	1	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+PlusOperand	1	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+PlusOperand	1	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+PlusOperand	1	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+PlusOperand	1	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+PlusOperand	1	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+PlusOperand	1	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+PlusOperand	1	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 PlusOperand	1	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 PlusOperand	1	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 PlusOperand	1	Double	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -2135,6 +2207,14 @@ MinusOperand	1	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are
 MinusOperand	1	Byte	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 MinusOperand	1	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 MinusOperand	1	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+MinusOperand	1	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+MinusOperand	1	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+MinusOperand	1	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+MinusOperand	1	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+MinusOperand	1	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+MinusOperand	1	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+MinusOperand	1	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+MinusOperand	1	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 MinusOperand	1	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 MinusOperand	1	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 MinusOperand	1	Double	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -2367,6 +2447,14 @@ ArithmeticOperand	3	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (value
 ArithmeticOperand	3	Byte	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ArithmeticOperand	3	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ArithmeticOperand	3	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ArithmeticOperand	3	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ArithmeticOperand	3	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ArithmeticOperand	3	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ArithmeticOperand	3	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ArithmeticOperand	3	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ArithmeticOperand	3	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ArithmeticOperand	3	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ArithmeticOperand	3	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ArithmeticOperand	3	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ArithmeticOperand	3	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ArithmeticOperand	3	Double	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -2647,6 +2735,22 @@ SimpleCaseOperand	13	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values 
 SimpleCaseOperand	13	Byte	SqlServer	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 SimpleCaseOperand	13	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 SimpleCaseOperand	13	Byte	SqlServer2025	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	MySql	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	Oracle	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	Oracle23ai	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	PostgreSql	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	PostgreSql17	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	Sqlite	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	SqlServer	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+SimpleCaseOperand	13	HugeInteger	SqlServer2025	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 SimpleCaseOperand	13	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 SimpleCaseOperand	13	Double	MySql	SetClause	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 SimpleCaseOperand	13	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -3063,6 +3167,14 @@ CaseResult	3	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are b
 CaseResult	3	Byte	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 CaseResult	3	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 CaseResult	3	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+CaseResult	3	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+CaseResult	3	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+CaseResult	3	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+CaseResult	3	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+CaseResult	3	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+CaseResult	3	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+CaseResult	3	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+CaseResult	3	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 CaseResult	3	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 CaseResult	3	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 CaseResult	3	Double	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -3295,6 +3407,14 @@ AgainstText	4	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are 
 AgainstText	4	Byte	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 AgainstText	4	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 AgainstText	4	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+AgainstText	4	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+AgainstText	4	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+AgainstText	4	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+AgainstText	4	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+AgainstText	4	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+AgainstText	4	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+AgainstText	4	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+AgainstText	4	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 AgainstText	4	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 AgainstText	4	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 AgainstText	4	Double	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -3527,6 +3647,14 @@ ExplicitBind	1	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are
 ExplicitBind	1	Byte	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ExplicitBind	1	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ExplicitBind	1	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBind	1	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBind	1	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBind	1	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBind	1	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBind	1	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBind	1	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBind	1	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBind	1	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ExplicitBind	1	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ExplicitBind	1	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ExplicitBind	1	Double	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -3759,6 +3887,14 @@ ExplicitBindConstructor	1	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 
 ExplicitBindConstructor	1	Byte	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ExplicitBindConstructor	1	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ExplicitBindConstructor	1	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBindConstructor	1	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBindConstructor	1	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBindConstructor	1	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBindConstructor	1	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBindConstructor	1	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBindConstructor	1	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBindConstructor	1	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+ExplicitBindConstructor	1	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ExplicitBindConstructor	1	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ExplicitBindConstructor	1	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 ExplicitBindConstructor	1	Double	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -4183,6 +4319,46 @@ StatementOrderByKey	5	Byte	SqlServer2025	Subquery	Executes	Ordinal			guards § b
 StatementOrderByKey	5	Byte	SqlServer2025	CorrelatedSubquery	Executes	Ordinal			guards § bound-value paragraph: statement ORDER BY keeps its ordinals (ADR 0011); engine manuals: ORDER BY <integer> is an output position
 StatementOrderByKey	5	Byte	SqlServer2025	Cte	Executes	Ordinal			guards § bound-value paragraph: statement ORDER BY keeps its ordinals (ADR 0011); engine manuals: ORDER BY <integer> is an output position
 StatementOrderByKey	5	Byte	SqlServer2025	SetOperationBranch	Executes	Ordinal			guards § bound-value paragraph: statement ORDER BY keeps its ordinals (ADR 0011); engine manuals: ORDER BY <integer> is an output position
+StatementOrderByKey	5	HugeInteger	MySql	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	MySql	Subquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	MySql	CorrelatedSubquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	MySql	Cte	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	MySql	SetOperationBranch	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	Oracle	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	Oracle	Subquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	Oracle	CorrelatedSubquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	Oracle	Cte	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	Oracle	SetOperationBranch	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	Oracle23ai	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	Oracle23ai	Subquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	Oracle23ai	CorrelatedSubquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	Oracle23ai	Cte	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	Oracle23ai	SetOperationBranch	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	PostgreSql	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	PostgreSql	Subquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	PostgreSql	CorrelatedSubquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	PostgreSql	Cte	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	PostgreSql	SetOperationBranch	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	PostgreSql17	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	PostgreSql17	Subquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	PostgreSql17	CorrelatedSubquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	PostgreSql17	Cte	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	PostgreSql17	SetOperationBranch	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	Sqlite	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	Sqlite	Subquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	Sqlite	CorrelatedSubquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	Sqlite	Cte	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	Sqlite	SetOperationBranch	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	SqlServer	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	SqlServer	Subquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	SqlServer	CorrelatedSubquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	SqlServer	Cte	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	SqlServer	SetOperationBranch	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	SqlServer2025	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	SqlServer2025	Subquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	SqlServer2025	CorrelatedSubquery	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	SqlServer2025	Cte	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementOrderByKey	5	HugeInteger	SqlServer2025	SetOperationBranch	Question	Ordinal		Q17	no record bounds an ordinal from above
 StatementOrderByKey	5	Double	MySql	TopLevel	Executes	ConstantKey		Q3	guards § Bounded exception: non-integer ORDER BY key
 StatementOrderByKey	5	Double	MySql	Subquery	Executes	ConstantKey		Q3	guards § Bounded exception: non-integer ORDER BY key
 StatementOrderByKey	5	Double	MySql	CorrelatedSubquery	Executes	ConstantKey		Q3	guards § Bounded exception: non-integer ORDER BY key
@@ -5199,6 +5375,22 @@ ExpressionOrderByKey	2	Byte	SqlServer	InsideWindow	BuildRejects	None			guards §
 ExpressionOrderByKey	2	Byte	SqlServer	AggregateOrderBy	BuildRejects	None			guards § bound-value paragraph (#693/#694)
 ExpressionOrderByKey	2	Byte	SqlServer2025	InsideWindow	BuildRejects	None			guards § bound-value paragraph (#693/#694)
 ExpressionOrderByKey	2	Byte	SqlServer2025	AggregateOrderBy	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	MySql	InsideWindow	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	MySql	AggregateOrderBy	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	Oracle	InsideWindow	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	Oracle	AggregateOrderBy	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	Oracle23ai	InsideWindow	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	Oracle23ai	AggregateOrderBy	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	PostgreSql	InsideWindow	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	PostgreSql	AggregateOrderBy	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	PostgreSql17	InsideWindow	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	PostgreSql17	AggregateOrderBy	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	Sqlite	InsideWindow	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	Sqlite	AggregateOrderBy	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	SqlServer	InsideWindow	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	SqlServer	AggregateOrderBy	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	SqlServer2025	InsideWindow	BuildRejects	None			guards § bound-value paragraph (#693/#694)
+ExpressionOrderByKey	2	HugeInteger	SqlServer2025	AggregateOrderBy	BuildRejects	None			guards § bound-value paragraph (#693/#694)
 ExpressionOrderByKey	2	Double	MySql	InsideWindow	BuildRejects	None			guards § bound-value paragraph (#693/#694)
 ExpressionOrderByKey	2	Double	MySql	AggregateOrderBy	BuildRejects	None			guards § bound-value paragraph (#693/#694)
 ExpressionOrderByKey	2	Double	Oracle	InsideWindow	BuildRejects	None			guards § bound-value paragraph (#693/#694)
@@ -5615,6 +5807,14 @@ StatementGroupByKey	2	Byte	PostgreSql17	TopLevel	Executes	Ordinal			ADR 0022 fou
 StatementGroupByKey	2	Byte	Sqlite	TopLevel	Executes	Ordinal			ADR 0022 fourth domain + guards § GROUP BY column ordinal (#521/#537/#684)
 StatementGroupByKey	2	Byte	SqlServer	TopLevel	AnalyzerWarns	Ordinal	SQLA0104		ADR 0022 fourth domain + guards § GROUP BY column ordinal (#521/#537/#684)
 StatementGroupByKey	2	Byte	SqlServer2025	TopLevel	AnalyzerWarns	Ordinal	SQLA0104		ADR 0022 fourth domain + guards § GROUP BY column ordinal (#521/#537/#684)
+StatementGroupByKey	2	HugeInteger	MySql	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementGroupByKey	2	HugeInteger	Oracle	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementGroupByKey	2	HugeInteger	Oracle23ai	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementGroupByKey	2	HugeInteger	PostgreSql	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementGroupByKey	2	HugeInteger	PostgreSql17	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementGroupByKey	2	HugeInteger	Sqlite	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementGroupByKey	2	HugeInteger	SqlServer	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+StatementGroupByKey	2	HugeInteger	SqlServer2025	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
 StatementGroupByKey	2	Double	MySql	TopLevel	Executes	ConstantKey			ADR 0022 fourth domain + guards § GROUP BY column ordinal (#521/#537/#684)
 StatementGroupByKey	2	Double	Oracle	TopLevel	Executes	ConstantKey			ADR 0022 fourth domain + guards § GROUP BY column ordinal (#521/#537/#684)
 StatementGroupByKey	2	Double	Oracle23ai	TopLevel	Executes	ConstantKey			ADR 0022 fourth domain + guards § GROUP BY column ordinal (#521/#537/#684)
@@ -5847,6 +6047,14 @@ GroupingElement	5	Byte	PostgreSql17	TopLevel	BuildRejects	None			guards § bound
 GroupingElement	5	Byte	Sqlite	TopLevel	BuildRejects	None			guards § bound-value paragraph: grouping element rejects every value (#692); Invalid type for GroupByItem
 GroupingElement	5	Byte	SqlServer	TopLevel	BuildRejects	None			guards § bound-value paragraph: grouping element rejects every value (#692); Invalid type for GroupByItem
 GroupingElement	5	Byte	SqlServer2025	TopLevel	BuildRejects	None			guards § bound-value paragraph: grouping element rejects every value (#692); Invalid type for GroupByItem
+GroupingElement	5	HugeInteger	MySql	TopLevel	BuildRejects	None			guards § bound-value paragraph: grouping element rejects every value (#692); Invalid type for GroupByItem
+GroupingElement	5	HugeInteger	Oracle	TopLevel	BuildRejects	None			guards § bound-value paragraph: grouping element rejects every value (#692); Invalid type for GroupByItem
+GroupingElement	5	HugeInteger	Oracle23ai	TopLevel	BuildRejects	None			guards § bound-value paragraph: grouping element rejects every value (#692); Invalid type for GroupByItem
+GroupingElement	5	HugeInteger	PostgreSql	TopLevel	BuildRejects	None			guards § bound-value paragraph: grouping element rejects every value (#692); Invalid type for GroupByItem
+GroupingElement	5	HugeInteger	PostgreSql17	TopLevel	BuildRejects	None			guards § bound-value paragraph: grouping element rejects every value (#692); Invalid type for GroupByItem
+GroupingElement	5	HugeInteger	Sqlite	TopLevel	BuildRejects	None			guards § bound-value paragraph: grouping element rejects every value (#692); Invalid type for GroupByItem
+GroupingElement	5	HugeInteger	SqlServer	TopLevel	BuildRejects	None			guards § bound-value paragraph: grouping element rejects every value (#692); Invalid type for GroupByItem
+GroupingElement	5	HugeInteger	SqlServer2025	TopLevel	BuildRejects	None			guards § bound-value paragraph: grouping element rejects every value (#692); Invalid type for GroupByItem
 GroupingElement	5	Double	MySql	TopLevel	BuildRejects	None			guards § bound-value paragraph: grouping element rejects every value (#692); Invalid type for GroupByItem
 GroupingElement	5	Double	Oracle	TopLevel	BuildRejects	None			guards § bound-value paragraph: grouping element rejects every value (#692); Invalid type for GroupByItem
 GroupingElement	5	Double	Oracle23ai	TopLevel	BuildRejects	None			guards § bound-value paragraph: grouping element rejects every value (#692); Invalid type for GroupByItem
@@ -6079,6 +6287,14 @@ PartitionKey	1	Byte	PostgreSql17	TopLevel	BuildRejects	None			guards § bound-va
 PartitionKey	1	Byte	Sqlite	TopLevel	BuildRejects	None			guards § bound-value paragraph: PARTITION BY reads a literal integer as a constant (#673); Invalid type for PartitionByItem
 PartitionKey	1	Byte	SqlServer	TopLevel	BuildRejects	None			guards § bound-value paragraph: PARTITION BY reads a literal integer as a constant (#673); Invalid type for PartitionByItem
 PartitionKey	1	Byte	SqlServer2025	TopLevel	BuildRejects	None			guards § bound-value paragraph: PARTITION BY reads a literal integer as a constant (#673); Invalid type for PartitionByItem
+PartitionKey	1	HugeInteger	MySql	TopLevel	BuildRejects	None			guards § bound-value paragraph: PARTITION BY reads a literal integer as a constant (#673); Invalid type for PartitionByItem
+PartitionKey	1	HugeInteger	Oracle	TopLevel	BuildRejects	None			guards § bound-value paragraph: PARTITION BY reads a literal integer as a constant (#673); Invalid type for PartitionByItem
+PartitionKey	1	HugeInteger	Oracle23ai	TopLevel	BuildRejects	None			guards § bound-value paragraph: PARTITION BY reads a literal integer as a constant (#673); Invalid type for PartitionByItem
+PartitionKey	1	HugeInteger	PostgreSql	TopLevel	BuildRejects	None			guards § bound-value paragraph: PARTITION BY reads a literal integer as a constant (#673); Invalid type for PartitionByItem
+PartitionKey	1	HugeInteger	PostgreSql17	TopLevel	BuildRejects	None			guards § bound-value paragraph: PARTITION BY reads a literal integer as a constant (#673); Invalid type for PartitionByItem
+PartitionKey	1	HugeInteger	Sqlite	TopLevel	BuildRejects	None			guards § bound-value paragraph: PARTITION BY reads a literal integer as a constant (#673); Invalid type for PartitionByItem
+PartitionKey	1	HugeInteger	SqlServer	TopLevel	BuildRejects	None			guards § bound-value paragraph: PARTITION BY reads a literal integer as a constant (#673); Invalid type for PartitionByItem
+PartitionKey	1	HugeInteger	SqlServer2025	TopLevel	BuildRejects	None			guards § bound-value paragraph: PARTITION BY reads a literal integer as a constant (#673); Invalid type for PartitionByItem
 PartitionKey	1	Double	MySql	TopLevel	BuildRejects	None			guards § bound-value paragraph: PARTITION BY reads a literal integer as a constant (#673); Invalid type for PartitionByItem
 PartitionKey	1	Double	Oracle	TopLevel	BuildRejects	None			guards § bound-value paragraph: PARTITION BY reads a literal integer as a constant (#673); Invalid type for PartitionByItem
 PartitionKey	1	Double	Oracle23ai	TopLevel	BuildRejects	None			guards § bound-value paragraph: PARTITION BY reads a literal integer as a constant (#673); Invalid type for PartitionByItem
@@ -6311,6 +6527,14 @@ DistinctOnKey	1	Byte	PostgreSql17	TopLevel	Executes	Ordinal			guards § bound-va
 DistinctOnKey	1	Byte	Sqlite	TopLevel	AnalyzerWarns	Ordinal	SQLA0100		ADR 0003 dialect matrix (SQLA0100)
 DistinctOnKey	1	Byte	SqlServer	TopLevel	AnalyzerWarns	Ordinal	SQLA0100		ADR 0003 dialect matrix (SQLA0100)
 DistinctOnKey	1	Byte	SqlServer2025	TopLevel	AnalyzerWarns	Ordinal	SQLA0100		ADR 0003 dialect matrix (SQLA0100)
+DistinctOnKey	1	HugeInteger	MySql	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+DistinctOnKey	1	HugeInteger	Oracle	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+DistinctOnKey	1	HugeInteger	Oracle23ai	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+DistinctOnKey	1	HugeInteger	PostgreSql	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+DistinctOnKey	1	HugeInteger	PostgreSql17	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+DistinctOnKey	1	HugeInteger	Sqlite	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+DistinctOnKey	1	HugeInteger	SqlServer	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
+DistinctOnKey	1	HugeInteger	SqlServer2025	TopLevel	Question	Ordinal		Q17	no record bounds an ordinal from above
 DistinctOnKey	1	Double	MySql	TopLevel	BuildRejects	None			guards § bound-value paragraph: DistinctOn ordinal (#692); Invalid type for DistinctOnItem
 DistinctOnKey	1	Double	Oracle	TopLevel	BuildRejects	None			guards § bound-value paragraph: DistinctOn ordinal (#692); Invalid type for DistinctOnItem
 DistinctOnKey	1	Double	Oracle23ai	TopLevel	BuildRejects	None			guards § bound-value paragraph: DistinctOn ordinal (#692); Invalid type for DistinctOnItem
@@ -6543,6 +6767,14 @@ InlineNumber	21	Byte	PostgreSql17	TopLevel	Delegated	Literal			guards § Value-d
 InlineNumber	21	Byte	Sqlite	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012) / guards § negative Lag/Lead offset (#523) (per-member domain, FactoryGuardSweep)
 InlineNumber	21	Byte	SqlServer	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012) / guards § negative Lag/Lead offset (#523) (per-member domain, FactoryGuardSweep)
 InlineNumber	21	Byte	SqlServer2025	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012) / guards § negative Lag/Lead offset (#523) (per-member domain, FactoryGuardSweep)
+InlineNumber	21	HugeInteger	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+InlineNumber	21	HugeInteger	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+InlineNumber	21	HugeInteger	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+InlineNumber	21	HugeInteger	PostgreSql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+InlineNumber	21	HugeInteger	PostgreSql17	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+InlineNumber	21	HugeInteger	Sqlite	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+InlineNumber	21	HugeInteger	SqlServer	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+InlineNumber	21	HugeInteger	SqlServer2025	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 InlineNumber	21	Double	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 InlineNumber	21	Double	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 InlineNumber	21	Double	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
@@ -6775,6 +7007,14 @@ BoundRowCount	6	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0022 + guards �
 BoundRowCount	6	Byte	Sqlite	TopLevel	Executes	Marker			ADR 0022 + guards § negative row count (#523/#529)
 BoundRowCount	6	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0022 + guards § negative row count (#523/#529)
 BoundRowCount	6	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0022 + guards § negative row count (#523/#529)
+BoundRowCount	6	HugeInteger	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+BoundRowCount	6	HugeInteger	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+BoundRowCount	6	HugeInteger	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+BoundRowCount	6	HugeInteger	PostgreSql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+BoundRowCount	6	HugeInteger	PostgreSql17	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+BoundRowCount	6	HugeInteger	Sqlite	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+BoundRowCount	6	HugeInteger	SqlServer	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+BoundRowCount	6	HugeInteger	SqlServer2025	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 BoundRowCount	6	Double	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 BoundRowCount	6	Double	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 BoundRowCount	6	Double	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
@@ -7007,6 +7247,14 @@ BareOffsetCount	1	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0022 + guards
 BareOffsetCount	1	Byte	Sqlite	TopLevel	BuildRejects	None			ADR 0011: bare OFFSET on MySQL/SQLite
 BareOffsetCount	1	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0022 + guards § negative row count (#523/#529)
 BareOffsetCount	1	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0022 + guards § negative row count (#523/#529)
+BareOffsetCount	1	HugeInteger	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+BareOffsetCount	1	HugeInteger	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+BareOffsetCount	1	HugeInteger	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+BareOffsetCount	1	HugeInteger	PostgreSql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+BareOffsetCount	1	HugeInteger	PostgreSql17	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+BareOffsetCount	1	HugeInteger	Sqlite	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+BareOffsetCount	1	HugeInteger	SqlServer	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+BareOffsetCount	1	HugeInteger	SqlServer2025	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 BareOffsetCount	1	Double	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 BareOffsetCount	1	Double	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 BareOffsetCount	1	Double	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
@@ -7239,6 +7487,14 @@ IntervalPlusOperand	1	Byte	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (val
 IntervalPlusOperand	1	Byte	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 IntervalPlusOperand	1	Byte	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 IntervalPlusOperand	1	Byte	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+IntervalPlusOperand	1	HugeInteger	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+IntervalPlusOperand	1	HugeInteger	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+IntervalPlusOperand	1	HugeInteger	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+IntervalPlusOperand	1	HugeInteger	PostgreSql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+IntervalPlusOperand	1	HugeInteger	PostgreSql17	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+IntervalPlusOperand	1	HugeInteger	Sqlite	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+IntervalPlusOperand	1	HugeInteger	SqlServer	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
+IntervalPlusOperand	1	HugeInteger	SqlServer2025	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 IntervalPlusOperand	1	Double	MySql	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 IntervalPlusOperand	1	Double	Oracle	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
 IntervalPlusOperand	1	Double	Oracle23ai	TopLevel	Executes	Marker			ADR 0004 (values are bound) + ADR 0016 row 1
@@ -7471,6 +7727,14 @@ ArrayBind	2	Byte	PostgreSql17	TopLevel	Delegated	None			BindArrayTests (element-
 ArrayBind	2	Byte	Sqlite	TopLevel	Delegated	None			BindArrayTests (element-type domain)
 ArrayBind	2	Byte	SqlServer	TopLevel	Delegated	None			BindArrayTests (element-type domain)
 ArrayBind	2	Byte	SqlServer2025	TopLevel	Delegated	None			BindArrayTests (element-type domain)
+ArrayBind	2	HugeInteger	MySql	TopLevel	Delegated	None			BindArrayTests (element-type domain)
+ArrayBind	2	HugeInteger	Oracle	TopLevel	Delegated	None			BindArrayTests (element-type domain)
+ArrayBind	2	HugeInteger	Oracle23ai	TopLevel	Delegated	None			BindArrayTests (element-type domain)
+ArrayBind	2	HugeInteger	PostgreSql	TopLevel	Delegated	None			BindArrayTests (element-type domain)
+ArrayBind	2	HugeInteger	PostgreSql17	TopLevel	Delegated	None			BindArrayTests (element-type domain)
+ArrayBind	2	HugeInteger	Sqlite	TopLevel	Delegated	None			BindArrayTests (element-type domain)
+ArrayBind	2	HugeInteger	SqlServer	TopLevel	Delegated	None			BindArrayTests (element-type domain)
+ArrayBind	2	HugeInteger	SqlServer2025	TopLevel	Delegated	None			BindArrayTests (element-type domain)
 ArrayBind	2	Double	MySql	TopLevel	Delegated	None			BindArrayTests (element-type domain)
 ArrayBind	2	Double	Oracle	TopLevel	Delegated	None			BindArrayTests (element-type domain)
 ArrayBind	2	Double	Oracle23ai	TopLevel	Delegated	None			BindArrayTests (element-type domain)
@@ -7703,6 +7967,14 @@ InlineFraction	2	Byte	PostgreSql17	TopLevel	Delegated	Literal			guards § Value-
 InlineFraction	2	Byte	Sqlite	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012): fraction 0..1
 InlineFraction	2	Byte	SqlServer	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012): fraction 0..1
 InlineFraction	2	Byte	SqlServer2025	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012): fraction 0..1
+InlineFraction	2	HugeInteger	MySql	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012): fraction 0..1
+InlineFraction	2	HugeInteger	Oracle	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012): fraction 0..1
+InlineFraction	2	HugeInteger	Oracle23ai	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012): fraction 0..1
+InlineFraction	2	HugeInteger	PostgreSql	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012): fraction 0..1
+InlineFraction	2	HugeInteger	PostgreSql17	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012): fraction 0..1
+InlineFraction	2	HugeInteger	Sqlite	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012): fraction 0..1
+InlineFraction	2	HugeInteger	SqlServer	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012): fraction 0..1
+InlineFraction	2	HugeInteger	SqlServer2025	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012): fraction 0..1
 InlineFraction	2	Double	MySql	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012): fraction 0..1
 InlineFraction	2	Double	Oracle	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012): fraction 0..1
 InlineFraction	2	Double	Oracle23ai	TopLevel	Delegated	Literal			guards § Value-domain list (ADR 0012): fraction 0..1
@@ -7935,6 +8207,14 @@ FunctionEnum	20	Byte	PostgreSql17	TopLevel	CompileStops	None			C# parameter type
 FunctionEnum	20	Byte	Sqlite	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 FunctionEnum	20	Byte	SqlServer	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 FunctionEnum	20	Byte	SqlServer2025	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+FunctionEnum	20	HugeInteger	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+FunctionEnum	20	HugeInteger	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+FunctionEnum	20	HugeInteger	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+FunctionEnum	20	HugeInteger	PostgreSql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+FunctionEnum	20	HugeInteger	PostgreSql17	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+FunctionEnum	20	HugeInteger	Sqlite	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+FunctionEnum	20	HugeInteger	SqlServer	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+FunctionEnum	20	HugeInteger	SqlServer2025	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 FunctionEnum	20	Double	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 FunctionEnum	20	Double	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 FunctionEnum	20	Double	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
@@ -8167,6 +8447,14 @@ TextParameter	42	Byte	PostgreSql17	TopLevel	Delegated	None			ADR 0016 (delegated
 TextParameter	42	Byte	Sqlite	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
 TextParameter	42	Byte	SqlServer	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
 TextParameter	42	Byte	SqlServer2025	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+TextParameter	42	HugeInteger	MySql	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+TextParameter	42	HugeInteger	Oracle	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+TextParameter	42	HugeInteger	Oracle23ai	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+TextParameter	42	HugeInteger	PostgreSql	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+TextParameter	42	HugeInteger	PostgreSql17	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+TextParameter	42	HugeInteger	Sqlite	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+TextParameter	42	HugeInteger	SqlServer	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+TextParameter	42	HugeInteger	SqlServer2025	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
 TextParameter	42	Double	MySql	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
 TextParameter	42	Double	Oracle	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
 TextParameter	42	Double	Oracle23ai	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
@@ -8399,6 +8687,14 @@ TextPlusLeft	2	Byte	PostgreSql17	TopLevel	CompileStops	None			C# parameter type 
 TextPlusLeft	2	Byte	Sqlite	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 TextPlusLeft	2	Byte	SqlServer	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 TextPlusLeft	2	Byte	SqlServer2025	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+TextPlusLeft	2	HugeInteger	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+TextPlusLeft	2	HugeInteger	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+TextPlusLeft	2	HugeInteger	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+TextPlusLeft	2	HugeInteger	PostgreSql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+TextPlusLeft	2	HugeInteger	PostgreSql17	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+TextPlusLeft	2	HugeInteger	Sqlite	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+TextPlusLeft	2	HugeInteger	SqlServer	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+TextPlusLeft	2	HugeInteger	SqlServer2025	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 TextPlusLeft	2	Double	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 TextPlusLeft	2	Double	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 TextPlusLeft	2	Double	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
@@ -8631,6 +8927,14 @@ CharParameter	4	Byte	PostgreSql17	TopLevel	Delegated	None			ADR 0016 (delegated 
 CharParameter	4	Byte	Sqlite	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
 CharParameter	4	Byte	SqlServer	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
 CharParameter	4	Byte	SqlServer2025	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+CharParameter	4	HugeInteger	MySql	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+CharParameter	4	HugeInteger	Oracle	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+CharParameter	4	HugeInteger	Oracle23ai	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+CharParameter	4	HugeInteger	PostgreSql	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+CharParameter	4	HugeInteger	PostgreSql17	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+CharParameter	4	HugeInteger	Sqlite	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+CharParameter	4	HugeInteger	SqlServer	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
+CharParameter	4	HugeInteger	SqlServer2025	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
 CharParameter	4	Double	MySql	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
 CharParameter	4	Double	Oracle	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
 CharParameter	4	Double	Oracle23ai	TopLevel	Delegated	None			ADR 0016 (delegated to ForcedLiteralSweepTests)
@@ -8863,6 +9167,14 @@ SubqueryOnly	13	Byte	PostgreSql17	TopLevel	CompileStops	None			C# parameter type
 SubqueryOnly	13	Byte	Sqlite	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 SubqueryOnly	13	Byte	SqlServer	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 SubqueryOnly	13	Byte	SqlServer2025	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+SubqueryOnly	13	HugeInteger	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+SubqueryOnly	13	HugeInteger	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+SubqueryOnly	13	HugeInteger	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+SubqueryOnly	13	HugeInteger	PostgreSql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+SubqueryOnly	13	HugeInteger	PostgreSql17	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+SubqueryOnly	13	HugeInteger	Sqlite	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+SubqueryOnly	13	HugeInteger	SqlServer	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+SubqueryOnly	13	HugeInteger	SqlServer2025	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 SubqueryOnly	13	Double	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 SubqueryOnly	13	Double	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 SubqueryOnly	13	Double	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
@@ -9095,6 +9407,14 @@ PositionBoundOnly	4	Byte	PostgreSql17	TopLevel	CompileStops	None			C# parameter 
 PositionBoundOnly	4	Byte	Sqlite	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 PositionBoundOnly	4	Byte	SqlServer	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 PositionBoundOnly	4	Byte	SqlServer2025	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+PositionBoundOnly	4	HugeInteger	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+PositionBoundOnly	4	HugeInteger	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+PositionBoundOnly	4	HugeInteger	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+PositionBoundOnly	4	HugeInteger	PostgreSql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+PositionBoundOnly	4	HugeInteger	PostgreSql17	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+PositionBoundOnly	4	HugeInteger	Sqlite	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+PositionBoundOnly	4	HugeInteger	SqlServer	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+PositionBoundOnly	4	HugeInteger	SqlServer2025	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 PositionBoundOnly	4	Double	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 PositionBoundOnly	4	Double	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 PositionBoundOnly	4	Double	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
@@ -9327,6 +9647,14 @@ ExpressionOnly	69	Byte	PostgreSql17	TopLevel	CompileStops	None			C# parameter ty
 ExpressionOnly	69	Byte	Sqlite	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 ExpressionOnly	69	Byte	SqlServer	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 ExpressionOnly	69	Byte	SqlServer2025	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+ExpressionOnly	69	HugeInteger	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+ExpressionOnly	69	HugeInteger	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+ExpressionOnly	69	HugeInteger	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+ExpressionOnly	69	HugeInteger	PostgreSql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+ExpressionOnly	69	HugeInteger	PostgreSql17	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+ExpressionOnly	69	HugeInteger	Sqlite	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+ExpressionOnly	69	HugeInteger	SqlServer	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
+ExpressionOnly	69	HugeInteger	SqlServer2025	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 ExpressionOnly	69	Double	MySql	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 ExpressionOnly	69	Double	Oracle	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
 ExpressionOnly	69	Double	Oracle23ai	TopLevel	CompileStops	None			C# parameter type (no implicit conversion)
@@ -9559,6 +9887,14 @@ NotSql	12	Byte	PostgreSql17	TopLevel	NotASqlSlot	None			no SQL text: configurati
 NotSql	12	Byte	Sqlite	TopLevel	NotASqlSlot	None			no SQL text: configuration or metadata
 NotSql	12	Byte	SqlServer	TopLevel	NotASqlSlot	None			no SQL text: configuration or metadata
 NotSql	12	Byte	SqlServer2025	TopLevel	NotASqlSlot	None			no SQL text: configuration or metadata
+NotSql	12	HugeInteger	MySql	TopLevel	NotASqlSlot	None			no SQL text: configuration or metadata
+NotSql	12	HugeInteger	Oracle	TopLevel	NotASqlSlot	None			no SQL text: configuration or metadata
+NotSql	12	HugeInteger	Oracle23ai	TopLevel	NotASqlSlot	None			no SQL text: configuration or metadata
+NotSql	12	HugeInteger	PostgreSql	TopLevel	NotASqlSlot	None			no SQL text: configuration or metadata
+NotSql	12	HugeInteger	PostgreSql17	TopLevel	NotASqlSlot	None			no SQL text: configuration or metadata
+NotSql	12	HugeInteger	Sqlite	TopLevel	NotASqlSlot	None			no SQL text: configuration or metadata
+NotSql	12	HugeInteger	SqlServer	TopLevel	NotASqlSlot	None			no SQL text: configuration or metadata
+NotSql	12	HugeInteger	SqlServer2025	TopLevel	NotASqlSlot	None			no SQL text: configuration or metadata
 NotSql	12	Double	MySql	TopLevel	NotASqlSlot	None			no SQL text: configuration or metadata
 NotSql	12	Double	Oracle	TopLevel	NotASqlSlot	None			no SQL text: configuration or metadata
 NotSql	12	Double	Oracle23ai	TopLevel	NotASqlSlot	None			no SQL text: configuration or metadata

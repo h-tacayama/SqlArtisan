@@ -3,7 +3,7 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.IntegrationTests.ValueReading;
 
 // The brief's kinds, plus the ones the records raise, the two position-bound operands,
-// and the whole double, short and byte the trial's own steps showed missing.
+// and the whole double, short, byte and above-int integer the trial's steps showed missing.
 public enum ValueKind
 {
     IntZero,
@@ -12,6 +12,7 @@ public enum ValueKind
     Long,
     Short,
     Byte,
+    HugeInteger,
     Double,
     DoubleWhole,
     Decimal,
@@ -60,6 +61,7 @@ internal static class ValueKinds
         ValueKind.Long => (long)Ordinal,
         ValueKind.Short => (short)Ordinal,
         ValueKind.Byte => (byte)Ordinal,
+        ValueKind.HugeInteger => 2147483648L,
         ValueKind.Double => 2.5,
         ValueKind.DoubleWhole => 2.0,
         ValueKind.Decimal => 2.5m,
