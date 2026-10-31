@@ -1,0 +1,1972 @@
+E5-CMP==-Int-IntZero	
+E5-CMP!=-Int-IntZero	1,2,3,4,5
+E5-CMP<-Int-IntZero	
+E5-CMP<=-Int-IntZero	
+E5-CMP>-Int-IntZero	1,2,3,4,5
+E5-CMP>=-Int-IntZero	1,2,3,4,5
+E5-CMPLike-Int-IntZero	ENGINE-ERROR: 42883: operator does not exist: integer ~~ integer  POSITION
+E5-CMPNotLike-Int-IntZero	ENGINE-ERROR: 42883: operator does not exist: integer !~~ integer  POSITIO
+E5-CMPBetween-Int-IntZero	
+E5-CMPNotBetween-Int-IntZero	1,2,3,4,5
+E5-CMPIn-Int-IntZero	
+E5-CMPNotIn-Int-IntZero	1,2,3,4,5
+E5-ARITH+-Int-IntZero	1:50,2:40,3:30,4:20,5:10
+E5-ARITH--Int-IntZero	1:50,2:40,3:30,4:20,5:10
+E5-ARITH*-Int-IntZero	1:0,2:0,3:0,4:0,5:0
+E5-ARITH/-Int-IntZero	ENGINE-ERROR: 22012: division by zero
+E5-ARITH%-Int-IntZero	ENGINE-ERROR: 22012: division by zero
+E5-CASE-Int-IntZero	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Int-IntZero	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-IntZero	0
+E5-SET-Int-IntZero	0
+E5-CMP==-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMP!=-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-CMP<-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMP<=-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying <= integer
+E5-CMP>-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying > integer 
+E5-CMP>=-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPLike-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ integer
+E5-CMPNotLike-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ intege
+E5-CMPBetween-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPNotBetween-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMPIn-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMPNotIn-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-ARITH+-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying + integer 
+E5-ARITH--Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying - integer 
+E5-ARITH*-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying * integer 
+E5-ARITH/-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying / integer 
+E5-ARITH%-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying % integer 
+E5-CASE-Text-IntZero	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-COALESCE-Text-IntZero	ENGINE-ERROR: 42804: COALESCE types character varying and integer cannot b
+E5-INS-Text-IntZero	0
+E5-SET-Text-IntZero	0
+E5-CMP==-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-IntZero	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-IntZero	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and intege
+E5-INS-Date-IntZero	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-IntZero	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-IntZero	0
+E5-THEN-IntZero	0
+E5-BIND-IntZero	0
+E5-ABS-IntZero	0
+E5-UPPER-IntZero	ENGINE-ERROR: 42883: function upper(integer) does not exist  POSITION: 8
+E5-CMP==-Int-IntPositive	
+E5-CMP!=-Int-IntPositive	1,2,3,4,5
+E5-CMP<-Int-IntPositive	
+E5-CMP<=-Int-IntPositive	
+E5-CMP>-Int-IntPositive	1,2,3,4,5
+E5-CMP>=-Int-IntPositive	1,2,3,4,5
+E5-CMPLike-Int-IntPositive	ENGINE-ERROR: 42883: operator does not exist: integer ~~ integer  POSITION
+E5-CMPNotLike-Int-IntPositive	ENGINE-ERROR: 42883: operator does not exist: integer !~~ integer  POSITIO
+E5-CMPBetween-Int-IntPositive	
+E5-CMPNotBetween-Int-IntPositive	1,2,3,4,5
+E5-CMPIn-Int-IntPositive	
+E5-CMPNotIn-Int-IntPositive	1,2,3,4,5
+E5-ARITH+-Int-IntPositive	1:52,2:42,3:32,4:22,5:12
+E5-ARITH--Int-IntPositive	1:48,2:38,3:28,4:18,5:8
+E5-ARITH*-Int-IntPositive	1:100,2:80,3:60,4:40,5:20
+E5-ARITH/-Int-IntPositive	1:25,2:20,3:15,4:10,5:5
+E5-ARITH%-Int-IntPositive	1:0,2:0,3:0,4:0,5:0
+E5-CASE-Int-IntPositive	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Int-IntPositive	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-IntPositive	2
+E5-SET-Int-IntPositive	2
+E5-CMP==-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMP!=-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-CMP<-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMP<=-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying <= integer
+E5-CMP>-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying > integer 
+E5-CMP>=-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPLike-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ integer
+E5-CMPNotLike-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ intege
+E5-CMPBetween-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPNotBetween-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMPIn-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMPNotIn-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-ARITH+-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying + integer 
+E5-ARITH--Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying - integer 
+E5-ARITH*-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying * integer 
+E5-ARITH/-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying / integer 
+E5-ARITH%-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying % integer 
+E5-CASE-Text-IntPositive	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-COALESCE-Text-IntPositive	ENGINE-ERROR: 42804: COALESCE types character varying and integer cannot b
+E5-INS-Text-IntPositive	2
+E5-SET-Text-IntPositive	2
+E5-CMP==-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-IntPositive	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-IntPositive	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and intege
+E5-INS-Date-IntPositive	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-IntPositive	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-IntPositive	2
+E5-THEN-IntPositive	2
+E5-BIND-IntPositive	2
+E5-ABS-IntPositive	2
+E5-UPPER-IntPositive	ENGINE-ERROR: 42883: function upper(integer) does not exist  POSITION: 8
+E5-CMP==-Int-IntNegative	
+E5-CMP!=-Int-IntNegative	1,2,3,4,5
+E5-CMP<-Int-IntNegative	
+E5-CMP<=-Int-IntNegative	
+E5-CMP>-Int-IntNegative	1,2,3,4,5
+E5-CMP>=-Int-IntNegative	1,2,3,4,5
+E5-CMPLike-Int-IntNegative	ENGINE-ERROR: 42883: operator does not exist: integer ~~ integer  POSITION
+E5-CMPNotLike-Int-IntNegative	ENGINE-ERROR: 42883: operator does not exist: integer !~~ integer  POSITIO
+E5-CMPBetween-Int-IntNegative	
+E5-CMPNotBetween-Int-IntNegative	1,2,3,4,5
+E5-CMPIn-Int-IntNegative	
+E5-CMPNotIn-Int-IntNegative	1,2,3,4,5
+E5-ARITH+-Int-IntNegative	1:49,2:39,3:29,4:19,5:9
+E5-ARITH--Int-IntNegative	1:51,2:41,3:31,4:21,5:11
+E5-ARITH*-Int-IntNegative	1:-50,2:-40,3:-30,4:-20,5:-10
+E5-ARITH/-Int-IntNegative	1:-50,2:-40,3:-30,4:-20,5:-10
+E5-ARITH%-Int-IntNegative	1:0,2:0,3:0,4:0,5:0
+E5-CASE-Int-IntNegative	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Int-IntNegative	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-IntNegative	-1
+E5-SET-Int-IntNegative	-1
+E5-CMP==-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMP!=-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-CMP<-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMP<=-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying <= integer
+E5-CMP>-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying > integer 
+E5-CMP>=-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPLike-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ integer
+E5-CMPNotLike-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ intege
+E5-CMPBetween-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPNotBetween-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMPIn-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMPNotIn-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-ARITH+-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying + integer 
+E5-ARITH--Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying - integer 
+E5-ARITH*-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying * integer 
+E5-ARITH/-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying / integer 
+E5-ARITH%-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying % integer 
+E5-CASE-Text-IntNegative	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-COALESCE-Text-IntNegative	ENGINE-ERROR: 42804: COALESCE types character varying and integer cannot b
+E5-INS-Text-IntNegative	-1
+E5-SET-Text-IntNegative	-1
+E5-CMP==-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-IntNegative	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-IntNegative	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and intege
+E5-INS-Date-IntNegative	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-IntNegative	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-IntNegative	-1
+E5-THEN-IntNegative	-1
+E5-BIND-IntNegative	-1
+E5-ABS-IntNegative	1
+E5-UPPER-IntNegative	ENGINE-ERROR: 42883: function upper(integer) does not exist  POSITION: 8
+E5-CMP==-Int-Long	
+E5-CMP!=-Int-Long	1,2,3,4,5
+E5-CMP<-Int-Long	
+E5-CMP<=-Int-Long	
+E5-CMP>-Int-Long	1,2,3,4,5
+E5-CMP>=-Int-Long	1,2,3,4,5
+E5-CMPLike-Int-Long	ENGINE-ERROR: 42883: operator does not exist: integer ~~ bigint  POSITION:
+E5-CMPNotLike-Int-Long	ENGINE-ERROR: 42883: operator does not exist: integer !~~ bigint  POSITION
+E5-CMPBetween-Int-Long	
+E5-CMPNotBetween-Int-Long	1,2,3,4,5
+E5-CMPIn-Int-Long	
+E5-CMPNotIn-Int-Long	1,2,3,4,5
+E5-ARITH+-Int-Long	1:52,2:42,3:32,4:22,5:12
+E5-ARITH--Int-Long	1:48,2:38,3:28,4:18,5:8
+E5-ARITH*-Int-Long	1:100,2:80,3:60,4:40,5:20
+E5-ARITH/-Int-Long	1:25,2:20,3:15,4:10,5:5
+E5-ARITH%-Int-Long	1:0,2:0,3:0,4:0,5:0
+E5-CASE-Int-Long	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Int-Long	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-Long	2
+E5-SET-Int-Long	2
+E5-CMP==-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying = bigint  
+E5-CMP!=-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying <> bigint 
+E5-CMP<-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying < bigint  
+E5-CMP<=-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying <= bigint 
+E5-CMP>-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying > bigint  
+E5-CMP>=-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying >= bigint 
+E5-CMPLike-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ bigint 
+E5-CMPNotLike-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ bigint
+E5-CMPBetween-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying >= bigint 
+E5-CMPNotBetween-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying < bigint  
+E5-CMPIn-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying = bigint  
+E5-CMPNotIn-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying <> bigint 
+E5-ARITH+-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying + bigint  
+E5-ARITH--Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying - bigint  
+E5-ARITH*-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying * bigint  
+E5-ARITH/-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying / bigint  
+E5-ARITH%-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying % bigint  
+E5-CASE-Text-Long	ENGINE-ERROR: 42883: operator does not exist: character varying = bigint  
+E5-COALESCE-Text-Long	ENGINE-ERROR: 42804: COALESCE types character varying and bigint cannot be
+E5-INS-Text-Long	2
+E5-SET-Text-Long	2
+E5-CMP==-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-Long	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-Long	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and bigint
+E5-INS-Date-Long	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-Long	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-Long	2
+E5-THEN-Long	2
+E5-BIND-Long	2
+E5-ABS-Long	2
+E5-UPPER-Long	ENGINE-ERROR: 42883: function upper(bigint) does not exist  POSITION: 8
+E5-CMP==-Int-Short	
+E5-CMP!=-Int-Short	1,2,3,4,5
+E5-CMP<-Int-Short	
+E5-CMP<=-Int-Short	
+E5-CMP>-Int-Short	1,2,3,4,5
+E5-CMP>=-Int-Short	1,2,3,4,5
+E5-CMPLike-Int-Short	ENGINE-ERROR: 42883: operator does not exist: integer ~~ smallint  POSITIO
+E5-CMPNotLike-Int-Short	ENGINE-ERROR: 42883: operator does not exist: integer !~~ smallint  POSITI
+E5-CMPBetween-Int-Short	
+E5-CMPNotBetween-Int-Short	1,2,3,4,5
+E5-CMPIn-Int-Short	
+E5-CMPNotIn-Int-Short	1,2,3,4,5
+E5-ARITH+-Int-Short	1:52,2:42,3:32,4:22,5:12
+E5-ARITH--Int-Short	1:48,2:38,3:28,4:18,5:8
+E5-ARITH*-Int-Short	1:100,2:80,3:60,4:40,5:20
+E5-ARITH/-Int-Short	1:25,2:20,3:15,4:10,5:5
+E5-ARITH%-Int-Short	1:0,2:0,3:0,4:0,5:0
+E5-CASE-Int-Short	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Int-Short	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-Short	2
+E5-SET-Int-Short	2
+E5-CMP==-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying = smallint
+E5-CMP!=-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying <> smallin
+E5-CMP<-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying < smallint
+E5-CMP<=-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying <= smallin
+E5-CMP>-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying > smallint
+E5-CMP>=-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying >= smallin
+E5-CMPLike-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ smallin
+E5-CMPNotLike-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ smalli
+E5-CMPBetween-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying >= smallin
+E5-CMPNotBetween-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying < smallint
+E5-CMPIn-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying = smallint
+E5-CMPNotIn-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying <> smallin
+E5-ARITH+-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying + smallint
+E5-ARITH--Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying - smallint
+E5-ARITH*-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying * smallint
+E5-ARITH/-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying / smallint
+E5-ARITH%-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying % smallint
+E5-CASE-Text-Short	ENGINE-ERROR: 42883: operator does not exist: character varying = smallint
+E5-COALESCE-Text-Short	ENGINE-ERROR: 42804: COALESCE types character varying and smallint cannot 
+E5-INS-Text-Short	2
+E5-SET-Text-Short	2
+E5-CMP==-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-Short	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-Short	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and smalli
+E5-INS-Date-Short	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-Short	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-Short	2
+E5-THEN-Short	2
+E5-BIND-Short	2
+E5-ABS-Short	2
+E5-UPPER-Short	ENGINE-ERROR: 42883: function upper(smallint) does not exist  POSITION: 8
+E5-CMP==-Int-Byte	
+E5-CMP!=-Int-Byte	1,2,3,4,5
+E5-CMP<-Int-Byte	
+E5-CMP<=-Int-Byte	
+E5-CMP>-Int-Byte	1,2,3,4,5
+E5-CMP>=-Int-Byte	1,2,3,4,5
+E5-CMPLike-Int-Byte	ENGINE-ERROR: 42883: operator does not exist: integer ~~ smallint  POSITIO
+E5-CMPNotLike-Int-Byte	ENGINE-ERROR: 42883: operator does not exist: integer !~~ smallint  POSITI
+E5-CMPBetween-Int-Byte	
+E5-CMPNotBetween-Int-Byte	1,2,3,4,5
+E5-CMPIn-Int-Byte	
+E5-CMPNotIn-Int-Byte	1,2,3,4,5
+E5-ARITH+-Int-Byte	1:52,2:42,3:32,4:22,5:12
+E5-ARITH--Int-Byte	1:48,2:38,3:28,4:18,5:8
+E5-ARITH*-Int-Byte	1:100,2:80,3:60,4:40,5:20
+E5-ARITH/-Int-Byte	1:25,2:20,3:15,4:10,5:5
+E5-ARITH%-Int-Byte	1:0,2:0,3:0,4:0,5:0
+E5-CASE-Int-Byte	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Int-Byte	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-Byte	2
+E5-SET-Int-Byte	2
+E5-CMP==-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying = smallint
+E5-CMP!=-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying <> smallin
+E5-CMP<-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying < smallint
+E5-CMP<=-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying <= smallin
+E5-CMP>-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying > smallint
+E5-CMP>=-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying >= smallin
+E5-CMPLike-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ smallin
+E5-CMPNotLike-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ smalli
+E5-CMPBetween-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying >= smallin
+E5-CMPNotBetween-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying < smallint
+E5-CMPIn-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying = smallint
+E5-CMPNotIn-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying <> smallin
+E5-ARITH+-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying + smallint
+E5-ARITH--Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying - smallint
+E5-ARITH*-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying * smallint
+E5-ARITH/-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying / smallint
+E5-ARITH%-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying % smallint
+E5-CASE-Text-Byte	ENGINE-ERROR: 42883: operator does not exist: character varying = smallint
+E5-COALESCE-Text-Byte	ENGINE-ERROR: 42804: COALESCE types character varying and smallint cannot 
+E5-INS-Text-Byte	2
+E5-SET-Text-Byte	2
+E5-CMP==-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-Byte	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-Byte	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and smalli
+E5-INS-Date-Byte	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-Byte	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-Byte	2
+E5-THEN-Byte	2
+E5-BIND-Byte	2
+E5-ABS-Byte	2
+E5-UPPER-Byte	ENGINE-ERROR: 42883: function upper(smallint) does not exist  POSITION: 8
+E5-CMP==-Int-Double	
+E5-CMP!=-Int-Double	1,2,3,4,5
+E5-CMP<-Int-Double	
+E5-CMP<=-Int-Double	
+E5-CMP>-Int-Double	1,2,3,4,5
+E5-CMP>=-Int-Double	1,2,3,4,5
+E5-CMPLike-Int-Double	ENGINE-ERROR: 42883: operator does not exist: integer ~~ double precision 
+E5-CMPNotLike-Int-Double	ENGINE-ERROR: 42883: operator does not exist: integer !~~ double precision
+E5-CMPBetween-Int-Double	
+E5-CMPNotBetween-Int-Double	1,2,3,4,5
+E5-CMPIn-Int-Double	
+E5-CMPNotIn-Int-Double	1,2,3,4,5
+E5-ARITH+-Int-Double	1:52.5,2:42.5,3:32.5,4:22.5,5:12.5
+E5-ARITH--Int-Double	1:47.5,2:37.5,3:27.5,4:17.5,5:7.5
+E5-ARITH*-Int-Double	1:125,2:100,3:75,4:50,5:25
+E5-ARITH/-Int-Double	1:20,2:16,3:12,4:8,5:4
+E5-ARITH%-Int-Double	ENGINE-ERROR: 42883: operator does not exist: integer % double precision  
+E5-CASE-Int-Double	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Int-Double	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-Double	2
+E5-SET-Int-Double	2
+E5-CMP==-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying = double p
+E5-CMP!=-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying <> double 
+E5-CMP<-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying < double p
+E5-CMP<=-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying <= double 
+E5-CMP>-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying > double p
+E5-CMP>=-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying >= double 
+E5-CMPLike-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ double 
+E5-CMPNotLike-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ double
+E5-CMPBetween-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying >= double 
+E5-CMPNotBetween-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying < double p
+E5-CMPIn-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying = double p
+E5-CMPNotIn-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying <> double 
+E5-ARITH+-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying + double p
+E5-ARITH--Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying - double p
+E5-ARITH*-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying * double p
+E5-ARITH/-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying / double p
+E5-ARITH%-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying % double p
+E5-CASE-Text-Double	ENGINE-ERROR: 42883: operator does not exist: character varying = double p
+E5-COALESCE-Text-Double	ENGINE-ERROR: 42804: COALESCE types character varying and double precision
+E5-INS-Text-Double	2.5
+E5-SET-Text-Double	2.5
+E5-CMP==-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-Double	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-Double	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and double
+E5-INS-Date-Double	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-Double	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-Double	2.5
+E5-THEN-Double	2.5
+E5-BIND-Double	2.5
+E5-ABS-Double	2.5
+E5-UPPER-Double	ENGINE-ERROR: 42883: function upper(double precision) does not exist  POSI
+E5-CMP==-Int-DoubleWhole	
+E5-CMP!=-Int-DoubleWhole	1,2,3,4,5
+E5-CMP<-Int-DoubleWhole	
+E5-CMP<=-Int-DoubleWhole	
+E5-CMP>-Int-DoubleWhole	1,2,3,4,5
+E5-CMP>=-Int-DoubleWhole	1,2,3,4,5
+E5-CMPLike-Int-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: integer ~~ double precision 
+E5-CMPNotLike-Int-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: integer !~~ double precision
+E5-CMPBetween-Int-DoubleWhole	
+E5-CMPNotBetween-Int-DoubleWhole	1,2,3,4,5
+E5-CMPIn-Int-DoubleWhole	
+E5-CMPNotIn-Int-DoubleWhole	1,2,3,4,5
+E5-ARITH+-Int-DoubleWhole	1:52,2:42,3:32,4:22,5:12
+E5-ARITH--Int-DoubleWhole	1:48,2:38,3:28,4:18,5:8
+E5-ARITH*-Int-DoubleWhole	1:100,2:80,3:60,4:40,5:20
+E5-ARITH/-Int-DoubleWhole	1:25,2:20,3:15,4:10,5:5
+E5-ARITH%-Int-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: integer % double precision  
+E5-CASE-Int-DoubleWhole	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Int-DoubleWhole	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-DoubleWhole	2
+E5-SET-Int-DoubleWhole	2
+E5-CMP==-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying = double p
+E5-CMP!=-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying <> double 
+E5-CMP<-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying < double p
+E5-CMP<=-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying <= double 
+E5-CMP>-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying > double p
+E5-CMP>=-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying >= double 
+E5-CMPLike-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ double 
+E5-CMPNotLike-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ double
+E5-CMPBetween-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying >= double 
+E5-CMPNotBetween-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying < double p
+E5-CMPIn-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying = double p
+E5-CMPNotIn-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying <> double 
+E5-ARITH+-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying + double p
+E5-ARITH--Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying - double p
+E5-ARITH*-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying * double p
+E5-ARITH/-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying / double p
+E5-ARITH%-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying % double p
+E5-CASE-Text-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: character varying = double p
+E5-COALESCE-Text-DoubleWhole	ENGINE-ERROR: 42804: COALESCE types character varying and double precision
+E5-INS-Text-DoubleWhole	2
+E5-SET-Text-DoubleWhole	2
+E5-CMP==-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-DoubleWhole	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-DoubleWhole	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and double
+E5-INS-Date-DoubleWhole	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-DoubleWhole	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-DoubleWhole	2
+E5-THEN-DoubleWhole	2
+E5-BIND-DoubleWhole	2
+E5-ABS-DoubleWhole	2
+E5-UPPER-DoubleWhole	ENGINE-ERROR: 42883: function upper(double precision) does not exist  POSI
+E5-CMP==-Int-Decimal	
+E5-CMP!=-Int-Decimal	1,2,3,4,5
+E5-CMP<-Int-Decimal	
+E5-CMP<=-Int-Decimal	
+E5-CMP>-Int-Decimal	1,2,3,4,5
+E5-CMP>=-Int-Decimal	1,2,3,4,5
+E5-CMPLike-Int-Decimal	ENGINE-ERROR: 42883: operator does not exist: integer ~~ numeric  POSITION
+E5-CMPNotLike-Int-Decimal	ENGINE-ERROR: 42883: operator does not exist: integer !~~ numeric  POSITIO
+E5-CMPBetween-Int-Decimal	
+E5-CMPNotBetween-Int-Decimal	1,2,3,4,5
+E5-CMPIn-Int-Decimal	
+E5-CMPNotIn-Int-Decimal	1,2,3,4,5
+E5-ARITH+-Int-Decimal	1:52.5,2:42.5,3:32.5,4:22.5,5:12.5
+E5-ARITH--Int-Decimal	1:47.5,2:37.5,3:27.5,4:17.5,5:7.5
+E5-ARITH*-Int-Decimal	1:125,2:100,3:75,4:50,5:25
+E5-ARITH/-Int-Decimal	1:20,2:16,3:12,4:8,5:4
+E5-ARITH%-Int-Decimal	1:0,2:0,3:0,4:0,5:0
+E5-CASE-Int-Decimal	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Int-Decimal	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-Decimal	3
+E5-SET-Int-Decimal	3
+E5-CMP==-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying = numeric 
+E5-CMP!=-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying <> numeric
+E5-CMP<-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying < numeric 
+E5-CMP<=-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying <= numeric
+E5-CMP>-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying > numeric 
+E5-CMP>=-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying >= numeric
+E5-CMPLike-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ numeric
+E5-CMPNotLike-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ numeri
+E5-CMPBetween-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying >= numeric
+E5-CMPNotBetween-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying < numeric 
+E5-CMPIn-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying = numeric 
+E5-CMPNotIn-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying <> numeric
+E5-ARITH+-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying + numeric 
+E5-ARITH--Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying - numeric 
+E5-ARITH*-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying * numeric 
+E5-ARITH/-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying / numeric 
+E5-ARITH%-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying % numeric 
+E5-CASE-Text-Decimal	ENGINE-ERROR: 42883: operator does not exist: character varying = numeric 
+E5-COALESCE-Text-Decimal	ENGINE-ERROR: 42804: COALESCE types character varying and numeric cannot b
+E5-INS-Text-Decimal	2.5
+E5-SET-Text-Decimal	2.5
+E5-CMP==-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-Decimal	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-Decimal	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and numeri
+E5-INS-Date-Decimal	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-Decimal	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-Decimal	2.5
+E5-THEN-Decimal	2.5
+E5-BIND-Decimal	2.5
+E5-ABS-Decimal	2.5
+E5-UPPER-Decimal	ENGINE-ERROR: 42883: function upper(numeric) does not exist  POSITION: 8
+E5-CMP==-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer = text  POSITION: 41
+E5-CMP!=-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer <> text  POSITION: 4
+E5-CMP<-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer < text  POSITION: 41
+E5-CMP<=-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer <= text  POSITION: 4
+E5-CMP>-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer > text  POSITION: 41
+E5-CMP>=-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer >= text  POSITION: 4
+E5-CMPLike-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer ~~ text  POSITION: 4
+E5-CMPNotLike-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer !~~ text  POSITION: 
+E5-CMPBetween-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer >= text  POSITION: 4
+E5-CMPNotBetween-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer < text  POSITION: 41
+E5-CMPIn-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer = text  POSITION: 41
+E5-CMPNotIn-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer <> text  POSITION: 4
+E5-ARITH+-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer + text  POSITION: 23
+E5-ARITH--Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer - text  POSITION: 23
+E5-ARITH*-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer * text  POSITION: 23
+E5-ARITH/-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer / text  POSITION: 23
+E5-ARITH%-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer % text  POSITION: 23
+E5-CASE-Int-Text	ENGINE-ERROR: 42883: operator does not exist: integer = text  POSITION: 27
+E5-COALESCE-Int-Text	ENGINE-ERROR: 42804: COALESCE types integer and text cannot be matched  PO
+E5-INS-Int-Text	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-SET-Int-Text	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-CMP==-Text-Text	4
+E5-CMP!=-Text-Text	1,2,3,5
+E5-CMP<-Text-Text	5
+E5-CMP<=-Text-Text	4,5
+E5-CMP>-Text-Text	1,2,3
+E5-CMP>=-Text-Text	1,2,3,4
+E5-CMPLike-Text-Text	4
+E5-CMPNotLike-Text-Text	1,2,3,5
+E5-CMPBetween-Text-Text	4
+E5-CMPNotBetween-Text-Text	1,2,3,5
+E5-CMPIn-Text-Text	4
+E5-CMPNotIn-Text-Text	1,2,3,5
+E5-ARITH+-Text-Text	ENGINE-ERROR: 42883: operator does not exist: character varying + text  PO
+E5-ARITH--Text-Text	ENGINE-ERROR: 42883: operator does not exist: character varying - text  PO
+E5-ARITH*-Text-Text	ENGINE-ERROR: 42883: operator does not exist: character varying * text  PO
+E5-ARITH/-Text-Text	ENGINE-ERROR: 42883: operator does not exist: character varying / text  PO
+E5-ARITH%-Text-Text	ENGINE-ERROR: 42883: operator does not exist: character varying % text  PO
+E5-CASE-Text-Text	1:miss,2:miss,3:miss,4:hit,5:miss
+E5-COALESCE-Text-Text	1:e,2:d,3:c,4:b,5:a
+E5-INS-Text-Text	b
+E5-SET-Text-Text	b
+E5-CMP==-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-Text	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-Text	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and text c
+E5-INS-Date-Text	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-Text	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-Text	b
+E5-THEN-Text	b
+E5-BIND-Text	b
+E5-ABS-Text	ENGINE-ERROR: 42883: function abs(text) does not exist  POSITION: 8
+E5-UPPER-Text	B
+E5-CMP==-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer = text  POSITION: 41
+E5-CMP!=-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer <> text  POSITION: 4
+E5-CMP<-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer < text  POSITION: 41
+E5-CMP<=-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer <= text  POSITION: 4
+E5-CMP>-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer > text  POSITION: 41
+E5-CMP>=-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer >= text  POSITION: 4
+E5-CMPLike-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer ~~ text  POSITION: 4
+E5-CMPNotLike-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer !~~ text  POSITION: 
+E5-CMPBetween-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer >= text  POSITION: 4
+E5-CMPNotBetween-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer < text  POSITION: 41
+E5-CMPIn-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer = text  POSITION: 41
+E5-CMPNotIn-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer <> text  POSITION: 4
+E5-ARITH+-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer + text  POSITION: 23
+E5-ARITH--Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer - text  POSITION: 23
+E5-ARITH*-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer * text  POSITION: 23
+E5-ARITH/-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer / text  POSITION: 23
+E5-ARITH%-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer % text  POSITION: 23
+E5-CASE-Int-Char	ENGINE-ERROR: 42883: operator does not exist: integer = text  POSITION: 27
+E5-COALESCE-Int-Char	ENGINE-ERROR: 42804: COALESCE types integer and text cannot be matched  PO
+E5-INS-Int-Char	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-SET-Int-Char	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-CMP==-Text-Char	4
+E5-CMP!=-Text-Char	1,2,3,5
+E5-CMP<-Text-Char	5
+E5-CMP<=-Text-Char	4,5
+E5-CMP>-Text-Char	1,2,3
+E5-CMP>=-Text-Char	1,2,3,4
+E5-CMPLike-Text-Char	4
+E5-CMPNotLike-Text-Char	1,2,3,5
+E5-CMPBetween-Text-Char	4
+E5-CMPNotBetween-Text-Char	1,2,3,5
+E5-CMPIn-Text-Char	4
+E5-CMPNotIn-Text-Char	1,2,3,5
+E5-ARITH+-Text-Char	ENGINE-ERROR: 42883: operator does not exist: character varying + text  PO
+E5-ARITH--Text-Char	ENGINE-ERROR: 42883: operator does not exist: character varying - text  PO
+E5-ARITH*-Text-Char	ENGINE-ERROR: 42883: operator does not exist: character varying * text  PO
+E5-ARITH/-Text-Char	ENGINE-ERROR: 42883: operator does not exist: character varying / text  PO
+E5-ARITH%-Text-Char	ENGINE-ERROR: 42883: operator does not exist: character varying % text  PO
+E5-CASE-Text-Char	1:miss,2:miss,3:miss,4:hit,5:miss
+E5-COALESCE-Text-Char	1:e,2:d,3:c,4:b,5:a
+E5-INS-Text-Char	b
+E5-SET-Text-Char	b
+E5-CMP==-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-Char	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-Char	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and text c
+E5-INS-Date-Char	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-Char	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-Char	b
+E5-THEN-Char	b
+E5-BIND-Char	b
+E5-ABS-Char	ENGINE-ERROR: 42883: function abs(text) does not exist  POSITION: 8
+E5-UPPER-Char	B
+E5-CMP==-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer = boolean  POSITION:
+E5-CMP!=-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer <> boolean  POSITION
+E5-CMP<-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer < boolean  POSITION:
+E5-CMP<=-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer <= boolean  POSITION
+E5-CMP>-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer > boolean  POSITION:
+E5-CMP>=-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer >= boolean  POSITION
+E5-CMPLike-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer ~~ boolean  POSITION
+E5-CMPNotLike-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer !~~ boolean  POSITIO
+E5-CMPBetween-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer >= boolean  POSITION
+E5-CMPNotBetween-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer < boolean  POSITION:
+E5-CMPIn-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer = boolean  POSITION:
+E5-CMPNotIn-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer <> boolean  POSITION
+E5-ARITH+-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer + boolean  POSITION:
+E5-ARITH--Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer - boolean  POSITION:
+E5-ARITH*-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer * boolean  POSITION:
+E5-ARITH/-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer / boolean  POSITION:
+E5-ARITH%-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer % boolean  POSITION:
+E5-CASE-Int-Bool	ENGINE-ERROR: 42883: operator does not exist: integer = boolean  POSITION:
+E5-COALESCE-Int-Bool	ENGINE-ERROR: 42804: COALESCE types integer and boolean cannot be matched 
+E5-INS-Int-Bool	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-SET-Int-Bool	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-CMP==-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying = boolean 
+E5-CMP!=-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying <> boolean
+E5-CMP<-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying < boolean 
+E5-CMP<=-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying <= boolean
+E5-CMP>-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying > boolean 
+E5-CMP>=-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying >= boolean
+E5-CMPLike-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ boolean
+E5-CMPNotLike-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ boolea
+E5-CMPBetween-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying >= boolean
+E5-CMPNotBetween-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying < boolean 
+E5-CMPIn-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying = boolean 
+E5-CMPNotIn-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying <> boolean
+E5-ARITH+-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying + boolean 
+E5-ARITH--Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying - boolean 
+E5-ARITH*-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying * boolean 
+E5-ARITH/-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying / boolean 
+E5-ARITH%-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying % boolean 
+E5-CASE-Text-Bool	ENGINE-ERROR: 42883: operator does not exist: character varying = boolean 
+E5-COALESCE-Text-Bool	ENGINE-ERROR: 42804: COALESCE types character varying and boolean cannot b
+E5-INS-Text-Bool	true
+E5-SET-Text-Bool	true
+E5-CMP==-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-Bool	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-Bool	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and boolea
+E5-INS-Date-Bool	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-Bool	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-Bool	1
+E5-THEN-Bool	1
+E5-BIND-Bool	1
+E5-ABS-Bool	ENGINE-ERROR: 42883: function abs(boolean) does not exist  POSITION: 8
+E5-UPPER-Bool	ENGINE-ERROR: 42883: function upper(boolean) does not exist  POSITION: 8
+E5-CMP==-Int-FunctionArgEnum	BUILD-THROW
+E5-CMP!=-Int-FunctionArgEnum	BUILD-THROW
+E5-CMP<-Int-FunctionArgEnum	BUILD-THROW
+E5-CMP<=-Int-FunctionArgEnum	BUILD-THROW
+E5-CMP>-Int-FunctionArgEnum	BUILD-THROW
+E5-CMP>=-Int-FunctionArgEnum	BUILD-THROW
+E5-CMPLike-Int-FunctionArgEnum	BUILD-THROW
+E5-CMPNotLike-Int-FunctionArgEnum	BUILD-THROW
+E5-CMPBetween-Int-FunctionArgEnum	BUILD-THROW
+E5-CMPNotBetween-Int-FunctionArgEnum	BUILD-THROW
+E5-CMPIn-Int-FunctionArgEnum	BUILD-THROW
+E5-CMPNotIn-Int-FunctionArgEnum	BUILD-THROW
+E5-ARITH+-Int-FunctionArgEnum	BUILD-THROW
+E5-ARITH--Int-FunctionArgEnum	BUILD-THROW
+E5-ARITH*-Int-FunctionArgEnum	BUILD-THROW
+E5-ARITH/-Int-FunctionArgEnum	BUILD-THROW
+E5-ARITH%-Int-FunctionArgEnum	BUILD-THROW
+E5-CASE-Int-FunctionArgEnum	BUILD-THROW
+E5-COALESCE-Int-FunctionArgEnum	BUILD-THROW
+E5-INS-Int-FunctionArgEnum	BUILD-THROW
+E5-SET-Int-FunctionArgEnum	BUILD-THROW
+E5-CMP==-Text-FunctionArgEnum	BUILD-THROW
+E5-CMP!=-Text-FunctionArgEnum	BUILD-THROW
+E5-CMP<-Text-FunctionArgEnum	BUILD-THROW
+E5-CMP<=-Text-FunctionArgEnum	BUILD-THROW
+E5-CMP>-Text-FunctionArgEnum	BUILD-THROW
+E5-CMP>=-Text-FunctionArgEnum	BUILD-THROW
+E5-CMPLike-Text-FunctionArgEnum	BUILD-THROW
+E5-CMPNotLike-Text-FunctionArgEnum	BUILD-THROW
+E5-CMPBetween-Text-FunctionArgEnum	BUILD-THROW
+E5-CMPNotBetween-Text-FunctionArgEnum	BUILD-THROW
+E5-CMPIn-Text-FunctionArgEnum	BUILD-THROW
+E5-CMPNotIn-Text-FunctionArgEnum	BUILD-THROW
+E5-ARITH+-Text-FunctionArgEnum	BUILD-THROW
+E5-ARITH--Text-FunctionArgEnum	BUILD-THROW
+E5-ARITH*-Text-FunctionArgEnum	BUILD-THROW
+E5-ARITH/-Text-FunctionArgEnum	BUILD-THROW
+E5-ARITH%-Text-FunctionArgEnum	BUILD-THROW
+E5-CASE-Text-FunctionArgEnum	BUILD-THROW
+E5-COALESCE-Text-FunctionArgEnum	BUILD-THROW
+E5-INS-Text-FunctionArgEnum	BUILD-THROW
+E5-SET-Text-FunctionArgEnum	BUILD-THROW
+E5-CMP==-Date-FunctionArgEnum	BUILD-THROW
+E5-CMP!=-Date-FunctionArgEnum	BUILD-THROW
+E5-CMP<-Date-FunctionArgEnum	BUILD-THROW
+E5-CMP<=-Date-FunctionArgEnum	BUILD-THROW
+E5-CMP>-Date-FunctionArgEnum	BUILD-THROW
+E5-CMP>=-Date-FunctionArgEnum	BUILD-THROW
+E5-CMPLike-Date-FunctionArgEnum	BUILD-THROW
+E5-CMPNotLike-Date-FunctionArgEnum	BUILD-THROW
+E5-CMPBetween-Date-FunctionArgEnum	BUILD-THROW
+E5-CMPNotBetween-Date-FunctionArgEnum	BUILD-THROW
+E5-CMPIn-Date-FunctionArgEnum	BUILD-THROW
+E5-CMPNotIn-Date-FunctionArgEnum	BUILD-THROW
+E5-ARITH+-Date-FunctionArgEnum	BUILD-THROW
+E5-ARITH--Date-FunctionArgEnum	BUILD-THROW
+E5-ARITH*-Date-FunctionArgEnum	BUILD-THROW
+E5-ARITH/-Date-FunctionArgEnum	BUILD-THROW
+E5-ARITH%-Date-FunctionArgEnum	BUILD-THROW
+E5-CASE-Date-FunctionArgEnum	BUILD-THROW
+E5-COALESCE-Date-FunctionArgEnum	BUILD-THROW
+E5-INS-Date-FunctionArgEnum	BUILD-THROW
+E5-SET-Date-FunctionArgEnum	BUILD-THROW
+E5-SEL-FunctionArgEnum	BUILD-THROW
+E5-THEN-FunctionArgEnum	BUILD-THROW
+E5-BIND-FunctionArgEnum	40
+E5-ABS-FunctionArgEnum	BUILD-THROW
+E5-UPPER-FunctionArgEnum	BUILD-THROW
+E5-CMP==-Int-UserEnum	
+E5-CMP!=-Int-UserEnum	1,2,3,4,5
+E5-CMP<-Int-UserEnum	
+E5-CMP<=-Int-UserEnum	
+E5-CMP>-Int-UserEnum	1,2,3,4,5
+E5-CMP>=-Int-UserEnum	1,2,3,4,5
+E5-CMPLike-Int-UserEnum	ENGINE-ERROR: 42883: operator does not exist: integer ~~ integer  POSITION
+E5-CMPNotLike-Int-UserEnum	ENGINE-ERROR: 42883: operator does not exist: integer !~~ integer  POSITIO
+E5-CMPBetween-Int-UserEnum	
+E5-CMPNotBetween-Int-UserEnum	1,2,3,4,5
+E5-CMPIn-Int-UserEnum	
+E5-CMPNotIn-Int-UserEnum	1,2,3,4,5
+E5-ARITH+-Int-UserEnum	1:52,2:42,3:32,4:22,5:12
+E5-ARITH--Int-UserEnum	1:48,2:38,3:28,4:18,5:8
+E5-ARITH*-Int-UserEnum	1:100,2:80,3:60,4:40,5:20
+E5-ARITH/-Int-UserEnum	1:25,2:20,3:15,4:10,5:5
+E5-ARITH%-Int-UserEnum	1:0,2:0,3:0,4:0,5:0
+E5-CASE-Int-UserEnum	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Int-UserEnum	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-UserEnum	2
+E5-SET-Int-UserEnum	2
+E5-CMP==-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMP!=-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-CMP<-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMP<=-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying <= integer
+E5-CMP>-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying > integer 
+E5-CMP>=-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPLike-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ integer
+E5-CMPNotLike-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ intege
+E5-CMPBetween-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPNotBetween-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMPIn-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMPNotIn-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-ARITH+-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying + integer 
+E5-ARITH--Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying - integer 
+E5-ARITH*-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying * integer 
+E5-ARITH/-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying / integer 
+E5-ARITH%-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying % integer 
+E5-CASE-Text-UserEnum	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-COALESCE-Text-UserEnum	ENGINE-ERROR: 42804: COALESCE types character varying and integer cannot b
+E5-INS-Text-UserEnum	2
+E5-SET-Text-UserEnum	2
+E5-CMP==-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-UserEnum	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-UserEnum	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and intege
+E5-INS-Date-UserEnum	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-UserEnum	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-UserEnum	2
+E5-THEN-UserEnum	2
+E5-BIND-UserEnum	2
+E5-ABS-UserEnum	2
+E5-UPPER-UserEnum	ENGINE-ERROR: 42883: function upper(integer) does not exist  POSITION: 8
+E5-CMP==-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer = timestamp without 
+E5-CMP!=-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer <> timestamp without
+E5-CMP<-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer < timestamp without 
+E5-CMP<=-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer <= timestamp without
+E5-CMP>-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer > timestamp without 
+E5-CMP>=-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer >= timestamp without
+E5-CMPLike-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer ~~ timestamp without
+E5-CMPNotLike-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer !~~ timestamp withou
+E5-CMPBetween-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer >= timestamp without
+E5-CMPNotBetween-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer < timestamp without 
+E5-CMPIn-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer = timestamp without 
+E5-CMPNotIn-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer <> timestamp without
+E5-ARITH+-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer + timestamp without 
+E5-ARITH--Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer - timestamp without 
+E5-ARITH*-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer * timestamp without 
+E5-ARITH/-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer / timestamp without 
+E5-ARITH%-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer % timestamp without 
+E5-CASE-Int-DateTime	ENGINE-ERROR: 42883: operator does not exist: integer = timestamp without 
+E5-COALESCE-Int-DateTime	ENGINE-ERROR: 42804: COALESCE types integer and timestamp without time zon
+E5-INS-Int-DateTime	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-SET-Int-DateTime	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-CMP==-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying = timestam
+E5-CMP!=-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying <> timesta
+E5-CMP<-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying < timestam
+E5-CMP<=-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying <= timesta
+E5-CMP>-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying > timestam
+E5-CMP>=-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying >= timesta
+E5-CMPLike-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ timesta
+E5-CMPNotLike-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ timest
+E5-CMPBetween-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying >= timesta
+E5-CMPNotBetween-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying < timestam
+E5-CMPIn-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying = timestam
+E5-CMPNotIn-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying <> timesta
+E5-ARITH+-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying + timestam
+E5-ARITH--Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying - timestam
+E5-ARITH*-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying * timestam
+E5-ARITH/-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying / timestam
+E5-ARITH%-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying % timestam
+E5-CASE-Text-DateTime	ENGINE-ERROR: 42883: operator does not exist: character varying = timestam
+E5-COALESCE-Text-DateTime	ENGINE-ERROR: 42804: COALESCE types character varying and timestamp withou
+E5-INS-Text-DateTime	2024-01-02 03:04:05
+E5-SET-Text-DateTime	2024-01-02 03:04:05
+E5-CMP==-Date-DateTime	
+E5-CMP!=-Date-DateTime	1,2,3,4,5
+E5-CMP<-Date-DateTime	1
+E5-CMP<=-Date-DateTime	1
+E5-CMP>-Date-DateTime	2,3,4,5
+E5-CMP>=-Date-DateTime	2,3,4,5
+E5-CMPLike-Date-DateTime	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-DateTime	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-DateTime	
+E5-CMPNotBetween-Date-DateTime	1,2,3,4,5
+E5-CMPIn-Date-DateTime	
+E5-CMPNotIn-Date-DateTime	1,2,3,4,5
+E5-ARITH+-Date-DateTime	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-DateTime	1:-17:04:05,2:06:55:55,3:1.06:55:55,4:2.06:55:55,5:3.06:55:55
+E5-ARITH*-Date-DateTime	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-DateTime	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-DateTime	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-DateTime	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Date-DateTime	1:2024-01-01 10:00:00,2:2024-01-02 10:00:00,3:2024-01-03 10:00:00,4:2024-01-04 10:00:00,5:2024-01-05 10:00:00
+E5-INS-Date-DateTime	2024-01-02 03:04:05
+E5-SET-Date-DateTime	2024-01-02 03:04:05
+E5-SEL-DateTime	2024-01-02 03:04:05
+E5-THEN-DateTime	2024-01-02 03:04:05
+E5-BIND-DateTime	2024-01-02 03:04:05
+E5-ABS-DateTime	ENGINE-ERROR: 42883: function abs(timestamp without time zone) does not ex
+E5-UPPER-DateTime	ENGINE-ERROR: 42883: function upper(timestamp without time zone) does not 
+E5-CMP==-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer = uuid  POSITION: 41
+E5-CMP!=-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer <> uuid  POSITION: 4
+E5-CMP<-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer < uuid  POSITION: 41
+E5-CMP<=-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer <= uuid  POSITION: 4
+E5-CMP>-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer > uuid  POSITION: 41
+E5-CMP>=-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer >= uuid  POSITION: 4
+E5-CMPLike-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer ~~ uuid  POSITION: 4
+E5-CMPNotLike-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer !~~ uuid  POSITION: 
+E5-CMPBetween-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer >= uuid  POSITION: 4
+E5-CMPNotBetween-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer < uuid  POSITION: 41
+E5-CMPIn-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer = uuid  POSITION: 41
+E5-CMPNotIn-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer <> uuid  POSITION: 4
+E5-ARITH+-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer + uuid  POSITION: 23
+E5-ARITH--Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer - uuid  POSITION: 23
+E5-ARITH*-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer * uuid  POSITION: 23
+E5-ARITH/-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer / uuid  POSITION: 23
+E5-ARITH%-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer % uuid  POSITION: 23
+E5-CASE-Int-Guid	ENGINE-ERROR: 42883: operator does not exist: integer = uuid  POSITION: 27
+E5-COALESCE-Int-Guid	ENGINE-ERROR: 42804: COALESCE types integer and uuid cannot be matched  PO
+E5-INS-Int-Guid	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-SET-Int-Guid	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-CMP==-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying = uuid  PO
+E5-CMP!=-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying <> uuid  P
+E5-CMP<-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying < uuid  PO
+E5-CMP<=-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying <= uuid  P
+E5-CMP>-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying > uuid  PO
+E5-CMP>=-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying >= uuid  P
+E5-CMPLike-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ uuid  P
+E5-CMPNotLike-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ uuid  
+E5-CMPBetween-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying >= uuid  P
+E5-CMPNotBetween-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying < uuid  PO
+E5-CMPIn-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying = uuid  PO
+E5-CMPNotIn-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying <> uuid  P
+E5-ARITH+-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying + uuid  PO
+E5-ARITH--Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying - uuid  PO
+E5-ARITH*-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying * uuid  PO
+E5-ARITH/-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying / uuid  PO
+E5-ARITH%-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying % uuid  PO
+E5-CASE-Text-Guid	ENGINE-ERROR: 42883: operator does not exist: character varying = uuid  PO
+E5-COALESCE-Text-Guid	ENGINE-ERROR: 42804: COALESCE types character varying and uuid cannot be m
+E5-INS-Text-Guid	00000000-0000-0000-0000-000000000002
+E5-SET-Text-Guid	00000000-0000-0000-0000-000000000002
+E5-CMP==-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-Guid	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-Guid	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and uuid c
+E5-INS-Date-Guid	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-Guid	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-Guid	00000000-0000-0000-0000-000000000002
+E5-THEN-Guid	00000000-0000-0000-0000-000000000002
+E5-BIND-Guid	00000000-0000-0000-0000-000000000002
+E5-ABS-Guid	ENGINE-ERROR: 42883: function abs(uuid) does not exist  POSITION: 8
+E5-UPPER-Guid	ENGINE-ERROR: 42883: function upper(uuid) does not exist  POSITION: 8
+E5-CMP==-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer = timestamp with tim
+E5-CMP!=-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer <> timestamp with ti
+E5-CMP<-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer < timestamp with tim
+E5-CMP<=-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer <= timestamp with ti
+E5-CMP>-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer > timestamp with tim
+E5-CMP>=-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer >= timestamp with ti
+E5-CMPLike-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer ~~ timestamp with ti
+E5-CMPNotLike-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer !~~ timestamp with t
+E5-CMPBetween-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer >= timestamp with ti
+E5-CMPNotBetween-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer < timestamp with tim
+E5-CMPIn-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer = timestamp with tim
+E5-CMPNotIn-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer <> timestamp with ti
+E5-ARITH+-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer + timestamp with tim
+E5-ARITH--Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer - timestamp with tim
+E5-ARITH*-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer * timestamp with tim
+E5-ARITH/-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer / timestamp with tim
+E5-ARITH%-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer % timestamp with tim
+E5-CASE-Int-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: integer = timestamp with tim
+E5-COALESCE-Int-DateTimeOffset	ENGINE-ERROR: 42804: COALESCE types integer and timestamp with time zone c
+E5-INS-Int-DateTimeOffset	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-SET-Int-DateTimeOffset	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-CMP==-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying = timestam
+E5-CMP!=-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying <> timesta
+E5-CMP<-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying < timestam
+E5-CMP<=-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying <= timesta
+E5-CMP>-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying > timestam
+E5-CMP>=-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying >= timesta
+E5-CMPLike-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ timesta
+E5-CMPNotLike-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ timest
+E5-CMPBetween-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying >= timesta
+E5-CMPNotBetween-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying < timestam
+E5-CMPIn-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying = timestam
+E5-CMPNotIn-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying <> timesta
+E5-ARITH+-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying + timestam
+E5-ARITH--Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying - timestam
+E5-ARITH*-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying * timestam
+E5-ARITH/-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying / timestam
+E5-ARITH%-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying % timestam
+E5-CASE-Text-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: character varying = timestam
+E5-COALESCE-Text-DateTimeOffset	ENGINE-ERROR: 42804: COALESCE types character varying and timestamp with t
+E5-INS-Text-DateTimeOffset	2024-01-02 03:04:05+00
+E5-SET-Text-DateTimeOffset	2024-01-02 03:04:05+00
+E5-CMP==-Date-DateTimeOffset	
+E5-CMP!=-Date-DateTimeOffset	1,2,3,4,5
+E5-CMP<-Date-DateTimeOffset	1
+E5-CMP<=-Date-DateTimeOffset	1
+E5-CMP>-Date-DateTimeOffset	2,3,4,5
+E5-CMP>=-Date-DateTimeOffset	2,3,4,5
+E5-CMPLike-Date-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-DateTimeOffset	
+E5-CMPNotBetween-Date-DateTimeOffset	1,2,3,4,5
+E5-CMPIn-Date-DateTimeOffset	
+E5-CMPNotIn-Date-DateTimeOffset	1,2,3,4,5
+E5-ARITH+-Date-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-DateTimeOffset	1:-17:04:05,2:06:55:55,3:1.06:55:55,4:2.06:55:55,5:3.06:55:55
+E5-ARITH*-Date-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-DateTimeOffset	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-DateTimeOffset	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Date-DateTimeOffset	1:2024-01-01 10:00:00,2:2024-01-02 10:00:00,3:2024-01-03 10:00:00,4:2024-01-04 10:00:00,5:2024-01-05 10:00:00
+E5-INS-Date-DateTimeOffset	2024-01-02 03:04:05
+E5-SET-Date-DateTimeOffset	2024-01-02 03:04:05
+E5-SEL-DateTimeOffset	2024-01-02 03:04:05
+E5-THEN-DateTimeOffset	2024-01-02 03:04:05
+E5-BIND-DateTimeOffset	2024-01-02 03:04:05
+E5-ABS-DateTimeOffset	ENGINE-ERROR: 42883: function abs(timestamp with time zone) does not exist
+E5-UPPER-DateTimeOffset	ENGINE-ERROR: 42883: function upper(timestamp with time zone) does not exi
+E5-CMP==-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer = interval  POSITION
+E5-CMP!=-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer <> interval  POSITIO
+E5-CMP<-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer < interval  POSITION
+E5-CMP<=-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer <= interval  POSITIO
+E5-CMP>-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer > interval  POSITION
+E5-CMP>=-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer >= interval  POSITIO
+E5-CMPLike-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer ~~ interval  POSITIO
+E5-CMPNotLike-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer !~~ interval  POSITI
+E5-CMPBetween-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer >= interval  POSITIO
+E5-CMPNotBetween-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer < interval  POSITION
+E5-CMPIn-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer = interval  POSITION
+E5-CMPNotIn-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer <> interval  POSITIO
+E5-ARITH+-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer + interval  POSITION
+E5-ARITH--Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer - interval  POSITION
+E5-ARITH*-Int-TimeSpan	1:4.04:00:00,2:3.08:00:00,3:2.12:00:00,4:1.16:00:00,5:20:00:00
+E5-ARITH/-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer / interval  POSITION
+E5-ARITH%-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer % interval  POSITION
+E5-CASE-Int-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: integer = interval  POSITION
+E5-COALESCE-Int-TimeSpan	ENGINE-ERROR: 42804: COALESCE types integer and interval cannot be matched
+E5-INS-Int-TimeSpan	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-SET-Int-TimeSpan	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-CMP==-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying = interval
+E5-CMP!=-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying <> interva
+E5-CMP<-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying < interval
+E5-CMP<=-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying <= interva
+E5-CMP>-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying > interval
+E5-CMP>=-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying >= interva
+E5-CMPLike-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ interva
+E5-CMPNotLike-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ interv
+E5-CMPBetween-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying >= interva
+E5-CMPNotBetween-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying < interval
+E5-CMPIn-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying = interval
+E5-CMPNotIn-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying <> interva
+E5-ARITH+-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying + interval
+E5-ARITH--Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying - interval
+E5-ARITH*-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying * interval
+E5-ARITH/-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying / interval
+E5-ARITH%-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying % interval
+E5-CASE-Text-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: character varying = interval
+E5-COALESCE-Text-TimeSpan	ENGINE-ERROR: 42804: COALESCE types character varying and interval cannot 
+E5-INS-Text-TimeSpan	02:00:00
+E5-SET-Text-TimeSpan	02:00:00
+E5-CMP==-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-TimeSpan	1:2024-01-01 12:00:00,2:2024-01-02 12:00:00,3:2024-01-03 12:00:00,4:2024-01-04 12:00:00,5:2024-01-05 12:00:00
+E5-ARITH--Date-TimeSpan	1:2024-01-01 08:00:00,2:2024-01-02 08:00:00,3:2024-01-03 08:00:00,4:2024-01-04 08:00:00,5:2024-01-05 08:00:00
+E5-ARITH*-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-TimeSpan	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-TimeSpan	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and interv
+E5-INS-Date-TimeSpan	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-TimeSpan	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-TimeSpan	02:00:00
+E5-THEN-TimeSpan	02:00:00
+E5-BIND-TimeSpan	02:00:00
+E5-ABS-TimeSpan	ENGINE-ERROR: 42883: function abs(interval) does not exist  POSITION: 8
+E5-UPPER-TimeSpan	ENGINE-ERROR: 42883: function upper(interval) does not exist  POSITION: 8
+E5-CMP==-Int-CSharpNull	BUILD-THROW
+E5-CMP!=-Int-CSharpNull	BUILD-THROW
+E5-CMP<-Int-CSharpNull	BUILD-THROW
+E5-CMP<=-Int-CSharpNull	BUILD-THROW
+E5-CMP>-Int-CSharpNull	BUILD-THROW
+E5-CMP>=-Int-CSharpNull	BUILD-THROW
+E5-CMPLike-Int-CSharpNull	BUILD-THROW
+E5-CMPNotLike-Int-CSharpNull	BUILD-THROW
+E5-CMPBetween-Int-CSharpNull	BUILD-THROW
+E5-CMPNotBetween-Int-CSharpNull	BUILD-THROW
+E5-CMPIn-Int-CSharpNull	BUILD-THROW
+E5-CMPNotIn-Int-CSharpNull	BUILD-THROW
+E5-ARITH+-Int-CSharpNull	BUILD-THROW
+E5-ARITH--Int-CSharpNull	BUILD-THROW
+E5-ARITH*-Int-CSharpNull	BUILD-THROW
+E5-ARITH/-Int-CSharpNull	BUILD-THROW
+E5-ARITH%-Int-CSharpNull	BUILD-THROW
+E5-CASE-Int-CSharpNull	BUILD-THROW
+E5-COALESCE-Int-CSharpNull	BUILD-THROW
+E5-INS-Int-CSharpNull	NULL
+E5-SET-Int-CSharpNull	BUILD-THROW
+E5-CMP==-Text-CSharpNull	BUILD-THROW
+E5-CMP!=-Text-CSharpNull	BUILD-THROW
+E5-CMP<-Text-CSharpNull	BUILD-THROW
+E5-CMP<=-Text-CSharpNull	BUILD-THROW
+E5-CMP>-Text-CSharpNull	BUILD-THROW
+E5-CMP>=-Text-CSharpNull	BUILD-THROW
+E5-CMPLike-Text-CSharpNull	BUILD-THROW
+E5-CMPNotLike-Text-CSharpNull	BUILD-THROW
+E5-CMPBetween-Text-CSharpNull	BUILD-THROW
+E5-CMPNotBetween-Text-CSharpNull	BUILD-THROW
+E5-CMPIn-Text-CSharpNull	BUILD-THROW
+E5-CMPNotIn-Text-CSharpNull	BUILD-THROW
+E5-ARITH+-Text-CSharpNull	BUILD-THROW
+E5-ARITH--Text-CSharpNull	BUILD-THROW
+E5-ARITH*-Text-CSharpNull	BUILD-THROW
+E5-ARITH/-Text-CSharpNull	BUILD-THROW
+E5-ARITH%-Text-CSharpNull	BUILD-THROW
+E5-CASE-Text-CSharpNull	BUILD-THROW
+E5-COALESCE-Text-CSharpNull	BUILD-THROW
+E5-INS-Text-CSharpNull	NULL
+E5-SET-Text-CSharpNull	BUILD-THROW
+E5-CMP==-Date-CSharpNull	BUILD-THROW
+E5-CMP!=-Date-CSharpNull	BUILD-THROW
+E5-CMP<-Date-CSharpNull	BUILD-THROW
+E5-CMP<=-Date-CSharpNull	BUILD-THROW
+E5-CMP>-Date-CSharpNull	BUILD-THROW
+E5-CMP>=-Date-CSharpNull	BUILD-THROW
+E5-CMPLike-Date-CSharpNull	BUILD-THROW
+E5-CMPNotLike-Date-CSharpNull	BUILD-THROW
+E5-CMPBetween-Date-CSharpNull	BUILD-THROW
+E5-CMPNotBetween-Date-CSharpNull	BUILD-THROW
+E5-CMPIn-Date-CSharpNull	BUILD-THROW
+E5-CMPNotIn-Date-CSharpNull	BUILD-THROW
+E5-ARITH+-Date-CSharpNull	BUILD-THROW
+E5-ARITH--Date-CSharpNull	BUILD-THROW
+E5-ARITH*-Date-CSharpNull	BUILD-THROW
+E5-ARITH/-Date-CSharpNull	BUILD-THROW
+E5-ARITH%-Date-CSharpNull	BUILD-THROW
+E5-CASE-Date-CSharpNull	BUILD-THROW
+E5-COALESCE-Date-CSharpNull	BUILD-THROW
+E5-INS-Date-CSharpNull	NULL
+E5-SET-Date-CSharpNull	BUILD-THROW
+E5-SEL-CSharpNull	BUILD-THROW
+E5-THEN-CSharpNull	BUILD-THROW
+E5-BIND-CSharpNull	BUILD-THROW
+E5-ABS-CSharpNull	BUILD-THROW
+E5-UPPER-CSharpNull	BUILD-THROW
+E5-CMP==-Int-DbNull	BUILD-THROW
+E5-CMP!=-Int-DbNull	BUILD-THROW
+E5-CMP<-Int-DbNull	BUILD-THROW
+E5-CMP<=-Int-DbNull	BUILD-THROW
+E5-CMP>-Int-DbNull	BUILD-THROW
+E5-CMP>=-Int-DbNull	BUILD-THROW
+E5-CMPLike-Int-DbNull	BUILD-THROW
+E5-CMPNotLike-Int-DbNull	BUILD-THROW
+E5-CMPBetween-Int-DbNull	BUILD-THROW
+E5-CMPNotBetween-Int-DbNull	BUILD-THROW
+E5-CMPIn-Int-DbNull	BUILD-THROW
+E5-CMPNotIn-Int-DbNull	BUILD-THROW
+E5-ARITH+-Int-DbNull	BUILD-THROW
+E5-ARITH--Int-DbNull	BUILD-THROW
+E5-ARITH*-Int-DbNull	BUILD-THROW
+E5-ARITH/-Int-DbNull	BUILD-THROW
+E5-ARITH%-Int-DbNull	BUILD-THROW
+E5-CASE-Int-DbNull	BUILD-THROW
+E5-COALESCE-Int-DbNull	BUILD-THROW
+E5-INS-Int-DbNull	BUILD-THROW
+E5-SET-Int-DbNull	BUILD-THROW
+E5-CMP==-Text-DbNull	BUILD-THROW
+E5-CMP!=-Text-DbNull	BUILD-THROW
+E5-CMP<-Text-DbNull	BUILD-THROW
+E5-CMP<=-Text-DbNull	BUILD-THROW
+E5-CMP>-Text-DbNull	BUILD-THROW
+E5-CMP>=-Text-DbNull	BUILD-THROW
+E5-CMPLike-Text-DbNull	BUILD-THROW
+E5-CMPNotLike-Text-DbNull	BUILD-THROW
+E5-CMPBetween-Text-DbNull	BUILD-THROW
+E5-CMPNotBetween-Text-DbNull	BUILD-THROW
+E5-CMPIn-Text-DbNull	BUILD-THROW
+E5-CMPNotIn-Text-DbNull	BUILD-THROW
+E5-ARITH+-Text-DbNull	BUILD-THROW
+E5-ARITH--Text-DbNull	BUILD-THROW
+E5-ARITH*-Text-DbNull	BUILD-THROW
+E5-ARITH/-Text-DbNull	BUILD-THROW
+E5-ARITH%-Text-DbNull	BUILD-THROW
+E5-CASE-Text-DbNull	BUILD-THROW
+E5-COALESCE-Text-DbNull	BUILD-THROW
+E5-INS-Text-DbNull	BUILD-THROW
+E5-SET-Text-DbNull	BUILD-THROW
+E5-CMP==-Date-DbNull	BUILD-THROW
+E5-CMP!=-Date-DbNull	BUILD-THROW
+E5-CMP<-Date-DbNull	BUILD-THROW
+E5-CMP<=-Date-DbNull	BUILD-THROW
+E5-CMP>-Date-DbNull	BUILD-THROW
+E5-CMP>=-Date-DbNull	BUILD-THROW
+E5-CMPLike-Date-DbNull	BUILD-THROW
+E5-CMPNotLike-Date-DbNull	BUILD-THROW
+E5-CMPBetween-Date-DbNull	BUILD-THROW
+E5-CMPNotBetween-Date-DbNull	BUILD-THROW
+E5-CMPIn-Date-DbNull	BUILD-THROW
+E5-CMPNotIn-Date-DbNull	BUILD-THROW
+E5-ARITH+-Date-DbNull	BUILD-THROW
+E5-ARITH--Date-DbNull	BUILD-THROW
+E5-ARITH*-Date-DbNull	BUILD-THROW
+E5-ARITH/-Date-DbNull	BUILD-THROW
+E5-ARITH%-Date-DbNull	BUILD-THROW
+E5-CASE-Date-DbNull	BUILD-THROW
+E5-COALESCE-Date-DbNull	BUILD-THROW
+E5-INS-Date-DbNull	BUILD-THROW
+E5-SET-Date-DbNull	BUILD-THROW
+E5-SEL-DbNull	BUILD-THROW
+E5-THEN-DbNull	BUILD-THROW
+E5-BIND-DbNull	BUILD-THROW
+E5-ABS-DbNull	BUILD-THROW
+E5-UPPER-DbNull	BUILD-THROW
+E5-CMP==-Int-BindInt	
+E5-CMP!=-Int-BindInt	1,2,3,4,5
+E5-CMP<-Int-BindInt	
+E5-CMP<=-Int-BindInt	
+E5-CMP>-Int-BindInt	1,2,3,4,5
+E5-CMP>=-Int-BindInt	1,2,3,4,5
+E5-CMPLike-Int-BindInt	ENGINE-ERROR: 42883: operator does not exist: integer ~~ integer  POSITION
+E5-CMPNotLike-Int-BindInt	ENGINE-ERROR: 42883: operator does not exist: integer !~~ integer  POSITIO
+E5-CMPBetween-Int-BindInt	
+E5-CMPNotBetween-Int-BindInt	1,2,3,4,5
+E5-CMPIn-Int-BindInt	
+E5-CMPNotIn-Int-BindInt	1,2,3,4,5
+E5-ARITH+-Int-BindInt	1:52,2:42,3:32,4:22,5:12
+E5-ARITH--Int-BindInt	1:48,2:38,3:28,4:18,5:8
+E5-ARITH*-Int-BindInt	1:100,2:80,3:60,4:40,5:20
+E5-ARITH/-Int-BindInt	1:25,2:20,3:15,4:10,5:5
+E5-ARITH%-Int-BindInt	1:0,2:0,3:0,4:0,5:0
+E5-CASE-Int-BindInt	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Int-BindInt	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-BindInt	2
+E5-SET-Int-BindInt	2
+E5-CMP==-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMP!=-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-CMP<-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMP<=-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying <= integer
+E5-CMP>-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying > integer 
+E5-CMP>=-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPLike-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ integer
+E5-CMPNotLike-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ intege
+E5-CMPBetween-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPNotBetween-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMPIn-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMPNotIn-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-ARITH+-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying + integer 
+E5-ARITH--Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying - integer 
+E5-ARITH*-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying * integer 
+E5-ARITH/-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying / integer 
+E5-ARITH%-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying % integer 
+E5-CASE-Text-BindInt	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-COALESCE-Text-BindInt	ENGINE-ERROR: 42804: COALESCE types character varying and integer cannot b
+E5-INS-Text-BindInt	2
+E5-SET-Text-BindInt	2
+E5-CMP==-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-BindInt	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-BindInt	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and intege
+E5-INS-Date-BindInt	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-BindInt	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-BindInt	2
+E5-THEN-BindInt	2
+E5-BIND-BindInt	BUILD-THROW
+E5-ABS-BindInt	2
+E5-UPPER-BindInt	ENGINE-ERROR: 42883: function upper(integer) does not exist  POSITION: 8
+E5-CMP==-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer = text  POSITION: 41
+E5-CMP!=-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer <> text  POSITION: 4
+E5-CMP<-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer < text  POSITION: 41
+E5-CMP<=-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer <= text  POSITION: 4
+E5-CMP>-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer > text  POSITION: 41
+E5-CMP>=-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer >= text  POSITION: 4
+E5-CMPLike-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer ~~ text  POSITION: 4
+E5-CMPNotLike-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer !~~ text  POSITION: 
+E5-CMPBetween-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer >= text  POSITION: 4
+E5-CMPNotBetween-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer < text  POSITION: 41
+E5-CMPIn-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer = text  POSITION: 41
+E5-CMPNotIn-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer <> text  POSITION: 4
+E5-ARITH+-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer + text  POSITION: 23
+E5-ARITH--Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer - text  POSITION: 23
+E5-ARITH*-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer * text  POSITION: 23
+E5-ARITH/-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer / text  POSITION: 23
+E5-ARITH%-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer % text  POSITION: 23
+E5-CASE-Int-BindText	ENGINE-ERROR: 42883: operator does not exist: integer = text  POSITION: 27
+E5-COALESCE-Int-BindText	ENGINE-ERROR: 42804: COALESCE types integer and text cannot be matched  PO
+E5-INS-Int-BindText	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-SET-Int-BindText	ENGINE-ERROR: 42804: column "i" is of type integer but expression is of ty
+E5-CMP==-Text-BindText	4
+E5-CMP!=-Text-BindText	1,2,3,5
+E5-CMP<-Text-BindText	5
+E5-CMP<=-Text-BindText	4,5
+E5-CMP>-Text-BindText	1,2,3
+E5-CMP>=-Text-BindText	1,2,3,4
+E5-CMPLike-Text-BindText	4
+E5-CMPNotLike-Text-BindText	1,2,3,5
+E5-CMPBetween-Text-BindText	4
+E5-CMPNotBetween-Text-BindText	1,2,3,5
+E5-CMPIn-Text-BindText	4
+E5-CMPNotIn-Text-BindText	1,2,3,5
+E5-ARITH+-Text-BindText	ENGINE-ERROR: 42883: operator does not exist: character varying + text  PO
+E5-ARITH--Text-BindText	ENGINE-ERROR: 42883: operator does not exist: character varying - text  PO
+E5-ARITH*-Text-BindText	ENGINE-ERROR: 42883: operator does not exist: character varying * text  PO
+E5-ARITH/-Text-BindText	ENGINE-ERROR: 42883: operator does not exist: character varying / text  PO
+E5-ARITH%-Text-BindText	ENGINE-ERROR: 42883: operator does not exist: character varying % text  PO
+E5-CASE-Text-BindText	1:miss,2:miss,3:miss,4:hit,5:miss
+E5-COALESCE-Text-BindText	1:e,2:d,3:c,4:b,5:a
+E5-INS-Text-BindText	b
+E5-SET-Text-BindText	b
+E5-CMP==-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-BindText	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-BindText	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and text c
+E5-INS-Date-BindText	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-BindText	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-BindText	b
+E5-THEN-BindText	b
+E5-BIND-BindText	BUILD-THROW
+E5-ABS-BindText	ENGINE-ERROR: 42883: function abs(text) does not exist  POSITION: 8
+E5-UPPER-BindText	B
+E5-CMP==-Int-BindNull	
+E5-CMP!=-Int-BindNull	
+E5-CMP<-Int-BindNull	
+E5-CMP<=-Int-BindNull	
+E5-CMP>-Int-BindNull	
+E5-CMP>=-Int-BindNull	
+E5-CMPLike-Int-BindNull	ENGINE-ERROR: 42883: operator does not exist: integer ~~ unknown  POSITION
+E5-CMPNotLike-Int-BindNull	ENGINE-ERROR: 42883: operator does not exist: integer !~~ unknown  POSITIO
+E5-CMPBetween-Int-BindNull	
+E5-CMPNotBetween-Int-BindNull	
+E5-CMPIn-Int-BindNull	
+E5-CMPNotIn-Int-BindNull	
+E5-ARITH+-Int-BindNull	1:NULL,2:NULL,3:NULL,4:NULL,5:NULL
+E5-ARITH--Int-BindNull	1:NULL,2:NULL,3:NULL,4:NULL,5:NULL
+E5-ARITH*-Int-BindNull	1:NULL,2:NULL,3:NULL,4:NULL,5:NULL
+E5-ARITH/-Int-BindNull	1:NULL,2:NULL,3:NULL,4:NULL,5:NULL
+E5-ARITH%-Int-BindNull	1:NULL,2:NULL,3:NULL,4:NULL,5:NULL
+E5-CASE-Int-BindNull	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Int-BindNull	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-BindNull	NULL
+E5-SET-Int-BindNull	NULL
+E5-CMP==-Text-BindNull	
+E5-CMP!=-Text-BindNull	
+E5-CMP<-Text-BindNull	
+E5-CMP<=-Text-BindNull	
+E5-CMP>-Text-BindNull	
+E5-CMP>=-Text-BindNull	
+E5-CMPLike-Text-BindNull	
+E5-CMPNotLike-Text-BindNull	
+E5-CMPBetween-Text-BindNull	
+E5-CMPNotBetween-Text-BindNull	
+E5-CMPIn-Text-BindNull	
+E5-CMPNotIn-Text-BindNull	
+E5-ARITH+-Text-BindNull	ENGINE-ERROR: 42883: operator does not exist: character varying + unknown 
+E5-ARITH--Text-BindNull	ENGINE-ERROR: 42883: operator does not exist: character varying - unknown 
+E5-ARITH*-Text-BindNull	ENGINE-ERROR: 42883: operator does not exist: character varying * unknown 
+E5-ARITH/-Text-BindNull	ENGINE-ERROR: 42883: operator does not exist: character varying / unknown 
+E5-ARITH%-Text-BindNull	ENGINE-ERROR: 42883: operator does not exist: character varying % unknown 
+E5-CASE-Text-BindNull	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Text-BindNull	1:e,2:d,3:c,4:b,5:a
+E5-INS-Text-BindNull	NULL
+E5-SET-Text-BindNull	NULL
+E5-CMP==-Date-BindNull	
+E5-CMP!=-Date-BindNull	
+E5-CMP<-Date-BindNull	
+E5-CMP<=-Date-BindNull	
+E5-CMP>-Date-BindNull	
+E5-CMP>=-Date-BindNull	
+E5-CMPLike-Date-BindNull	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-BindNull	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-BindNull	
+E5-CMPNotBetween-Date-BindNull	
+E5-CMPIn-Date-BindNull	
+E5-CMPNotIn-Date-BindNull	
+E5-ARITH+-Date-BindNull	1:NULL,2:NULL,3:NULL,4:NULL,5:NULL
+E5-ARITH--Date-BindNull	1:NULL,2:NULL,3:NULL,4:NULL,5:NULL
+E5-ARITH*-Date-BindNull	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-BindNull	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-BindNull	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-BindNull	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Date-BindNull	1:2024-01-01 10:00:00,2:2024-01-02 10:00:00,3:2024-01-03 10:00:00,4:2024-01-04 10:00:00,5:2024-01-05 10:00:00
+E5-INS-Date-BindNull	NULL
+E5-SET-Date-BindNull	NULL
+E5-SEL-BindNull	NULL
+E5-THEN-BindNull	NULL
+E5-BIND-BindNull	BUILD-THROW
+E5-ABS-BindNull	NULL
+E5-UPPER-BindNull	NULL
+E5-CMP==-Int-SqlNull	
+E5-CMP!=-Int-SqlNull	
+E5-CMP<-Int-SqlNull	
+E5-CMP<=-Int-SqlNull	
+E5-CMP>-Int-SqlNull	
+E5-CMP>=-Int-SqlNull	
+E5-CMPLike-Int-SqlNull	ENGINE-ERROR: 42883: operator does not exist: integer ~~ unknown  POSITION
+E5-CMPNotLike-Int-SqlNull	ENGINE-ERROR: 42883: operator does not exist: integer !~~ unknown  POSITIO
+E5-CMPBetween-Int-SqlNull	
+E5-CMPNotBetween-Int-SqlNull	
+E5-CMPIn-Int-SqlNull	
+E5-CMPNotIn-Int-SqlNull	
+E5-ARITH+-Int-SqlNull	1:NULL,2:NULL,3:NULL,4:NULL,5:NULL
+E5-ARITH--Int-SqlNull	1:NULL,2:NULL,3:NULL,4:NULL,5:NULL
+E5-ARITH*-Int-SqlNull	1:NULL,2:NULL,3:NULL,4:NULL,5:NULL
+E5-ARITH/-Int-SqlNull	1:NULL,2:NULL,3:NULL,4:NULL,5:NULL
+E5-ARITH%-Int-SqlNull	1:NULL,2:NULL,3:NULL,4:NULL,5:NULL
+E5-CASE-Int-SqlNull	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Int-SqlNull	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-SqlNull	NULL
+E5-SET-Int-SqlNull	NULL
+E5-CMP==-Text-SqlNull	
+E5-CMP!=-Text-SqlNull	
+E5-CMP<-Text-SqlNull	
+E5-CMP<=-Text-SqlNull	
+E5-CMP>-Text-SqlNull	
+E5-CMP>=-Text-SqlNull	
+E5-CMPLike-Text-SqlNull	
+E5-CMPNotLike-Text-SqlNull	
+E5-CMPBetween-Text-SqlNull	
+E5-CMPNotBetween-Text-SqlNull	
+E5-CMPIn-Text-SqlNull	
+E5-CMPNotIn-Text-SqlNull	
+E5-ARITH+-Text-SqlNull	ENGINE-ERROR: 42883: operator does not exist: character varying + unknown 
+E5-ARITH--Text-SqlNull	ENGINE-ERROR: 42883: operator does not exist: character varying - unknown 
+E5-ARITH*-Text-SqlNull	ENGINE-ERROR: 42883: operator does not exist: character varying * unknown 
+E5-ARITH/-Text-SqlNull	ENGINE-ERROR: 42883: operator does not exist: character varying / unknown 
+E5-ARITH%-Text-SqlNull	ENGINE-ERROR: 42883: operator does not exist: character varying % unknown 
+E5-CASE-Text-SqlNull	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Text-SqlNull	1:e,2:d,3:c,4:b,5:a
+E5-INS-Text-SqlNull	NULL
+E5-SET-Text-SqlNull	NULL
+E5-CMP==-Date-SqlNull	
+E5-CMP!=-Date-SqlNull	
+E5-CMP<-Date-SqlNull	
+E5-CMP<=-Date-SqlNull	
+E5-CMP>-Date-SqlNull	
+E5-CMP>=-Date-SqlNull	
+E5-CMPLike-Date-SqlNull	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-SqlNull	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-SqlNull	
+E5-CMPNotBetween-Date-SqlNull	
+E5-CMPIn-Date-SqlNull	
+E5-CMPNotIn-Date-SqlNull	
+E5-ARITH+-Date-SqlNull	1:NULL,2:NULL,3:NULL,4:NULL,5:NULL
+E5-ARITH--Date-SqlNull	1:NULL,2:NULL,3:NULL,4:NULL,5:NULL
+E5-ARITH*-Date-SqlNull	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-SqlNull	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-SqlNull	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-SqlNull	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Date-SqlNull	1:2024-01-01 10:00:00,2:2024-01-02 10:00:00,3:2024-01-03 10:00:00,4:2024-01-04 10:00:00,5:2024-01-05 10:00:00
+E5-INS-Date-SqlNull	NULL
+E5-SET-Date-SqlNull	NULL
+E5-SEL-SqlNull	NULL
+E5-THEN-SqlNull	NULL
+E5-BIND-SqlNull	BUILD-THROW
+E5-ABS-SqlNull	NULL
+E5-UPPER-SqlNull	NULL
+E5-CMP==-Int-Column	1,2,3,4,5
+E5-CMP!=-Int-Column	
+E5-CMP<-Int-Column	
+E5-CMP<=-Int-Column	1,2,3,4,5
+E5-CMP>-Int-Column	
+E5-CMP>=-Int-Column	1,2,3,4,5
+E5-CMPLike-Int-Column	ENGINE-ERROR: 42883: operator does not exist: integer ~~ integer  POSITION
+E5-CMPNotLike-Int-Column	ENGINE-ERROR: 42883: operator does not exist: integer !~~ integer  POSITIO
+E5-CMPBetween-Int-Column	1,2,3,4,5
+E5-CMPNotBetween-Int-Column	
+E5-CMPIn-Int-Column	1,2,3,4,5
+E5-CMPNotIn-Int-Column	
+E5-ARITH+-Int-Column	1:100,2:80,3:60,4:40,5:20
+E5-ARITH--Int-Column	1:0,2:0,3:0,4:0,5:0
+E5-ARITH*-Int-Column	1:2500,2:1600,3:900,4:400,5:100
+E5-ARITH/-Int-Column	1:1,2:1,3:1,4:1,5:1
+E5-ARITH%-Int-Column	1:0,2:0,3:0,4:0,5:0
+E5-CASE-Int-Column	1:hit,2:hit,3:hit,4:hit,5:hit
+E5-COALESCE-Int-Column	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-Column	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 38
+E5-SET-Int-Column	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 21
+E5-CMP==-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMP!=-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-CMP<-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMP<=-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying <= integer
+E5-CMP>-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying > integer 
+E5-CMP>=-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPLike-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ integer
+E5-CMPNotLike-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ intege
+E5-CMPBetween-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPNotBetween-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMPIn-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMPNotIn-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-ARITH+-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying + integer 
+E5-ARITH--Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying - integer 
+E5-ARITH*-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying * integer 
+E5-ARITH/-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying / integer 
+E5-ARITH%-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying % integer 
+E5-CASE-Text-Column	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-COALESCE-Text-Column	ENGINE-ERROR: 42804: COALESCE types character varying and integer cannot b
+E5-INS-Text-Column	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 38
+E5-SET-Text-Column	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 21
+E5-CMP==-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-Column	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-Column	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and intege
+E5-INS-Date-Column	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 38
+E5-SET-Date-Column	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 21
+E5-SEL-Column	50
+E5-THEN-Column	50
+E5-BIND-Column	BUILD-THROW
+E5-ABS-Column	50
+E5-UPPER-Column	ENGINE-ERROR: 42883: function upper(integer) does not exist  POSITION: 8
+E5-CMP==-Int-Expression	
+E5-CMP!=-Int-Expression	1,2,3,4,5
+E5-CMP<-Int-Expression	1,2,3,4,5
+E5-CMP<=-Int-Expression	1,2,3,4,5
+E5-CMP>-Int-Expression	
+E5-CMP>=-Int-Expression	
+E5-CMPLike-Int-Expression	ENGINE-ERROR: 42883: operator does not exist: integer ~~ integer  POSITION
+E5-CMPNotLike-Int-Expression	ENGINE-ERROR: 42883: operator does not exist: integer !~~ integer  POSITIO
+E5-CMPBetween-Int-Expression	
+E5-CMPNotBetween-Int-Expression	1,2,3,4,5
+E5-CMPIn-Int-Expression	
+E5-CMPNotIn-Int-Expression	1,2,3,4,5
+E5-ARITH+-Int-Expression	1:101,2:82,3:63,4:44,5:25
+E5-ARITH--Int-Expression	1:-1,2:-2,3:-3,4:-4,5:-5
+E5-ARITH*-Int-Expression	1:2550,2:1680,3:990,4:480,5:150
+E5-ARITH/-Int-Expression	1:0,2:0,3:0,4:0,5:0
+E5-ARITH%-Int-Expression	1:50,2:40,3:30,4:20,5:10
+E5-CASE-Int-Expression	1:miss,2:miss,3:miss,4:miss,5:miss
+E5-COALESCE-Int-Expression	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-Expression	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 39
+E5-SET-Int-Expression	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 22
+E5-CMP==-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMP!=-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-CMP<-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMP<=-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying <= integer
+E5-CMP>-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying > integer 
+E5-CMP>=-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPLike-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ integer
+E5-CMPNotLike-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ intege
+E5-CMPBetween-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPNotBetween-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMPIn-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMPNotIn-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-ARITH+-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying + integer 
+E5-ARITH--Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying - integer 
+E5-ARITH*-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying * integer 
+E5-ARITH/-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying / integer 
+E5-ARITH%-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying % integer 
+E5-CASE-Text-Expression	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-COALESCE-Text-Expression	ENGINE-ERROR: 42804: COALESCE types character varying and integer cannot b
+E5-INS-Text-Expression	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 39
+E5-SET-Text-Expression	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 22
+E5-CMP==-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-Expression	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-Expression	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and intege
+E5-INS-Date-Expression	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 39
+E5-SET-Date-Expression	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 22
+E5-SEL-Expression	51
+E5-THEN-Expression	51
+E5-BIND-Expression	BUILD-THROW
+E5-ABS-Expression	51
+E5-UPPER-Expression	ENGINE-ERROR: 42883: function upper(integer) does not exist  POSITION: 8
+E5-CMP==-Int-Subquery	2
+E5-CMP!=-Int-Subquery	1,3,4,5
+E5-CMP<-Int-Subquery	3,4,5
+E5-CMP<=-Int-Subquery	2,3,4,5
+E5-CMP>-Int-Subquery	1
+E5-CMP>=-Int-Subquery	1,2
+E5-CMPLike-Int-Subquery	ENGINE-ERROR: 42883: operator does not exist: integer ~~ integer  POSITION
+E5-CMPNotLike-Int-Subquery	ENGINE-ERROR: 42883: operator does not exist: integer !~~ integer  POSITIO
+E5-CMPBetween-Int-Subquery	2
+E5-CMPNotBetween-Int-Subquery	1,3,4,5
+E5-CMPIn-Int-Subquery	2
+E5-CMPNotIn-Int-Subquery	1,3,4,5
+E5-ARITH+-Int-Subquery	1:90,2:80,3:70,4:60,5:50
+E5-ARITH--Int-Subquery	1:10,2:0,3:-10,4:-20,5:-30
+E5-ARITH*-Int-Subquery	1:2000,2:1600,3:1200,4:800,5:400
+E5-ARITH/-Int-Subquery	1:1,2:1,3:0,4:0,5:0
+E5-ARITH%-Int-Subquery	1:10,2:0,3:30,4:20,5:10
+E5-CASE-Int-Subquery	1:miss,2:hit,3:miss,4:miss,5:miss
+E5-COALESCE-Int-Subquery	1:50,2:40,3:30,4:20,5:10
+E5-INS-Int-Subquery	40
+E5-SET-Int-Subquery	40
+E5-CMP==-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMP!=-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-CMP<-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMP<=-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying <= integer
+E5-CMP>-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying > integer 
+E5-CMP>=-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPLike-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ integer
+E5-CMPNotLike-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ intege
+E5-CMPBetween-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPNotBetween-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMPIn-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMPNotIn-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-ARITH+-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying + integer 
+E5-ARITH--Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying - integer 
+E5-ARITH*-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying * integer 
+E5-ARITH/-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying / integer 
+E5-ARITH%-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying % integer 
+E5-CASE-Text-Subquery	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-COALESCE-Text-Subquery	ENGINE-ERROR: 42804: COALESCE types character varying and integer cannot b
+E5-INS-Text-Subquery	40
+E5-SET-Text-Subquery	40
+E5-CMP==-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotBetween-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPIn-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotIn-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH+-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH--Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH*-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH/-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-ARITH%-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CASE-Date-Subquery	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-COALESCE-Date-Subquery	ENGINE-ERROR: 42804: COALESCE types timestamp without time zone and intege
+E5-INS-Date-Subquery	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SET-Date-Subquery	ENGINE-ERROR: 42804: column "d" is of type timestamp without time zone but
+E5-SEL-Subquery	40
+E5-THEN-Subquery	40
+E5-BIND-Subquery	BUILD-THROW
+E5-ABS-Subquery	40
+E5-UPPER-Subquery	ENGINE-ERROR: 42883: function upper(integer) does not exist  POSITION: 8
+E5-CMP==-Int-Quantified	2,4
+E5-CMP!=-Int-Quantified	1,2,3,4,5
+E5-CMP<-Int-Quantified	3,4,5
+E5-CMP<=-Int-Quantified	2,3,4,5
+E5-CMP>-Int-Quantified	1,2,3
+E5-CMP>=-Int-Quantified	1,2,3,4
+E5-CMPLike-Int-Quantified	ENGINE-ERROR: 42883: operator does not exist: integer ~~ integer  POSITION
+E5-CMPNotLike-Int-Quantified	ENGINE-ERROR: 42883: operator does not exist: integer !~~ integer  POSITIO
+E5-CMPBetween-Int-Quantified	BUILD-THROW
+E5-CMPNotBetween-Int-Quantified	BUILD-THROW
+E5-CMPIn-Int-Quantified	BUILD-THROW
+E5-CMPNotIn-Int-Quantified	BUILD-THROW
+E5-ARITH+-Int-Quantified	BUILD-THROW
+E5-ARITH--Int-Quantified	BUILD-THROW
+E5-ARITH*-Int-Quantified	BUILD-THROW
+E5-ARITH/-Int-Quantified	BUILD-THROW
+E5-ARITH%-Int-Quantified	BUILD-THROW
+E5-CASE-Int-Quantified	BUILD-THROW
+E5-COALESCE-Int-Quantified	BUILD-THROW
+E5-INS-Int-Quantified	BUILD-THROW
+E5-SET-Int-Quantified	BUILD-THROW
+E5-CMP==-Text-Quantified	ENGINE-ERROR: 42883: operator does not exist: character varying = integer 
+E5-CMP!=-Text-Quantified	ENGINE-ERROR: 42883: operator does not exist: character varying <> integer
+E5-CMP<-Text-Quantified	ENGINE-ERROR: 42883: operator does not exist: character varying < integer 
+E5-CMP<=-Text-Quantified	ENGINE-ERROR: 42883: operator does not exist: character varying <= integer
+E5-CMP>-Text-Quantified	ENGINE-ERROR: 42883: operator does not exist: character varying > integer 
+E5-CMP>=-Text-Quantified	ENGINE-ERROR: 42883: operator does not exist: character varying >= integer
+E5-CMPLike-Text-Quantified	ENGINE-ERROR: 42883: operator does not exist: character varying ~~ integer
+E5-CMPNotLike-Text-Quantified	ENGINE-ERROR: 42883: operator does not exist: character varying !~~ intege
+E5-CMPBetween-Text-Quantified	BUILD-THROW
+E5-CMPNotBetween-Text-Quantified	BUILD-THROW
+E5-CMPIn-Text-Quantified	BUILD-THROW
+E5-CMPNotIn-Text-Quantified	BUILD-THROW
+E5-ARITH+-Text-Quantified	BUILD-THROW
+E5-ARITH--Text-Quantified	BUILD-THROW
+E5-ARITH*-Text-Quantified	BUILD-THROW
+E5-ARITH/-Text-Quantified	BUILD-THROW
+E5-ARITH%-Text-Quantified	BUILD-THROW
+E5-CASE-Text-Quantified	BUILD-THROW
+E5-COALESCE-Text-Quantified	BUILD-THROW
+E5-INS-Text-Quantified	BUILD-THROW
+E5-SET-Text-Quantified	BUILD-THROW
+E5-CMP==-Date-Quantified	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP!=-Date-Quantified	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<-Date-Quantified	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP<=-Date-Quantified	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>-Date-Quantified	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMP>=-Date-Quantified	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPLike-Date-Quantified	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPNotLike-Date-Quantified	ENGINE-ERROR: 42883: operator does not exist: timestamp without time zone 
+E5-CMPBetween-Date-Quantified	BUILD-THROW
+E5-CMPNotBetween-Date-Quantified	BUILD-THROW
+E5-CMPIn-Date-Quantified	BUILD-THROW
+E5-CMPNotIn-Date-Quantified	BUILD-THROW
+E5-ARITH+-Date-Quantified	BUILD-THROW
+E5-ARITH--Date-Quantified	BUILD-THROW
+E5-ARITH*-Date-Quantified	BUILD-THROW
+E5-ARITH/-Date-Quantified	BUILD-THROW
+E5-ARITH%-Date-Quantified	BUILD-THROW
+E5-CASE-Date-Quantified	BUILD-THROW
+E5-COALESCE-Date-Quantified	BUILD-THROW
+E5-INS-Date-Quantified	BUILD-THROW
+E5-SET-Date-Quantified	BUILD-THROW
+E5-SEL-Quantified	BUILD-THROW
+E5-THEN-Quantified	BUILD-THROW
+E5-BIND-Quantified	BUILD-THROW
+E5-ABS-Quantified	BUILD-THROW
+E5-UPPER-Quantified	BUILD-THROW
+E5-CMP==-Int-Interval	BUILD-THROW
+E5-CMP!=-Int-Interval	BUILD-THROW
+E5-CMP<-Int-Interval	BUILD-THROW
+E5-CMP<=-Int-Interval	BUILD-THROW
+E5-CMP>-Int-Interval	BUILD-THROW
+E5-CMP>=-Int-Interval	BUILD-THROW
+E5-CMPLike-Int-Interval	BUILD-THROW
+E5-CMPNotLike-Int-Interval	BUILD-THROW
+E5-CMPBetween-Int-Interval	BUILD-THROW
+E5-CMPNotBetween-Int-Interval	BUILD-THROW
+E5-CMPIn-Int-Interval	BUILD-THROW
+E5-CMPNotIn-Int-Interval	BUILD-THROW
+E5-ARITH+-Int-Interval	ENGINE-ERROR: 42601: syntax error at or near "$1"  POSITION: 34
+E5-ARITH--Int-Interval	ENGINE-ERROR: 42601: syntax error at or near "$1"  POSITION: 34
+E5-ARITH*-Int-Interval	BUILD-THROW
+E5-ARITH/-Int-Interval	BUILD-THROW
+E5-ARITH%-Int-Interval	BUILD-THROW
+E5-CASE-Int-Interval	BUILD-THROW
+E5-COALESCE-Int-Interval	BUILD-THROW
+E5-INS-Int-Interval	BUILD-THROW
+E5-SET-Int-Interval	BUILD-THROW
+E5-CMP==-Text-Interval	BUILD-THROW
+E5-CMP!=-Text-Interval	BUILD-THROW
+E5-CMP<-Text-Interval	BUILD-THROW
+E5-CMP<=-Text-Interval	BUILD-THROW
+E5-CMP>-Text-Interval	BUILD-THROW
+E5-CMP>=-Text-Interval	BUILD-THROW
+E5-CMPLike-Text-Interval	BUILD-THROW
+E5-CMPNotLike-Text-Interval	BUILD-THROW
+E5-CMPBetween-Text-Interval	BUILD-THROW
+E5-CMPNotBetween-Text-Interval	BUILD-THROW
+E5-CMPIn-Text-Interval	BUILD-THROW
+E5-CMPNotIn-Text-Interval	BUILD-THROW
+E5-ARITH+-Text-Interval	ENGINE-ERROR: 42601: syntax error at or near "$1"  POSITION: 34
+E5-ARITH--Text-Interval	ENGINE-ERROR: 42601: syntax error at or near "$1"  POSITION: 34
+E5-ARITH*-Text-Interval	BUILD-THROW
+E5-ARITH/-Text-Interval	BUILD-THROW
+E5-ARITH%-Text-Interval	BUILD-THROW
+E5-CASE-Text-Interval	BUILD-THROW
+E5-COALESCE-Text-Interval	BUILD-THROW
+E5-INS-Text-Interval	BUILD-THROW
+E5-SET-Text-Interval	BUILD-THROW
+E5-CMP==-Date-Interval	BUILD-THROW
+E5-CMP!=-Date-Interval	BUILD-THROW
+E5-CMP<-Date-Interval	BUILD-THROW
+E5-CMP<=-Date-Interval	BUILD-THROW
+E5-CMP>-Date-Interval	BUILD-THROW
+E5-CMP>=-Date-Interval	BUILD-THROW
+E5-CMPLike-Date-Interval	BUILD-THROW
+E5-CMPNotLike-Date-Interval	BUILD-THROW
+E5-CMPBetween-Date-Interval	BUILD-THROW
+E5-CMPNotBetween-Date-Interval	BUILD-THROW
+E5-CMPIn-Date-Interval	BUILD-THROW
+E5-CMPNotIn-Date-Interval	BUILD-THROW
+E5-ARITH+-Date-Interval	ENGINE-ERROR: 42601: syntax error at or near "$1"  POSITION: 34
+E5-ARITH--Date-Interval	ENGINE-ERROR: 42601: syntax error at or near "$1"  POSITION: 34
+E5-ARITH*-Date-Interval	BUILD-THROW
+E5-ARITH/-Date-Interval	BUILD-THROW
+E5-ARITH%-Date-Interval	BUILD-THROW
+E5-CASE-Date-Interval	BUILD-THROW
+E5-COALESCE-Date-Interval	BUILD-THROW
+E5-INS-Date-Interval	BUILD-THROW
+E5-SET-Date-Interval	BUILD-THROW
+E5-SEL-Interval	BUILD-THROW
+E5-THEN-Interval	BUILD-THROW
+E5-BIND-Interval	BUILD-THROW
+E5-ABS-Interval	BUILD-THROW
+E5-UPPER-Interval	BUILD-THROW
