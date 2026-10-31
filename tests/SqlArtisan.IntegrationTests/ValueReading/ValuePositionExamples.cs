@@ -75,6 +75,13 @@ public static class ValuePositionCatalog
                 list.Add(new($"E5-INS-{l}-{k}", "INS", "", l, k, PositionClass.InsertValue));
                 list.Add(new($"E5-SET-{l}-{k}", "SET", "", l, k,
                     PositionClass.QuantifiableOperand));
+
+                // SET X = v, X2 = X: does the second assignment read X before or after the
+                // first wrote it (F4)? ODKU is the same pair under ON DUPLICATE KEY UPDATE.
+                list.Add(new($"E5-SET2-{l}-{k}", "SET2", "", l, k,
+                    PositionClass.QuantifiableOperand));
+                list.Add(new($"E5-ODKU-{l}-{k}", "ODKU", "", l, k,
+                    PositionClass.QuantifiableOperand));
             }
 
             foreach (string echo in Echoes)
@@ -127,6 +134,9 @@ public static class ValuePositionCatalog
                 .OrderBy(t.Column("id")),
             "INS" => Select(w.Column(WriteColumn(e.Left))).From(w).Where(w.Column("id") == 100),
             "SET" => Select(w.Column(WriteColumn(e.Left))).From(w).Where(w.Column("id") == 1),
+            "SET2" or "ODKU" => Select(w.Column(WriteColumn(e.Left)),
+                    w.Column(WriteColumn(e.Left) + "2"))
+                .From(w).Where(w.Column("id") == 1),
             "SEL" => Select(v).From(t).Where(t.Column("id") == 1),
             "THEN" => Select(Case(When(t.Column("id") == 1).Then(v))).From(t)
                 .Where(t.Column("id") == 1),
@@ -141,9 +151,15 @@ public static class ValuePositionCatalog
         DbTable w = new("vr_w");
         object v = ValueKinds.Sample(e.Kind, new DbTable("vr_t", "t"))!;
         DbColumn col = w.Column(WriteColumn(e.Left));
-        return e.Family == "INS"
-            ? InsertInto(w, w.Column("id"), col).Values(100, v)
-            : Update(w).Set(col == v).Where(w.Column("id") == 1);
+        DbColumn col2 = w.Column(WriteColumn(e.Left) + "2");
+        return e.Family switch
+        {
+            "INS" => InsertInto(w, w.Column("id"), col).Values(100, v),
+            "SET2" => Update(w).Set(col == v, col2 == col).Where(w.Column("id") == 1),
+            "ODKU" => InsertInto(w, w.Column("id"), col).Values(1, v)
+                .OnDuplicateKeyUpdate(col == v, col2 == col),
+            _ => Update(w).Set(col == v).Where(w.Column("id") == 1),
+        };
     }
 
     private static SqlCondition Compare(SqlExpression l, string op, object v) => op switch
@@ -206,7 +222,7 @@ public abstract class ValuePositionTestBase
             string observed = Observe(cnn, e, dbms);
             string? expected = ValuePositionOracle.Expected(e);
             Cell cell = ValueReadingModel.Expect(e.Class, e.Kind, _lane,
-                e.Family == "SET" ? Context.SetClause : Context.TopLevel);
+                e.Family is "SET" or "SET2" or "ODKU" ? Context.SetClause : Context.TopLevel);
             all.Append(e.Id).Append('=').Append(observed).Append('\n');
 
             // Build-time outcomes are the DB-less layer's; here only what reaches the engine.
@@ -298,7 +314,7 @@ public abstract class ValuePositionTestBase
 
     private static string Observe(IDbConnection cnn, ValuePositionExample e, Dbms dbms)
     {
-        bool writes = e.Family is "INS" or "SET";
+        bool writes = e.Family is "INS" or "SET" or "SET2" or "ODKU";
         try
         {
             (writes ? ValuePositionCatalog.Write(e) : ValuePositionCatalog.Read(e)).Build(dbms);
@@ -381,7 +397,7 @@ public abstract class ValuePositionTestBase
             + $"g {integer}, d {stamp})");
         cnn.Execute($"CREATE TABLE vr_s (id {integer} PRIMARY KEY, b {integer})");
         cnn.Execute($"CREATE TABLE vr_w (id {integer} PRIMARY KEY, i {integer}, s {text}, "
-            + $"d {stamp})");
+            + $"d {stamp}, i2 {integer}, s2 {text}, d2 {stamp})");
 
         DbTable t = new("vr_t");
         foreach ((int id, string a, int b, int g) in ExampleCatalog.Rows)
@@ -398,7 +414,10 @@ public abstract class ValuePositionTestBase
         }
 
         DbTable w = new("vr_w");
-        cnn.Execute(InsertInto(w, w.Column("id"), w.Column("i"), w.Column("s"), w.Column("d"))
-            .Values(1, 10, "x", new DateTime(2024, 1, 1, 10, 0, 0)));
+        cnn.Execute(InsertInto(
+                w, w.Column("id"), w.Column("i"), w.Column("s"), w.Column("d"), w.Column("i2"),
+                w.Column("s2"), w.Column("d2"))
+            .Values(1, 10, "x", new DateTime(2024, 1, 1, 10, 0, 0), 0, "y",
+                new DateTime(2000, 1, 1, 0, 0, 0)));
     }
 }

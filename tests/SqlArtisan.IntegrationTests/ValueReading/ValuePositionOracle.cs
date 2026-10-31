@@ -121,6 +121,19 @@ internal static class ValuePositionOracle
                     _ => null,
                 };
 
+            case "SET2":
+            case "ODKU":
+                // Standard SQL reads every right side from the row before the UPDATE, so
+                // X2 takes X's original value whatever was written to X.
+                string? written = Expected(e with { Family = "SET" });
+                string original = e.Left switch
+                {
+                    LeftType.Int => "10",
+                    LeftType.Text => "x",
+                    _ => "2024-01-01 10:00:00",
+                };
+                return written is null ? null : $"{written}:{original}";
+
             case "INS":
             case "SET":
                 if (nul)
