@@ -27,6 +27,7 @@
     },
     "test-projects": [
       "tests/SqlArtisan.Tests/SqlArtisan.Tests.csproj"
-    ]
+    ],
+    "test-case-filter": "FullyQualifiedName~SqlArtisan.Tests."
   }
 }

@@ -34,6 +34,10 @@ public static class NameResolutionExamples
     internal static readonly DbTable Wu = new("nr_w");
     private static readonly DbTable Tx = new("nr_t", "x");
     private static readonly DbTable Sx = new("nr_s", "x");
+    private static readonly DbTable SxUpper = new("nr_s", "X");
+    private static readonly DbTable Wx = new("nr_w", "x");
+    private static readonly DbTable Snew = new("nr_s", "new");
+    internal static readonly DbTable Log = new("nr_log");
 
     private const string Rows3 = "1|10,2|20,3|30";
 
@@ -291,6 +295,25 @@ public static class NameResolutionExamples
                 _ => Select(Tx.Column("id")).From(Tx).InnerJoin(Sx)
                     .On(Sx.Column("id") == Tx.Column("id")),
                 null),
+            new("PRED-Q-SAMEALIAS-CASE", [K(NrPosition.Where, Q, Outer, NrShadow.SameAliasCase,
+                    NrBlock.PredicateSubquery)],
+                _ => Select(Tx.Column("id")).From(Tx).Where(Exists(Select(SxUpper.Column("id"))
+                    .From(SxUpper).Where((SxUpper.Column("id") == 2)
+                        & (SxUpper.Column("b") == Tx.Column("b")))))
+                    .OrderBy(Tx.Column("id")),
+                "1", Other: "1,2,3"),
+            new("CTE-SHADOW-TOP", [K(NrPosition.SelectItem, Q, Own, NrShadow.SameNameCte)],
+                _ => With(new Cte("nr_t").As(Select(Su.Column("id"), Su.Column("b")).From(Su)))
+                    .Select(T.Column("id"), T.Column("b")).From(T).OrderBy(T.Column("id")),
+                Rows3, Other: "1|30,2|10,3|20"),
+            new("CTE-SHADOW-PRED", [K(NrPosition.Where, Q, Own, NrShadow.SameNameCte,
+                    NrBlock.PredicateSubquery)],
+                _ => With(new Cte("nr_t").As(Select(Su.Column("id"), Su.Column("b")).From(Su)))
+                    .Select(S.Column("id")).From(S)
+                    .Where(Exists(Select(T.Column("id")).From(T)
+                        .Where((T.Column("id") == S.Column("id")) & (T.Column("b") == 10))))
+                    .OrderBy(S.Column("id")),
+                "1", Other: "2"),
             new("USING-Q", [K(NrPosition.SelectItem, Q, Own, NrShadow.UsingColumn),
                     K(NrPosition.JoinUsing, Q, Own)],
                 _ => Select(T.Column("id"), T.Column("b")).From(T).InnerJoin(S)
@@ -339,6 +362,24 @@ public static class NameResolutionExamples
                 _ => Update(W).Set(W.Column("b") == Select(Max(S.Column("id"))).From(S)
                     .Where(S.Column("b") == W.Column("b"))),
                 "1|2,2|3,3|1", Other: "1|3,2|3,3|3", Run: NrRun.Dml, Supported: NotSqlServer),
+            new("UPD-Q-SAMEALIAS", [K(NrPosition.UpdateSetValue, Q, Outer, NrShadow.SameAlias,
+                    NrBlock.PredicateSubquery)],
+                _ => Update(Wx).Set(Wx.Column("b") == Select(Max(Sx.Column("id"))).From(Sx)
+                    .Where(Sx.Column("b") == Wx.Column("b"))),
+                "1|2,2|3,3|1", Other: "1|3,2|3,3|3", Run: NrRun.Dml, Supported: NotSqlServer),
+            new("DEL-Q-SAMEALIAS", [K(NrPosition.DmlWhere, Q, Outer, NrShadow.SameAlias,
+                    NrBlock.PredicateSubquery)],
+                _ => DeleteFrom(Wx).Where(Exists(Select(Sx.Column("id")).From(Sx)
+                    .Where((Sx.Column("id") == 2) & (Sx.Column("b") == Wx.Column("b"))))),
+                "2|20,3|30", Other: "", Run: NrRun.Dml, Supported: NotSqlServer),
+            new("DMLJOIN-Q-OWN", [K(NrPosition.DmlJoinOn, Q, Own)],
+                _ => Update(W).InnerJoin(S).On(S.Column("id") == W.Column("id"))
+                    .Set(W.Column("b") == S.Column("b")),
+                "1|30,2|10,3|20", Run: NrRun.Dml, Supported: d => d == Dbms.MySql),
+            new("DMLJOIN-B-TARGET", [K(NrPosition.DmlJoinOn, B, Own)],
+                _ => Update(Wu).InnerJoin(S).On(S.Column("id") == Wu.Column("id"))
+                    .Set(Wu.Column("b") == S.Column("b")),
+                null, Run: NrRun.Dml),
             new("UPD-B-OUTER", [K(NrPosition.DmlWhere, B, Outer, NrShadow.InnerColumn,
                     NrBlock.PredicateSubquery)],
                 _ => Update(Wu).Set(Wu.Column("b") == 0).Where(Exists(Select(S.Column("id"))
@@ -362,6 +403,29 @@ public static class NameResolutionExamples
                     K(NrPosition.UpsertSetTarget, B, Own), K(NrPosition.ConflictTarget, B, Own)],
                 d => UpsertOf(d, () => Wu.Column("b") == Excluded(Wu.Column("b"))),
                 "1|77,2|20,3|30", Run: NrRun.Dml, Supported: Upsert),
+            new("INSSET-B-OWN", [K(NrPosition.InsertSetTarget, B, Own)],
+                _ => InsertInto(Wu).Set(
+                    Wu.Column("id") == 4, Wu.Column("b") == 40, Wu.Column("c") == "s"),
+                "1|10,2|20,3|30,4|40", Run: NrRun.Dml, Supported: d => d == Dbms.MySql),
+            new("INSSET-B-OTHER", [K(NrPosition.InsertSetTarget, B, Other)],
+                _ => InsertInto(Wu).Set(Su.Column("id") == 4),
+                null, Run: NrRun.Dml),
+            new("INSVAL-B-OWN", [K(NrPosition.InsertValue, B, Own)],
+                _ => InsertInto(Wu, Wu.Column("id"), Wu.Column("b"), Wu.Column("c"))
+                    .Values(4, Wu.Column("id"), "s"),
+                null, Other: "1|10,2|20,3|30,4|4", Run: NrRun.Dml),
+            new("UPS-WHERE-B", [K(NrPosition.UpsertWhere, B, Own)],
+                _ => InsertInto(Wu, Wu.Column("id"), Wu.Column("b"), Wu.Column("c"))
+                    .Values(1, 77, "z").OnConflict(Wu.Column("id"))
+                    .DoUpdateSet(Wu.Column("b") == Excluded(Wu.Column("b")))
+                    .Where(Wu.Column("b") < 15),
+                "1|77,2|20,3|30", Run: NrRun.Dml, Supported: OnConflict),
+            new("UPS-P-SAMEALIAS-NEW", [K(NrPosition.UpsertSetValue, P, Own, NrShadow.SameAlias,
+                    NrBlock.PredicateSubquery)],
+                d => UpsertOf(d, () => Wu.Column("b") == Select(Min(Snew.Column("b"))).From(Snew)
+                    .Where(Snew.Column("id") == Excluded(Wu.Column("id")))),
+                "1|30,2|20,3|30", Other: "1|10,2|20,3|30", Run: NrRun.Dml,
+                Supported: d => d == Dbms.MySql),
             new("UPS-P-OTHER", [K(NrPosition.UpsertSetValue, P, Other)],
                 d => UpsertOf(d, () => Wu.Column("b") == Excluded(Su.Column("b"))),
                 null, Run: NrRun.Dml, Supported: Upsert),
@@ -399,6 +463,16 @@ public static class NameResolutionExamples
                 _ => MergeInto(W).Using(S).On(W.Column("id") == S.Column("id"))
                     .WhenNotMatched().ThenInsert(S.Column("id")).Values(S.Column("id")),
                 null, Run: NrRun.Dml, Supported: Merge),
+            new("MRG-BRANCH-Q", [K(NrPosition.MergeBranchCondition, Q, Own)],
+                _ => MergeInto(W).Using(S).On(W.Column("id") == S.Column("id"))
+                    .WhenMatched(S.Column("b") > 15).ThenUpdateSet(W.Column("b") == S.Column("b")),
+                "1|30,2|20,3|20", Run: NrRun.Dml, Supported: Merge),
+            new("MRG-INSVAL-Q", [K(NrPosition.MergeInsertValue, Q, Own),
+                    K(NrPosition.MergeInsertList, Q, Own)],
+                _ => MergeInto(W).Using(S).On(W.Column("id") == S.Column("id") + 10)
+                    .WhenNotMatched().ThenInsert(W.Column("id"), W.Column("b"), W.Column("c"))
+                    .Values(S.Column("id") + 10, S.Column("b"), S.Column("c")),
+                "1|10,2|20,3|30,11|30,12|10,13|20", Run: NrRun.Dml, Supported: Merge),
             new("MRG-B-SIBLING", [K(NrPosition.MergeOn, B, Own, NrShadow.SiblingColumn)],
                 _ => MergeInto(Wu).Using(Su).On(Wu.Column("id") == Su.Column("id"))
                     .WhenMatched().ThenUpdateSet(Wu.Column("c") == "m"),
@@ -424,6 +498,14 @@ public static class NameResolutionExamples
                 _ => Update(Wu).Set(Wu.Column("b") == 5).Output(Inserted(Su.Column("b")))
                     .Where(Wu.Column("id") == 1),
                 null, Run: NrRun.DmlReturns, Supported: d => d == Dbms.SqlServer),
+            new("OUTINTO-B-OWN", [K(NrPosition.OutputIntoList, B, Own)],
+                _ => Update(Wu).Set(Wu.Column("b") == 5).Output(Inserted(Wu.Column("b")))
+                    .Into(Log, Log.Column("v")).Where(Wu.Column("id") == 1),
+                "1|5,2|20,3|30", Run: NrRun.Dml, Supported: d => d == Dbms.SqlServer),
+            new("OUTINTO-B-OTHER", [K(NrPosition.OutputIntoList, B, Other)],
+                _ => Update(Wu).Set(Wu.Column("b") == 5).Output(Inserted(Wu.Column("b")))
+                    .Into(Log, Wu.Column("b")).Where(Wu.Column("id") == 1),
+                null, Run: NrRun.Dml, Supported: d => d == Dbms.SqlServer),
             new("OUT-B-OWN", [K(NrPosition.Output, B, Own)],
                 _ => Update(Wu).Set(Wu.Column("b") == 5).Output(Wu.Column("b"))
                     .Where(Wu.Column("id") == 1),

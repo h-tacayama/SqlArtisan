@@ -178,7 +178,7 @@ public abstract class NameResolutionTestBase
     {
         string integer = dbms == Dbms.Oracle ? "NUMBER(10)" : "INT";
         string text = dbms == Dbms.Oracle ? "VARCHAR2(10)" : "VARCHAR(10)";
-        foreach (string table in new[] { "nr_t", "nr_s", "nr_w" })
+        foreach (string table in new[] { "nr_t", "nr_s", "nr_w", "nr_log" })
         {
             try
             {
@@ -194,6 +194,7 @@ public abstract class NameResolutionTestBase
             + $"g {integer}, k {integer})");
         cnn.Execute($"CREATE TABLE nr_s (id {integer} PRIMARY KEY, b {integer}, c {text})");
         cnn.Execute($"CREATE TABLE nr_w (id {integer} PRIMARY KEY, b {integer}, c {text})");
+        cnn.Execute($"CREATE TABLE nr_log (v {integer})");
 
         DbTable t = NameResolutionExamples.Tu;
         DbTable s = NameResolutionExamples.Su;

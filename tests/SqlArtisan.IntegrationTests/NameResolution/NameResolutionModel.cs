@@ -71,6 +71,8 @@ public enum NrShadow
     SameAlias,     // another relation (sibling or inner) carries the owner's alias
     SameTableName, // an inner relation is the owner's table, unaliased (SQLite RETURNING)
     UsingColumn,   // the column is merged by the join's USING list
+    SameAliasCase, // an inner relation's alias differs from the owner's in case only
+    SameNameCte,   // a CTE in scope carries the owner's table name
 }
 
 public enum NrBlock
@@ -132,6 +134,7 @@ public static class NameResolutionModel
         + "(#595)";
     private const string Rule721 = "CHANGELOG/#721: an unaliased upsert target's columns are "
         + "qualified in DO UPDATE";
+    private const string RuleJoined = "guards § Joined-target alias requirement (#258)";
     private const string Rule669 = "guards § An OUTPUT item reading the target bare (#669)";
     private const string Ambiguous = "SQL standard: a column reference names exactly one "
         + "column in scope (not checked against each engine's manual)";
@@ -163,6 +166,11 @@ public static class NameResolutionModel
             ["N9"] = "FOR UPDATE OF a table the block does not list. No record.",
             ["N11"] = "A bare target column in MySQL's ON DUPLICATE KEY UPDATE value, beside "
                 + "the AS new row alias the library always emits. No record.",
+            ["N12"] = "A CTE named after a base table: every unqualified table reference in the "
+                + "statement reads the CTE. No record (found by the independent review).",
+            ["N13"] = "An inner relation aliased with the pseudo-row's name (MySQL `new`) "
+                + "captures Excluded(...). No record (found by the independent review).",
+            ["N14"] = "A column reference inside an INSERT ... VALUES row. No record.",
             ["N10"] = "A bare column of a top-level compound branch whose table only another "
                 + "branch lists: is the branch top-level for #677?",
         };
@@ -336,6 +344,12 @@ public static class NameResolutionModel
             return false;
         }
 
+        if (k.Ref == NrRef.PseudoRow && k.Shadow == NrShadow.SameAlias)
+        {
+            return k.Owner == NrOwner.Own && k.Block == NrBlock.PredicateSubquery
+                && k.Position == NrPosition.UpsertSetValue;
+        }
+
         if (k.Ref == NrRef.PseudoRow)
         {
             return k.Owner == NrOwner.Own && k.Shadow == NrShadow.None
@@ -357,7 +371,9 @@ public static class NameResolutionModel
                 && k.Ref == NrRef.QualifiedColumn && k.Block == NrBlock.PredicateSubquery,
             NrShadow.UsingColumn => k.Position is NrPosition.SelectItem or NrPosition.Where
                 && k.Owner == NrOwner.Own && k.Block == NrBlock.Top,
-            NrShadow.SameAlias => k.Ref == NrRef.QualifiedColumn,
+            NrShadow.SameAlias or NrShadow.SameAliasCase => k.Ref == NrRef.QualifiedColumn,
+            NrShadow.SameNameCte => (query || target || k.Position == NrPosition.DmlWhere)
+                && k.Block is NrBlock.Top or NrBlock.PredicateSubquery,
             _ => true,
         };
     }
@@ -370,6 +386,16 @@ public static class NameResolutionModel
         if (k.Ref == NrRef.SelectAlias)
         {
             return AliasCell(k, d);
+        }
+
+        if (k.Shadow == NrShadow.SameNameCte)
+        {
+            return new(NrOutcome.Question, "not recorded", "N12");
+        }
+
+        if (k.Ref == NrRef.PseudoRow && k.Shadow == NrShadow.SameAlias)
+        {
+            return new(NrOutcome.Question, "not recorded", "N13");
         }
 
         if (k.Ref == NrRef.PseudoRow)
@@ -429,11 +455,21 @@ public static class NameResolutionModel
             return new(NrOutcome.Question, "not recorded", "N9");
         }
 
+        if (k.Position == NrPosition.InsertValue)
+        {
+            return new(NrOutcome.Question, "not recorded", "N14");
+        }
+
         return k.Ref == NrRef.BareColumn ? BareCell(k, d) : QualifiedCell(k, d);
     }
 
     private static NrCell BareCell(NrKey k, Dbms d)
     {
+        if (k.Position == NrPosition.DmlJoinOn && k.Owner == NrOwner.Own)
+        {
+            return new(NrOutcome.BuildRejects, RuleJoined);
+        }
+
         if (IsNested(k.Block) && k.Owner != NrOwner.Own)
         {
             bool dmlTarget = k.Position is NrPosition.UpdateSetValue or NrPosition.DmlWhere
@@ -498,7 +534,7 @@ public static class NameResolutionModel
             return new(NrOutcome.EngineRejects, Missing);
         }
 
-        if (k.Shadow == NrShadow.SameAlias)
+        if (k.Shadow is NrShadow.SameAlias or NrShadow.SameAliasCase)
         {
             return k.Owner == NrOwner.OuterListed
                 ? new(NrOutcome.Question, "not recorded", "N3")
