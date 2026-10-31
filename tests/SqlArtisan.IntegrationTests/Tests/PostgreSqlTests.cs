@@ -1965,4 +1965,16 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             Select("1" + u.Age).From(u).Where(u.Id == 1)));
     }
+
+    // #742: two text columns under `+` fail here, as a string beside one does
+    // (StringPlusTextColumn_IsRejectedByTheEngine).
+    [Fact]
+    public void TextColumnPlusTextColumn_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(u.Name + u.Name).From(u).Where(u.Id == 1)));
+    }
 }
