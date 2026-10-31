@@ -1177,6 +1177,8 @@ public abstract class IntegrationTestBase
         Assert.Equal(2, Count(u.Id.Between(1, 2)));
         Assert.Equal(5, Count(u.Name.Like("%")));
         Assert.Equal(1, Count(u.Id == Bind(1)));
+        Assert.Equal(1, Count(u.Id.In(1, Null)));
+        Assert.Equal(2, Count(u.Id.NotBetween(Null, 3)));
 
         SqlCondition[] neverTrue =
         [

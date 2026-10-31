@@ -150,7 +150,8 @@ internal static class NullComparisonRule
             operand = conversion.Operand;
         }
 
-        // BindNull() binds a NULL, which the twins run in each position but a simple CASE.
+        // Untyped BindNull() only, which the twins run in each position but a simple CASE;
+        // what a typed one does turns on the type it names.
         return operand switch
         {
             IPropertyReferenceOperation
@@ -159,7 +160,10 @@ internal static class NullComparisonRule
             } => DialectUsageAnalyzer.IsFromSqlArtisan(property.ContainingAssembly),
             IInvocationOperation
             {
-                TargetMethod: { Name: "BindNull", ContainingType.Name: "Sql" } bindNull,
+                TargetMethod:
+                {
+                    Name: "BindNull", ContainingType.Name: "Sql", Parameters.Length: 0,
+                } bindNull,
             } => bound && DialectUsageAnalyzer.IsFromSqlArtisan(bindNull.ContainingAssembly),
             _ => false,
         };

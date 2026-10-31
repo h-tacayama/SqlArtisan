@@ -195,6 +195,12 @@ public class NullComparisonAnalyzerTests
         RunSilent(
             "object[] ids = { 1, Null }; var q = Select(t.Id).From(t).Where(t.Id.NotIn(ids));");
 
+    // A typed bound NULL beside a column of another type is rejected on PostgreSQL.
+    [Fact]
+    public Task TypedBindNull_StaysSilent() =>
+        RunSilent(
+            "var q = Select(t.Id).From(t).Where(t.Id == BindNull(System.Data.DbType.String));");
+
     [Fact]
     public Task BindNullAsSetAssignment_StaysSilent() =>
         RunSilent("var q = Update(t).Set(t.Name == BindNull()).Where(t.Id == 1);");
