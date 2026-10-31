@@ -1,5 +1,9 @@
 # エンジンでの確かめ — 生の結果の抜き出し
 
+統合テストは作業ブランチで 4 回走らせた: run 41159339490（100 件）、41159686928（106 件、`2.0`
+を追加）、41160677627（114 件、short・byte を追加。ログは読んでいない）、41160892388（117 件、
+レビューの指摘を確かめる E4 を追加）。下の表は 1・2 回目。4 回目の E4 は末尾の節。
+
 Example は 1 本の流れあたり 1 回目 100 本、2 回目 106 本（`DoubleWhole` = `2.0` を足した分）。
 各行は `VR <lane> <id> <模型の結果> <期待> <観測> <判定>`。判定は OK / MISMATCH /
 RECORDED（アナライザー・問い・委ねたセルなので観測だけ残す）。
@@ -75,3 +79,19 @@ XE 21 の 9 本から `E2-SEL-Bool` を除いたもの（bool は 1 で読み戻
 - 複合の末尾 `ORDER BY "t".b`: 実行（5..1）
 - `ROLLUP((SELECT ...))`: `Cannot use an aggregate or a subquery in an expression used for the
   group by list of a GROUP BY clause.`
+
+## 4 回目（run 41160892388）の E4 — レビューの指摘の確かめ
+
+```
+                  E4-PLUSDATE-TimeSpan          E4-MINUSDATE-TimeSpan         E4-SETSWAP-Column
+期待              2024-01-01T12:00:00           2024-01-01T08:00:00           1|1|50
+SQLite            2026                 外れ     2022                 外れ     1|1|50
+PostgreSQL 16     期待どおり                    期待どおり                    1|1|50   (このコンテナ)
+MySQL 8.0         20240101120000       外れ     20240101080000       外れ     1|1|1    外れ
+SQL Server 2022   Operand data type datetime2 is invalid for add / subtract operator  1|1|50
+Oracle XE 21.3    期待どおり                    期待どおり                    1|1|50
+```
+
+SQL Server 2025・Oracle 23ai・PostgreSQL 17 の 4 回目のログは読んでいない（PostgreSQL 17 の
+ジョブは成功、SQL Server 2025・Oracle 23ai は失敗）。4 回目の Oracle XE 21 は、ほかに F2 の
+派生表・CTE の 4 件を外れとして読んだ。複合の `-1` は、モデルを直した後なので OK（ORA-01785 を期待）。
