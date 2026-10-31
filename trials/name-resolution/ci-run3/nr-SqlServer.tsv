@@ -1,0 +1,89 @@
+NR	SqlServer	SEL-Q	Binds	1|10,2|20,3|30	1|10,2|20,3|30	OK
+NR	SqlServer	SEL-B	Binds	1|10,2|20,3|30	1|10,2|20,3|30	OK
+NR	SqlServer	SEL-B-SIBLING	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: Ambiguous column name 'b'.	OK
+NR	SqlServer	WHERE-B-UNLISTED-SIBLING	Permissive	(- / other 2)	2	RECORDED:=other
+NR	SqlServer	WHERE-B-UNLISTED	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: Invalid column name 'k'.	OK
+NR	SqlServer	WHERE-Q-UNLISTED	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: The multi-part identifier "t.b" could not be bound.	OK
+NR	SqlServer	PRED-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	SqlServer	PRED-Q-OUTER	Binds	1	1	OK
+NR	SqlServer	PRED-B-OWN	Binds	2	2	OK
+NR	SqlServer	SCALAR-Q-OUTER	Binds	1|2,2|3,3|1	1|2,2|3,3|1	OK
+NR	SqlServer	SCALAR-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	SqlServer	DERIVED-B-OWN	Binds	1|10,2|20,3|30	1|10,2|20,3|30	OK
+NR	SqlServer	DERIVED-B-UNLISTED	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	SqlServer	CTE-B-OWN	Binds	2,3	2,3	OK
+NR	SqlServer	CTE-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	SqlServer	CTE-B-MAIN	Binds	100,300	100,300	OK
+NR	SqlServer	LATERAL-Q-OUTER	Binds	1|2,2|3,3|1	UNSUPPORTED	DELEGATED
+NR	SqlServer	LATERAL-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	SqlServer	BRANCH-B-UNLISTED	Question[N10]	(- / other 1,2)	1,2	RECORDED:=other
+NR	SqlServer	CORD-Q	Question[Q13]	(1|10,2|10,2|20,3|20,1|30,3|30 / other -)	1|10,2|10,2|20,3|20,1|30,3|30	RECORDED:=intended
+NR	SqlServer	CORD-A-FIRST	Binds	1|10,2|10,2|20,3|20,1|30,3|30	1|10,2|10,2|20,3|20,1|30,3|30	OK
+NR	SqlServer	CORD-A-LATER	Question[N8]	(1|10,2|10,2|20,3|20,1|30,3|30 / other -)	ENGINE-ERROR: Invalid column name 'x'. ORDER BY items must appear in the select list if the statement contains a UNION, INTERSECT or EXCEPT operator. Inva	RECORDED:error
+NR	SqlServer	ORD-A-OWN	Binds	3|-30,2|-20,1|-10	3|-30,2|-20,1|-10	OK
+NR	SqlServer	ORD-B-ALIAS	Permissive	(1|-10,2|-20,3|-30 / other 3|-30,2|-20,1|-10)	3|-30,2|-20,1|-10	RECORDED:=other
+NR	SqlServer	ORD-Q-ALIAS	Binds	1|-10,2|-20,3|-30	1|-10,2|-20,3|-30	OK
+NR	SqlServer	ORD-A-UNSELECTED	Permissive	(3,2,1 / other 1,2,3)	1,2,3	RECORDED:=other
+NR	SqlServer	GRP-B-ALIAS	Question[N1]	(1|0,2|0 / other 3|0)	1|0,2|0	RECORDED:=intended
+NR	SqlServer	GRP-A	Question[N7]	(1|2,2|1 / other -)	BUILD-THROW: Invalid type for GroupByItem: SqlArtisan.ExpressionAlias	RECORDED:build-throw
+NR	SqlServer	HAV-B-ALIAS	Question[N1]	(2 / other 1)	2	RECORDED:=intended
+NR	SqlServer	WHERE-B-ALIAS	Question[N1]	(1|-10 / other )	1|-10	RECORDED:=intended
+NR	SqlServer	WORD-B-ALIAS	Question[N2]	(1|-10|1,2|-20|2,3|-30|3 / other 1|-10|3,2|-20|2,3|-30|1)	1|-10|1,2|-20|2,3|-30|3	RECORDED:=intended
+NR	SqlServer	WPART-B-ALIAS	Question[N2]	(1|0|1,2|0|2,3|0|1 / other 1|0|1,2|0|2,3|0|3)	1|0|1,2|0|2,3|0|1	RECORDED:=intended
+NR	SqlServer	AGG-B-ALIAS	Question[N2]	(p,q,r|-10 / other -)	p,q,r|-10	RECORDED:=intended
+NR	SqlServer	WORD-A	BuildRejects	BUILD-THROW	BUILD-THROW: An ORDER BY inside OVER, WITHIN GROUP or an aggregate cannot sort by a select alias; pass the aliased expression instead. (Parameter 'orderB	OK
+NR	SqlServer	DON-B-ALIAS	Question[N1]	(1|0,3|0 / other 1|0)	UNSUPPORTED	DELEGATED
+NR	SqlServer	PRED-Q-SAMEALIAS	Question[N3]	(1 / other 1,2,3)	1,2,3	RECORDED:=other
+NR	SqlServer	ON-Q-SAMEALIAS	Question[N4]	(- / other -)	ENGINE-ERROR: The correlation name 'x' is specified multiple times in a FROM clause.	RECORDED:error
+NR	SqlServer	PRED-Q-SAMEALIAS-CASE	Question[N3]	(1 / other 1,2,3)	1,2,3	RECORDED:=other
+NR	SqlServer	CTE-SHADOW-TOP	Question[N12]	(1|10,2|20,3|30 / other 1|30,2|10,3|20)	1|30,2|10,3|20	RECORDED:=other
+NR	SqlServer	CTE-SHADOW-PRED	Question[N12]	(1 / other 2)	2	RECORDED:=other
+NR	SqlServer	USING-Q	Question[N5]	(1|10,2|20,3|30 / other -)	UNSUPPORTED	DELEGATED
+NR	SqlServer	USING-B	Binds	1|100,2|200,3|300	UNSUPPORTED	DELEGATED
+NR	SqlServer	USING-OTHER	Question[N6]	(- / other 1|30,2|10,3|20)	UNSUPPORTED	DELEGATED
+NR	SqlServer	FOU-T-OWN	Binds	1	UNSUPPORTED	DELEGATED
+NR	SqlServer	FOU-COL-OWN	Delegated	(1 / other -)	UNSUPPORTED	DELEGATED
+NR	SqlServer	FOU-T-UNLISTED	Question[N9]	(- / other -)	UNSUPPORTED	DELEGATED
+NR	SqlServer	SEL-P	AnalyzerWarns	(- / other -)	ENGINE-ERROR: The multi-part identifier "EXCLUDED.b" could not be bound.	RECORDED:error
+NR	SqlServer	UPD-B-OWN	Binds	1|99,2|20,3|30	1|99,2|20,3|30	OK
+NR	SqlServer	UPD-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: The SET assignment list must assign only columns of the target table.	OK
+NR	SqlServer	UPD-Q-OTHER-SWAP	BuildRejects	BUILD-THROW	BUILD-THROW: A joined UPDATE on SQL Server must re-list the target table in the FROM clause.	OK
+NR	SqlServer	UPD-Q-OUTER	Binds	1|2,2|3,3|1	UNSUPPORTED	DELEGATED
+NR	SqlServer	UPD-Q-SAMEALIAS	Question[N3]	(1|2,2|3,3|1 / other 1|3,2|3,3|3)	UNSUPPORTED	DELEGATED
+NR	SqlServer	DEL-Q-SAMEALIAS	Question[N3]	(2|20,3|30 / other )	UNSUPPORTED	DELEGATED
+NR	SqlServer	DMLJOIN-Q-OWN	Binds	1|30,2|10,3|20	UNSUPPORTED	DELEGATED
+NR	SqlServer	DMLJOIN-B-TARGET	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a joined UPDATE or DELETE must be aliased.	OK
+NR	SqlServer	UPD-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a correlated UPDATE, DELETE, or MERGE must be aliased.	OK
+NR	SqlServer	UPD-B-OUTER-TWICE	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a correlated UPDATE, DELETE, or MERGE must be aliased.	OK
+NR	SqlServer	UPD-B-BRANCH-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a correlated UPDATE, DELETE, or MERGE must be aliased.	OK
+NR	SqlServer	UPD-B-BRANCH-LISTED	Binds	1|0,2|20,3|30	1|0,2|20,3|30	OK
+NR	SqlServer	UPD-B-SCHEMA	Binds	1|99,2|20,3|30	UNSUPPORTED	DELEGATED
+NR	SqlServer	DEL-Q-OUTER	Binds	2|20,3|30	UNSUPPORTED	DELEGATED
+NR	SqlServer	INS-B-OWN	Binds	1|10,2|20,3|30,4|40	1|10,2|20,3|30,4|40	OK
+NR	SqlServer	INS-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: An INSERT column list must name only columns of the target table.	OK
+NR	SqlServer	UPS-P-OWN	Delegated	(1|77,2|20,3|30 / other -)	UNSUPPORTED	DELEGATED
+NR	SqlServer	INSSET-B-OWN	Binds	1|10,2|20,3|30,4|40	UNSUPPORTED	DELEGATED
+NR	SqlServer	INSSET-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: The SET assignment list must assign only columns of the target table.	OK
+NR	SqlServer	INSVAL-B-OWN	Question[N14]	(- / other 1|10,2|20,3|30,4|4)	ENGINE-ERROR: Invalid column name 'id'.	RECORDED:error
+NR	SqlServer	UPS-WHERE-B	Binds	1|77,2|20,3|30	UNSUPPORTED	DELEGATED
+NR	SqlServer	UPS-P-SAMEALIAS-NEW	Question[N13]	(1|30,2|20,3|30 / other 1|10,2|20,3|30)	UNSUPPORTED	DELEGATED
+NR	SqlServer	UPS-P-OTHER	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
+NR	SqlServer	UPS-B-VALUE	Binds	1|11,2|20,3|30	UNSUPPORTED	DELEGATED
+NR	SqlServer	UPS-B-OUTER	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
+NR	SqlServer	UPS-B-SUBQUERY-OWN	Binds	1|30,2|20,3|30	UNSUPPORTED	DELEGATED
+NR	SqlServer	UPS-B-TARGET-OTHER	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
+NR	SqlServer	CONFLICT-B-OTHER	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
+NR	SqlServer	MRG-Q-OWN	Binds	1|30,2|10,3|20	1|30,2|10,3|20	OK
+NR	SqlServer	MRG-Q-OTHER-SWAP	BuildRejects	BUILD-THROW	BUILD-THROW: The UPDATE SET assignment list must assign only columns of the target table.	OK
+NR	SqlServer	MRG-INSLIST-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: An INSERT column list must name only columns of the target table.	OK
+NR	SqlServer	MRG-BRANCH-Q	Binds	1|30,2|20,3|20	1|30,2|20,3|20	OK
+NR	SqlServer	MRG-INSVAL-Q	Binds	1|10,2|20,3|30,11|30,12|10,13|20	1|10,2|20,3|30,11|30,12|10,13|20	OK
+NR	SqlServer	MRG-B-SIBLING	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: Ambiguous column name 'id'. Ambiguous column name 'id'.	OK
+NR	SqlServer	RET-Q-OWN	Binds	5	UNSUPPORTED	DELEGATED
+NR	SqlServer	RET-Q-SAMETABLE	Binds	1	UNSUPPORTED	DELEGATED
+NR	SqlServer	RET-Q-SAMETABLE-QUOTED	Binds	1	UNSUPPORTED	DELEGATED
+NR	SqlServer	OUT-P-OWN	Delegated	(5 / other -)	5	RECORDED:=intended
+NR	SqlServer	OUT-P-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: INSERTED must name a column of the statement's target table.	OK
+NR	SqlServer	OUTINTO-B-OWN	Binds	1|5,2|20,3|30	1|5,2|20,3|30	OK
+NR	SqlServer	OUTINTO-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: An OUTPUT INTO column list must name only columns of its table.	OK
+NR	SqlServer	OUT-B-OWN	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: Invalid column name 'b'.	OK
