@@ -48,9 +48,20 @@ jobs:
       - name: Restore
         run: dotnet restore tests/SqlArtisan.IntegrationTests/SqlArtisan.IntegrationTests.csproj
 
+      # Trial branch only (value-reading model trial): run the trial's engine Examples
+      # alone, print each Example line, and keep the per-lane TSV as an artifact.
       - name: Test (${{ matrix.engine }})
+        env:
+          VR_RESULTS_DIR: ${{ github.workspace }}/vr-results
         run: >
           dotnet test tests/SqlArtisan.IntegrationTests
           -c Release
-          --filter "Engine=${{ matrix.engine }}"
-          --logger "console;verbosity=normal"
+          --filter "Engine=${{ matrix.engine }}&FullyQualifiedName~ValueReading"
+          --logger "console;verbosity=detailed"
+
+      - name: Upload value-reading results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vr-results-${{ matrix.engine }}
+          path: vr-results/
