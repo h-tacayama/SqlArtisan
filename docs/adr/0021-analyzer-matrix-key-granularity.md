@@ -62,7 +62,8 @@ overloads genuinely differ in dialect support.** Arity is not made universal.
   different parameter types collide into one key (ADR 0008's rejected
   type-based keys; the `Match` caveat in `DialectMatrix`'s class doc), and a
   construct whose dialect support depends on an argument's *value* has no
-  arity to distinguish it at all (`Trunc`). Distinguishing call shapes belongs
+  arity to distinguish it at all (`Trunc`, entered as the union of its numeric and
+  date cells, which only under-reports). Distinguishing call shapes belongs
   to a signature-aware mechanism (#489), not to the matrix's lookup key.
 
 ## Consequences

@@ -74,7 +74,7 @@ row on that weighing:
   the marker. The MySQL lane fills a marker in on the client, so MySQL 8.0's
   acceptance of `DATE_FORMAT(d, ?)` is shown by a server-side prepare instead
   (`MySqlTests.DateFormat_BoundFormat_RunsServerPrepared`), the check that
-  rejects the bound `->>` key. `Trunc`'s format, which the matrix leaves out,
+  rejects the bound `->>` key. `Trunc`'s date-format unit, which the sweep's numeric case does not exercise,
   and the `Julianday` and `Strftime` modifiers are run bound on no lane.
 - SQLite 3.50.4, the lane's engine, plans `SEARCH … USING … INDEX` over an
   index on `strftime('%Y', d)` or `date(d, 'start of month')` only with the
