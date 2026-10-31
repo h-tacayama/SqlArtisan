@@ -351,7 +351,8 @@ public static class PositionProbe
             _ when t == typeof(GroupingSet[]) => new[] { Group(table.Column("g")) },
             _ when t == typeof(IntervalField) => Year(),
             _ when t == typeof(IntervalExpression) => Interval(1, DateTimePart.Day),
-            _ when t == typeof(IntervalLiteralExpression) => IntervalLiteral("1-2", Year(), ToMonth),
+            _ when t == typeof(IntervalLiteralExpression)
+                => IntervalLiteral("1-2", Year(), ToMonth),
             _ when t == typeof(DerivedTableBase) => new DerivedTable("d"),
             _ when t == typeof(int?) => null,
             _ when t == typeof(DbType) => DbType.Int32,

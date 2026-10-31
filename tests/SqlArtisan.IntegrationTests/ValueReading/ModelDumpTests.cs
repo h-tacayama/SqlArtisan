@@ -26,7 +26,8 @@ public sealed class ModelDumpTests
         }
 
         StringBuilder sb = new();
-        sb.Append("class\tslots\tkind\tlane\tcontext\toutcome\tshape\tdiagnostic\tquestion\tbasis\n");
+        sb.Append("class\tslots\tkind\tlane\tcontext\toutcome\tshape\tdiagnostic\t")
+            .Append("question\tbasis\n");
         Dictionary<PositionClass, int> slots = PositionInventory.Slots
             .GroupBy(s => ValueReadingModel.ClassOf(s)!.Value)
             .ToDictionary(g => g.Key, g => g.Count());

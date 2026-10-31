@@ -222,7 +222,8 @@ public static class ValueReadingModel
     internal const string GroupOrdinalLow = "guards § GROUP BY ordinal below 1 (#684)";
     internal const string GroupSubquery = "guards § bound-value paragraph: GroupBy(subquery) "
         + "stays rejected (ADR 0010)";
-    internal const string DistinctOnRec = "guards § bound-value paragraph: DistinctOn ordinal (#692)";
+    internal const string DistinctOnRec =
+        "guards § bound-value paragraph: DistinctOn ordinal (#692)";
     internal const string StringPlus = "ADR 0022 sixth domain (#742)";
     internal const string RoundScaleRec = "ADR 0022 fifth domain (#742)";
     internal const string RowCount = "ADR 0022 + guards § negative row count (#523/#529)";
@@ -380,7 +381,11 @@ public static class ValueReadingModel
 
     /// <summary>The expected cell for a class, value kind, lane and context. Context
     /// only refines the key classes; every other class reads the same in each.</summary>
-    public static Cell Expect(PositionClass c, ValueKind v, Lane lane, Context ctx = Context.TopLevel)
+    public static Cell Expect(
+        PositionClass c,
+        ValueKind v,
+        Lane lane,
+        Context ctx = Context.TopLevel)
     {
         Dbms d = DbmsOf(lane);
 
@@ -439,7 +444,8 @@ public static class ValueReadingModel
                     : ValueCell(PositionClass.ArithmeticOperand, v, lane, ctx);
             case PositionClass.PositionBoundOnly:
                 return v is ValueKind.Interval or ValueKind.Quantified
-                    ? new(Outcome.Delegated, Shape.PositionBound, Incomplete + " / " + MatrixAvailability)
+                    ? new(Outcome.Delegated, Shape.PositionBound,
+                        Incomplete + " / " + MatrixAvailability)
                     : new(Outcome.CompileStops, Shape.None, CSharpTypes);
             case PositionClass.ExpressionOnly:
                 return v is ValueKind.Column or ValueKind.Expression or ValueKind.BindInt
@@ -519,7 +525,8 @@ public static class ValueReadingModel
                 return c is PositionClass.QuantifiableOperand or PositionClass.SimpleCaseOperand
                     && ctx != Context.SetClause
                     ? new(Outcome.AnalyzerWarns, Shape.Literal, SqlNullCompare, "SQLA0303")
-                    : new(Outcome.Executes, Shape.Literal, "Sql.Null emits NULL as written (ADR 0001)");
+                    : new(Outcome.Executes, Shape.Literal,
+                        "Sql.Null emits NULL as written (ADR 0001)");
             case ValueKind.Column:
             case ValueKind.Expression:
                 return new(Outcome.Executes, Shape.AsWritten, "ADR 0001");
@@ -551,7 +558,8 @@ public static class ValueReadingModel
                 : new(Outcome.Executes, Shape.Marker, RoundScaleRec);
         }
 
-        if (v is ValueKind.Double or ValueKind.DoubleWhole or ValueKind.Decimal or ValueKind.Long or ValueKind.IntZero
+        if (v is ValueKind.Double or ValueKind.DoubleWhole or ValueKind.Decimal or ValueKind.Long
+            or ValueKind.IntZero
             or ValueKind.IntPositive or ValueKind.IntNegative or ValueKind.Text or ValueKind.Char
             or ValueKind.Bool or ValueKind.DateTime or ValueKind.Guid or ValueKind.DateTimeOffset
             or ValueKind.TimeSpan or ValueKind.BindInt or ValueKind.BindText
@@ -602,10 +610,12 @@ public static class ValueReadingModel
             return d == Dbms.Sqlite && v == ValueKind.Column
                 ? new(Outcome.Executes, Shape.AsWritten, CompoundOrderBy)
                 : d is Dbms.PostgreSql or Dbms.Sqlite
-                    ? v is ValueKind.Double or ValueKind.DoubleWhole or ValueKind.Decimal && d == Dbms.PostgreSql
+                    ? v is ValueKind.Double or ValueKind.DoubleWhole or ValueKind.Decimal
+                        && d == Dbms.PostgreSql
                         ? new(Outcome.BuildRejects, Shape.None, FracOrderBy)
                         : new(Outcome.EngineRejects, Shape.None, CompoundOrderBy)
-                    : v is ValueKind.Double or ValueKind.DoubleWhole or ValueKind.Decimal && d == Dbms.SqlServer
+                    : v is ValueKind.Double or ValueKind.DoubleWhole or ValueKind.Decimal
+                        && d == Dbms.SqlServer
                         ? new(Outcome.BuildRejects, Shape.None, FracOrderBy)
                         : new(Outcome.Question, Shape.None, "not recorded", QuestionId: "Q13");
         }
@@ -785,7 +795,8 @@ public static class ValueReadingModel
                 _ => new(Outcome.Executes, Shape.ConstantKey, BindDeliberate,
                     Meaning: "constant key"),
             },
-            ValueKind.SqlNull => position == "PartitionByItem" && d is Dbms.PostgreSql or Dbms.Sqlite
+            ValueKind.SqlNull => position == "PartitionByItem"
+                && d is Dbms.PostgreSql or Dbms.Sqlite
                 ? new(Outcome.Executes, Shape.ConstantKey, SqlNullKey, Meaning: "constant key")
                 : position != "PartitionByItem" && d == Dbms.PostgreSql
                     ? new(Outcome.EngineRejects, Shape.Literal, SqlNullKey)

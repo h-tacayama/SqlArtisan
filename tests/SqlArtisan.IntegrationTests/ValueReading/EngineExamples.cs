@@ -59,9 +59,11 @@ public static class ExampleCatalog
         }
 
         // E2: the value-domain / operand cells, and the select-item control.
-        foreach (ValueKind kind in ValueKinds.All.Where(k => ReachesEngine(PositionClass.SelectItem, k)))
+        foreach (ValueKind kind in ValueKinds.All
+            .Where(k => ReachesEngine(PositionClass.SelectItem, k)))
         {
-            list.Add(new($"E2-SEL-{kind}", PositionClass.SelectItem, kind, Context.TopLevel, "SEL"));
+            list.Add(new(
+                $"E2-SEL-{kind}", PositionClass.SelectItem, kind, Context.TopLevel, "SEL"));
         }
 
         foreach (ValueKind kind in new[] { ValueKind.Quantified, ValueKind.SqlNull,
@@ -82,6 +84,15 @@ public static class ExampleCatalog
             list.Add(new($"E2-ROUND-{kind}", PositionClass.RoundScale, kind, Context.TopLevel,
                 "ROUND"));
         }
+
+        // E4 (added after step 5): `+` / `-` beside a date with a TimeSpan, and a SET
+        // assignment reading a column an earlier assignment wrote.
+        list.Add(new("E4-PLUSDATE-TimeSpan", PositionClass.PlusOperand, ValueKind.TimeSpan,
+            Context.TopLevel, "PLUSDATE"));
+        list.Add(new("E4-MINUSDATE-TimeSpan", PositionClass.MinusOperand, ValueKind.TimeSpan,
+            Context.TopLevel, "MINUSDATE"));
+        list.Add(new("E4-SETSWAP-Column", PositionClass.QuantifiableOperand, ValueKind.Column,
+            Context.SetClause, "SETSWAP"));
 
         // E3: contexts raised by the known examples.
         foreach (Context ctx in new[] { Context.Subquery, Context.Cte, Context.SetOperationBranch })
@@ -150,6 +161,8 @@ public static class ExampleCatalog
                 .OrderBy(t.Column("id")),
             ("PLUS", _) => Select(t.Column("a") + v!).From(t).Where(t.Column("id") == 1),
             ("ROUND", _) => Select(Round(75, v!)).From(t).Where(t.Column("id") == 1),
+            ("PLUSDATE", _) => Select(t.Column("d") + v!).From(t).Where(t.Column("id") == 1),
+            ("MINUSDATE", _) => Select(t.Column("d") - v!).From(t).Where(t.Column("id") == 1),
             _ => throw new ArgumentOutOfRangeException(nameof(e)),
         };
     }
@@ -198,7 +211,8 @@ public static class ExampleCatalog
         {
             ("ORD", Context.TopLevel or Context.SetOperationBranch, "ordinal" or "column"
                 or "expression") => Ids(5, 4, 3, 2, 1),
-            ("ORD", Context.TopLevel or Context.SetOperationBranch, "constant") => Ids(1, 2, 3, 4, 5),
+            ("ORD", Context.TopLevel or Context.SetOperationBranch, "constant")
+                => Ids(1, 2, 3, 4, 5),
             ("ORD", _, "ordinal" or "column" or "expression") => Ids(4, 5),
             ("ORD", _, "constant") => Ids(1, 2),
             ("ORDX-WINDOW", _, "constant") => ["1|1", "2|2", "3|3", "4|4", "5|5"],
@@ -223,6 +237,9 @@ public static class ExampleCatalog
             ("EQ", _, "value") => [],
             ("PLUS", _, "concatenation") => ["eb"],
             ("ROUND", _, "value") => [e.Kind == ValueKind.IntNegative ? "80" : "75"],
+            ("PLUSDATE", _, "value") => ["2024-01-01T12:00:00.0000000"],
+            ("MINUSDATE", _, "value") => ["2024-01-01T08:00:00.0000000"],
+            ("SETSWAP", _, "column") => ["1|1|50"],
             _ => null,
         };
     }
@@ -320,10 +337,12 @@ public abstract class EngineExampleTestBase
             case Outcome.EngineRejects:
                 return "ENGINE-ERROR";
             case Outcome.Executes:
-                string[]? rows = ExampleCatalog.RowsFor(e, ExampleCatalog.ReadingOf(e, cell), _lane);
+                string[]? rows = ExampleCatalog.RowsFor(
+                    e, ExampleCatalog.ReadingOf(e, cell), _lane);
                 return rows is null ? "ENGINE-ERROR" : string.Join(",", rows);
             default:
-                string[]? meant = ExampleCatalog.RowsFor(e, ExampleCatalog.ReadingOf(e, cell), _lane);
+                string[]? meant = ExampleCatalog.RowsFor(
+                    e, ExampleCatalog.ReadingOf(e, cell), _lane);
                 return meant is null ? "-" : "(" + string.Join(",", meant) + ")";
         }
     }
@@ -337,7 +356,9 @@ public abstract class EngineExampleTestBase
 
         if (expected == "ENGINE-ERROR")
         {
-            return observed.StartsWith("ENGINE-ERROR", StringComparison.Ordinal) ? "OK" : "MISMATCH";
+            return observed.StartsWith("ENGINE-ERROR", StringComparison.Ordinal)
+                ? "OK"
+                : "MISMATCH";
         }
 
         if (expected == "~")
@@ -358,6 +379,11 @@ public abstract class EngineExampleTestBase
 
     private static string Observe(IDbConnection cnn, EngineExample e, Dbms dbms)
     {
+        if (e.Template == "SETSWAP")
+        {
+            return ObserveSwap(cnn);
+        }
+
         ISqlBuilder builder;
         try
         {
@@ -411,6 +437,33 @@ public abstract class EngineExampleTestBase
         }
     }
 
+    // UPDATE vr_t SET b = g, g = b WHERE id = 1, in a transaction that is rolled back.
+    private static string ObserveSwap(IDbConnection cnn)
+    {
+        DbTable u = new("vr_t");
+        using IDbTransaction tx = cnn.BeginTransaction();
+        try
+        {
+            cnn.Execute(
+                Update(u).Set(u.Column("b") == u.Column("g"), u.Column("g") == u.Column("b"))
+                    .Where(u.Column("id") == 1),
+                tx);
+            IDictionary<string, object?> row = (IDictionary<string, object?>)cnn.Query(
+                Select(u.Column("id"), u.Column("b"), u.Column("g")).From(u)
+                    .Where(u.Column("id") == 1),
+                tx).Single();
+            return string.Join("|", row.Values.Select(Normalize));
+        }
+        catch (DbException ex)
+        {
+            return "ENGINE-ERROR: " + ex.Message.Replace('\n', ' ');
+        }
+        finally
+        {
+            tx.Rollback();
+        }
+    }
+
     private static string Normalize(object? value) => value switch
     {
         null or DBNull => "NULL",
@@ -427,6 +480,12 @@ public abstract class EngineExampleTestBase
     {
         string integer = dbms == Dbms.Oracle ? "NUMBER(10)" : "INT";
         string text = dbms == Dbms.Oracle ? "VARCHAR2(10)" : "VARCHAR(10)";
+        string stamp = dbms switch
+        {
+            Dbms.SqlServer => "DATETIME2",
+            Dbms.MySql => "DATETIME",
+            _ => "TIMESTAMP",
+        };
 
         foreach (string table in new[] { "vr_t", "vr_s" })
         {
@@ -441,14 +500,15 @@ public abstract class EngineExampleTestBase
         }
 
         cnn.Execute($"CREATE TABLE vr_t (id {integer} PRIMARY KEY, a {text}, b {integer}, "
-            + $"g {integer})");
+            + $"g {integer}, d {stamp})");
         cnn.Execute($"CREATE TABLE vr_s (id {integer} PRIMARY KEY, b {integer})");
 
         DbTable t = new("vr_t");
         foreach ((int id, string a, int b, int g) in ExampleCatalog.Rows)
         {
-            cnn.Execute(InsertInto(t, t.Column("id"), t.Column("a"), t.Column("b"), t.Column("g"))
-                .Values(id, a, b, g));
+            cnn.Execute(InsertInto(
+                    t, t.Column("id"), t.Column("a"), t.Column("b"), t.Column("g"), t.Column("d"))
+                .Values(id, a, b, g, new DateTime(2024, 1, 1, 10, 0, 0)));
         }
 
         DbTable s = new("vr_s");

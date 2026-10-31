@@ -88,7 +88,8 @@ public static class PositionInventory
                     ? []
                     : type.GetConstructors(BindingFlags.Public | BindingFlags.Instance));
 
-            foreach (MethodBase member in declared.OrderBy(m => m.ToString(), StringComparer.Ordinal))
+            foreach (MethodBase member in declared
+                .OrderBy(m => m.ToString(), StringComparer.Ordinal))
             {
                 if (member.GetCustomAttribute<ObsoleteAttribute>() is { IsError: true })
                 {

@@ -117,7 +117,8 @@ internal static class ValueKinds
             target = target.GetElementType()!;
         }
 
-        if (target.IsGenericType && target.GetGenericTypeDefinition() == typeof(IReadOnlyCollection<>))
+        if (target.IsGenericType
+            && target.GetGenericTypeDefinition() == typeof(IReadOnlyCollection<>))
         {
             target = target.GetGenericArguments()[0];
         }
