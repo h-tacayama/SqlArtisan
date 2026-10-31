@@ -1,0 +1,83 @@
+NR	PostgreSql	SEL-Q	Binds	1|10,2|20,3|30	1|10,2|20,3|30	OK
+NR	PostgreSql	SEL-B	Binds	1|10,2|20,3|30	1|10,2|20,3|30	OK
+NR	PostgreSql	SEL-B-SIBLING	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: 42702: column reference "b" is ambiguous  POSITION: 8	OK
+NR	PostgreSql	WHERE-B-UNLISTED-SIBLING	Permissive	(- / other 2)	2	RECORDED:=other
+NR	PostgreSql	WHERE-B-UNLISTED	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: 42703: column "k" does not exist  POSITION: 35	OK
+NR	PostgreSql	WHERE-Q-UNLISTED	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 35	OK
+NR	PostgreSql	PRED-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	PostgreSql	PRED-Q-OUTER	Binds	1	1	OK
+NR	PostgreSql	PRED-B-OWN	Binds	2	2	OK
+NR	PostgreSql	SCALAR-Q-OUTER	Binds	1|2,2|3,3|1	1|2,2|3,3|1	OK
+NR	PostgreSql	SCALAR-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	PostgreSql	DERIVED-B-OWN	Binds	1|10,2|20,3|30	1|10,2|20,3|30	OK
+NR	PostgreSql	DERIVED-B-UNLISTED	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	PostgreSql	CTE-B-OWN	Binds	2,3	2,3	OK
+NR	PostgreSql	CTE-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	PostgreSql	LATERAL-Q-OUTER	Binds	1|2,2|3,3|1	1|2,2|3,3|1	OK
+NR	PostgreSql	LATERAL-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	PostgreSql	BRANCH-B-UNLISTED	Question[N10]	(- / other 1,2)	1,2	RECORDED:=other
+NR	PostgreSql	CORD-Q	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 90	OK
+NR	PostgreSql	CORD-A-FIRST	Binds	1|10,2|10,2|20,3|20,1|30,3|30	1|10,2|10,2|20,3|20,1|30,3|30	OK
+NR	PostgreSql	CORD-A-LATER	Question[N8]	(1|10,2|10,2|20,3|20,1|30,3|30 / other -)	ENGINE-ERROR: 42703: column "x" does not exist  POSITION: 98 DETAIL: Detail redacted as it may contain sensitive data. Specify 'Include Error Detail' in t	RECORDED:error
+NR	PostgreSql	ORD-A-OWN	Binds	3|-30,2|-20,1|-10	3|-30,2|-20,1|-10	OK
+NR	PostgreSql	ORD-B-ALIAS	Permissive	(1|-10,2|-20,3|-30 / other 3|-30,2|-20,1|-10)	3|-30,2|-20,1|-10	RECORDED:=other
+NR	PostgreSql	ORD-Q-ALIAS	Binds	1|-10,2|-20,3|-30	1|-10,2|-20,3|-30	OK
+NR	PostgreSql	ORD-A-UNSELECTED	Permissive	(3,2,1 / other 1,2,3)	1,2,3	RECORDED:=other
+NR	PostgreSql	GRP-B-ALIAS	Question[N1]	(1|0,2|0 / other 3|0)	1|0,2|0	RECORDED:=intended
+NR	PostgreSql	GRP-A	Question[N7]	(1|2,2|1 / other -)	BUILD-THROW: Invalid type for GroupByItem: SqlArtisan.ExpressionAlias	RECORDED:build-throw
+NR	PostgreSql	HAV-B-ALIAS	Question[N1]	(2 / other 1)	2	RECORDED:=intended
+NR	PostgreSql	WHERE-B-ALIAS	Question[N1]	(1|-10 / other )	1|-10	RECORDED:=intended
+NR	PostgreSql	WORD-B-ALIAS	Binds	1|-10|1,2|-20|2,3|-30|3	1|-10|1,2|-20|2,3|-30|3	OK
+NR	PostgreSql	WPART-B-ALIAS	Binds	1|0|1,2|0|2,3|0|1	1|0|1,2|0|2,3|0|1	OK
+NR	PostgreSql	AGG-B-ALIAS	Binds	p,q,r|-10	p,q,r|-10	OK
+NR	PostgreSql	WORD-A	BuildRejects	BUILD-THROW	BUILD-THROW: An ORDER BY inside OVER, WITHIN GROUP or an aggregate cannot sort by a select alias; pass the aliased expression instead. (Parameter 'orderB	OK
+NR	PostgreSql	DON-B-ALIAS	Question[N1]	(1|0,3|0 / other 1|0)	1|0	RECORDED:=other
+NR	PostgreSql	PRED-Q-SAMEALIAS	Question[N3]	(1 / other 1,2,3)	1,2,3	RECORDED:=other
+NR	PostgreSql	ON-Q-SAMEALIAS	Question[N4]	(- / other -)	ENGINE-ERROR: 42712: table name "x" specified more than once	RECORDED:error
+NR	PostgreSql	PRED-Q-SAMEALIAS-CASE	Question[N3]	(1 / other 1,2,3)	1	RECORDED:=intended
+NR	PostgreSql	CTE-SHADOW-TOP	Question[N12]	(1|10,2|20,3|30 / other 1|30,2|10,3|20)	1|30,2|10,3|20	RECORDED:=other
+NR	PostgreSql	CTE-SHADOW-PRED	Question[N12]	(1 / other 2)	2	RECORDED:=other
+NR	PostgreSql	USING-Q	Question[N5]	(1|10,2|20,3|30 / other -)	1|10,2|20,3|30	RECORDED:=intended
+NR	PostgreSql	USING-B	Binds	1|100,2|200,3|300	1|100,2|200,3|300	OK
+NR	PostgreSql	USING-OTHER	Question[N6]	(- / other 1|30,2|10,3|20)	1|30,2|10,3|20	RECORDED:=other
+NR	PostgreSql	FOU-T-OWN	Binds	1	1	OK
+NR	PostgreSql	FOU-COL-OWN	Delegated	(1 / other -)	UNSUPPORTED	DELEGATED
+NR	PostgreSql	FOU-T-UNLISTED	Question[N9]	(- / other -)	ENGINE-ERROR: 42P01: relation "s" in FOR UPDATE clause not found in FROM clause  POSITION: 61	RECORDED:error
+NR	PostgreSql	SEL-P	AnalyzerWarns	(- / other -)	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "excluded"  POSITION: 8	RECORDED:error
+NR	PostgreSql	UPD-B-OWN	Binds	1|99,2|20,3|30	1|99,2|20,3|30	OK
+NR	PostgreSql	UPD-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: The SET assignment list must assign only columns of the target table.	OK
+NR	PostgreSql	UPD-Q-OTHER-SWAP	BuildRejects	BUILD-THROW	BUILD-THROW: The SET assignment list must assign only columns of the target table.	OK
+NR	PostgreSql	UPD-Q-OUTER	Binds	1|2,2|3,3|1	1|2,2|3,3|1	OK
+NR	PostgreSql	UPD-Q-SAMEALIAS	Question[N3]	(1|2,2|3,3|1 / other 1|3,2|3,3|3)	1|3,2|3,3|3	RECORDED:=other
+NR	PostgreSql	DEL-Q-SAMEALIAS	Question[N3]	(2|20,3|30 / other )		RECORDED:=other
+NR	PostgreSql	DMLJOIN-Q-OWN	Binds	1|30,2|10,3|20	UNSUPPORTED	DELEGATED
+NR	PostgreSql	DMLJOIN-B-TARGET	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a joined UPDATE or DELETE must be aliased.	OK
+NR	PostgreSql	UPD-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a correlated UPDATE, DELETE, or MERGE must be aliased.	OK
+NR	PostgreSql	DEL-Q-OUTER	Binds	2|20,3|30	2|20,3|30	OK
+NR	PostgreSql	INS-B-OWN	Binds	1|10,2|20,3|30,4|40	1|10,2|20,3|30,4|40	OK
+NR	PostgreSql	INS-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: An INSERT column list must name only columns of the target table.	OK
+NR	PostgreSql	UPS-P-OWN	Delegated	(1|77,2|20,3|30 / other -)	1|77,2|20,3|30	RECORDED:=intended
+NR	PostgreSql	INSSET-B-OWN	Binds	1|10,2|20,3|30,4|40	UNSUPPORTED	DELEGATED
+NR	PostgreSql	INSSET-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: The SET assignment list must assign only columns of the target table.	OK
+NR	PostgreSql	INSVAL-B-OWN	Question[N14]	(- / other 1|10,2|20,3|30,4|4)	ENGINE-ERROR: 42703: column "id" does not exist  POSITION: 41 DETAIL: Detail redacted as it may contain sensitive data. Specify 'Include Error Detail' in 	RECORDED:error
+NR	PostgreSql	UPS-WHERE-B	Binds	1|77,2|20,3|30	1|77,2|20,3|30	OK
+NR	PostgreSql	UPS-P-SAMEALIAS-NEW	Question[N13]	(1|30,2|20,3|30 / other 1|10,2|20,3|30)	UNSUPPORTED	DELEGATED
+NR	PostgreSql	UPS-P-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: EXCLUDED must name a column of the INSERT target table; read another table's value through a subquery.	OK
+NR	PostgreSql	UPS-B-VALUE	Binds	1|11,2|20,3|30	1|11,2|20,3|30	OK
+NR	PostgreSql	UPS-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	PostgreSql	UPS-B-SUBQUERY-OWN	Binds	1|30,2|20,3|30	1|30,2|20,3|30	OK
+NR	PostgreSql	UPS-B-TARGET-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: The DO UPDATE SET assignment list must assign only columns of the target table.	OK
+NR	PostgreSql	CONFLICT-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: An ON CONFLICT target must name only columns of the target table.	OK
+NR	PostgreSql	MRG-Q-OWN	Binds	1|30,2|10,3|20	1|30,2|10,3|20	OK
+NR	PostgreSql	MRG-Q-OTHER-SWAP	BuildRejects	BUILD-THROW	BUILD-THROW: The UPDATE SET assignment list must assign only columns of the target table.	OK
+NR	PostgreSql	MRG-INSLIST-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: An INSERT column list must name only columns of the target table.	OK
+NR	PostgreSql	MRG-BRANCH-Q	Binds	1|30,2|20,3|20	1|30,2|20,3|20	OK
+NR	PostgreSql	MRG-INSVAL-Q	Binds	1|10,2|20,3|30,11|30,12|10,13|20	1|10,2|20,3|30,11|30,12|10,13|20	OK
+NR	PostgreSql	MRG-B-SIBLING	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: 42702: column reference "id" is ambiguous  POSITION: 32	OK
+NR	PostgreSql	RET-Q-OWN	Binds	5	5	OK
+NR	PostgreSql	RET-Q-SAMETABLE	Binds	1	1	OK
+NR	PostgreSql	OUT-P-OWN	Delegated	(5 / other -)	UNSUPPORTED	DELEGATED
+NR	PostgreSql	OUT-P-OTHER	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
+NR	PostgreSql	OUTINTO-B-OWN	Binds	1|5,2|20,3|30	UNSUPPORTED	DELEGATED
+NR	PostgreSql	OUTINTO-B-OTHER	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
+NR	PostgreSql	OUT-B-OWN	Binds	?	UNSUPPORTED	DELEGATED

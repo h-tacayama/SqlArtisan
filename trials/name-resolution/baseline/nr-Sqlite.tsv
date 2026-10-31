@@ -13,6 +13,7 @@ NR	Sqlite	DERIVED-B-OWN	Binds	1|10,2|20,3|30	1|10,2|20,3|30	OK
 NR	Sqlite	DERIVED-B-UNLISTED	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
 NR	Sqlite	CTE-B-OWN	Binds	2,3	2,3	OK
 NR	Sqlite	CTE-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	Sqlite	CTE-B-MAIN	Binds	100,300	100,300	OK
 NR	Sqlite	LATERAL-Q-OUTER	Binds	1|2,2|3,3|1	UNSUPPORTED	DELEGATED
 NR	Sqlite	LATERAL-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
 NR	Sqlite	BRANCH-B-UNLISTED	Question[N10]	(- / other 1,2)	1,2	RECORDED:=other
@@ -53,6 +54,10 @@ NR	Sqlite	DEL-Q-SAMEALIAS	Question[N3]	(2|20,3|30 / other )		RECORDED:=other
 NR	Sqlite	DMLJOIN-Q-OWN	Binds	1|30,2|10,3|20	UNSUPPORTED	DELEGATED
 NR	Sqlite	DMLJOIN-B-TARGET	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a joined UPDATE or DELETE must be aliased.	OK
 NR	Sqlite	UPD-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a correlated UPDATE, DELETE, or MERGE must be aliased.	OK
+NR	Sqlite	UPD-B-OUTER-TWICE	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a correlated UPDATE, DELETE, or MERGE must be aliased.	OK
+NR	Sqlite	UPD-B-BRANCH-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a correlated UPDATE, DELETE, or MERGE must be aliased.	OK
+NR	Sqlite	UPD-B-BRANCH-LISTED	Binds	1|0,2|20,3|30	1|0,2|20,3|30	OK
+NR	Sqlite	UPD-B-SCHEMA	Binds	1|99,2|20,3|30	1|99,2|20,3|30	OK
 NR	Sqlite	DEL-Q-OUTER	Binds	2|20,3|30	2|20,3|30	OK
 NR	Sqlite	INS-B-OWN	Binds	1|10,2|20,3|30,4|40	1|10,2|20,3|30,4|40	OK
 NR	Sqlite	INS-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: An INSERT column list must name only columns of the target table.	OK
@@ -76,6 +81,7 @@ NR	Sqlite	MRG-INSVAL-Q	Binds	1|10,2|20,3|30,11|30,12|10,13|20	UNSUPPORTED	DELEGA
 NR	Sqlite	MRG-B-SIBLING	EngineRejects	ENGINE-ERROR	UNSUPPORTED	DELEGATED
 NR	Sqlite	RET-Q-OWN	Binds	5	5	OK
 NR	Sqlite	RET-Q-SAMETABLE	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: SQLite Error 1: 'no such column: w.id'.	OK
+NR	Sqlite	RET-Q-SAMETABLE-QUOTED	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: SQLite Error 1: 'no such column: w.id'.	OK
 NR	Sqlite	OUT-P-OWN	Delegated	(5 / other -)	UNSUPPORTED	DELEGATED
 NR	Sqlite	OUT-P-OTHER	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
 NR	Sqlite	OUTINTO-B-OWN	Binds	1|5,2|20,3|30	UNSUPPORTED	DELEGATED

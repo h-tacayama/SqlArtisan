@@ -13,6 +13,7 @@ NR	PostgreSql	DERIVED-B-OWN	Binds	1|10,2|20,3|30	1|10,2|20,3|30	OK
 NR	PostgreSql	DERIVED-B-UNLISTED	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
 NR	PostgreSql	CTE-B-OWN	Binds	2,3	2,3	OK
 NR	PostgreSql	CTE-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	PostgreSql	CTE-B-MAIN	Binds	100,300	100,300	OK
 NR	PostgreSql	LATERAL-Q-OUTER	Binds	1|2,2|3,3|1	1|2,2|3,3|1	OK
 NR	PostgreSql	LATERAL-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
 NR	PostgreSql	BRANCH-B-UNLISTED	Question[N10]	(- / other 1,2)	1,2	RECORDED:=other
@@ -53,6 +54,10 @@ NR	PostgreSql	DEL-Q-SAMEALIAS	Question[N3]	(2|20,3|30 / other )		RECORDED:=other
 NR	PostgreSql	DMLJOIN-Q-OWN	Binds	1|30,2|10,3|20	UNSUPPORTED	DELEGATED
 NR	PostgreSql	DMLJOIN-B-TARGET	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a joined UPDATE or DELETE must be aliased.	OK
 NR	PostgreSql	UPD-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a correlated UPDATE, DELETE, or MERGE must be aliased.	OK
+NR	PostgreSql	UPD-B-OUTER-TWICE	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a correlated UPDATE, DELETE, or MERGE must be aliased.	OK
+NR	PostgreSql	UPD-B-BRANCH-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a correlated UPDATE, DELETE, or MERGE must be aliased.	OK
+NR	PostgreSql	UPD-B-BRANCH-LISTED	Binds	1|0,2|20,3|30	1|0,2|20,3|30	OK
+NR	PostgreSql	UPD-B-SCHEMA	Binds	1|99,2|20,3|30	1|99,2|20,3|30	OK
 NR	PostgreSql	DEL-Q-OUTER	Binds	2|20,3|30	2|20,3|30	OK
 NR	PostgreSql	INS-B-OWN	Binds	1|10,2|20,3|30,4|40	1|10,2|20,3|30,4|40	OK
 NR	PostgreSql	INS-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: An INSERT column list must name only columns of the target table.	OK
@@ -76,6 +81,7 @@ NR	PostgreSql	MRG-INSVAL-Q	Binds	1|10,2|20,3|30,11|30,12|10,13|20	1|10,2|20,3|30
 NR	PostgreSql	MRG-B-SIBLING	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: 42702: column reference "id" is ambiguous  POSITION: 32	OK
 NR	PostgreSql	RET-Q-OWN	Binds	5	5	OK
 NR	PostgreSql	RET-Q-SAMETABLE	Binds	1	1	OK
+NR	PostgreSql	RET-Q-SAMETABLE-QUOTED	Binds	1	1	OK
 NR	PostgreSql	OUT-P-OWN	Delegated	(5 / other -)	UNSUPPORTED	DELEGATED
 NR	PostgreSql	OUT-P-OTHER	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
 NR	PostgreSql	OUTINTO-B-OWN	Binds	1|5,2|20,3|30	UNSUPPORTED	DELEGATED

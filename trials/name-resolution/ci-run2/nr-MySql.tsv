@@ -1,0 +1,83 @@
+NR	MySql	SEL-Q	Binds	1|10,2|20,3|30	1|10,2|20,3|30	OK
+NR	MySql	SEL-B	Binds	1|10,2|20,3|30	1|10,2|20,3|30	OK
+NR	MySql	SEL-B-SIBLING	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: Column 'b' in field list is ambiguous	OK
+NR	MySql	WHERE-B-UNLISTED-SIBLING	Permissive	(- / other 2)	2	RECORDED:=other
+NR	MySql	WHERE-B-UNLISTED	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: Unknown column 'k' in 'where clause'	OK
+NR	MySql	WHERE-Q-UNLISTED	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: Unknown column 't.b' in 'where clause'	OK
+NR	MySql	PRED-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	MySql	PRED-Q-OUTER	Binds	1	1	OK
+NR	MySql	PRED-B-OWN	Binds	2	2	OK
+NR	MySql	SCALAR-Q-OUTER	Binds	1|2,2|3,3|1	1|2,2|3,3|1	OK
+NR	MySql	SCALAR-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	MySql	DERIVED-B-OWN	Binds	1|10,2|20,3|30	1|10,2|20,3|30	OK
+NR	MySql	DERIVED-B-UNLISTED	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	MySql	CTE-B-OWN	Binds	2,3	2,3	OK
+NR	MySql	CTE-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	MySql	LATERAL-Q-OUTER	Binds	1|2,2|3,3|1	1|2,2|3,3|1	OK
+NR	MySql	LATERAL-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	MySql	BRANCH-B-UNLISTED	Question[N10]	(- / other 1,2)	1,2	RECORDED:=other
+NR	MySql	CORD-Q	Question[Q13]	(1|10,2|10,2|20,3|20,1|30,3|30 / other -)	ENGINE-ERROR: Table 't' from one of the SELECTs cannot be used in global ORDER clause	RECORDED:error
+NR	MySql	CORD-A-FIRST	Binds	1|10,2|10,2|20,3|20,1|30,3|30	1|10,2|10,2|20,3|20,1|30,3|30	OK
+NR	MySql	CORD-A-LATER	Question[N8]	(1|10,2|10,2|20,3|20,1|30,3|30 / other -)	ENGINE-ERROR: Unknown column 'x' in 'order clause'	RECORDED:error
+NR	MySql	ORD-A-OWN	Binds	3|-30,2|-20,1|-10	3|-30,2|-20,1|-10	OK
+NR	MySql	ORD-B-ALIAS	Permissive	(1|-10,2|-20,3|-30 / other 3|-30,2|-20,1|-10)	3|-30,2|-20,1|-10	RECORDED:=other
+NR	MySql	ORD-Q-ALIAS	Binds	1|-10,2|-20,3|-30	1|-10,2|-20,3|-30	OK
+NR	MySql	ORD-A-UNSELECTED	Permissive	(3,2,1 / other 1,2,3)	1,2,3	RECORDED:=other
+NR	MySql	GRP-B-ALIAS	Question[N1]	(1|0,2|0 / other 3|0)	1|0,2|0	RECORDED:=intended
+NR	MySql	GRP-A	Question[N7]	(1|2,2|1 / other -)	BUILD-THROW: Invalid type for GroupByItem: SqlArtisan.ExpressionAlias	RECORDED:build-throw
+NR	MySql	HAV-B-ALIAS	Question[N1]	(2 / other 1)	2	RECORDED:=intended
+NR	MySql	WHERE-B-ALIAS	Question[N1]	(1|-10 / other )	1|-10	RECORDED:=intended
+NR	MySql	WORD-B-ALIAS	Question[N2]	(1|-10|1,2|-20|2,3|-30|3 / other 1|-10|3,2|-20|2,3|-30|1)	1|-10|1,2|-20|2,3|-30|3	RECORDED:=intended
+NR	MySql	WPART-B-ALIAS	Question[N2]	(1|0|1,2|0|2,3|0|1 / other 1|0|1,2|0|2,3|0|3)	1|0|1,2|0|2,3|0|1	RECORDED:=intended
+NR	MySql	AGG-B-ALIAS	Question[N2]	(p,q,r|-10 / other -)	p,q,r|-10	RECORDED:=intended
+NR	MySql	WORD-A	BuildRejects	BUILD-THROW	BUILD-THROW: An ORDER BY inside OVER, WITHIN GROUP or an aggregate cannot sort by a select alias; pass the aliased expression instead. (Parameter 'orderB	OK
+NR	MySql	DON-B-ALIAS	Question[N1]	(1|0,3|0 / other 1|0)	UNSUPPORTED	DELEGATED
+NR	MySql	PRED-Q-SAMEALIAS	Question[N3]	(1 / other 1,2,3)	1,2,3	RECORDED:=other
+NR	MySql	ON-Q-SAMEALIAS	Question[N4]	(- / other -)	ENGINE-ERROR: Not unique table/alias: 'x'	RECORDED:error
+NR	MySql	PRED-Q-SAMEALIAS-CASE	Question[N3]	(1 / other 1,2,3)	1	RECORDED:=intended
+NR	MySql	CTE-SHADOW-TOP	Question[N12]	(1|10,2|20,3|30 / other 1|30,2|10,3|20)	1|30,2|10,3|20	RECORDED:=other
+NR	MySql	CTE-SHADOW-PRED	Question[N12]	(1 / other 2)	2	RECORDED:=other
+NR	MySql	USING-Q	Question[N5]	(1|10,2|20,3|30 / other -)	1|10,2|20,3|30	RECORDED:=intended
+NR	MySql	USING-B	Binds	1|100,2|200,3|300	1|100,2|200,3|300	OK
+NR	MySql	USING-OTHER	Question[N6]	(- / other 1|30,2|10,3|20)	1|30,2|10,3|20	RECORDED:=other
+NR	MySql	FOU-T-OWN	Binds	1	1	OK
+NR	MySql	FOU-COL-OWN	Delegated	(1 / other -)	UNSUPPORTED	DELEGATED
+NR	MySql	FOU-T-UNLISTED	Question[N9]	(- / other -)	ENGINE-ERROR: Unresolved table name `s` in locking clause.	RECORDED:error
+NR	MySql	SEL-P	AnalyzerWarns	(- / other -)	ENGINE-ERROR: Unknown column 'new.b' in 'field list'	RECORDED:error
+NR	MySql	UPD-B-OWN	Binds	1|99,2|20,3|30	1|99,2|20,3|30	OK
+NR	MySql	UPD-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: The SET assignment list must assign only columns of the target table.	OK
+NR	MySql	UPD-Q-OTHER-SWAP	BuildRejects	BUILD-THROW	BUILD-THROW: The SET assignment list must assign only columns of the target table.	OK
+NR	MySql	UPD-Q-OUTER	Binds	1|2,2|3,3|1	1|2,2|3,3|1	OK
+NR	MySql	UPD-Q-SAMEALIAS	Question[N3]	(1|2,2|3,3|1 / other 1|3,2|3,3|3)	1|3,2|3,3|3	RECORDED:=other
+NR	MySql	DEL-Q-SAMEALIAS	Question[N3]	(2|20,3|30 / other )		RECORDED:=other
+NR	MySql	DMLJOIN-Q-OWN	Binds	1|30,2|10,3|20	1|30,2|10,3|20	OK
+NR	MySql	DMLJOIN-B-TARGET	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a joined UPDATE or DELETE must be aliased.	OK
+NR	MySql	UPD-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: The target of a correlated UPDATE, DELETE, or MERGE must be aliased.	OK
+NR	MySql	DEL-Q-OUTER	Binds	2|20,3|30	2|20,3|30	OK
+NR	MySql	INS-B-OWN	Binds	1|10,2|20,3|30,4|40	1|10,2|20,3|30,4|40	OK
+NR	MySql	INS-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: An INSERT column list must name only columns of the target table.	OK
+NR	MySql	UPS-P-OWN	Delegated	(1|77,2|20,3|30 / other -)	1|77,2|20,3|30	RECORDED:=intended
+NR	MySql	INSSET-B-OWN	Binds	1|10,2|20,3|30,4|40	1|10,2|20,3|30,4|40	OK
+NR	MySql	INSSET-B-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: The SET assignment list must assign only columns of the target table.	OK
+NR	MySql	INSVAL-B-OWN	Question[N14]	(- / other 1|10,2|20,3|30,4|4)	1|10,2|20,3|30,4|4	RECORDED:=other
+NR	MySql	UPS-WHERE-B	Binds	1|77,2|20,3|30	UNSUPPORTED	DELEGATED
+NR	MySql	UPS-P-SAMEALIAS-NEW	Question[N13]	(1|30,2|20,3|30 / other 1|10,2|20,3|30)	1|10,2|20,3|30	RECORDED:=other
+NR	MySql	UPS-P-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: new must name a column of the INSERT target table; read another table's value through a subquery.	OK
+NR	MySql	UPS-B-VALUE	Question[N11]	(1|11,2|20,3|30 / other -)	ENGINE-ERROR: Column 'b' in field list is ambiguous	RECORDED:error
+NR	MySql	UPS-B-OUTER	BuildRejects	BUILD-THROW	BUILD-THROW: A table a correlated subquery references must be aliased.	OK
+NR	MySql	UPS-B-SUBQUERY-OWN	Question[N11]	(1|30,2|20,3|30 / other -)	1|30,2|20,3|30	RECORDED:=intended
+NR	MySql	UPS-B-TARGET-OTHER	BuildRejects	BUILD-THROW	BUILD-THROW: The ON DUPLICATE KEY UPDATE assignment list must assign only columns of the target table.	OK
+NR	MySql	CONFLICT-B-OTHER	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
+NR	MySql	MRG-Q-OWN	Binds	1|30,2|10,3|20	UNSUPPORTED	DELEGATED
+NR	MySql	MRG-Q-OTHER-SWAP	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
+NR	MySql	MRG-INSLIST-OTHER	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
+NR	MySql	MRG-BRANCH-Q	Binds	1|30,2|20,3|20	UNSUPPORTED	DELEGATED
+NR	MySql	MRG-INSVAL-Q	Binds	1|10,2|20,3|30,11|30,12|10,13|20	UNSUPPORTED	DELEGATED
+NR	MySql	MRG-B-SIBLING	EngineRejects	ENGINE-ERROR	UNSUPPORTED	DELEGATED
+NR	MySql	RET-Q-OWN	Binds	5	UNSUPPORTED	DELEGATED
+NR	MySql	RET-Q-SAMETABLE	Binds	1	UNSUPPORTED	DELEGATED
+NR	MySql	OUT-P-OWN	Delegated	(5 / other -)	UNSUPPORTED	DELEGATED
+NR	MySql	OUT-P-OTHER	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
+NR	MySql	OUTINTO-B-OWN	Binds	1|5,2|20,3|30	UNSUPPORTED	DELEGATED
+NR	MySql	OUTINTO-B-OTHER	BuildRejects	BUILD-THROW	UNSUPPORTED	DELEGATED
+NR	MySql	OUT-B-OWN	Binds	?	UNSUPPORTED	DELEGATED

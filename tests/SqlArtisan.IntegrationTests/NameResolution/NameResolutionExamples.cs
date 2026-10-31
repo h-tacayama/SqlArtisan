@@ -173,6 +173,11 @@ public static class NameResolutionExamples
                         .Where(Su.Column("b") == Tu.Column("b"))))
                     .Select(Tu.Column("id")).From(Tu, c),
                 null),
+            new("CTE-B-MAIN", [K(NrPosition.SelectItem, B, Own)],
+                _ => With(c.As(Select(Su.Column("id")).From(Su).Where(Su.Column("b") > 15)))
+                    .Select(Tu.Column("k")).From(Tu).InnerJoin(c)
+                    .On(c.Column("id") * 100 == Tu.Column("k")).OrderBy(Tu.Column("k")),
+                "100,300"),
             new("LATERAL-Q-OUTER", [K(NrPosition.Where, Q, Outer, NrShadow.InnerColumn,
                     NrBlock.Lateral)],
                 _ => Select(T.Column("id"), l.Column("x")).From(T)
@@ -385,6 +390,31 @@ public static class NameResolutionExamples
                 _ => Update(Wu).Set(Wu.Column("b") == 0).Where(Exists(Select(S.Column("id"))
                     .From(S).Where(S.Column("b") == Wu.Column("b")))),
                 null, Run: NrRun.Dml),
+            new("UPD-B-OUTER-TWICE", [K(NrPosition.DmlWhere, B, Outer, NrShadow.InnerColumn,
+                    NrBlock.PredicateSubquery)],
+                _ => Update(Wu).Set(Wu.Column("b") == 0).Where(Exists(Select(S.Column("id"))
+                    .From(S).Where((S.Column("b") == Wu.Column("b"))
+                        & (S.Column("id") == Wu.Column("id"))))),
+                null, Run: NrRun.Dml),
+            new("UPD-B-BRANCH-OUTER", [K(NrPosition.DmlWhere, B, Outer, NrShadow.InnerColumn,
+                    NrBlock.PredicateSubquery)],
+                _ => Update(Wu).Set(Wu.Column("b") == 0).Where(Wu.Column("id").In(
+                    Select(Su.Column("id")).From(Su).Where(Su.Column("b") == 10)
+                        .UnionAll.Select(Su.Column("id")).From(Su)
+                        .Where(Su.Column("b") == Wu.Column("b")))),
+                null, Run: NrRun.Dml),
+            new("UPD-B-BRANCH-LISTED", [K(NrPosition.DmlWhere, B, Own,
+                    b: NrBlock.PredicateSubquery)],
+                _ => Update(Wu).Set(Wu.Column("b") == 0).Where(Wu.Column("id").In(
+                    Select(Wu.Column("id")).From(Wu).Where(Wu.Column("b") == 10)
+                        .UnionAll.Select(Su.Column("id")).From(Su)
+                        .Where(Su.Column("b") == 30))),
+                "1|0,2|20,3|30", Run: NrRun.Dml),
+            new("UPD-B-SCHEMA", [K(NrPosition.UpdateSetTarget, B, Own)],
+                d => Update(new DbTable(d == Dbms.Sqlite ? "main.nr_w" : "public.nr_w"))
+                    .Set(Wu.Column("b") == 99).Where(Wu.Column("id") == 1),
+                "1|99,2|20,3|30", Run: NrRun.Dml,
+                Supported: d => d is Dbms.PostgreSql or Dbms.Sqlite),
             new("DEL-Q-OUTER", [K(NrPosition.DmlWhere, Q, Outer, NrShadow.InnerColumn,
                     NrBlock.PredicateSubquery)],
                 _ => DeleteFrom(W).Where(Exists(Select(S.Column("id")).From(S)
@@ -466,7 +496,8 @@ public static class NameResolutionExamples
             new("MRG-BRANCH-Q", [K(NrPosition.MergeBranchCondition, Q, Own)],
                 _ => MergeInto(W).Using(S).On(W.Column("id") == S.Column("id"))
                     .WhenMatched(S.Column("b") > 15).ThenUpdateSet(W.Column("b") == S.Column("b")),
-                "1|30,2|20,3|20", Run: NrRun.Dml, Supported: Merge),
+                "1|30,2|20,3|20", Run: NrRun.Dml,
+                Supported: d => d is Dbms.PostgreSql or Dbms.SqlServer),
             new("MRG-INSVAL-Q", [K(NrPosition.MergeInsertValue, Q, Own),
                     K(NrPosition.MergeInsertList, Q, Own)],
                 _ => MergeInto(W).Using(S).On(W.Column("id") == S.Column("id") + 10)
@@ -488,6 +519,17 @@ public static class NameResolutionExamples
                 _ => Update(W).Set(W.Column("b") == 5).Where(W.Column("id") == 1)
                     .Returning(Select(Count(Wu.Column("id"))).From(Wu)
                         .Where(Wu.Column("id") == W.Column("id"))),
+                "1", Other: "3", Run: NrRun.DmlReturns,
+                Supported: d => d is Dbms.PostgreSql or Dbms.Sqlite),
+            new("RET-Q-SAMETABLE-QUOTED", [K(NrPosition.Returning, Q, Outer,
+                    NrShadow.SameTableName, NrBlock.PredicateSubquery)],
+                _ =>
+                {
+                    DbTable quoted = new("\"nr_w\"");
+                    return Update(W).Set(W.Column("b") == 5).Where(W.Column("id") == 1)
+                        .Returning(Select(Count(quoted.Column("id"))).From(quoted)
+                            .Where(quoted.Column("id") == W.Column("id")));
+                },
                 "1", Other: "3", Run: NrRun.DmlReturns,
                 Supported: d => d is Dbms.PostgreSql or Dbms.Sqlite),
             new("OUT-P-OWN", [K(NrPosition.Output, P, Own)],
