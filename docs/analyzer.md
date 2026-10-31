@@ -1297,7 +1297,7 @@ a simple CASE `WHEN NULL` branch is never taken (all five engines the suite runs
 live). So do `NOT IN` over a list holding a NULL, `IN` over NULLs alone, `BETWEEN`
 with a NULL bound and `LIKE` / `NOT LIKE` against a NULL pattern (the same five,
 `NullInComparedPosition_MatchesNoRow`). `SQLA0303` reports each of these where
-the NULL is written as `Sql.Null` or `BindNull()`, which binds the same NULL. A
+the NULL is written as `Sql.Null` or `BindNull()`; the same twin runs both. A
 simple CASE `When(...)` reports `Sql.Null` alone: Oracle XE 21.3.0 binds an
 untyped `BindNull()` as text and rejects the CASE there rather than skipping the
 branch (`OracleTests.SimpleCaseWhenUntypedBindNull_IsRejectedByTheEngine`).
@@ -1309,7 +1309,8 @@ var q = Select(u.Id).From(u).Where(u.Name == Null);
 
 Test for NULL with `u.Name.IsNull` or `IsNotNull`, and in a CASE with a searched
 `When(u.Name.IsNull)`; drop the NULL from a `NotIn(...)` list, and compare a
-`Between(...)` column with `>=` or `<=` on the bound that is not NULL. `In(1, Null)`
+`Between(...)` column with `>=` or `<=` on the bound that is not NULL. A list or
+both bounds of NULL alone leave nothing to keep, so those take the NULL test. `In(1, Null)`
 stays silent, since `1` can still match, and so does `NotBetween(...)`, whose other
 bound still decides; a list held in an array variable is not read. A C# `null` there (`u.Name == null`) throws at the call
 and names `IsNull`; `Sql.Null` is the spelling that reaches the engine.

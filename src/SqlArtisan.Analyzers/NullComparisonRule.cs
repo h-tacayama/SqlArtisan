@@ -49,14 +49,26 @@ internal static class NullComparisonRule
         switch (method.Name)
         {
             case "NotIn" when ListValues(call) is { } values && values.Exists(IsSqlNull):
-                Report(context, call, "NOT IN", "drop the NULL from the list");
+                Report(
+                    context,
+                    call,
+                    "NOT IN",
+                    values.TrueForAll(IsSqlNull)
+                        ? TestWith("IsNotNull")
+                        : "drop the NULL from the list");
                 break;
             case "In" when ListValues(call) is { Count: > 0 } values
                 && values.TrueForAll(IsSqlNull):
                 Report(context, call, "IN", TestWith("IsNull"));
                 break;
-            case "Between" when call.Arguments.Length == 2 && AnyArgumentIsNull(call):
-                Report(context, call, "BETWEEN", "compare the other bound with >= or <=");
+            case "Between" when call.Arguments.Length == 2 && CountNullArguments(call) > 0:
+                Report(
+                    context,
+                    call,
+                    "BETWEEN",
+                    CountNullArguments(call) == 2
+                        ? TestWith("IsNull")
+                        : "compare the other bound with >= or <=");
                 break;
             case "Like" or "NotLike" when call.Arguments.Length == 1
                 && IsSqlNull(call.Arguments[0].Value):
@@ -87,17 +99,18 @@ internal static class NullComparisonRule
         Report(context, invocation, "WHEN NULL", TestWith("a searched When(x.IsNull)"));
     }
 
-    private static bool AnyArgumentIsNull(IInvocationOperation call)
+    private static int CountNullArguments(IInvocationOperation call)
     {
+        int count = 0;
         foreach (IArgumentOperation argument in call.Arguments)
         {
             if (IsSqlNull(argument.Value))
             {
-                return true;
+                count++;
             }
         }
 
-        return false;
+        return count;
     }
 
     private static string TestWith(string test) => "test for NULL with " + test;
@@ -137,7 +150,7 @@ internal static class NullComparisonRule
             operand = conversion.Operand;
         }
 
-        // BindNull() binds the same NULL as a parameter.
+        // BindNull() binds a NULL, which the twins run in each position but a simple CASE.
         return operand switch
         {
             IPropertyReferenceOperation

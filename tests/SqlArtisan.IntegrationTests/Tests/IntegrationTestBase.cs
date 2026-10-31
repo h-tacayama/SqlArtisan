@@ -1184,6 +1184,10 @@ public abstract class IntegrationTestBase
             u.Id.Between(Null, 10), u.Id.Between(1, Null),
             u.Name.Like(Null), u.Name.NotLike(Null),
             u.Id == BindNull(), u.Id != BindNull(), u.Id < BindNull(),
+            u.Id <= BindNull(), u.Id > BindNull(), u.Id >= BindNull(),
+            u.Id.NotIn(1, BindNull()), u.Id.In(BindNull()),
+            u.Id.Between(BindNull(), 10), u.Id.Between(1, BindNull()),
+            u.Name.Like(BindNull()), u.Name.NotLike(BindNull()),
         ];
         Assert.All(neverTrue, condition => Assert.Equal(0, Count(condition)));
     }

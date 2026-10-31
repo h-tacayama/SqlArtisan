@@ -126,6 +126,21 @@ public class NullComparisonAnalyzerTests
             "NOT IN",
             "drop the NULL from the list");
 
+    // Dropping the only NULL leaves no list, so the remedy is the NULL test.
+    [Fact]
+    public Task NotInWithOnlyNull_ReportsSqla0303() =>
+        RunReporting(
+            "var q = Select(t.Id).From(t).Where({|#0:t.Id.NotIn(Null)|});",
+            "NOT IN",
+            "test for NULL with IsNotNull");
+
+    [Fact]
+    public Task BetweenWithBothBoundsNull_ReportsSqla0303() =>
+        RunReporting(
+            "var q = Select(t.Id).From(t).Where({|#0:t.Id.Between(Null, BindNull())|});",
+            "BETWEEN",
+            "test for NULL with IsNull");
+
     [Fact]
     public Task InWithOnlyNull_ReportsSqla0303() =>
         RunReporting(

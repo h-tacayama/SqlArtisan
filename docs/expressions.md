@@ -248,10 +248,10 @@ SqlStatement sql =
 ```
 
 > [!NOTE]
-> A comparison with `Null` (`u.Id == Null`, `u.Id != Null`, a simple CASE `When(Null)`) is
-> never true, so it matches no row, and so are `NotIn(..., Null)`, `Between(Null, x)` and
-> `Like(Null)`; test with `IsNull` / `IsNotNull`. The analyzer reports it
-> as [`SQLA0303`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#comparisons-with-null-sqla0303).
+> A comparison with `Null` (`u.Id == Null`, a simple CASE `When(Null)`), `NotIn(..., Null)`,
+> `Between(Null, x)` and `Like(Null)` are never true, so they match no row. Test with `IsNull` /
+> `IsNotNull`, drop the NULL from a `NotIn(...)` list, or compare the other `Between(...)` bound
+> with `>=` / `<=`; the analyzer reports them as [`SQLA0303`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#comparisons-with-null-sqla0303).
 
 ### Pattern Matching Condition
 ```csharp
