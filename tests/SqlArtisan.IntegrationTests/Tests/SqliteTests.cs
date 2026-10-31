@@ -1192,6 +1192,20 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.Equal(new[] { "1500001" }, matched);
     }
 
+    // #681: why the union Trunc cell under-reports here — trunc() takes a number, and a
+    // timestamp's text gives NULL rather than an error.
+    [Fact]
+    public void Trunc_TimestampArgument_ReturnsNull()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.NotNull(
+            connection.ExecuteScalar<object>(Select(Trunc(u.Age)).From(u).Where(u.Id == 1)));
+        Assert.Null(
+            connection.ExecuteScalar<object>(Select(Trunc(u.CreatedAt)).From(u).Where(u.Id == 1)));
+    }
+
     // docs/functions.md: the Length warning.
     [Fact]
     public void Length_NonAsciiCharacter_CountsCharacters()
