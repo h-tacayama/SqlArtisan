@@ -341,6 +341,8 @@ internal static class MatrixSweepCatalog
         AddArity("Trim", 2, _ => Scalar(Trim("xxaxx", "x")));
         Add("Round", _ => Select(Round(o.Amount, 1)).From(o).Where(o.Id == 1));
         AddArity("Round", 1, _ => Scalar(Round(1.7)));
+        Add("Trunc", _ => Select(Trunc(o.Amount)).From(o).Where(o.Id == 1));
+        AddArity("Trunc", 2, _ => Select(Trunc(o.Amount, 1)).From(o).Where(o.Id == 1));
         Add("Instr", _ => Scalar(Instr("abc", "b", 1)));
         AddArity("Instr", 2, _ => Scalar(Instr("abc", "b")));
         Add("ConcatWs", _ => Scalar(ConcatWs("-", "a", "b")));
@@ -413,8 +415,10 @@ internal static class MatrixSweepCatalog
             "ToSecond",
             1,
             _ => Scalar(u.CreatedAt + IntervalLiteral("1 02:03:04.5", Day(), ToSecond(2))));
-        Add("DateAdd", _ => Scalar(DateAdd(u.CreatedAt, Interval(30, DateTimePart.Day))));
-        Add("DateSub", _ => Scalar(DateSub(u.CreatedAt, Interval(30, DateTimePart.Day))));
+        // The literal runs on MySQL, Oracle and PostgreSQL, so their verdict is the function's own;
+        // SQLite and SQL Server have no INTERVAL literal, so no statement isolates it there.
+        Add("DateAdd", _ => Scalar(DateAdd(u.CreatedAt, IntervalLiteral("30", Day()))));
+        Add("DateSub", _ => Scalar(DateSub(u.CreatedAt, IntervalLiteral("30", Day()))));
         Add("Timestampadd", _ => Scalar(Timestampadd(DateTimePart.Day, 1, u.CreatedAt)));
         Add("Timestampdiff", _ => Scalar(Timestampdiff(DateTimePart.Day, u.CreatedAt, u.CreatedAt)));
         AddArity("Date", 1, _ => Scalar(Date(u.CreatedAt)));

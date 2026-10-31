@@ -56,7 +56,7 @@ public static partial class Sql
     /// <see cref="Interval(object, DateTimePart)"/> or
     /// <see cref="IntervalLiteral(string, IntervalField)"/>.</param>
     /// <returns>The <c>DATE_ADD</c> function expression.</returns>
-    /// <remarks>MySQL syntax — one capital letter away from SQL Server's
+    /// <remarks>MySQL and PostgreSQL (16+) syntax — one capital letter away from SQL Server's
     /// <see cref="Dateadd(DateTimePart, object, object)"/>, a different shape.
     /// Subtraction: <see cref="DateSub(object, IntervalExpression)"/>.</remarks>
     public static SqlExpression DateAdd(object date, IntervalExpression interval) =>

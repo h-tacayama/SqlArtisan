@@ -68,6 +68,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `sqlartisan_syntax_postgresql` declaring 17 or later, `JsonValue` and
   `JsonQuery` are no longer reported, and below it they report `SQLA0101`
   instead of `SQLA0100`. Live-verified on PostgreSQL 17. (#681)
+- The analyzer knows PostgreSQL 16's `DATE_ADD`: `DateAdd` is no longer
+  reported on PostgreSQL, and with `sqlartisan_syntax_postgresql` declaring a
+  version below 16 it reports `SQLA0101` instead of `SQLA0100`. PostgreSQL takes
+  the `IntervalLiteral(...)` form only, and `Interval(...)` still reports there;
+  `DateSub` stays unsupported. Live-verified on PostgreSQL 16. (#681)
+- `Trunc` has dialect verdicts: `SQLA0100` reports it on MySQL and SQL Server,
+  which have no `TRUNC`, and its 2-argument form on SQLite; below SQLite 3.35 the
+  1-argument form reports `SQLA0101`. The entry unites the numeric and date
+  forms, so a date/time argument outside Oracle stays silent. Live-verified on
+  MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022.
+  (#681)
 - `SQLA0102` reports a `Returning(...)` consumed without `.Into(...)` on
   Oracle — built, or passed on as an `ISqlBuilder` — since Oracle takes
   `RETURNING` only as `RETURNING ... INTO` (live-verified on XE 21.3.0). A
