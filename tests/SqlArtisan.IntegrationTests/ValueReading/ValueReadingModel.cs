@@ -402,7 +402,8 @@ public static class ValueReadingModel
             if (c is PositionClass.StatementOrderByKey or PositionClass.StatementGroupByKey
                 or PositionClass.DistinctOnKey)
             {
-                return new(Outcome.Question, Shape.Ordinal, "no record bounds an ordinal from above",
+                return new(
+                    Outcome.Question, Shape.Ordinal, "no record bounds an ordinal from above",
                     QuestionId: "Q17");
             }
 
