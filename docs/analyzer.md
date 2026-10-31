@@ -1771,8 +1771,8 @@ for, not a bug in the matrix.
   to all of them, while the shipped matrix's verdicts there are per-overload.
 - **A construct whose dialect support depends on the runtime value of an
   argument, not its declared type or arity, is entered as the union of its
-  shapes.** `Trunc(expr[, format])` is the example: the result turns on `expr`'s
-  type, and every type compiles to the exact same C# overload. Its entry reports MySQL and SQL Server, which have no `TRUNC`, and
+  shapes.** `Trunc(expr[, format])` is the example: the result turns on the value
+  `expr` holds, and every value compiles to the exact same C# overload. Its entry reports MySQL and SQL Server, which have no `TRUNC`, and
   SQLite's 2-argument form, and stays silent on the other calls, among them a
   date/time argument on PostgreSQL, which PostgreSQL 16 rejects, and
   `YYYY-MM-DD HH:MM:SS` text in SQLite's 1-argument form, for which SQLite 3.50
