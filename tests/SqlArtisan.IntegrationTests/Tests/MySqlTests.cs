@@ -1005,53 +1005,28 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         ta.Rollback();
     }
 
-    // #742 probe: which branch's rows a FOR UPDATE after a UNION locks, if it runs.
-    [Fact]
-    public void ForUpdateOverUnion_Probe()
+    // #742: why MySQL is absent from the set-operator FOR UPDATE context rule — the lock
+    // binds to the last branch alone, where Oracle and PostgreSQL reject the statement.
+    [Theory]
+    [InlineData("Union")]
+    [InlineData("UnionAll")]
+    [InlineData("Intersect")]
+    [InlineData("Except")]
+    public void ForUpdateAfterSetOperator_LocksOnlyTheLastBranch(string setOperator)
     {
-        UsersTable u = new("u");
-        OrdersTable o = new("o");
         using IDbConnection a = _fixture.OpenConnection();
         using IDbTransaction ta = a.BeginTransaction();
-        string outcome;
-        try
-        {
-            IEnumerable<int> ids = a.Query<int>(
-                Select(u.Id).From(u).Where(u.Id == 1)
-                .Union
-                .Select(o.Id).From(o).Where(o.Id == 1)
-                .ForUpdate(),
-                ta);
-            outcome = $"ran, rows [{string.Join(",", ids)}]; users locked: "
-                + $"{IsRowLocked("users")}; orders locked: {IsRowLocked("orders")}";
-        }
-        catch (DbException ex)
-        {
-            outcome = $"rejected: {ex.Message}";
-        }
+        a.Query<int>(UserThenOrder(setOperator).ForUpdate(), ta).ToList();
 
-        ta.Rollback();
-        Assert.Fail(outcome);
-    }
-
-    private bool IsRowLocked(string table)
-    {
+        // A second session asking NOWAIT finds the user free and the order locked.
         using IDbConnection b = _fixture.OpenConnection();
         using IDbTransaction tb = b.BeginTransaction();
-        try
-        {
-            b.Query<int>($"SELECT id FROM {table} WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb)
-                .ToList();
-            return false;
-        }
-        catch (DbException)
-        {
-            return true;
-        }
-        finally
-        {
-            tb.Rollback();
-        }
+        b.Query<int>("SELECT id FROM users WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb)
+            .ToList();
+        Assert.ThrowsAny<DbException>(() => b.Query<int>(
+            "SELECT id FROM orders WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb).ToList());
+        tb.Rollback();
+        ta.Rollback();
     }
 
     // Why Of(table) renders the alias: once a table is aliased, the engine

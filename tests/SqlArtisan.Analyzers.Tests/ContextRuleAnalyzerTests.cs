@@ -1267,6 +1267,40 @@ public class ContextRuleAnalyzerTests
             """, "oracle");
 
     [Theory]
+    [InlineData("oracle", "Union")]
+    [InlineData("postgresql", "Union")]
+    [InlineData("postgresql", "UnionAll")]
+    [InlineData("postgresql", "Intersect")]
+    [InlineData("postgresql", "Except")]
+    public Task ForUpdateAfterSetOperator_ReportsSqla0102(string dbms, string setOperator) =>
+        RunReporting($$"""
+            var q = {|#0:Select(t.Id).From(t).{{setOperator}}.Select(s.Id).From(s).Where(s.Id > 0)
+                .ForUpdate()|};
+            """, dbms);
+
+    // MySQL runs the lock on the last branch's rows rather than rejecting it.
+    [Fact]
+    public Task ForUpdateAfterSetOperator_MySql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Id).From(t).Union.Select(s.Id).From(s).ForUpdate();
+            """);
+
+    // The set operator sits in the subquery's own chain, not in ForUpdate's.
+    [Fact]
+    public Task ForUpdateWithSetOperatedSubquery_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Id).From(t)
+                .Where(t.Id.In(Select(s.Id).From(s).Union.Select(s.Dep).From(s))).ForUpdate();
+            """, "postgresql");
+
+    [Fact]
+    public Task ForUpdateAfterSetOperatorViaVariable_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var u = Select(t.Id).From(t).Union;
+            var q = u.Select(s.Id).From(s).ForUpdate();
+            """, "postgresql");
+
+    [Theory]
     [InlineData("""
         var q = Select(t.Id).From(t).Where(t.Id.In({|#0:Select(s.Dep).From(s).ForUpdate()|}));
         """)]

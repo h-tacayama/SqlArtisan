@@ -46,6 +46,39 @@ public class ContextRuleContractTests
     }
 
     [Fact]
+    public void SetOperatorStage_IsReturnedOnlyBySetOperatorProperties()
+    {
+        // The set-operator lock rule reads any property returning this stage as the
+        // operator, so another member returning it would make the rule misreport.
+        List<string> members = [.. Core.GetExportedTypes()
+            .SelectMany(t => t.GetMembers(
+                BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static
+                | BindingFlags.DeclaredOnly))
+            .Where(m => m switch
+            {
+                PropertyInfo p => p.PropertyType == typeof(ISelectBuilderSetOperator),
+                MethodInfo method => !method.IsSpecialName
+                    && method.ReturnType == typeof(ISelectBuilderSetOperator),
+                _ => false,
+            })
+            .Select(m => $"{m.DeclaringType!.Name}.{m.Name}")
+            .OrderBy(n => n, StringComparer.Ordinal)];
+
+        Assert.Equal(
+            [
+                "ISetOperator.Except",
+                "ISetOperator.ExceptAll",
+                "ISetOperator.Intersect",
+                "ISetOperator.IntersectAll",
+                "ISetOperator.Minus",
+                "ISetOperator.MinusAll",
+                "ISetOperator.Union",
+                "ISetOperator.UnionAll",
+            ],
+            members);
+    }
+
+    [Fact]
     public void UnorderedOver_IsDeclaredOnlyOnTheValueAnalyticFamily()
     {
         // The rule reads the receiver's declared type, so the overload living

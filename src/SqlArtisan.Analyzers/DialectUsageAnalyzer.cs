@@ -433,6 +433,13 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                     ContextRules.CheckForUpdateAfterRowLimiting(context, invocation, limitedNames);
                 }
 
+                if (ContextRules.RejectingTargets(targets, s_setOperatedLockUnsupported)
+                    is { } setOperatedNames)
+                {
+                    ContextRules.CheckForUpdateAfterSetOperator(
+                        context, invocation, setOperatedNames);
+                }
+
                 if (targets.Contains(TargetDbms.Oracle))
                 {
                     ContextRules.CheckForUpdateInSubquery(
@@ -452,6 +459,9 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     // Oracle alone (XE 21.3.0 raises ORA-02014; PostgreSQL 16 runs the pairing), and on
     // the rest the matrix already calls either the row-limiting step or ForUpdate unsupported.
     private static readonly TargetDbms[] s_rowLimitedLockUnsupported = [TargetDbms.Oracle];
+
+    private static readonly TargetDbms[] s_setOperatedLockUnsupported =
+        [TargetDbms.Oracle, TargetDbms.PostgreSql];
 
     private static readonly TargetDbms[] s_joinedDmlUnsupported =
         [TargetDbms.Oracle, TargetDbms.PostgreSql, TargetDbms.Sqlite];

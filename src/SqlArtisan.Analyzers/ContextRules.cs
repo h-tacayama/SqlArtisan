@@ -316,6 +316,35 @@ internal static class ContextRules
     }
 
     /// <summary>
+    /// A lock written after a set operator's last branch: Oracle XE 21.3.0 (ORA-01786) and
+    /// PostgreSQL 16 (SQLSTATE 0A000) reject it, and MySQL 8.0 locks that branch's rows only.
+    /// Live twins on those three lanes.
+    /// </summary>
+    public static void CheckForUpdateAfterSetOperator(
+        OperationAnalysisContext context, IInvocationOperation forUpdate, string dialectNames)
+    {
+        bool setOperated = false;
+        for (IInvocationOperation? cursor = forUpdate;
+            cursor is not null;
+            cursor = ChainChild(cursor))
+        {
+            setOperated |= FollowsSetOperator(cursor);
+        }
+
+        if (!setOperated)
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            forUpdate.Syntax.GetLocation(),
+            "ForUpdate",
+            "after a set operator",
+            dialectNames));
+    }
+
+    /// <summary>
     /// Oracle documents the row_limiting_clause as unspecifiable with the
     /// for_update_clause; XE 21.3.0 raises ORA-02014 and PostgreSQL 16 runs the
     /// pairing. Live twins on both lanes.
@@ -763,6 +792,22 @@ internal static class ContextRules
             && DialectUsageAnalyzer.IsFromSqlArtisan(child.TargetMethod.ContainingAssembly)
                 ? child
                 : null;
+    }
+
+    // A branch's Select is called on the operator's property, which ends ChainChild's walk.
+    private static bool FollowsSetOperator(IInvocationOperation invocation)
+    {
+        IOperation? instance = invocation.Instance;
+        if (instance is IConversionOperation conversion)
+        {
+            instance = conversion.Operand;
+        }
+
+        return instance is IPropertyReferenceOperation
+        {
+            Property: { Type.Name: "ISelectBuilderSetOperator" } property,
+        }
+            && DialectUsageAnalyzer.IsFromSqlArtisan(property.ContainingAssembly);
     }
 
     // Parameter.Type identifies the overload that actually bound — the ISubquery

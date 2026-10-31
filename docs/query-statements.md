@@ -710,6 +710,12 @@ SqlStatement sql =
 
 **Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Wait(...)` is Oracle-only, and `Of(...)` has one form per side: `Of(column)` is Oracle's, which MySQL and PostgreSQL reject, and `Of(table, ...)` is theirs, which Oracle rejects. Oracle XE 21.3.0 and PostgreSQL 16 also reject `FOR UPDATE` over a grouped query, where MySQL 8.0 locks the base rows; the analyzer reports that position as `SQLA0102`. Oracle XE 21.3.0 rejects it after a row-limiting clause as well (`FETCH FIRST` / `OFFSET ... ROWS`), which PostgreSQL 16 runs; MySQL 8.0 has neither clause and runs its own `LIMIT ... FOR UPDATE`. Also `SQLA0102`. Oracle takes `FOR UPDATE` only in a top-level `SELECT`, so Oracle XE 21.3.0 and Free 23ai reject a locked subquery, CTE body or derived table; MySQL 8.0 and PostgreSQL 16 run a locked `IN` subquery, CTE body and derived table. `SQLA0102` reports the Oracle position too.
 
+> [!WARNING]
+> **On MySQL, `ForUpdate(...)` after a set operator locks only the last branch's rows.** MySQL 8.0
+> runs `SELECT ... UNION SELECT ... FOR UPDATE` and leaves the earlier branches' rows unlocked, with
+> no warning. Oracle XE 21.3.0 and PostgreSQL 16 reject it, and `SQLA0102` reports it there. Lock
+> each branch's rows in a statement of its own.
+
 ---
 
 ### Pagination
