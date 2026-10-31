@@ -848,6 +848,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 break;
             case IInvocationOperation invocation:
                 NullComparisonRule.CheckSimpleCaseWhen(context, invocation);
+                NullComparisonRule.CheckPredicate(context, invocation);
                 break;
         }
     }

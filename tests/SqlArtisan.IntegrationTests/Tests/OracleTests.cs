@@ -1685,4 +1685,22 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             Select(u.Name + u.Name).From(u).Where(u.Id == 1)));
     }
+
+    // #742: an untyped BindNull() binds as text, so a simple CASE over a number rejects it
+    // (ORA-00932) where Sql.Null skips the branch; SQLA0303 reads Sql.Null alone there.
+    [Fact]
+    public void SimpleCaseWhenUntypedBindNull_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(0, connection.ExecuteScalar<int>(
+            Select(Count(Asterisk))
+            .From(u)
+            .Where(Case(u.Id, When(Null).Then(1), Else(0)) == 1)));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(Count(Asterisk))
+            .From(u)
+            .Where(Case(u.Id, When(BindNull()).Then(1), Else(0)) == 1)));
+    }
 }

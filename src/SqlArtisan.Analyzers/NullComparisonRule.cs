@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -5,8 +6,8 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reports SQLA0303: a comparison or a simple CASE <c>WHEN</c> against <c>Sql.Null</c>,
-/// which is never true, so the predicate matches no row and the branch is never taken.
+/// Reports SQLA0303: a comparison, a simple CASE <c>WHEN</c>, or an <c>IN</c>, <c>BETWEEN</c>
+/// or <c>LIKE</c> predicate against a written NULL that is never true (#742).
 /// </summary>
 /// <remarks>
 /// <c>==</c> also spells a <c>SET</c> assignment, so it is judged only where it is read as a
@@ -28,12 +29,56 @@ internal static class NullComparisonRule
 
         string remedy = binary.OperatorKind switch
         {
-            BinaryOperatorKind.Equals => "IsNull",
-            BinaryOperatorKind.NotEquals => "IsNotNull",
-            _ => "IsNull or IsNotNull",
+            BinaryOperatorKind.Equals => TestWith("IsNull"),
+            BinaryOperatorKind.NotEquals => TestWith("IsNotNull"),
+            _ => TestWith("IsNull or IsNotNull"),
         };
-        context.ReportDiagnostic(Diagnostic.Create(
-            DiagnosticDescriptors.NullComparison, binary.Syntax.GetLocation(), token, remedy));
+        Report(context, binary, token, remedy);
+    }
+
+    // IN reports only when every value is NULL: one other value can still match.
+    public static void CheckPredicate(OperationAnalysisContext context, IInvocationOperation call)
+    {
+        IMethodSymbol method = call.TargetMethod;
+        if (method.ContainingType.Name != "SqlExpression"
+            || !DialectUsageAnalyzer.IsFromSqlArtisan(method.ContainingAssembly))
+        {
+            return;
+        }
+
+        switch (method.Name)
+        {
+            case "NotIn" when ListValues(call) is { } values && values.Exists(IsSqlNull):
+                Report(
+                    context,
+                    call,
+                    "NOT IN",
+                    values.TrueForAll(IsSqlNull)
+                        ? TestWith("IsNotNull")
+                        : "drop the NULL from the list");
+                break;
+            case "In" when ListValues(call) is { Count: > 0 } values
+                && values.TrueForAll(IsSqlNull):
+                Report(context, call, "IN", TestWith("IsNull"));
+                break;
+            case "Between" when call.Arguments.Length == 2 && CountNullArguments(call) > 0:
+                Report(
+                    context,
+                    call,
+                    "BETWEEN",
+                    CountNullArguments(call) == 2
+                        ? TestWith("IsNull")
+                        : "compare the other bound with >= or <=");
+                break;
+            case "Like" or "NotLike" when call.Arguments.Length == 1
+                && IsSqlNull(call.Arguments[0].Value):
+                Report(
+                    context,
+                    call,
+                    method.Name == "Like" ? "LIKE" : "NOT LIKE",
+                    TestWith("IsNull or IsNotNull"));
+                break;
+        }
     }
 
     public static void CheckSimpleCaseWhen(
@@ -46,16 +91,62 @@ internal static class NullComparisonRule
             || !DialectUsageAnalyzer.IsFromSqlArtisan(method.ContainingAssembly)
             || method.Parameters.Length != 1
             || method.Parameters[0].Type.SpecialType != SpecialType.System_Object
-            || !IsSqlNull(invocation.Arguments[0].Value))
+            || !IsSqlNull(invocation.Arguments[0].Value, bound: false))
         {
             return;
         }
 
+        Report(context, invocation, "WHEN NULL", TestWith("a searched When(x.IsNull)"));
+    }
+
+    private static int CountNullArguments(IInvocationOperation call)
+    {
+        int count = 0;
+        foreach (IArgumentOperation argument in call.Arguments)
+        {
+            if (IsSqlNull(argument.Value))
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private static string TestWith(string test) => "test for NULL with " + test;
+
+    private static void Report(
+        OperationAnalysisContext context, IOperation operation, string token, string remedy) =>
         context.ReportDiagnostic(Diagnostic.Create(
-            DiagnosticDescriptors.NullComparison,
-            invocation.Syntax.GetLocation(),
-            "WHEN NULL",
-            "a searched When(x.IsNull)"));
+            DiagnosticDescriptors.NullComparison, operation.Syntax.GetLocation(), token, remedy));
+
+    // The values of a params list written at the call, as arguments or a collection
+    // expression (its children, as ArgumentValueValidityRule.Elements reads GroupBy's);
+    // an array built elsewhere is unread.
+    private static List<IOperation>? ListValues(IInvocationOperation call)
+    {
+        if (call.Arguments.Length != 1
+            || call.TargetMethod.Parameters[0].Type is not IArrayTypeSymbol)
+        {
+            return null;
+        }
+
+        IOperation value = call.Arguments[0].Value;
+        if (value is IConversionOperation conversion)
+        {
+            value = conversion.Operand;
+        }
+
+        return value switch
+        {
+            IArrayCreationOperation { Initializer: { } list } => [.. list.ElementValues],
+            IArrayCreationOperation => null,
+            { Type: IArrayTypeSymbol } and not (IInvocationOperation or ILocalReferenceOperation
+                or IParameterReferenceOperation or IFieldReferenceOperation
+                or IPropertyReferenceOperation or IConversionOperation) =>
+                [.. value.ChildOperations],
+            _ => null,
+        };
     }
 
     private static string? Token(BinaryOperatorKind kind) => kind switch
@@ -69,18 +160,34 @@ internal static class NullComparisonRule
         _ => null,
     };
 
-    private static bool IsSqlNull(IOperation operand)
+    // Not a bound NULL in a simple CASE: Oracle XE 21.3.0 binds an untyped BindNull() as
+    // text and rejects the CASE (SimpleCaseWhenUntypedBindNull_IsRejectedByTheEngine).
+    private static bool IsSqlNull(IOperation operand) => IsSqlNull(operand, bound: true);
+
+    private static bool IsSqlNull(IOperation operand, bool bound)
     {
         while (operand is IConversionOperation { IsImplicit: true } conversion)
         {
             operand = conversion.Operand;
         }
 
-        return operand is IPropertyReferenceOperation
+        // Untyped BindNull() only, which the twins run in each position but a simple CASE;
+        // what a typed one does turns on the type it names.
+        return operand switch
         {
-            Property: { Name: "Null", ContainingType.Name: "Sql" } property,
-        }
-            && DialectUsageAnalyzer.IsFromSqlArtisan(property.ContainingAssembly);
+            IPropertyReferenceOperation
+            {
+                Property: { Name: "Null", ContainingType.Name: "Sql" } property,
+            } => DialectUsageAnalyzer.IsFromSqlArtisan(property.ContainingAssembly),
+            IInvocationOperation
+            {
+                TargetMethod:
+                {
+                    Name: "BindNull", ContainingType.Name: "Sql", Parameters.Length: 0,
+                } bindNull,
+            } => bound && DialectUsageAnalyzer.IsFromSqlArtisan(bindNull.ContainingAssembly),
+            _ => false,
+        };
     }
 
     private static bool IsReadAsCondition(IOperation operation)
