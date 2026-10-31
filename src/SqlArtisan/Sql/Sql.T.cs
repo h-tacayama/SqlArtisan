@@ -238,9 +238,9 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric or date value to truncate.</param>
     /// <returns>A <c>TRUNC</c> function expression.</returns>
-    /// <remarks>Oracle, PostgreSQL, and SQLite (3.35+) syntax, for a number; only Oracle truncates
-    /// a date (PostgreSQL 16 rejects one, SQLite 3.50 returns NULL), and SQLite takes one argument.
-    /// For a timestamp on PostgreSQL, see <see cref="DateTrunc(DateTimePart, object)"/>.</remarks>
+    /// <remarks>Oracle, PostgreSQL, and SQLite (3.35+) syntax, SQLite with one argument. Only
+    /// Oracle truncates a date: PostgreSQL 16 rejects one, and SQLite 3.50 gives NULL for a date
+    /// string; on PostgreSQL, see <see cref="DateTrunc(DateTimePart, object)"/>.</remarks>
     public static SqlExpression Trunc(object expr) =>
         new TruncFunction(Resolve(expr, nameof(expr)));
 
