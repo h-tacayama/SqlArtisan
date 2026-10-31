@@ -211,10 +211,10 @@ confirms the `true` side.
 
 If the function's dialect support depends on the *runtime value* of an
 argument rather than its arity or declared type (`Trunc`'s numeric-vs-date/time
-argument is the existing example — same overload, disjoint dialect sets), the
-current matrix key shape cannot express it safely; leave it unentered rather
-than assert a partial truth, and add it to `DialectMatrixCoverageTests`'
-exclusion list with the reason, the way `Trunc` is.
+argument is the existing example — same overload, different dialect sets), enter
+the union of its shapes: a cell is `true` where any shape runs, so the entry only
+under-reports (ADR 0021). Name the shapes it stays silent on in
+`docs/analyzer.md`'s known limitations, as `Trunc`'s are.
 
 ## 6. Sweep case (gate-enforced)
 

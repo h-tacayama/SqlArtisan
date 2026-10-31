@@ -753,7 +753,7 @@ internal static class DialectMatrix
         [new MatrixKey("Separator")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
 
         // Trunc: one key for a numeric and a date argument, so each cell is their union (PostgreSQL
-        // rejects trunc(timestamp)); SQLite's trunc() takes one argument, from 3.35 (#681).
+        // 16 rejects trunc(timestamp)); SQLite's trunc() takes one argument, from 3.35 (#681).
         [new MatrixKey("Trunc")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("Trunc", 2)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
     };

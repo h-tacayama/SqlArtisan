@@ -5551,8 +5551,8 @@ for, not a bug in the matrix.
 - **A construct whose dialect support depends on the runtime value of an
   argument, not its declared type or arity, is entered as the union of its
   shapes.** `Trunc(expr[, format])` is the example: a numeric argument runs on
-  Oracle, PostgreSQL and SQLite, a date/time argument on Oracle alone, and both
-  shapes compile to the exact same C# overload. Its entry reports MySQL and SQL
+  Oracle, PostgreSQL and SQLite, Oracle truncates a date/time argument too, and
+  PostgreSQL 16 rejects one; both shapes compile to the exact same C# overload. Its entry reports MySQL and SQL
   Server, which have no `TRUNC`, and SQLite's 2-argument form, but stays silent
   on a date/time argument outside Oracle.
 - **`SQLA0104`'s lists don't model a source-type or column-type constraint.**
@@ -5588,7 +5588,7 @@ for, not a bug in the matrix.
 - **Absence of an entry still means silence, not endorsement.** The matrix
   covers every referencable public method, property, field, and overloaded
   operator except a
-  documented set of dialect-neutral members and `Trunc` above — gate-enforced by the
+  documented set of dialect-neutral members — gate-enforced by the
   repository's tests — but a member in that excluded set gets no dialect
   verdict unless your own `unsupported` override gives it one. See
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)
