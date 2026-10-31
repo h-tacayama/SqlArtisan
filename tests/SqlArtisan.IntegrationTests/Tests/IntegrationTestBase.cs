@@ -1163,6 +1163,31 @@ public abstract class IntegrationTestBase
             connection.ExecuteScalar(Select(Count(Asterisk)).From(u).Where(condition)))));
     }
 
+    // #742: NULL in the other compared positions, and a bound NULL beside a comparison,
+    // match no row either; the controls show each predicate matches rows without it.
+    [Fact]
+    public void NullInComparedPosition_MatchesNoRow()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        long Count(SqlCondition condition) => Convert.ToInt64(connection.ExecuteScalar(
+            Select(Sql.Count(Asterisk)).From(u).Where(condition)));
+
+        Assert.Equal(4, Count(u.Id.NotIn(1)));
+        Assert.Equal(2, Count(u.Id.Between(1, 2)));
+        Assert.Equal(5, Count(u.Name.Like("%")));
+        Assert.Equal(1, Count(u.Id == Bind(1)));
+
+        SqlCondition[] neverTrue =
+        [
+            u.Id.NotIn(1, Null), u.Id.In(Null),
+            u.Id.Between(Null, 10), u.Id.Between(1, Null),
+            u.Name.Like(Null), u.Name.NotLike(Null),
+            u.Id == BindNull(), u.Id != BindNull(), u.Id < BindNull(),
+        ];
+        Assert.All(neverTrue, condition => Assert.Equal(0, Count(condition)));
+    }
+
     // #742: SQLite reads a negative scale as 0, the cell SQLA0104 reports; the other
     // engines round to the tens. 75.6 tells a scale of 0 (76) from no rounding (75.6).
     [Fact]
