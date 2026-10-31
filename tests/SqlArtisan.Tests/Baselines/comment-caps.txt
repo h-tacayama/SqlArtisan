@@ -63,7 +63,6 @@ src/SqlArtisan/SqlPart/TableReference/ValuesDerivedTable.cs 1
 tests/SqlArtisan.Analyzers.Tests/AnalyzerConfigResolverTests.cs 1
 tests/SqlArtisan.Analyzers.Tests/ClaudeMdDiagnosticParityTests.cs 1
 tests/SqlArtisan.Analyzers.Tests/ConstructKeyNamingTests.cs 1
-tests/SqlArtisan.Analyzers.Tests/DialectMatrixDocsTests.cs 1
 tests/SqlArtisan.Analyzers.Tests/DialectUsageAnalyzerTests.cs 3
 tests/SqlArtisan.Analyzers.Tests/IdentifierLengthAnalyzerTests.cs 2
 tests/SqlArtisan.Analyzers.Tests/MSBuildPropertyParityTests.cs 1

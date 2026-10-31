@@ -1053,12 +1053,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   that conditions the earlier matched branch (#685).
 
 ### Docs
-- The `Dbms` summaries say the dialect quotes aliases and CTE names, not
-  identifiers: table and column names are emitted as written. `docs/expressions.md`
-  and `docs/query-statements.md` gain a `[!NOTE]` for `CosineDistance` on MySQL,
-  which reads `<=>` as NULL-safe equality, and for `Minus` on SQL Server, which
-  returns the first branch's rows; the `DoublePipe` and `Format` notes name what
-  MySQL 8.0 and SQLite 3.50 return. Each is a live twin on its lane. (#681)
+- The `Dbms` summaries say the dialect quotes only aliases and CTE names; table
+  and column names are emitted as written. `docs/expressions.md` and
+  `docs/query-statements.md` gain a `[!NOTE]` for `CosineDistance` on MySQL,
+  which reads `<=>` as NULL-safe equality, and for `Minus` after an unaliased
+  table on SQL Server, whose first result set holds the first branch's rows; the
+  `DoublePipe` and `Format` notes name what MySQL 8.0 and SQLite 3.50 return.
+  Each has a live twin on its lane. (#681)
 - `docs/expressions.md` § String Concatenation warns that `+` between strings
   runs as numeric addition, with no error, on MySQL and SQLite
   (observed on MySQL 8.0 and SQLite 3.50.4), and names `Concat(...)` and
