@@ -402,3 +402,58 @@ guard を足す族（1・2）は、利用者の手元で `Build()` が新たに�
 - `Trunc` の日時の書式
 - `Dateadd`・`AddMonths` の小数
 - `Ntile`・`NthValue`（guard 済み）
+
+### 族 4・11 の決定（2026-10-31、依頼者の回答「推奨案で進めて」）
+
+| 族 | 決定 |
+|---|---|
+| 4 int の上限を超えるキー | **4a**: 序数の guard に「int の上限を超える整数は列の位置にならない」を足し、呼び出し時に拒む（ADR 0012、`OrderBy(0)` と同じ扱い）。呼び出し時に拒むので、測り直していない複合の末尾 ORDER BY の結果は、この決定を変えない |
+| 11a 整数の引数に小数 | SQLA0104 の行。定数の小数を整数の位置（位置・長さ・出現回数・桁）に置いたら、測った全方言で報告する |
+| 11b 0・負の位置と長さ | SQLA0104 の行と文書の注記。関数ごとのセルは下の規則で決まる |
+| 11c Oracle の空文字列は NULL | エンジンに任せる |
+| 11d `RegexpReplace` の 4 引数 | 文書の `[!WARNING]`。出現回数を明示する 5 引数を案内する |
+| 11e `Mod(x, 0)` | エンジンに任せ、文書からリンクする |
+| 11f SQL Server の `Power` | 文書 |
+
+**11b のセルを決める規則**: 推奨にあった「関数ごとに決める」を、次の規則で具体化した。
+
+1. その関数に SQL 標準の読み方があれば、それを基準にする。
+2. 標準がなければ、測った方言の多数の読み方を基準にする。
+3. 基準と違う値を返す方言と、拒む方言を報告する（ADR 0022 の「拒む、または別の意味で実行する」）。
+4. 多数がない（全方言で違う）値は、対応する全方言で報告する。
+
+この具体化は私が導いたもので、セルの一つ一つは依頼者に確かめていない。
+
+| 関数（対応する方言） | 値 | 基準 | 報告する方言 |
+|---|---|---|---|
+| `Substring`（MySQL・PostgreSQL・SQLite・SQL Server） | 位置 0 | 標準（PostgreSQL・SQL Server・SQLite と同じ `a`） | MySQL |
+| | 位置 < 0 | 標準（`''`） | MySQL・SQLite（末尾から数える） |
+| | 長さ < 0 | 標準では例外 | 4 方言すべて（PostgreSQL・SQL Server は拒む、MySQL・SQLite は別の値） |
+| `Substr`（MySQL・Oracle・PostgreSQL・SQLite） | 位置 0 | 多数（文字列全体） | MySQL |
+| | 位置 < 0 | 多数（末尾から） | PostgreSQL |
+| | 長さ < 0 | 多数なし | 4 方言すべて |
+| `Left`・`Right`（MySQL・PostgreSQL・SQL Server） | 長さ < 0 | 多数なし | 3 方言すべて |
+| `Lpad`・`Rpad`（MySQL・Oracle・PostgreSQL） | 長さ < 0 | 多数（NULL） | PostgreSQL |
+| | 長さ 0 | 多数（`''`。Oracle の NULL は 11c） | なし |
+
+## 決まったことを入れるときの作業（この試しの外）
+
+試しの約束（不具合は直さない、作業ブランチに置くだけ）により、どれもコードに入れていない。入れる
+ときの作業は次のとおり。どれも CLAUDE.md の手順（twin、ゲート、記録の更新）が要る。
+
+| 置き場 | 族 | 作業 |
+|---|---|---|
+| `Build()` の guard | 1（MySQL の整数 `Bind` キー）、2（Oracle の非整数 ORDER BY） | `SelectBuilder.Validate` に方言の guard、guards の Bounded exception の段落、ADR 0011 の事例、各レーンの twin |
+| 呼び出し時の guard | 4（int の上限を超える序数） | 序数の guard、guards の値の域の列挙、ADR 0012 の事例、SQLite の twin |
+| SQLA0104 | 11a・11b | `ArgumentValueValidity` のセル、意味を確かめる twin、`docs/analyzer.md` の表と `[!NOTE]`、ADR 0022 に値の域を足す |
+| SQLA0104 の改定 | 5（日時 ± `TimeSpan`） | ADR 0022 に「型で判断が決まる値」を足す改定、規則、twin |
+| SQLA0205 の拡張 | 6（日時と数・日時の算術） | 規則を算術へ広げる、`SchemaRuleParityTests`、文書 |
+| 解析器の新しい判断 | 10（MySQL の SET の評価順） | ID の置き場の決定（SQLA0102 か新しい ID か、ADR 0018・0019）、規則、twin |
+| 文書のみ | 7・8・11d・11e・11f・12 | 注記とリンク。結果の意味を書く行には twin（ADR 0020） |
+| 記録のみ | Q7・Q12 | guards の該当段落に書き足す |
+
+未決は 3 つ残る。
+
+- 族 5・6 で、Oracle の `日時 + 数` を報告するか（Oracle の定義では日数を足す）
+- 族 10 の ID の置き場
+- Q1（「rule 8」がどの記録か）
