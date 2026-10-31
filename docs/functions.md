@@ -132,7 +132,7 @@ On Oracle and SQLite, use `Instr()` above instead.
 - `CurrentTime()` for `CURRENT_TIME` (not supported by Oracle or SQL Server); `CurrentTime(precision)` for `CURRENT_TIME(precision)` (MySQL, PostgreSQL)
 - `CurrentTimestamp()` for `CURRENT_TIMESTAMP`; `CurrentTimestamp(precision)` for `CURRENT_TIMESTAMP(precision)` (MySQL, Oracle, PostgreSQL — MySQL's bare form has whole-second precision)
 - `Date(timevalue[, modifier, ...])` for `DATE` (SQLite; 1-argument form also MySQL/PostgreSQL)
-- `DateAdd()` for `DATE_ADD` (MySQL — not `Dateadd()`, SQL Server's `DATEADD` below)
+- `DateAdd()` for `DATE_ADD` (MySQL; PostgreSQL gained it in a specific release, with `IntervalLiteral(...)` only — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs); not `Dateadd()`, SQL Server's `DATEADD` below)
 - `Dateadd()` for `DATEADD` (SQL Server)
 - `Datediff()` for `DATEDIFF` (SQL Server)
 - `DateFormat()` for `DATE_FORMAT` (MySQL)

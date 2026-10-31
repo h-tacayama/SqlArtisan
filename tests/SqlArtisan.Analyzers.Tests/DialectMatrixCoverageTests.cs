@@ -40,10 +40,6 @@ public class DialectMatrixCoverageTests
             ["OutputParameter.DbType"] = "Output-parameter binding metadata for RETURNING ... INTO; the construct is the Into entry.",
             ["OutputParameter.Size"] = "Output-parameter binding metadata for RETURNING ... INTO; the construct is the Into entry.",
             ["OutputParameter.Variable"] = "Output-parameter binding metadata for RETURNING ... INTO; the construct is the Into entry.",
-            ["Sql.Trunc"] =
-                "Deliberately unentered: dialect support depends on the argument's runtime "
-                + "type (numeric vs. date TRUNC), which neither declared type nor arity "
-                + "distinguishes — see docs/analyzer.md.",
             ["Sql.Second"] = "An IntervalField argument for IntervalLiteral(...), not an independent construct.",
             ["Sql.ToMonth"] = "See Sql.Second.",
             ["Sql.ToHour"] = "See Sql.Second.",

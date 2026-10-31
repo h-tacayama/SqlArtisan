@@ -506,11 +506,12 @@ verdict exactly; where the bound sits above the dialect's verified baseline
 | `MergeInto`, `WhenMatched`, `WhenNotMatched`, `ThenInsert`, `ThenUpdateSet`, `ThenDelete` | PostgreSQL | 15 | `MERGE` landed in PostgreSQL 15. `Using` itself carries no bound — the key is shared with `DeleteBuilder`'s plain `DELETE ... USING`, which predates and does not require PostgreSQL 15; the `MergeInto` bound still flags a MERGE statement below 15. |
 | `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr`, `RegexpInstr` | PostgreSQL | 15 | `regexp_like`, `regexp_count`, `regexp_substr`, and `regexp_instr` landed in PostgreSQL 15. `regexp_replace` predates it — 15 is where it gained the position and occurrence arguments — so the bound covers only `RegexpReplace`'s position/occurrence/options overloads (4+ arguments); the 3-argument call is not reported below 15. MySQL's `REGEXP_SUBSTR`/`REGEXP_INSTR` top out at 5/6 arguments respectively (neither has `subexpr`), so `RegexpSubstr`'s 6-argument and `RegexpInstr`'s 7-argument overloads are MySQL-unsupported at any version, independent of this PostgreSQL bound. |
 | `Log10` | PostgreSQL | 12 | `log10()` landed in PostgreSQL 12; before it, base-10 was spelled `log(x)`. |
+| `DateAdd` | PostgreSQL | 16 | `date_add()` landed in PostgreSQL 16 — live-verified on the PostgreSQL 16 lane. PostgreSQL has no `date_sub()`, so `DateSub` stays unsupported there. |
 | `WhenNotMatchedBySource` (both forms) | PostgreSQL | 17 | `MERGE ... WHEN NOT MATCHED BY SOURCE` landed in PostgreSQL 17 — live-verified on the PostgreSQL 17 lane. |
 | `JsonValue`, `JsonQuery` | PostgreSQL | 17 | `JSON_VALUE` and `JSON_QUERY` landed in PostgreSQL 17 — live-verified on the PostgreSQL 17 lane. |
 | `RightJoin`, `FullJoin`, `NaturalRightJoin`, `NaturalFullJoin` | SQLite | 3.39 | `RIGHT JOIN`/`FULL JOIN` landed in SQLite 3.39. |
 | `Returning` | SQLite | 3.35 | `RETURNING` landed in SQLite 3.35. |
-| `Ceil`, `Ceiling`, `Exp`, `Floor`, `Ln`, `Log` (both forms), `Log10`, `Mod`, `Power`, `Sign`, `Sqrt` | SQLite | 3.35 | The `SQLITE_ENABLE_MATH_FUNCTIONS` extension landed in 3.35 (enabled in the project's pinned `bundle_e_sqlite3`), and `sign()` arrived in the same release as a core function; none of these functions exist below it. |
+| `Ceil`, `Ceiling`, `Exp`, `Floor`, `Ln`, `Log` (both forms), `Log10`, `Mod`, `Power`, `Sign`, `Sqrt`, `Trunc` (1-argument form) | SQLite | 3.35 | The `SQLITE_ENABLE_MATH_FUNCTIONS` extension landed in 3.35 (enabled in the project's pinned `bundle_e_sqlite3`), and `sign()` arrived in the same release as a core function; none of these functions exist below it. |
 | `Substring` | SQLite | 3.34 | SQLite registered `SUBSTRING` as a second name for `substr()` in 3.34. |
 | `StringAgg` (both overloads), `Concat` (both overloads), `ConcatWs` | SQLite | 3.44 | `string_agg`/`concat`/`concat_ws` landed in SQLite 3.44. |
 | `NullsFirst`, `NullsLast` | SQLite | 3.30 | `NULLS FIRST`/`NULLS LAST` landed in SQLite 3.30. |
@@ -588,7 +589,9 @@ re-listed lead (ORA-00942).
 list both `MERGE` and the `regexp_count` / `regexp_instr` / `regexp_like` /
 `regexp_substr` family as new in 15. The
 [version 12 release notes](https://www.postgresql.org/docs/12/release-12.html)
-add `log10()` as a named alias for the base-10 `log()`, and the
+add `log10()` as a named alias for the base-10 `log()`, the
+[version 16 release notes](https://www.postgresql.org/docs/16/release-16.html)
+add `date_add()`, and the
 [version 17 release notes](https://www.postgresql.org/docs/17/release-17.html)
 add `WHEN NOT MATCHED BY SOURCE` to `MERGE` and the `JSON_VALUE()` / `JSON_QUERY()`
 functions.
@@ -597,7 +600,7 @@ functions.
 
 - [`NULLS FIRST` / `NULLS LAST`](https://sqlite.org/releaselog/3_30_0.html) — 3.30.0 (2019-10-04).
 - [`RETURNING`](https://sqlite.org/releaselog/3_35_0.html) — 3.35.0 (2021-03-12).
-- [The math-functions extension](https://sqlite.org/releaselog/3_35_0.html) (`ceil`, `ceiling`, `exp`, `floor`, `ln`, `log`, `log10`, `mod`, `power`, `sqrt`) — 3.35.0, same release as `RETURNING`.
+- [The math-functions extension](https://sqlite.org/releaselog/3_35_0.html) (`ceil`, `ceiling`, `exp`, `floor`, `ln`, `log`, `log10`, `mod`, `power`, `sqrt`, `trunc`) — 3.35.0, same release as `RETURNING`.
 - [`RIGHT JOIN` / `FULL OUTER JOIN`](https://sqlite.org/releaselog/3_39_0.html) — 3.39.0 (2022-06-25).
 - `substring()` as a second name for `substr()` — 3.34.0 (2020-12-01), confirmed against the `aBuiltinFunc[]` table in `src/func.c` (absent at tag `version-3.33.0`, present at `version-3.34.0`).
 - `sign()`, a core function outside the math-functions extension — 3.35.0, confirmed against the `aBuiltinFunc[]` table in `src/func.c` (absent at tag `version-3.34.0`, present outside `SQLITE_ENABLE_MATH_FUNCTIONS` at `version-3.35.0`).
@@ -1767,12 +1770,13 @@ for, not a bug in the matrix.
   because the `sqlartisan_construct_<name>` member-level override still applies
   to all of them, while the shipped matrix's verdicts there are per-overload.
 - **A construct whose dialect support depends on the runtime value of an
-  argument, not its declared type or arity, is not modeled at all.**
-  `Trunc(expr[, format])` is the example: a numeric argument is Oracle,
-  PostgreSQL and SQLite, a date/time argument is Oracle-only, and both shapes
-  compile to the exact same C# overload. It has no matrix entry, so no dialect
-  verdict reports it unless you set `sqlartisan_construct_trunc` (or an
-  `_arity<N>` key) to `unsupported`.
+  argument, not its declared type or arity, is entered as the union of its
+  shapes.** `Trunc(expr[, format])` is the example: the result turns on the value
+  `expr` holds, and every value compiles to the exact same C# overload. Its entry
+  reports MySQL and SQL Server, which have no `TRUNC`, and SQLite's 2-argument
+  form, and stays silent on the other calls, among them a date/time argument on
+  PostgreSQL, which PostgreSQL 16 rejects, and `YYYY-MM-DD HH:MM:SS` text in
+  SQLite's 1-argument form, for which SQLite 3.50 returns NULL.
 - **`SQLA0104`'s lists don't model a source-type or column-type constraint.**
   Oracle's `EXTRACT` rejects `HOUR`/`MINUTE`/`SECOND` on a plain `DATE`
   source (it needs a `TIMESTAMP`) and the four `TIMEZONE_*` fields need
@@ -1806,7 +1810,7 @@ for, not a bug in the matrix.
 - **Absence of an entry still means silence, not endorsement.** The matrix
   covers every referencable public method, property, field, and overloaded
   operator except a
-  documented set of dialect-neutral members and `Trunc` above — gate-enforced by the
+  documented set of dialect-neutral members — gate-enforced by the
   repository's tests — but a member in that excluded set gets no dialect
   verdict unless your own `unsupported` override gives it one. See
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)

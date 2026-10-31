@@ -115,9 +115,9 @@ internal static class DialectMatrix
         [new MatrixKey("Minute", 1)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("ToSecond")] = DbmsSupport.All,
         [new MatrixKey("ToSecond", 1)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
-        // DateAdd/DateSub: MySQL's DATE_ADD/DATE_SUB(date, INTERVAL n unit) (Sql.D.cs XML
-        // docs, #437) — a different token and argument shape from SQL Server's Dateadd above.
-        [new MatrixKey("DateAdd")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
+        // DateAdd/DateSub: MySQL's DATE_ADD/DATE_SUB (#437); PostgreSQL 16 added date_add only. The
+        // key unites both interval forms, and Interval's own row still reports the MySQL-only one.
+        [new MatrixKey("DateAdd")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("DateSub")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
         // Timestampadd/Timestampdiff: MySQL's TIMESTAMPADD/TIMESTAMPDIFF (Sql.T.cs XML
         // docs, #438) — a bare unit keyword and integer, independent of DateAdd/DateSub's
@@ -752,14 +752,10 @@ internal static class DialectMatrix
         // positional 2-arg GroupConcat overload instead).
         [new MatrixKey("Separator")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
 
-        // --- Trunc is deliberately NOT entered: Sql.Trunc(expr[, format]) carries one dialect
-        // support set for a numeric argument (Oracle/PostgreSQL/SQLite) and a DIFFERENT one for
-        // a date/time argument (Oracle only) — same two overloads, distinguished only by the
-        // call site's runtime value, not by arity or declared parameter type. The current
-        // MatrixKey (member name + declared arity) cannot express this; asserting either dialect
-        // set as "the" entry for "Trunc" would misclassify the other half. Needs an
-        // argument-type-aware key shape before it can be entered safely — tracked as follow-up,
-        // not guessed around.
+        // Trunc: one key for a numeric and a date argument, so each cell is their union (PostgreSQL
+        // 16 rejects trunc(timestamp)); SQLite's trunc() takes one argument, from 3.35 (#681).
+        [new MatrixKey("Trunc")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        [new MatrixKey("Trunc", 2)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
     };
 
     /// <summary>
@@ -829,6 +825,9 @@ internal static class DialectMatrix
         // ("Values", 3) carries no bound: the factory feeds FROM and joins too, which
         // predate PostgreSQL 15, and MergeInto's own bound still flags MERGE (#681).
 
+        // PostgreSQL 16 release notes; the baseline lane's sweep runs it.
+        [new MatrixKey("DateAdd")] = new VersionBounds(postgreSql: V("16")),
+
         // PostgreSQL 17 release notes; proven by the PostgreSql17 lane's bound sweep.
         [new MatrixKey("WhenNotMatchedBySource")] = new VersionBounds(postgreSql: V("17")),
         [new MatrixKey("JsonQuery")] = new VersionBounds(postgreSql: V("17")),
@@ -876,6 +875,7 @@ internal static class DialectMatrix
         [new MatrixKey("Sqrt")] = new VersionBounds(sqlite: V("3.35")),
         [new MatrixKey("Sign")] = new VersionBounds(sqlite: V("3.35")),
         [new MatrixKey("Mod")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Trunc")] = new VersionBounds(sqlite: V("3.35")),
         [new MatrixKey("Ln")] = new VersionBounds(sqlite: V("3.35")),
         [new MatrixKey("Log", 1)] = new VersionBounds(sqlite: V("3.35")),
         [new MatrixKey("Log", 2)] = new VersionBounds(sqlite: V("3.35")),

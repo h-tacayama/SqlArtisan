@@ -524,6 +524,19 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(45123.456m, Field("MILLISECONDS"));
     }
 
+    // #681: why the union Trunc cell under-reports here — trunc takes a number, not a timestamp.
+    [Fact]
+    public void Trunc_TimestampArgument_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar<object>(Select(Trunc(u.Age)).From(u).Where(u.Id == 1));
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<object>(
+            Select(Trunc(u.CreatedAt)).From(u).Where(u.Id == 1)));
+    }
+
     // ADR 0012 (#661): anchors the open-domain example; the field is rejected here, the
     // one engine with DATE_TRUNC, yet stays unguarded because the list is the vendor's.
     [Fact]
