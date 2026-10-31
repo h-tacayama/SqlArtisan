@@ -470,3 +470,91 @@ VR_PG_CONNECTION="Host=localhost;Username=postgres;Password=postgres;Database=po
   dotnet test tests/SqlArtisan.IntegrationTests \
   --filter "Engine=Sqlite&FullyQualifiedName~ValueReading|Engine=LocalPostgreSql"
 ```
+
+## 13. 再測定: 値の位置にもエンジンで全値を当てる（E5）
+
+§ 8 の 0 番（値の位置をエンジンで代表 1 つしか当てていない）を埋めるための再測定。
+コード: `tests/SqlArtisan.IntegrationTests/ValueReading/ValuePositionExamples.cs`、`ValuePositionOracle.cs`。
+統合テスト run 41162510744（8 本すべて実行）と、このコンテナの SQLite・PostgreSQL 16。
+
+### 導き方
+
+- **位置**: 比較 12（`==` `!=` `<` `<=` `>` `>=` `Like` `NotLike` `Between` `NotBetween` `In` `NotIn`）、
+  算術 5（`+` `-` `*` `/` `%`）、単純 CASE の WHEN 値、`Coalesce`、INSERT の値、UPDATE の SET 値、
+  SELECT 項目、THEN、`Bind`、`Abs`、`Upper`。演算子は 1 つずつ別の位置として当てた。
+- **左辺の型**（新しい軸）: 整数列・文字列・日時列。比較・算術・CASE・Coalesce・INSERT・SET に掛けた。
+- **値の種類**: 29 すべて。
+- 1 本の流れあたり 1,972 件、8 本で計 15,776 件。
+
+### 判定の仕方
+
+- **意図した結果が一つに決まる組**（値の種類と左辺の型がそろう組。例: 整数列 `<` 2、日時列 + TimeSpan、
+  文字列 `Like` 'b'）は、種データから C# で意図した結果を計算して照合した（`ValuePositionOracle`）。473 件。
+- **一つに決まらない組**（型がそろわない組、整数の割り算、時差、ドライバーの型の対応）は、正解を置かず、
+  エンジンどうしで「値を返すか、失敗するか、返す値は同じか」を比べた。1,499 件（うち 306 件は全方言で
+  Build が拒む）。
+
+### 結果
+
+**意図した結果が決まる組（473 件 × 8 本）**: 黙って違う結果を返したのは F3 だけ（SQLite と MySQL の
+`日時列 ± TimeSpan`、計 4 件）。ほかの外れはすべて大きな失敗（SQLite の ANY、PostgreSQL の `整数列 LIKE NULL`、
+SQL Server の `datetime2 + time`、Oracle の BindNull を CASE・COALESCE に置いたとき、Oracle XE 21 の bool
+の読み戻し）。PostgreSQL 17 は 16 と、SQL Server 2025 は 2022 と、全 1,972 件の結果が一致した（ハッシュ一致）。
+
+**意図した結果が決まらない組（エンジンに届く 1,193 件）**:
+
+| どうなったか | 件数 |
+|---|---|
+| 全方言で失敗 | 18 |
+| 全方言で同じ値 | 66 |
+| 全方言で値を返すが、値が違う | 19 |
+| 一部の方言だけ値を返し、返した値は同じ | 880 |
+| 一部の方言だけ値を返し、返した値が違う | 210 |
+
+値を返した件数（黙って受け入れた件数）は方言で大きく違う: SQLite 1,157、MySQL 1,093、SQL Server 299、
+Oracle 23ai 281、Oracle XE 21 253、PostgreSQL 113。
+
+「値が違う」229 件（19 + 210）を族に分けた:
+
+| 族 | 例 | 方言ごとの読み方 | 記録 |
+|---|---|---|---|
+| 型の違う比較 | `文字列 < 2`、`整数列 == "b"`、`整数列 == true` | MySQL は文字を数にして比べる（全行が該当）、SQLite は型の順で比べる（該当なし）。PostgreSQL・SQL Server・Oracle は多くが失敗 | SQLA0205 の領分（テーブルクラスにメタデータがあるときだけ報告。今回の試しのテーブルには無い） |
+| 日時列と数・日時の算術（**F5 候補**） | `日時列 + 2`、`日時列 - 日時` | `+ 2`: Oracle は 2 日足す、MySQL は日時を数にして足す（`20240101100002`）、SQLite は年に足す（`2026`）、PostgreSQL・SQL Server は失敗。`日時 - 日時`: PostgreSQL・Oracle は間隔、MySQL は数の差、SQLite は 0 | 見つからない |
+| 整数どうしの割り算（**F6 候補**） | `整数列 / (SELECT MAX(...))`、`b / (b + id)` | PostgreSQL・SQLite・SQL Server は切り捨て（1,1,0,0,0）、MySQL・Oracle は小数。Oracle XE 21・23ai は `b / (b + id)` の桁数が .NET の decimal に収まらずドライバーが失敗 | 見つからない |
+| 整数列に小数を書く（**F7 候補**） | `INSERT ... VALUES (2.5)` を整数列へ | PostgreSQL は double なら 2・decimal なら 3、SQL Server は 2、MySQL・Oracle は 3、SQLite は 2.5 のまま保存 | 見つからない |
+| `+` の文字列 | `文字列 + "b"` | SQL Server は連結、MySQL・SQLite は 0 | SQLA0104（#742） |
+| ドライバーの型の対応 | DateTimeOffset・TimeSpan・DateTime を値や文字列列に | 表記がエンジンとドライバーで違う | 問い Q10 |
+
+`Upper(数)` や `Coalesce(整数, 日時)` など、型の変換の表記が違うだけのものも同じ表に入る（残りの件数）。
+
+### この再測定で分かったこと
+
+- 意図した結果が決まる組では、新しい不具合は出なかった（F3 を全方言で確かめ直しただけ）。値の位置の
+  解決そのものは、エンジン段でもモデルどおりだった。
+- 新しく見えたのは、**意図した結果が一つに決まらない組で、エンジンが黙って別々の答えを返す**ものだった。
+  F5〜F7 はどれも記録が見つからない。ただし「呼び手の意図」が一つに決まらないので、不具合と言い切れず、
+  候補にとどめた（問い Q14〜Q16）。
+- **見分けるデータの穴が 1 つあった**: `整数列 / 2` は、列の値が 10 の倍数なので、切り捨てと小数で答えが
+  同じになった。整数の割り算の違いは、`/ (b + id)` と `/ (SELECT ...)` でしか見えなかった。演算子ごとに
+  「誤った読み方で答えが変わるか」を確かめる手順が要る。
+- モデルの側: 今の表には左辺の型の軸が無く、値の位置のセルの期待は「値として束縛して実行」で止まっている。
+  型がそろわない組の期待は、SQLA0205 の領分か、問いにするかを、区分ごとに決め直す必要がある。
+
+### 割合（前の回答の物差しで）
+
+エンジンで実際に当てた位置は、約 13 位置から約 40 位置（724 位置の約 5.5%）に増えた。値を受け取る
+区分 35 のうち、エンジンで全値を当てた区分は 6 から 17 になった（残りは文字列・char・enum・件数・
+刷られる数値・非 SQL など、委ねた区分と構造の区分、および MySQL だけの AGAINST・OUTPUT / RETURNING・
+`new BindValue`・INTERVAL の `+`）。
+
+### 追加の問い
+
+| # | 問い |
+|---|---|
+| Q14 | 日時列と数・日時の算術（`d + 2`、`d - d`）を、この型として扱うか（Oracle は日数、MySQL・SQLite は数として読む）。扱うなら SQLA0104 の行か、文書の注記か。 |
+| Q15 | 整数どうしの `/` の切り捨て・小数の違いは、ADR 0003 の「エンジン定義の意味、文書の問題」か、この型か。 |
+| Q16 | 整数列に小数を書いたときの丸め・切り捨て・そのまま保存の違いは、この型か、エンジンの型変換（ライブラリの外）か。 |
+
+ファイル: `e5-baseline-pg16.tsv`（最初に作った PostgreSQL の基準。最終の判定は C# の照合に切り替えた）、
+`e5-local-PostgreSql.tsv.gz`・`e5-local-Sqlite.tsv.gz`（このコンテナの全件）、`e5-ci/*.txt`（CI 6 本の
+要約・外れ・符号行）。
