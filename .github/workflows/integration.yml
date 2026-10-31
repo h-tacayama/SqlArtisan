@@ -56,7 +56,7 @@ jobs:
         run: >
           dotnet test tests/SqlArtisan.IntegrationTests
           -c Release
-          --filter "Engine=${{ matrix.engine }}&FullyQualifiedName~NameResolution"
+          --filter "Engine=${{ matrix.engine }}&FullyQualifiedName~FamilyMeasure"
           --logger "console;verbosity=detailed"
 
       - name: Upload value-reading results

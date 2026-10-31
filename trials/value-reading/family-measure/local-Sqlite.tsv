@@ -1,0 +1,155 @@
+FM	Sqlite	4	ORD-2	5,4,3,2,1
+FM	Sqlite	4	GRP-2	ENGINE-ERROR: SQLite Error 1: '1st GROUP BY term out of range - should be between 1 and 1'.
+FM	Sqlite	4	CORD-2	5,4,3,2,1
+FM	Sqlite	4	DON-2	ENGINE-ERROR: SQLite Error 1: 'near "ON": syntax error'.
+FM	Sqlite	4	PART-2	BUILD-THROW: Invalid type for PartitionByItem: System.Int32
+FM	Sqlite	4	ORD-99	ENGINE-ERROR: SQLite Error 1: '1st ORDER BY term out of range - should be between 1 and 2'.
+FM	Sqlite	4	GRP-99	ENGINE-ERROR: SQLite Error 1: '1st GROUP BY term out of range - should be between 1 and 1'.
+FM	Sqlite	4	CORD-99	ENGINE-ERROR: SQLite Error 1: '1st ORDER BY term out of range - should be between 1 and 2'.
+FM	Sqlite	4	DON-99	ENGINE-ERROR: SQLite Error 1: 'near "ON": syntax error'.
+FM	Sqlite	4	PART-99	BUILD-THROW: Invalid type for PartitionByItem: System.Int32
+FM	Sqlite	4	ORD-2147483647	ENGINE-ERROR: SQLite Error 1: '1st ORDER BY term out of range - should be between 1 and 2'.
+FM	Sqlite	4	GRP-2147483647	ENGINE-ERROR: SQLite Error 1: '1st GROUP BY term out of range - should be between 1 and 1'.
+FM	Sqlite	4	CORD-2147483647	ENGINE-ERROR: SQLite Error 1: '1st ORDER BY term out of range - should be between 1 and 2'.
+FM	Sqlite	4	DON-2147483647	ENGINE-ERROR: SQLite Error 1: 'near "ON": syntax error'.
+FM	Sqlite	4	PART-2147483647	BUILD-THROW: Invalid type for PartitionByItem: System.Int32
+FM	Sqlite	4	ORD-2147483648	1,2,3,4,5
+FM	Sqlite	4	GRP-2147483648	#groups=1
+FM	Sqlite	4	CORD-2147483648	ENGINE-ERROR: SQLite Error 1: '1st ORDER BY term does not match any column in the result set'.
+FM	Sqlite	4	DON-2147483648	ENGINE-ERROR: SQLite Error 1: 'near "ON": syntax error'.
+FM	Sqlite	4	PART-2147483648	BUILD-THROW: Invalid type for PartitionByItem: System.Int64
+FM	Sqlite	4	ORD-LongMax	1,2,3,4,5
+FM	Sqlite	4	GRP-LongMax	#groups=1
+FM	Sqlite	4	CORD-LongMax	ENGINE-ERROR: SQLite Error 1: '1st ORDER BY term does not match any column in the result set'.
+FM	Sqlite	4	DON-LongMax	ENGINE-ERROR: SQLite Error 1: 'near "ON": syntax error'.
+FM	Sqlite	4	PART-LongMax	BUILD-THROW: Invalid type for PartitionByItem: System.Int64
+FM	Sqlite	11	SUBSTR-pos-0	abcde
+FM	Sqlite	11	SUBSTR-len-0	''
+FM	Sqlite	11	SUBSTRING-pos-0	a
+FM	Sqlite	11	SUBSTRING-len-0	''
+FM	Sqlite	11	LEFT-0	ENGINE-ERROR: SQLite Error 1: 'no such function: LEFT'.
+FM	Sqlite	11	RIGHT-0	ENGINE-ERROR: SQLite Error 1: 'no such function: RIGHT'.
+FM	Sqlite	11	LPAD-0	ENGINE-ERROR: SQLite Error 1: 'no such function: LPAD'.
+FM	Sqlite	11	RPAD-0	ENGINE-ERROR: SQLite Error 1: 'no such function: RPAD'.
+FM	Sqlite	11	INSTR-pos-0	ENGINE-ERROR: SQLite Error 1: 'wrong number of arguments to function INSTR()'.
+FM	Sqlite	11	RCOUNT-pos-0	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_COUNT'.
+FM	Sqlite	11	RSUBSTR-pos-0	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_SUBSTR'.
+FM	Sqlite	11	RREPLACE-pos-0	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_REPLACE'.
+FM	Sqlite	11	TRUNC-0	ENGINE-ERROR: SQLite Error 1: 'wrong number of arguments to function TRUNC()'.
+FM	Sqlite	11	ROUND-0	76
+FM	Sqlite	11	SUBSTR-pos--1	e
+FM	Sqlite	11	SUBSTR-len--1	a
+FM	Sqlite	11	SUBSTRING-pos--1	e
+FM	Sqlite	11	SUBSTRING-len--1	a
+FM	Sqlite	11	LEFT--1	ENGINE-ERROR: SQLite Error 1: 'no such function: LEFT'.
+FM	Sqlite	11	RIGHT--1	ENGINE-ERROR: SQLite Error 1: 'no such function: RIGHT'.
+FM	Sqlite	11	LPAD--1	ENGINE-ERROR: SQLite Error 1: 'no such function: LPAD'.
+FM	Sqlite	11	RPAD--1	ENGINE-ERROR: SQLite Error 1: 'no such function: RPAD'.
+FM	Sqlite	11	INSTR-pos--1	ENGINE-ERROR: SQLite Error 1: 'wrong number of arguments to function INSTR()'.
+FM	Sqlite	11	RCOUNT-pos--1	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_COUNT'.
+FM	Sqlite	11	RSUBSTR-pos--1	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_SUBSTR'.
+FM	Sqlite	11	RREPLACE-pos--1	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_REPLACE'.
+FM	Sqlite	11	TRUNC--1	ENGINE-ERROR: SQLite Error 1: 'wrong number of arguments to function TRUNC()'.
+FM	Sqlite	11	ROUND--1	76
+FM	Sqlite	11	SUBSTR-pos--2	de
+FM	Sqlite	11	SUBSTR-len--2	a
+FM	Sqlite	11	SUBSTRING-pos--2	de
+FM	Sqlite	11	SUBSTRING-len--2	a
+FM	Sqlite	11	LEFT--2	ENGINE-ERROR: SQLite Error 1: 'no such function: LEFT'.
+FM	Sqlite	11	RIGHT--2	ENGINE-ERROR: SQLite Error 1: 'no such function: RIGHT'.
+FM	Sqlite	11	LPAD--2	ENGINE-ERROR: SQLite Error 1: 'no such function: LPAD'.
+FM	Sqlite	11	RPAD--2	ENGINE-ERROR: SQLite Error 1: 'no such function: RPAD'.
+FM	Sqlite	11	INSTR-pos--2	ENGINE-ERROR: SQLite Error 1: 'wrong number of arguments to function INSTR()'.
+FM	Sqlite	11	RCOUNT-pos--2	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_COUNT'.
+FM	Sqlite	11	RSUBSTR-pos--2	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_SUBSTR'.
+FM	Sqlite	11	RREPLACE-pos--2	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_REPLACE'.
+FM	Sqlite	11	TRUNC--2	ENGINE-ERROR: SQLite Error 1: 'wrong number of arguments to function TRUNC()'.
+FM	Sqlite	11	ROUND--2	76
+FM	Sqlite	11	SUBSTR-pos-1	abcde
+FM	Sqlite	11	SUBSTR-len-1	b
+FM	Sqlite	11	SUBSTRING-pos-1	ab
+FM	Sqlite	11	SUBSTRING-len-1	b
+FM	Sqlite	11	LEFT-1	ENGINE-ERROR: SQLite Error 1: 'no such function: LEFT'.
+FM	Sqlite	11	RIGHT-1	ENGINE-ERROR: SQLite Error 1: 'no such function: RIGHT'.
+FM	Sqlite	11	LPAD-1	ENGINE-ERROR: SQLite Error 1: 'no such function: LPAD'.
+FM	Sqlite	11	RPAD-1	ENGINE-ERROR: SQLite Error 1: 'no such function: RPAD'.
+FM	Sqlite	11	INSTR-pos-1	ENGINE-ERROR: SQLite Error 1: 'wrong number of arguments to function INSTR()'.
+FM	Sqlite	11	RCOUNT-pos-1	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_COUNT'.
+FM	Sqlite	11	RSUBSTR-pos-1	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_SUBSTR'.
+FM	Sqlite	11	RREPLACE-pos-1	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_REPLACE'.
+FM	Sqlite	11	TRUNC-1	ENGINE-ERROR: SQLite Error 1: 'wrong number of arguments to function TRUNC()'.
+FM	Sqlite	11	ROUND-1	75.7
+FM	Sqlite	11	SUBSTR-pos-2	bcde
+FM	Sqlite	11	SUBSTR-len-2	bc
+FM	Sqlite	11	SUBSTRING-pos-2	bc
+FM	Sqlite	11	SUBSTRING-len-2	bc
+FM	Sqlite	11	LEFT-2	ENGINE-ERROR: SQLite Error 1: 'no such function: LEFT'.
+FM	Sqlite	11	RIGHT-2	ENGINE-ERROR: SQLite Error 1: 'no such function: RIGHT'.
+FM	Sqlite	11	LPAD-2	ENGINE-ERROR: SQLite Error 1: 'no such function: LPAD'.
+FM	Sqlite	11	RPAD-2	ENGINE-ERROR: SQLite Error 1: 'no such function: RPAD'.
+FM	Sqlite	11	INSTR-pos-2	ENGINE-ERROR: SQLite Error 1: 'wrong number of arguments to function INSTR()'.
+FM	Sqlite	11	RCOUNT-pos-2	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_COUNT'.
+FM	Sqlite	11	RSUBSTR-pos-2	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_SUBSTR'.
+FM	Sqlite	11	RREPLACE-pos-2	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_REPLACE'.
+FM	Sqlite	11	TRUNC-2	ENGINE-ERROR: SQLite Error 1: 'wrong number of arguments to function TRUNC()'.
+FM	Sqlite	11	ROUND-2	75.65
+FM	Sqlite	11	SUBSTR-pos-100	''
+FM	Sqlite	11	SUBSTR-len-100	bcde
+FM	Sqlite	11	SUBSTRING-pos-100	''
+FM	Sqlite	11	SUBSTRING-len-100	bcde
+FM	Sqlite	11	LEFT-100	ENGINE-ERROR: SQLite Error 1: 'no such function: LEFT'.
+FM	Sqlite	11	RIGHT-100	ENGINE-ERROR: SQLite Error 1: 'no such function: RIGHT'.
+FM	Sqlite	11	LPAD-100	ENGINE-ERROR: SQLite Error 1: 'no such function: LPAD'.
+FM	Sqlite	11	RPAD-100	ENGINE-ERROR: SQLite Error 1: 'no such function: RPAD'.
+FM	Sqlite	11	INSTR-pos-100	ENGINE-ERROR: SQLite Error 1: 'wrong number of arguments to function INSTR()'.
+FM	Sqlite	11	RCOUNT-pos-100	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_COUNT'.
+FM	Sqlite	11	RSUBSTR-pos-100	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_SUBSTR'.
+FM	Sqlite	11	RREPLACE-pos-100	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_REPLACE'.
+FM	Sqlite	11	TRUNC-100	ENGINE-ERROR: SQLite Error 1: 'wrong number of arguments to function TRUNC()'.
+FM	Sqlite	11	ROUND-100	75.65
+FM	Sqlite	11	SUBSTR-pos-2.5	bcde
+FM	Sqlite	11	SUBSTR-len-2.5	bc
+FM	Sqlite	11	SUBSTRING-pos-2.5	bc
+FM	Sqlite	11	SUBSTRING-len-2.5	bc
+FM	Sqlite	11	LEFT-2.5	ENGINE-ERROR: SQLite Error 1: 'no such function: LEFT'.
+FM	Sqlite	11	RIGHT-2.5	ENGINE-ERROR: SQLite Error 1: 'no such function: RIGHT'.
+FM	Sqlite	11	LPAD-2.5	ENGINE-ERROR: SQLite Error 1: 'no such function: LPAD'.
+FM	Sqlite	11	RPAD-2.5	ENGINE-ERROR: SQLite Error 1: 'no such function: RPAD'.
+FM	Sqlite	11	INSTR-pos-2.5	ENGINE-ERROR: SQLite Error 1: 'wrong number of arguments to function INSTR()'.
+FM	Sqlite	11	RCOUNT-pos-2.5	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_COUNT'.
+FM	Sqlite	11	RSUBSTR-pos-2.5	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_SUBSTR'.
+FM	Sqlite	11	RREPLACE-pos-2.5	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_REPLACE'.
+FM	Sqlite	11	TRUNC-2.5	ENGINE-ERROR: SQLite Error 1: 'wrong number of arguments to function TRUNC()'.
+FM	Sqlite	11	ROUND-2.5	75.65
+FM	Sqlite	11	RSUBSTR-occ-0	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_SUBSTR'.
+FM	Sqlite	11	RREPLACE-occ-0	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_REPLACE'.
+FM	Sqlite	11	RINSTR-occ-0	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_INSTR'.
+FM	Sqlite	11	RINSTR-ret-0	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_INSTR'.
+FM	Sqlite	11	MOD-div-0	NULL
+FM	Sqlite	11	POWER-exp-0	1
+FM	Sqlite	11	RSUBSTR-occ--1	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_SUBSTR'.
+FM	Sqlite	11	RREPLACE-occ--1	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_REPLACE'.
+FM	Sqlite	11	RINSTR-occ--1	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_INSTR'.
+FM	Sqlite	11	RINSTR-ret--1	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_INSTR'.
+FM	Sqlite	11	MOD-div--1	0
+FM	Sqlite	11	POWER-exp--1	0.5
+FM	Sqlite	11	RSUBSTR-occ-1	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_SUBSTR'.
+FM	Sqlite	11	RREPLACE-occ-1	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_REPLACE'.
+FM	Sqlite	11	RINSTR-occ-1	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_INSTR'.
+FM	Sqlite	11	RINSTR-ret-1	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_INSTR'.
+FM	Sqlite	11	MOD-div-1	0
+FM	Sqlite	11	POWER-exp-1	2
+FM	Sqlite	11	RSUBSTR-occ-2	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_SUBSTR'.
+FM	Sqlite	11	RREPLACE-occ-2	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_REPLACE'.
+FM	Sqlite	11	RINSTR-occ-2	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_INSTR'.
+FM	Sqlite	11	RINSTR-ret-2	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_INSTR'.
+FM	Sqlite	11	MOD-div-2	1
+FM	Sqlite	11	POWER-exp-2	4
+FM	Sqlite	11	RSUBSTR-occ-2.5	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_SUBSTR'.
+FM	Sqlite	11	RREPLACE-occ-2.5	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_REPLACE'.
+FM	Sqlite	11	RINSTR-occ-2.5	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_INSTR'.
+FM	Sqlite	11	RINSTR-ret-2.5	ENGINE-ERROR: SQLite Error 1: 'no such function: REGEXP_INSTR'.
+FM	Sqlite	11	MOD-div-2.5	2
+FM	Sqlite	11	POWER-exp-2.5	5.656854249492
+FM	Sqlite	11	MOD-neg	-1
+FM	Sqlite	11	POWER-zero-neg	DRIVER-ERROR: OverflowException Value was either too large or too small for a Decimal.

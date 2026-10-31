@@ -1,0 +1,155 @@
+FM	PostgreSql	4	ORD-2	5,4,3,2,1
+FM	PostgreSql	4	GRP-2	ENGINE-ERROR: 42P10: GROUP BY position 2 is not in select list  POSITION: 45
+FM	PostgreSql	4	CORD-2	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 130
+FM	PostgreSql	4	DON-2	ENGINE-ERROR: 42P10: ORDER BY position 2 is not in select list  POSITION: 54
+FM	PostgreSql	4	PART-2	BUILD-THROW: Invalid type for PartitionByItem: System.Int32
+FM	PostgreSql	4	ORD-99	ENGINE-ERROR: 42P10: ORDER BY position 99 is not in select list  POSITION: 45
+FM	PostgreSql	4	GRP-99	ENGINE-ERROR: 42P10: GROUP BY position 99 is not in select list  POSITION: 45
+FM	PostgreSql	4	CORD-99	ENGINE-ERROR: 42P10: ORDER BY position 99 is not in select list  POSITION: 127
+FM	PostgreSql	4	DON-99	ENGINE-ERROR: 42P10: ORDER BY position 99 is not in select list  POSITION: 55
+FM	PostgreSql	4	PART-99	BUILD-THROW: Invalid type for PartitionByItem: System.Int32
+FM	PostgreSql	4	ORD-2147483647	ENGINE-ERROR: 42P10: ORDER BY position 2147483647 is not in select list  POSITION: 45
+FM	PostgreSql	4	GRP-2147483647	ENGINE-ERROR: 42P10: GROUP BY position 2147483647 is not in select list  POSITION: 45
+FM	PostgreSql	4	CORD-2147483647	ENGINE-ERROR: 42P10: ORDER BY position 2147483647 is not in select list  POSITION: 127
+FM	PostgreSql	4	DON-2147483647	ENGINE-ERROR: 42P10: ORDER BY position 2147483647 is not in select list  POSITION: 63
+FM	PostgreSql	4	PART-2147483647	BUILD-THROW: Invalid type for PartitionByItem: System.Int32
+FM	PostgreSql	4	ORD-2147483648	ENGINE-ERROR: 42601: non-integer constant in ORDER BY  POSITION: 45
+FM	PostgreSql	4	GRP-2147483648	ENGINE-ERROR: 42601: non-integer constant in GROUP BY  POSITION: 45
+FM	PostgreSql	4	CORD-2147483648	ENGINE-ERROR: 42601: non-integer constant in ORDER BY  POSITION: 127
+FM	PostgreSql	4	DON-2147483648	ENGINE-ERROR: 42601: non-integer constant in ORDER BY  POSITION: 63
+FM	PostgreSql	4	PART-2147483648	BUILD-THROW: Invalid type for PartitionByItem: System.Int64
+FM	PostgreSql	4	ORD-LongMax	ENGINE-ERROR: 42601: non-integer constant in ORDER BY  POSITION: 45
+FM	PostgreSql	4	GRP-LongMax	ENGINE-ERROR: 42601: non-integer constant in GROUP BY  POSITION: 45
+FM	PostgreSql	4	CORD-LongMax	ENGINE-ERROR: 42601: non-integer constant in ORDER BY  POSITION: 127
+FM	PostgreSql	4	DON-LongMax	ENGINE-ERROR: 42601: non-integer constant in ORDER BY  POSITION: 72
+FM	PostgreSql	4	PART-LongMax	BUILD-THROW: Invalid type for PartitionByItem: System.Int64
+FM	PostgreSql	11	SUBSTR-pos-0	abcde
+FM	PostgreSql	11	SUBSTR-len-0	''
+FM	PostgreSql	11	SUBSTRING-pos-0	a
+FM	PostgreSql	11	SUBSTRING-len-0	''
+FM	PostgreSql	11	LEFT-0	''
+FM	PostgreSql	11	RIGHT-0	''
+FM	PostgreSql	11	LPAD-0	''
+FM	PostgreSql	11	RPAD-0	''
+FM	PostgreSql	11	INSTR-pos-0	ENGINE-ERROR: 42883: function instr(text, text, integer) does not exist  POSITION: 8
+FM	PostgreSql	11	RCOUNT-pos-0	ENGINE-ERROR: 22023: invalid value for parameter "start": 0
+FM	PostgreSql	11	RSUBSTR-pos-0	ENGINE-ERROR: 22023: invalid value for parameter "start": 0
+FM	PostgreSql	11	RREPLACE-pos-0	ENGINE-ERROR: 22023: invalid value for parameter "start": 0
+FM	PostgreSql	11	TRUNC-0	75
+FM	PostgreSql	11	ROUND-0	76
+FM	PostgreSql	11	SUBSTR-pos--1	abcde
+FM	PostgreSql	11	SUBSTR-len--1	ENGINE-ERROR: 22011: negative substring length not allowed
+FM	PostgreSql	11	SUBSTRING-pos--1	''
+FM	PostgreSql	11	SUBSTRING-len--1	ENGINE-ERROR: 22011: negative substring length not allowed
+FM	PostgreSql	11	LEFT--1	abcd
+FM	PostgreSql	11	RIGHT--1	bcde
+FM	PostgreSql	11	LPAD--1	''
+FM	PostgreSql	11	RPAD--1	''
+FM	PostgreSql	11	INSTR-pos--1	ENGINE-ERROR: 42883: function instr(text, text, integer) does not exist  POSITION: 8
+FM	PostgreSql	11	RCOUNT-pos--1	ENGINE-ERROR: 22023: invalid value for parameter "start": -1
+FM	PostgreSql	11	RSUBSTR-pos--1	ENGINE-ERROR: 22023: invalid value for parameter "start": -1
+FM	PostgreSql	11	RREPLACE-pos--1	ENGINE-ERROR: 22023: invalid value for parameter "start": -1
+FM	PostgreSql	11	TRUNC--1	70
+FM	PostgreSql	11	ROUND--1	80
+FM	PostgreSql	11	SUBSTR-pos--2	abcde
+FM	PostgreSql	11	SUBSTR-len--2	ENGINE-ERROR: 22011: negative substring length not allowed
+FM	PostgreSql	11	SUBSTRING-pos--2	''
+FM	PostgreSql	11	SUBSTRING-len--2	ENGINE-ERROR: 22011: negative substring length not allowed
+FM	PostgreSql	11	LEFT--2	abc
+FM	PostgreSql	11	RIGHT--2	cde
+FM	PostgreSql	11	LPAD--2	''
+FM	PostgreSql	11	RPAD--2	''
+FM	PostgreSql	11	INSTR-pos--2	ENGINE-ERROR: 42883: function instr(text, text, integer) does not exist  POSITION: 8
+FM	PostgreSql	11	RCOUNT-pos--2	ENGINE-ERROR: 22023: invalid value for parameter "start": -2
+FM	PostgreSql	11	RSUBSTR-pos--2	ENGINE-ERROR: 22023: invalid value for parameter "start": -2
+FM	PostgreSql	11	RREPLACE-pos--2	ENGINE-ERROR: 22023: invalid value for parameter "start": -2
+FM	PostgreSql	11	TRUNC--2	0
+FM	PostgreSql	11	ROUND--2	100
+FM	PostgreSql	11	SUBSTR-pos-1	abcde
+FM	PostgreSql	11	SUBSTR-len-1	b
+FM	PostgreSql	11	SUBSTRING-pos-1	ab
+FM	PostgreSql	11	SUBSTRING-len-1	b
+FM	PostgreSql	11	LEFT-1	a
+FM	PostgreSql	11	RIGHT-1	e
+FM	PostgreSql	11	LPAD-1	a
+FM	PostgreSql	11	RPAD-1	a
+FM	PostgreSql	11	INSTR-pos-1	ENGINE-ERROR: 42883: function instr(text, text, integer) does not exist  POSITION: 8
+FM	PostgreSql	11	RCOUNT-pos-1	2
+FM	PostgreSql	11	RSUBSTR-pos-1	bc
+FM	PostgreSql	11	RREPLACE-pos-1	aXcabc
+FM	PostgreSql	11	TRUNC-1	75.6
+FM	PostgreSql	11	ROUND-1	75.7
+FM	PostgreSql	11	SUBSTR-pos-2	bcde
+FM	PostgreSql	11	SUBSTR-len-2	bc
+FM	PostgreSql	11	SUBSTRING-pos-2	bc
+FM	PostgreSql	11	SUBSTRING-len-2	bc
+FM	PostgreSql	11	LEFT-2	ab
+FM	PostgreSql	11	RIGHT-2	de
+FM	PostgreSql	11	LPAD-2	ab
+FM	PostgreSql	11	RPAD-2	ab
+FM	PostgreSql	11	INSTR-pos-2	ENGINE-ERROR: 42883: function instr(text, text, integer) does not exist  POSITION: 8
+FM	PostgreSql	11	RCOUNT-pos-2	2
+FM	PostgreSql	11	RSUBSTR-pos-2	bc
+FM	PostgreSql	11	RREPLACE-pos-2	aXcabc
+FM	PostgreSql	11	TRUNC-2	75.65
+FM	PostgreSql	11	ROUND-2	75.65
+FM	PostgreSql	11	SUBSTR-pos-100	''
+FM	PostgreSql	11	SUBSTR-len-100	bcde
+FM	PostgreSql	11	SUBSTRING-pos-100	''
+FM	PostgreSql	11	SUBSTRING-len-100	bcde
+FM	PostgreSql	11	LEFT-100	abcde
+FM	PostgreSql	11	RIGHT-100	abcde
+FM	PostgreSql	11	LPAD-100	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxabc
+FM	PostgreSql	11	RPAD-100	abcxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+FM	PostgreSql	11	INSTR-pos-100	ENGINE-ERROR: 42883: function instr(text, text, integer) does not exist  POSITION: 8
+FM	PostgreSql	11	RCOUNT-pos-100	0
+FM	PostgreSql	11	RSUBSTR-pos-100	NULL
+FM	PostgreSql	11	RREPLACE-pos-100	abcabc
+FM	PostgreSql	11	TRUNC-100	DRIVER-ERROR: OverflowException Numeric value does not fit in a System.Decimal
+FM	PostgreSql	11	ROUND-100	DRIVER-ERROR: OverflowException Numeric value does not fit in a System.Decimal
+FM	PostgreSql	11	SUBSTR-pos-2.5	ENGINE-ERROR: 42883: function substr(text, double precision) does not exist  POSITION: 8
+FM	PostgreSql	11	SUBSTR-len-2.5	ENGINE-ERROR: 42883: function substr(text, integer, double precision) does not exist  POSITION: 8
+FM	PostgreSql	11	SUBSTRING-pos-2.5	ENGINE-ERROR: 42883: function substring(text, double precision, integer) does not exist  POSITION: 8
+FM	PostgreSql	11	SUBSTRING-len-2.5	ENGINE-ERROR: 42883: function substring(text, integer, double precision) does not exist  POSITION: 8
+FM	PostgreSql	11	LEFT-2.5	ENGINE-ERROR: 42883: function left(text, double precision) does not exist  POSITION: 8
+FM	PostgreSql	11	RIGHT-2.5	ENGINE-ERROR: 42883: function right(text, double precision) does not exist  POSITION: 8
+FM	PostgreSql	11	LPAD-2.5	ENGINE-ERROR: 42883: function lpad(text, double precision, text) does not exist  POSITION: 8
+FM	PostgreSql	11	RPAD-2.5	ENGINE-ERROR: 42883: function rpad(text, double precision, text) does not exist  POSITION: 8
+FM	PostgreSql	11	INSTR-pos-2.5	ENGINE-ERROR: 42883: function instr(text, text, double precision) does not exist  POSITION: 8
+FM	PostgreSql	11	RCOUNT-pos-2.5	ENGINE-ERROR: 42883: function regexp_count(text, text, double precision) does not exist  POSITION: 8
+FM	PostgreSql	11	RSUBSTR-pos-2.5	ENGINE-ERROR: 42883: function regexp_substr(text, text, double precision) does not exist  POSITION: 8
+FM	PostgreSql	11	RREPLACE-pos-2.5	ENGINE-ERROR: 42883: function regexp_replace(text, text, text, double precision) does not exist  POSITION: 8
+FM	PostgreSql	11	TRUNC-2.5	ENGINE-ERROR: 42883: function trunc(numeric, double precision) does not exist  POSITION: 8
+FM	PostgreSql	11	ROUND-2.5	ENGINE-ERROR: 42883: function round(numeric, double precision) does not exist  POSITION: 8
+FM	PostgreSql	11	RSUBSTR-occ-0	ENGINE-ERROR: 22023: invalid value for parameter "n": 0
+FM	PostgreSql	11	RREPLACE-occ-0	aXcaXc
+FM	PostgreSql	11	RINSTR-occ-0	ENGINE-ERROR: 22023: invalid value for parameter "n": 0
+FM	PostgreSql	11	RINSTR-ret-0	2
+FM	PostgreSql	11	MOD-div-0	ENGINE-ERROR: 22012: division by zero
+FM	PostgreSql	11	POWER-exp-0	1
+FM	PostgreSql	11	RSUBSTR-occ--1	ENGINE-ERROR: 22023: invalid value for parameter "n": -1
+FM	PostgreSql	11	RREPLACE-occ--1	ENGINE-ERROR: 22023: invalid value for parameter "n": -1
+FM	PostgreSql	11	RINSTR-occ--1	ENGINE-ERROR: 22023: invalid value for parameter "n": -1
+FM	PostgreSql	11	RINSTR-ret--1	ENGINE-ERROR: 22023: invalid value for parameter "endoption": -1
+FM	PostgreSql	11	MOD-div--1	0
+FM	PostgreSql	11	POWER-exp--1	0.5
+FM	PostgreSql	11	RSUBSTR-occ-1	bc
+FM	PostgreSql	11	RREPLACE-occ-1	aXcabc
+FM	PostgreSql	11	RINSTR-occ-1	2
+FM	PostgreSql	11	RINSTR-ret-1	3
+FM	PostgreSql	11	MOD-div-1	0
+FM	PostgreSql	11	POWER-exp-1	2
+FM	PostgreSql	11	RSUBSTR-occ-2	bc
+FM	PostgreSql	11	RREPLACE-occ-2	abcaXc
+FM	PostgreSql	11	RINSTR-occ-2	5
+FM	PostgreSql	11	RINSTR-ret-2	ENGINE-ERROR: 22023: invalid value for parameter "endoption": 2
+FM	PostgreSql	11	MOD-div-2	1
+FM	PostgreSql	11	POWER-exp-2	4
+FM	PostgreSql	11	RSUBSTR-occ-2.5	ENGINE-ERROR: 42883: function regexp_substr(text, text, integer, double precision) does not exist  POSITION: 8
+FM	PostgreSql	11	RREPLACE-occ-2.5	ENGINE-ERROR: 42883: function regexp_replace(text, text, text, integer, double precision) does not exist  POSITION: 8
+FM	PostgreSql	11	RINSTR-occ-2.5	ENGINE-ERROR: 42883: function regexp_instr(text, text, integer, double precision, integer) does not exist  POSITION: 8
+FM	PostgreSql	11	RINSTR-ret-2.5	ENGINE-ERROR: 42883: function regexp_instr(text, text, integer, integer, double precision) does not exist  POSITION: 8
+FM	PostgreSql	11	MOD-div-2.5	ENGINE-ERROR: 42883: function mod(integer, double precision) does not exist  POSITION: 8
+FM	PostgreSql	11	POWER-exp-2.5	5.656854249492
+FM	PostgreSql	11	MOD-neg	-1
+FM	PostgreSql	11	POWER-zero-neg	ENGINE-ERROR: 2201F: zero raised to a negative power is undefined
