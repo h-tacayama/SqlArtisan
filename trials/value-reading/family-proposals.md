@@ -372,12 +372,13 @@ guard を足す族（1・2）は、利用者の手元で `Build()` が新たに�
 
 | 小族 | 例（MySQL / Oracle / PostgreSQL / SQLite / SQL Server） | 件数 |
 |---|---|---|
-| 11a 整数の引数に小数（2.5） | `Substr('abcde', 2.5)`: MySQL `cde`（四捨五入して 3）/ Oracle・SQLite `bcde`（切り捨てて 2）/ PostgreSQL 失敗（double から int へ暗黙に変換しない）。`Left(.., 2.5)`: MySQL `abc` / SQL Server `ab`。REGEXP の出現回数 2.5: MySQL は 3 回目（該当なし）、Oracle は 2 回目 | 15 |
+| 11a 整数の引数に小数（2.5） | `Substr('abcde', 2.5)`: MySQL `cde`（四捨五入して 3）/ Oracle・SQLite `bcde`（切り捨てて 2）/ PostgreSQL 失敗（double から int へ暗黙に変換しない）。`Left(.., 2.5)`: MySQL `abc` / SQL Server `ab`。REGEXP の出現回数 2.5: MySQL は 3 回目（該当なし）、Oracle は 2 回目 | 12 |
 | 11b 0・負の位置と長さ | `Substr(s, 0)`: MySQL `''` / ほか `abcde`。`Substr(s, -1)`: MySQL・Oracle・SQLite は末尾から（`e`）/ PostgreSQL は `abcde`。`Substring(s, -1, 2)`: MySQL・SQLite `e` / PostgreSQL・SQL Server `''`。`Substr(s, 2, -1)`: MySQL `''` / Oracle NULL / PostgreSQL 失敗 / SQLite `a`（位置の前の文字を取る）。`Left(s, -1)`: MySQL `''` / PostgreSQL `abcd`（末尾 1 字を除く）/ SQL Server 失敗。`Lpad(s, -1, 'x')`: MySQL・Oracle NULL / PostgreSQL `''` | 18 |
 | 11c Oracle の空文字列は NULL | `Substr(s, 2, 0)`・`Lpad(s, 0, 'x')`・`Substr(s, 100)`: Oracle だけ NULL、ほかは `''` | 4（11b と重なる行を除く） |
 | 11d `RegexpReplace(s, p, r, 位置)`（出現回数なし） | PostgreSQL は最初の 1 つだけ置き換える（`aXcabc`）/ MySQL・Oracle・SQL Server 2025 は全部（`aXcaXc`）。出現回数を明示した 5 引数（`0`=全部、`1`=最初）は全レーンで同じ | 2 |
 | 11e `Mod(7, 0)` | MySQL・SQLite NULL / Oracle 7 / PostgreSQL 失敗 | 1 |
 | 11f `Power(整数, 負・小数)` | SQL Server は底の整数型を返す（`Power(2, -1)` = 0、`Power(2, 2.5)` = 5）/ ほかは 0.5、5.65…。Oracle の `Power(2, 2.5)` はドライバーの読み戻しで失敗（族 12 の側） | 2 |
+| （記録済み）負の `Round` の桁 | SQLite だけ 76、ほかは 80・100（SQL Server の -2 は桁あふれで失敗） | 2 |
 
 既に記録があるもの:
 
