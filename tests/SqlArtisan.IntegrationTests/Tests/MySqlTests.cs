@@ -1005,6 +1005,32 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         ta.Rollback();
     }
 
+    // #742: why MySQL is absent from the set-operator FOR UPDATE context rule — the lock
+    // binds to the last branch alone, where Oracle and PostgreSQL reject the statement.
+    [Theory]
+    [InlineData("Union")]
+    [InlineData("UnionAll")]
+    [InlineData("Intersect")]
+    [InlineData("IntersectAll")]
+    [InlineData("Except")]
+    [InlineData("ExceptAll")]
+    public void ForUpdateAfterSetOperator_LocksOnlyTheLastBranch(string setOperator)
+    {
+        using IDbConnection a = _fixture.OpenConnection();
+        using IDbTransaction ta = a.BeginTransaction();
+        a.Query<int>(UserThenOrder(setOperator).ForUpdate(), ta).ToList();
+
+        // A second session asking NOWAIT finds the user free and the order locked.
+        using IDbConnection b = _fixture.OpenConnection();
+        using IDbTransaction tb = b.BeginTransaction();
+        b.Query<int>("SELECT id FROM users WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb)
+            .ToList();
+        Assert.ThrowsAny<DbException>(() => b.Query<int>(
+            "SELECT id FROM orders WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb).ToList());
+        tb.Rollback();
+        ta.Rollback();
+    }
+
     // Why Of(table) renders the alias: once a table is aliased, the engine
     // no longer takes its name in OF.
     [Fact]

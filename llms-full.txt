@@ -1156,6 +1156,12 @@ SqlStatement sql =
 
 **Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Wait(...)` is Oracle-only, and `Of(...)` has one form per side: `Of(column)` is Oracle's, which MySQL and PostgreSQL reject, and `Of(table, ...)` is theirs, which Oracle rejects. Oracle XE 21.3.0 and PostgreSQL 16 also reject `FOR UPDATE` over a grouped query, where MySQL 8.0 locks the base rows; the analyzer reports that position as `SQLA0102`. Oracle XE 21.3.0 rejects it after a row-limiting clause as well (`FETCH FIRST` / `OFFSET ... ROWS`), which PostgreSQL 16 runs; MySQL 8.0 has neither clause and runs its own `LIMIT ... FOR UPDATE`. Also `SQLA0102`. Oracle takes `FOR UPDATE` only in a top-level `SELECT`, so Oracle XE 21.3.0 and Free 23ai reject a locked subquery, CTE body or derived table; MySQL 8.0 and PostgreSQL 16 run a locked `IN` subquery, CTE body and derived table. `SQLA0102` reports the Oracle position too.
 
+> [!WARNING]
+> **On MySQL, `ForUpdate(...)` after a set operator locks only the last branch's rows.** MySQL 8.0
+> runs `SELECT ... UNION SELECT ... FOR UPDATE` and leaves the earlier branches' rows unlocked, with
+> no warning. Oracle XE 21.3.0 and PostgreSQL 16 reject it, and `SQLA0102` reports it there. Lock
+> each branch's rows in a statement of its own.
+
 ---
 
 ### Pagination
@@ -4396,7 +4402,7 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. Nineteen rules ship today — twelve reading
+expression where the construct is used. Twenty rules ship today — thirteen reading
 the construct's surroundings, seven reading the DML statement a clause sits in.
 Every rejection below is live-verified on the pinned lanes — MySQL 8.0, Oracle
 XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022, the Oracle floors on
@@ -4526,6 +4532,18 @@ row limit.
 // sqlartisan_syntax_oracle = any
 var q = Select(u.Id).From(u).OrderBy(u.Id).FetchFirst(1).ForUpdate();
 // warning SQLA0102: 'ForUpdate' is not supported after a row-limiting clause on Oracle
+```
+
+**`FOR UPDATE` after a set operator.** A lock written after a `UNION`,
+`INTERSECT`, `EXCEPT` or `MINUS` branch locks no whole query: Oracle
+(ORA-01786) and PostgreSQL (SQLSTATE 0A000) reject it, and MySQL runs it and
+locks the last branch's rows only, so the rule leaves MySQL out. Lock each
+branch's rows in a statement of its own.
+
+```csharp
+// sqlartisan_syntax_postgresql = any
+var q = Select(u.Id).From(u).Union.Select(o.UserId).From(o).ForUpdate();
+// warning SQLA0102: 'ForUpdate' is not supported after a set operator on PostgreSQL
 ```
 
 **`FOR UPDATE` in a subquery.** Oracle takes the `for_update_clause` only in a
@@ -4700,7 +4718,7 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the twelve that read the construct's surroundings, any shape the
+itself. For the thirteen that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the

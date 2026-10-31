@@ -1385,6 +1385,22 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         transaction.Rollback();
     }
 
+    [Theory] // SQLSTATE 0A000. Each query runs unlocked, so the lock is the only difference.
+    [InlineData("Union")]
+    [InlineData("UnionAll")]
+    [InlineData("Intersect")]
+    [InlineData("IntersectAll")]
+    [InlineData("Except")]
+    [InlineData("ExceptAll")]
+    public void ContextRule_ForUpdateAfterSetOperator_Rejected(string setOperator)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>(UserThenOrder(setOperator)).ToList();
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            UserThenOrder(setOperator).ForUpdate()).ToList());
+    }
+
     // #520: why PostgreSQL is absent from the row-limiting FOR UPDATE context rule
     // — it runs both row-limiting families beside the lock, where Oracle rejects them.
     [Fact]

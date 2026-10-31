@@ -164,6 +164,28 @@ public abstract class IntegrationTestBase
             .From(c);
     }
 
+    // Branches reading user 1 and order 1, joined by the set operator a Theory row names.
+    protected static ISelectBuilderWhere UserThenOrder(string setOperator)
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        ISelectBuilderWhere user = Select(u.Id).From(u).Where(u.Id == 1);
+        ISelectBuilderSetOperator joined = setOperator switch
+        {
+            "Union" => user.Union,
+            "UnionAll" => user.UnionAll,
+            "Intersect" => user.Intersect,
+            "IntersectAll" => user.IntersectAll,
+            "Except" => user.Except,
+            "ExceptAll" => user.ExceptAll,
+            "Minus" => user.Minus,
+            "MinusAll" => user.MinusAll,
+            _ => throw new ArgumentOutOfRangeException(nameof(setOperator), setOperator, null),
+        };
+
+        return joined.Select(o.Id).From(o).Where(o.Id == 1);
+    }
+
     [Fact]
     public void WindowFunction_RowNumber_Executes()
     {

@@ -104,6 +104,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   SQLite and SQL Server, which reject a window there; Oracle runs both.
   Live-verified on MySQL 8.0, Oracle XE 21.3.0 and Free 23ai, PostgreSQL 16 and
   17, SQLite 3.50, and SQL Server 2022 and 2025. (#662)
+- `SQLA0102` reports `ForUpdate(...)` after a set operator on Oracle and
+  PostgreSQL, which reject the lock there (live-verified on Oracle XE 21.3.0 and
+  PostgreSQL 16). MySQL 8.0 runs it and locks only the last branch's rows, which
+  `docs/query-statements.md` warns of. A chain broken by a variable between the
+  set operator and `ForUpdate(...)` stays silent. (#742)
 
 ### Changed
 - `Build()` accepts a set-operator branch's `TOP` beside the compound's

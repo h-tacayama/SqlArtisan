@@ -623,7 +623,7 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. Nineteen rules ship today — twelve reading
+expression where the construct is used. Twenty rules ship today — thirteen reading
 the construct's surroundings, seven reading the DML statement a clause sits in.
 Every rejection below is live-verified on the pinned lanes — MySQL 8.0, Oracle
 XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022, the Oracle floors on
@@ -753,6 +753,18 @@ row limit.
 // sqlartisan_syntax_oracle = any
 var q = Select(u.Id).From(u).OrderBy(u.Id).FetchFirst(1).ForUpdate();
 // warning SQLA0102: 'ForUpdate' is not supported after a row-limiting clause on Oracle
+```
+
+**`FOR UPDATE` after a set operator.** A lock written after a `UNION`,
+`INTERSECT`, `EXCEPT` or `MINUS` branch locks no whole query: Oracle
+(ORA-01786) and PostgreSQL (SQLSTATE 0A000) reject it, and MySQL runs it and
+locks the last branch's rows only, so the rule leaves MySQL out. Lock each
+branch's rows in a statement of its own.
+
+```csharp
+// sqlartisan_syntax_postgresql = any
+var q = Select(u.Id).From(u).Union.Select(o.UserId).From(o).ForUpdate();
+// warning SQLA0102: 'ForUpdate' is not supported after a set operator on PostgreSQL
 ```
 
 **`FOR UPDATE` in a subquery.** Oracle takes the `for_update_clause` only in a
@@ -927,7 +939,7 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the twelve that read the construct's surroundings, any shape the
+itself. For the thirteen that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the

@@ -1219,6 +1219,24 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         ta.Rollback();
     }
 
+    [Theory] // ORA-01786. Each query runs unlocked, so the lock is the only difference.
+    [InlineData("Union")]
+    [InlineData("UnionAll")]
+    [InlineData("Intersect")]
+    [InlineData("IntersectAll")]
+    [InlineData("Except")]
+    [InlineData("ExceptAll")]
+    [InlineData("Minus")]
+    [InlineData("MinusAll")]
+    public void ContextRule_ForUpdateAfterSetOperator_Rejected(string setOperator)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>(UserThenOrder(setOperator)).ToList();
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            UserThenOrder(setOperator).ForUpdate()).ToList());
+    }
+
     // A string .As("n") renders quoted ("n") while Column("n") renders bare,
     // which Oracle folds to N: the reference misses. Column(alias) matches.
     [Fact]
