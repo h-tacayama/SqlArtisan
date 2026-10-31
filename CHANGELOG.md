@@ -77,8 +77,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   which have no `TRUNC`, and its 2-argument form on SQLite; below SQLite 3.35 the
   1-argument form reports `SQLA0101`. The entry unites the numeric and date
   forms, so the other calls stay silent, among them a date/time argument on
-  PostgreSQL, which rejects it, and a date/time string in SQLite's 1-argument
-  form, which returns NULL. Live-verified on
+  PostgreSQL, which rejects it, and `YYYY-MM-DD HH:MM:SS` text in SQLite's
+  1-argument form, which returns NULL. Live-verified on
   MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022.
   (#681)
 - `SQLA0102` reports a `Returning(...)` consumed without `.Into(...)` on
