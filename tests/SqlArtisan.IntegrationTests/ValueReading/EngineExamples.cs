@@ -87,7 +87,8 @@ public static class ExampleCatalog
         foreach (Context ctx in new[] { Context.Subquery, Context.Cte, Context.SetOperationBranch })
         {
             foreach (ValueKind kind in new[] { ValueKind.IntPositive, ValueKind.BindInt,
-                ValueKind.Double, ValueKind.IntNegative, ValueKind.SqlNull, ValueKind.Column })
+                ValueKind.Double, ValueKind.DoubleWhole, ValueKind.IntNegative, ValueKind.SqlNull,
+                ValueKind.Column })
             {
                 list.Add(new($"E3-ORD-{ctx}-{kind}", PositionClass.StatementOrderByKey, kind, ctx,
                     "ORD"));
@@ -154,7 +155,8 @@ public static class ExampleCatalog
     }
 
     internal static bool IsOrdinalShaped(ValueKind k) => k is ValueKind.IntPositive
-        or ValueKind.Long or ValueKind.Double or ValueKind.Decimal or ValueKind.BindInt
+        or ValueKind.Long or ValueKind.Double or ValueKind.DoubleWhole or ValueKind.Decimal
+        or ValueKind.BindInt
         or ValueKind.IntNegative or ValueKind.IntZero;
 
     private static ISqlBuilder Page(ISelectBuilderOrderBy ordered, Dbms dbms) =>
@@ -233,6 +235,7 @@ public static class ExampleCatalog
         ValueKind.IntPositive or ValueKind.Long or ValueKind.BindInt or ValueKind.UserEnum => "2",
         ValueKind.IntNegative => "-1",
         ValueKind.Double or ValueKind.Decimal => "2.5",
+        ValueKind.DoubleWhole => "2",
         ValueKind.Text or ValueKind.Char or ValueKind.BindText => "b",
         ValueKind.Bool => "1",
         ValueKind.BindNull or ValueKind.SqlNull => "NULL",
@@ -399,6 +402,11 @@ public abstract class EngineExampleTestBase
         {
             string message = ex.Message.Replace('\t', ' ').Replace('\n', ' ');
             return "ENGINE-ERROR: " + (message.Length > 120 ? message[..120] : message);
+        }
+        catch (Exception ex)
+        {
+            // The driver failing to read a value back (Oracle 21c and a bound bool).
+            return $"DRIVER-ERROR: {ex.GetType().Name}";
         }
     }
 

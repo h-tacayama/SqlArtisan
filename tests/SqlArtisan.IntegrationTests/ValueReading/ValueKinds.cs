@@ -3,7 +3,7 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.IntegrationTests.ValueReading;
 
 /// <summary>The value-kind axis: every kind the trial brief names, plus four the
-/// records cover (double, a user enum, Sql.Null, a subquery) and the two
+/// records cover (double, a whole double, a user enum, Sql.Null, a subquery) and the two
 /// position-bound operands.</summary>
 public enum ValueKind
 {
@@ -12,6 +12,7 @@ public enum ValueKind
     IntNegative,
     Long,
     Double,
+    DoubleWhole,
     Decimal,
     Text,
     Char,
@@ -57,6 +58,7 @@ internal static class ValueKinds
         ValueKind.IntNegative => -1,
         ValueKind.Long => (long)Ordinal,
         ValueKind.Double => 2.5,
+        ValueKind.DoubleWhole => 2.0,
         ValueKind.Decimal => 2.5m,
         ValueKind.Text => "b",
         ValueKind.Char => 'b',

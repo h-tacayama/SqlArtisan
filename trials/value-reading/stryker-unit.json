@@ -1,0 +1,27 @@
+{
+  "stryker-config": {
+    "project": "SqlArtisan.csproj",
+    "test-projects": [
+      "tests/SqlArtisan.Tests/SqlArtisan.Tests.csproj"
+    ],
+    "mutate": [
+      "**/Internal/SqlPart/Expression/ExpressionResolver.cs",
+      "**/Internal/SqlPart/Clause/OrderBy/OrderByItemResolver.cs",
+      "**/Internal/SqlPart/Clause/OrderBy/NumericSortKey.cs",
+      "**/Internal/SqlPart/Clause/GroupBy/GroupByItemResolver.cs",
+      "**/Internal/SqlPart/Clause/GroupBy/NumericGroupKey.cs",
+      "**/Internal/SqlPart/DistinctOnItemResolver.cs",
+      "**/Internal/SqlPart/Clause/Select/SelectItemResolver.cs",
+      "**/Internal/SqlPart/Clause/Insert/InsertValueResolver.cs",
+      "**/SqlPart/Clause/OrderBy/OrderByClause.cs",
+      "**/SqlPart/Clause/Over/PartitionByClause.cs",
+      "**/Internal/SqlBuilder/Select/SelectBuilder.cs{275..300}",
+      "**/Internal/SqlBuilder/Select/SelectBuilder.cs{445..485}"
+    ],
+    "coverage-analysis": "perTest",
+    "reporters": ["json", "cleartext", "progress"],
+    "test-case-filter": "FullyQualifiedName~SqlArtisan.Tests.",
+    "concurrency": 4,
+    "thresholds": { "high": 80, "low": 60, "break": 0 }
+  }
+}
