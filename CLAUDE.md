@@ -164,9 +164,9 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships seventeen diagnostics:
   passed to a SqlArtisan member (`Like($"%{col}%")`), which binds its type name.
   Both report only where the value flows straight into a SqlArtisan argument or
   operator operand (**ADR 0023**).
-- **SQLA0303** — A comparison (`col == Sql.Null`, `<>`, `<`, …), a simple CASE
-  `When(Null)`, a `NotIn` / `In` list, a `Between` bound or a `Like` pattern
-  against `Sql.Null` or `BindNull()` that is never true, so it matches no row.
+- **SQLA0303** — A comparison (`col == Sql.Null`, `<>`, `<`, …), a `NotIn` / `In`
+  list, a `Between` bound or a `Like` pattern against `Sql.Null` or `BindNull()`,
+  or a simple CASE `When(Null)`, that is never true, so it matches no row.
   Since `==` also writes a `SET` assignment, an `==` is reported only where it is
   read as a `SqlCondition` (`docs/analyzer.md` names the silent cases).
 

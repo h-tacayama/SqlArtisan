@@ -1184,7 +1184,6 @@ public abstract class IntegrationTestBase
             u.Id.Between(Null, 10), u.Id.Between(1, Null),
             u.Name.Like(Null), u.Name.NotLike(Null),
             u.Id == BindNull(), u.Id != BindNull(), u.Id < BindNull(),
-            Case(u.Id, When(BindNull()).Then(1), Else(0)) == 1,
         ];
         Assert.All(neverTrue, condition => Assert.Equal(0, Count(condition)));
     }

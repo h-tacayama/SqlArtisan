@@ -822,9 +822,9 @@ the caller did not mean. Judge a null argument by which failure it produces:
   where `Sql.Null` builds a comparison with NULL rather than a NULL test, so a
   new predicate factory resolves its operands with `ResolveCompared`, which
   names `.IsNull` (#614). `Sql.Null` or `BindNull()` beside a comparison
-  operator, in a simple CASE `When(...)`, in a `NotIn(...)` list, as an
-  `In(...)` list alone, as a `Between(...)` bound or as a `Like(...)` pattern is
-  `SQLA0303`'s to report, not a guard's: unlike a C# `null`, it is a NULL the
+  operator, in a `NotIn(...)` list, as an `In(...)` list alone, as a
+  `Between(...)` bound or as a `Like(...)` pattern, and `Sql.Null` in a simple
+  CASE `When(...)`, is `SQLA0303`'s to report, not a guard's: unlike a C# `null`, it is a NULL the
   caller wrote as SQL, and the text runs on every engine
   (`ComparisonWithNull_MatchesNoRow`, `NullInComparedPosition_MatchesNoRow`), so it is emitted as written (ADR 0001);
   SQL Server 2022 even reads `= NULL` and `<> NULL` as NULL tests under the

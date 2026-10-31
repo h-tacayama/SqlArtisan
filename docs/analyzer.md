@@ -116,7 +116,7 @@ still needs naming by ID.
 | `SQLA0300` | Warning | A correlated UPDATE, DELETE, or MERGE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0300). |
 | `SQLA0301` | Warning | `==` or `!=` that C# resolves as reference equality, because the left operand is not a SqlArtisan expression, passed to a SqlArtisan member or operator — it binds a `bool` instead of comparing in SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
 | `SQLA0302` | Warning | A SqlArtisan object interpolated or concatenated into a string passed to a SqlArtisan member or operator — it binds the object's type name instead of SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
-| `SQLA0303` | Warning | A comparison (`==`, `!=`, `<`, `<=`, `>`, `>=`), a simple CASE `When(...)`, a `NotIn(...)` list, an `In(...)` list of NULLs alone, a `Between(...)` bound or a `Like(...)` / `NotLike(...)` pattern that is `Sql.Null` or `BindNull()`, which is never true, so the predicate matches no row; see [Comparisons with NULL](#comparisons-with-null-sqla0303). |
+| `SQLA0303` | Warning | A comparison (`==`, `!=`, `<`, `<=`, `>`, `>=`), a `NotIn(...)` list, an `In(...)` list of NULLs alone, a `Between(...)` bound or a `Like(...)` / `NotLike(...)` pattern that is `Sql.Null` or `BindNull()`, or a simple CASE `When(Null)`, which is never true, so the predicate matches no row; see [Comparisons with NULL](#comparisons-with-null-sqla0303). |
 
 `SQLA0001` is a compilation-end diagnostic with no file location: it appears in **build** output (CLI and CI, and an IDE's Error
 List after an explicit build — check that the list's source filter includes
@@ -1297,7 +1297,10 @@ a simple CASE `WHEN NULL` branch is never taken (all five engines the suite runs
 live). So do `NOT IN` over a list holding a NULL, `IN` over NULLs alone, `BETWEEN`
 with a NULL bound and `LIKE` / `NOT LIKE` against a NULL pattern (the same five,
 `NullInComparedPosition_MatchesNoRow`). `SQLA0303` reports each of these where
-the NULL is written as `Sql.Null` or `BindNull()`, which binds the same NULL:
+the NULL is written as `Sql.Null` or `BindNull()`, which binds the same NULL. A
+simple CASE `When(...)` reports `Sql.Null` alone: Oracle XE 21.3.0 binds an
+untyped `BindNull()` as text and rejects the CASE there rather than skipping the
+branch (`OracleTests.SimpleCaseWhenUntypedBindNull_IsRejectedByTheEngine`).
 
 ```csharp
 var q = Select(u.Id).From(u).Where(u.Name == Null);

@@ -159,12 +159,10 @@ public class NullComparisonAnalyzerTests
         RunReporting(
             $"var q = Select(t.Id).From(t).Where({{|#0:t.Id {op} BindNull()|}});", token, remedy);
 
+    // Oracle rejects an untyped bound NULL there rather than skipping the branch.
     [Fact]
-    public Task SimpleCaseWhenBindNull_ReportsSqla0303() =>
-        RunReporting(
-            "var q = Select(Case(t.Name, {|#0:When(BindNull())|}.Then(1))).From(t);",
-            "WHEN NULL",
-            "test for NULL with a searched When(x.IsNull)");
+    public Task SimpleCaseWhenBindNull_StaysSilent() =>
+        RunSilent("var q = Select(Case(t.Name, When(BindNull()).Then(1))).From(t);");
 
     // One other value can still match.
     [Fact]

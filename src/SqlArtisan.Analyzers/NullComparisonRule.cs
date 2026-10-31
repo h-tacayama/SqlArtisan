@@ -79,7 +79,7 @@ internal static class NullComparisonRule
             || !DialectUsageAnalyzer.IsFromSqlArtisan(method.ContainingAssembly)
             || method.Parameters.Length != 1
             || method.Parameters[0].Type.SpecialType != SpecialType.System_Object
-            || !IsSqlNull(invocation.Arguments[0].Value))
+            || !IsSqlNull(invocation.Arguments[0].Value, bound: false))
         {
             return;
         }
@@ -126,7 +126,11 @@ internal static class NullComparisonRule
         _ => null,
     };
 
-    private static bool IsSqlNull(IOperation operand)
+    // Not a bound NULL in a simple CASE: Oracle XE 21.3.0 binds an untyped BindNull() as
+    // text and rejects the CASE (SimpleCaseWhenUntypedBindNull_IsRejectedByTheEngine).
+    private static bool IsSqlNull(IOperation operand) => IsSqlNull(operand, bound: true);
+
+    private static bool IsSqlNull(IOperation operand, bool bound)
     {
         while (operand is IConversionOperation { IsImplicit: true } conversion)
         {
@@ -143,7 +147,7 @@ internal static class NullComparisonRule
             IInvocationOperation
             {
                 TargetMethod: { Name: "BindNull", ContainingType.Name: "Sql" } bindNull,
-            } => DialectUsageAnalyzer.IsFromSqlArtisan(bindNull.ContainingAssembly),
+            } => bound && DialectUsageAnalyzer.IsFromSqlArtisan(bindNull.ContainingAssembly),
             _ => false,
         };
     }
