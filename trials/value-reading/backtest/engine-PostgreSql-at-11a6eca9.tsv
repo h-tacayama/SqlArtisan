@@ -1,0 +1,117 @@
+VR	PostgreSql	E1-ORD-IntPositive	Executes	5,4,3,2,1	5,4,3,2,1	OK
+VR	PostgreSql	E1-ORD-IntNegative	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	PostgreSql	E1-ORD-Long	Executes	5,4,3,2,1	5,4,3,2,1	OK
+VR	PostgreSql	E1-ORD-Short	Executes	5,4,3,2,1	5,4,3,2,1	OK
+VR	PostgreSql	E1-ORD-Byte	Executes	5,4,3,2,1	5,4,3,2,1	OK
+VR	PostgreSql	E1-ORD-Double	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	PostgreSql	E1-ORD-DoubleWhole	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	PostgreSql	E1-ORD-Decimal	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	PostgreSql	E1-ORD-BindInt	Executes	1,2,3,4,5	1,2,3,4,5	OK
+VR	PostgreSql	E1-ORD-BindText	Executes	1,2,3,4,5	1,2,3,4,5	OK
+VR	PostgreSql	E1-ORD-BindNull	Executes	1,2,3,4,5	DRIVER-ERROR: NotSupportedException	MISMATCH
+VR	PostgreSql	E1-ORD-SqlNull	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: 42601: non-integer constant in ORDER BY  POSITION: 45	OK
+VR	PostgreSql	E1-ORD-Column	Executes	5,4,3,2,1	5,4,3,2,1	OK
+VR	PostgreSql	E1-ORD-Expression	Executes	5,4,3,2,1	5,4,3,2,1	OK
+VR	PostgreSql	E1-ORDX-WINDOW-BindInt	Executes	1|1,2|2,3|3,4|4,5|5	1|1,2|2,3|3,4|4,5|5	OK
+VR	PostgreSql	E1-ORDX-WINDOW-BindText	Executes	1|1,2|2,3|3,4|4,5|5	1|1,2|2,3|3,4|4,5|5	OK
+VR	PostgreSql	E1-ORDX-WINDOW-BindNull	Executes	1|1,2|2,3|3,4|4,5|5	DRIVER-ERROR: NotSupportedException	MISMATCH
+VR	PostgreSql	E1-ORDX-WINDOW-SqlNull	Executes	1|1,2|2,3|3,4|4,5|5	1|1,2|2,3|3,4|4,5|5	OK
+VR	PostgreSql	E1-ORDX-WINDOW-Column	Executes	1|5,2|4,3|3,4|2,5|1	1|5,2|4,3|3,4|2,5|1	OK
+VR	PostgreSql	E1-ORDX-WINDOW-Expression	Executes	1|5,2|4,3|3,4|2,5|1	1|5,2|4,3|3,4|2,5|1	OK
+VR	PostgreSql	E1-GRP-IntPositive	Executes	1|10,1|20,1|30,1|40,1|50	1|10,1|20,1|30,1|40,1|50	OK
+VR	PostgreSql	E1-GRP-Long	Executes	1|10,1|20,1|30,1|40,1|50	1|10,1|20,1|30,1|40,1|50	OK
+VR	PostgreSql	E1-GRP-Short	Executes	1|10,1|20,1|30,1|40,1|50	1|10,1|20,1|30,1|40,1|50	OK
+VR	PostgreSql	E1-GRP-Byte	Executes	1|10,1|20,1|30,1|40,1|50	1|10,1|20,1|30,1|40,1|50	OK
+VR	PostgreSql	E1-GRP-Double	AnalyzerWarns	-	ENGINE-ERROR: 42601: non-integer constant in GROUP BY  POSITION: 52	RECORDED
+VR	PostgreSql	E1-GRP-DoubleWhole	AnalyzerWarns	-	ENGINE-ERROR: 42601: non-integer constant in GROUP BY  POSITION: 52	RECORDED
+VR	PostgreSql	E1-GRP-Decimal	AnalyzerWarns	-	ENGINE-ERROR: 42601: non-integer constant in GROUP BY  POSITION: 52	RECORDED
+VR	PostgreSql	E1-GRP-BindInt	Executes	ENGINE-ERROR	ENGINE-ERROR: 42803: column "t.b" must appear in the GROUP BY clause or be used in an aggregate function  POSITION: 23	OK
+VR	PostgreSql	E1-GRP-BindText	Executes	5	5	OK
+VR	PostgreSql	E1-GRP-BindNull	Executes	5	DRIVER-ERROR: NotSupportedException	MISMATCH
+VR	PostgreSql	E1-GRP-SqlNull	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: 42601: non-integer constant in GROUP BY  POSITION: 45	OK
+VR	PostgreSql	E1-GRP-Column	Executes	1,1,1,1,1	1,1,1,1,1	OK
+VR	PostgreSql	E1-GRP-Expression	Executes	1,1,1,1,1	1,1,1,1,1	OK
+VR	PostgreSql	E1-GEL-BindInt	Executes	5,5	5,5	OK
+VR	PostgreSql	E1-GEL-BindText	Executes	5,5	5,5	OK
+VR	PostgreSql	E1-GEL-BindNull	Executes	5,5	DRIVER-ERROR: NotSupportedException	MISMATCH
+VR	PostgreSql	E1-GEL-SqlNull	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: 42601: non-integer constant in GROUP BY  POSITION: 52	OK
+VR	PostgreSql	E1-GEL-Column	Executes	1,1,1,1,1,5	1,1,1,1,1,5	OK
+VR	PostgreSql	E1-GEL-Expression	Executes	1,1,1,1,1,5	1,1,1,1,1,5	OK
+VR	PostgreSql	E1-GEL-Subquery	Executes	5,5	5,5	OK
+VR	PostgreSql	E1-PART-BindInt	Executes	1|1,2|2,3|3,4|4,5|5	1|1,2|2,3|3,4|4,5|5	OK
+VR	PostgreSql	E1-PART-BindText	Executes	1|1,2|2,3|3,4|4,5|5	1|1,2|2,3|3,4|4,5|5	OK
+VR	PostgreSql	E1-PART-BindNull	Executes	1|1,2|2,3|3,4|4,5|5	DRIVER-ERROR: NotSupportedException	MISMATCH
+VR	PostgreSql	E1-PART-SqlNull	Executes	1|1,2|2,3|3,4|4,5|5	1|1,2|2,3|3,4|4,5|5	OK
+VR	PostgreSql	E1-PART-Column	Executes	1|1,2|1,3|1,4|1,5|1	1|1,2|1,3|1,4|1,5|1	OK
+VR	PostgreSql	E1-PART-Expression	Executes	1|1,2|1,3|1,4|1,5|1	1|1,2|1,3|1,4|1,5|1	OK
+VR	PostgreSql	E1-PART-Subquery	Executes	1|1,2|2,3|3,4|4,5|5	1|1,2|2,3|3,4|4,5|5	OK
+VR	PostgreSql	E1-DON-IntPositive	Executes	#3	#1	MISMATCH
+VR	PostgreSql	E1-DON-Long	Executes	#3	#1	MISMATCH
+VR	PostgreSql	E1-DON-Short	Executes	#3	#1	MISMATCH
+VR	PostgreSql	E1-DON-Byte	Executes	#3	#1	MISMATCH
+VR	PostgreSql	E1-DON-BindInt	Executes	#1	#1	OK
+VR	PostgreSql	E1-DON-BindText	Executes	#1	#1	OK
+VR	PostgreSql	E1-DON-BindNull	Executes	#1	DRIVER-ERROR: NotSupportedException	MISMATCH
+VR	PostgreSql	E1-DON-SqlNull	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: 42601: non-integer constant in DISTINCT ON  POSITION: 21	OK
+VR	PostgreSql	E1-DON-Column	Executes	#5	#5	OK
+VR	PostgreSql	E1-DON-Expression	Executes	#5	#5	OK
+VR	PostgreSql	E1-DON-Subquery	Executes	#1	#1	OK
+VR	PostgreSql	E2-SEL-IntZero	Executes	0	0	OK
+VR	PostgreSql	E2-SEL-IntPositive	Executes	2	2	OK
+VR	PostgreSql	E2-SEL-IntNegative	Executes	-1	-1	OK
+VR	PostgreSql	E2-SEL-Long	Executes	2	2	OK
+VR	PostgreSql	E2-SEL-Short	Executes	~	2	OK
+VR	PostgreSql	E2-SEL-Byte	Executes	~	2	OK
+VR	PostgreSql	E2-SEL-Double	Executes	2.5	2.5	OK
+VR	PostgreSql	E2-SEL-DoubleWhole	Executes	2	2	OK
+VR	PostgreSql	E2-SEL-Decimal	Executes	2.5	2.5	OK
+VR	PostgreSql	E2-SEL-Text	Executes	b	b	OK
+VR	PostgreSql	E2-SEL-Char	Executes	b	b	OK
+VR	PostgreSql	E2-SEL-Bool	Executes	1	1	OK
+VR	PostgreSql	E2-SEL-UserEnum	Executes	2	2	OK
+VR	PostgreSql	E2-SEL-DateTime	Executes	~	2024-01-02T03:04:05.0000000	OK
+VR	PostgreSql	E2-SEL-Guid	Executes	~	BUILD-THROW	MISMATCH
+VR	PostgreSql	E2-SEL-DateTimeOffset	Executes	~	BUILD-THROW	MISMATCH
+VR	PostgreSql	E2-SEL-TimeSpan	Executes	~	BUILD-THROW	MISMATCH
+VR	PostgreSql	E2-SEL-BindInt	Executes	2	2	OK
+VR	PostgreSql	E2-SEL-BindText	Executes	b	b	OK
+VR	PostgreSql	E2-SEL-BindNull	Executes	NULL	DRIVER-ERROR: NotSupportedException	MISMATCH
+VR	PostgreSql	E2-SEL-SqlNull	Executes	NULL	NULL	OK
+VR	PostgreSql	E2-SEL-Column	Executes	50	50	OK
+VR	PostgreSql	E2-SEL-Expression	Executes	51	51	OK
+VR	PostgreSql	E2-SEL-Subquery	Executes	40	40	OK
+VR	PostgreSql	E2-EQ-Quantified	Executes	2,4	2,4	OK
+VR	PostgreSql	E2-EQ-SqlNull	AnalyzerWarns	()		RECORDED
+VR	PostgreSql	E2-EQ-Column	Executes	1,2,3,4,5	1,2,3,4,5	OK
+VR	PostgreSql	E2-EQ-BindInt	Executes			OK
+VR	PostgreSql	E2-PLUS-Text	AnalyzerWarns	-	ENGINE-ERROR: 42883: operator does not exist: character varying + text  POSITION: 15	RECORDED
+VR	PostgreSql	E2-PLUS-Char	AnalyzerWarns	-	ENGINE-ERROR: 42883: operator does not exist: character varying + text  POSITION: 15	RECORDED
+VR	PostgreSql	E2-ROUND-IntNegative	Executes	80	80	OK
+VR	PostgreSql	E2-ROUND-IntPositive	Executes	75	75	OK
+VR	PostgreSql	E4-PLUSDATE-TimeSpan	Executes	2024-01-01T12:00:00.0000000	BUILD-THROW	MISMATCH
+VR	PostgreSql	E4-MINUSDATE-TimeSpan	Executes	2024-01-01T08:00:00.0000000	BUILD-THROW	MISMATCH
+VR	PostgreSql	E4-SETSWAP-Column	Executes	1|1|50	1|1|50	OK
+VR	PostgreSql	E3-ORD-Subquery-IntPositive	Executes	4,5	4,5	OK
+VR	PostgreSql	E3-ORD-Subquery-BindInt	Executes	1,2	1,2	OK
+VR	PostgreSql	E3-ORD-Subquery-Double	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	PostgreSql	E3-ORD-Subquery-DoubleWhole	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	PostgreSql	E3-ORD-Subquery-IntNegative	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	PostgreSql	E3-ORD-Subquery-SqlNull	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: 42601: non-integer constant in ORDER BY  POSITION: 65	OK
+VR	PostgreSql	E3-ORD-Subquery-Column	Executes	4,5	4,5	OK
+VR	PostgreSql	E3-ORD-Cte-IntPositive	Executes	4,5	4,5	OK
+VR	PostgreSql	E3-ORD-Cte-BindInt	Executes	1,2	1,2	OK
+VR	PostgreSql	E3-ORD-Cte-Double	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	PostgreSql	E3-ORD-Cte-DoubleWhole	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	PostgreSql	E3-ORD-Cte-IntNegative	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	PostgreSql	E3-ORD-Cte-SqlNull	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: 42601: non-integer constant in ORDER BY  POSITION: 58	OK
+VR	PostgreSql	E3-ORD-Cte-Column	Executes	4,5	4,5	OK
+VR	PostgreSql	E3-ORD-SetOperationBranch-IntPositive	Executes	5,4,3,2,1	5,4,3,2,1	OK
+VR	PostgreSql	E3-ORD-SetOperationBranch-BindInt	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: 0A000: invalid UNION/INTERSECT/EXCEPT ORDER BY clause  POSITION: 127 DETAIL: Detail redacted as it may contain sensitive	OK
+VR	PostgreSql	E3-ORD-SetOperationBranch-Double	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	PostgreSql	E3-ORD-SetOperationBranch-DoubleWhole	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	PostgreSql	E3-ORD-SetOperationBranch-IntNegative	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	PostgreSql	E3-ORD-SetOperationBranch-SqlNull	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: 42601: non-integer constant in ORDER BY  POSITION: 127	OK
+VR	PostgreSql	E3-ORD-SetOperationBranch-Column	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: 42P01: missing FROM-clause entry for table "t"  POSITION: 127	OK
+VR	PostgreSql	E3-ORDX-AGG-BindInt	Executes	e,d,c,b,a	e,d,c,b,a	OK
+VR	PostgreSql	E3-ORDX-AGG-SqlNull	Executes	e,d,c,b,a	e,d,c,b,a	OK
+VR	PostgreSql	E3-ORDX-AGG-Column	Executes	a,b,c,d,e	a,b,c,d,e	OK

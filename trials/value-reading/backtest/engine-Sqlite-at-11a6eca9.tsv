@@ -1,0 +1,117 @@
+VR	Sqlite	E1-ORD-IntPositive	Executes	5,4,3,2,1	5,4,3,2,1	OK
+VR	Sqlite	E1-ORD-IntNegative	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	Sqlite	E1-ORD-Long	Executes	5,4,3,2,1	5,4,3,2,1	OK
+VR	Sqlite	E1-ORD-Short	Executes	5,4,3,2,1	5,4,3,2,1	OK
+VR	Sqlite	E1-ORD-Byte	Executes	5,4,3,2,1	5,4,3,2,1	OK
+VR	Sqlite	E1-ORD-Double	Executes	1,2,3,4,5	1,2,3,4,5	OK
+VR	Sqlite	E1-ORD-DoubleWhole	Executes	1,2,3,4,5	1,2,3,4,5	OK
+VR	Sqlite	E1-ORD-Decimal	Executes	1,2,3,4,5	1,2,3,4,5	OK
+VR	Sqlite	E1-ORD-BindInt	Executes	1,2,3,4,5	1,2,3,4,5	OK
+VR	Sqlite	E1-ORD-BindText	Executes	1,2,3,4,5	1,2,3,4,5	OK
+VR	Sqlite	E1-ORD-BindNull	Executes	1,2,3,4,5	DRIVER-ERROR: NotSupportedException	MISMATCH
+VR	Sqlite	E1-ORD-SqlNull	Executes	1,2,3,4,5	1,2,3,4,5	OK
+VR	Sqlite	E1-ORD-Column	Executes	5,4,3,2,1	5,4,3,2,1	OK
+VR	Sqlite	E1-ORD-Expression	Executes	5,4,3,2,1	5,4,3,2,1	OK
+VR	Sqlite	E1-ORDX-WINDOW-BindInt	Executes	1|1,2|2,3|3,4|4,5|5	1|1,2|2,3|3,4|4,5|5	OK
+VR	Sqlite	E1-ORDX-WINDOW-BindText	Executes	1|1,2|2,3|3,4|4,5|5	1|1,2|2,3|3,4|4,5|5	OK
+VR	Sqlite	E1-ORDX-WINDOW-BindNull	Executes	1|1,2|2,3|3,4|4,5|5	DRIVER-ERROR: NotSupportedException	MISMATCH
+VR	Sqlite	E1-ORDX-WINDOW-SqlNull	Executes	1|1,2|2,3|3,4|4,5|5	1|1,2|2,3|3,4|4,5|5	OK
+VR	Sqlite	E1-ORDX-WINDOW-Column	Executes	1|5,2|4,3|3,4|2,5|1	1|5,2|4,3|3,4|2,5|1	OK
+VR	Sqlite	E1-ORDX-WINDOW-Expression	Executes	1|5,2|4,3|3,4|2,5|1	1|5,2|4,3|3,4|2,5|1	OK
+VR	Sqlite	E1-GRP-IntPositive	Executes	1|10,1|20,1|30,1|40,1|50	1|10,1|20,1|30,1|40,1|50	OK
+VR	Sqlite	E1-GRP-Long	Executes	1|10,1|20,1|30,1|40,1|50	1|10,1|20,1|30,1|40,1|50	OK
+VR	Sqlite	E1-GRP-Short	Executes	1|10,1|20,1|30,1|40,1|50	1|10,1|20,1|30,1|40,1|50	OK
+VR	Sqlite	E1-GRP-Byte	Executes	1|10,1|20,1|30,1|40,1|50	1|10,1|20,1|30,1|40,1|50	OK
+VR	Sqlite	E1-GRP-Double	Executes	5|*	5|*	OK
+VR	Sqlite	E1-GRP-DoubleWhole	Executes	5|*	5|*	OK
+VR	Sqlite	E1-GRP-Decimal	Executes	5|*	5|*	OK
+VR	Sqlite	E1-GRP-BindInt	Executes	5|*	5|*	OK
+VR	Sqlite	E1-GRP-BindText	Executes	5	5	OK
+VR	Sqlite	E1-GRP-BindNull	Executes	5	DRIVER-ERROR: NotSupportedException	MISMATCH
+VR	Sqlite	E1-GRP-SqlNull	Executes	5	5	OK
+VR	Sqlite	E1-GRP-Column	Executes	1,1,1,1,1	1,1,1,1,1	OK
+VR	Sqlite	E1-GRP-Expression	Executes	1,1,1,1,1	1,1,1,1,1	OK
+VR	Sqlite	E1-GEL-BindInt	AnalyzerWarns	(5,5)	ENGINE-ERROR: SQLite Error 1: 'no such function: ROLLUP'.	RECORDED
+VR	Sqlite	E1-GEL-BindText	AnalyzerWarns	(5,5)	ENGINE-ERROR: SQLite Error 1: 'no such function: ROLLUP'.	RECORDED
+VR	Sqlite	E1-GEL-BindNull	AnalyzerWarns	(5,5)	DRIVER-ERROR: NotSupportedException	RECORDED
+VR	Sqlite	E1-GEL-SqlNull	AnalyzerWarns	-	ENGINE-ERROR: SQLite Error 1: 'no such function: ROLLUP'.	RECORDED
+VR	Sqlite	E1-GEL-Column	AnalyzerWarns	(1,1,1,1,1,5)	ENGINE-ERROR: SQLite Error 1: 'no such function: ROLLUP'.	RECORDED
+VR	Sqlite	E1-GEL-Expression	AnalyzerWarns	(1,1,1,1,1,5)	ENGINE-ERROR: SQLite Error 1: 'no such function: ROLLUP'.	RECORDED
+VR	Sqlite	E1-GEL-Subquery	AnalyzerWarns	(5,5)	ENGINE-ERROR: SQLite Error 1: 'no such function: ROLLUP'.	RECORDED
+VR	Sqlite	E1-PART-BindInt	Executes	1|1,2|2,3|3,4|4,5|5	1|1,2|2,3|3,4|4,5|5	OK
+VR	Sqlite	E1-PART-BindText	Executes	1|1,2|2,3|3,4|4,5|5	1|1,2|2,3|3,4|4,5|5	OK
+VR	Sqlite	E1-PART-BindNull	Executes	1|1,2|2,3|3,4|4,5|5	DRIVER-ERROR: NotSupportedException	MISMATCH
+VR	Sqlite	E1-PART-SqlNull	Executes	1|1,2|2,3|3,4|4,5|5	1|1,2|2,3|3,4|4,5|5	OK
+VR	Sqlite	E1-PART-Column	Executes	1|1,2|1,3|1,4|1,5|1	1|1,2|1,3|1,4|1,5|1	OK
+VR	Sqlite	E1-PART-Expression	Executes	1|1,2|1,3|1,4|1,5|1	1|1,2|1,3|1,4|1,5|1	OK
+VR	Sqlite	E1-PART-Subquery	Executes	1|1,2|2,3|3,4|4,5|5	1|1,2|2,3|3,4|4,5|5	OK
+VR	Sqlite	E1-DON-IntPositive	AnalyzerWarns	(#3)	ENGINE-ERROR: SQLite Error 1: 'near "ON": syntax error'.	RECORDED
+VR	Sqlite	E1-DON-Long	AnalyzerWarns	(#3)	ENGINE-ERROR: SQLite Error 1: 'near "ON": syntax error'.	RECORDED
+VR	Sqlite	E1-DON-Short	AnalyzerWarns	(#3)	ENGINE-ERROR: SQLite Error 1: 'near "ON": syntax error'.	RECORDED
+VR	Sqlite	E1-DON-Byte	AnalyzerWarns	(#3)	ENGINE-ERROR: SQLite Error 1: 'near "ON": syntax error'.	RECORDED
+VR	Sqlite	E1-DON-BindInt	AnalyzerWarns	(#1)	ENGINE-ERROR: SQLite Error 1: 'near "ON": syntax error'.	RECORDED
+VR	Sqlite	E1-DON-BindText	AnalyzerWarns	(#1)	ENGINE-ERROR: SQLite Error 1: 'near "ON": syntax error'.	RECORDED
+VR	Sqlite	E1-DON-BindNull	AnalyzerWarns	(#1)	DRIVER-ERROR: NotSupportedException	RECORDED
+VR	Sqlite	E1-DON-SqlNull	AnalyzerWarns	-	ENGINE-ERROR: SQLite Error 1: 'near "ON": syntax error'.	RECORDED
+VR	Sqlite	E1-DON-Column	AnalyzerWarns	(#5)	ENGINE-ERROR: SQLite Error 1: 'near "ON": syntax error'.	RECORDED
+VR	Sqlite	E1-DON-Expression	AnalyzerWarns	(#5)	ENGINE-ERROR: SQLite Error 1: 'near "ON": syntax error'.	RECORDED
+VR	Sqlite	E1-DON-Subquery	AnalyzerWarns	(#1)	ENGINE-ERROR: SQLite Error 1: 'near "ON": syntax error'.	RECORDED
+VR	Sqlite	E2-SEL-IntZero	Executes	0	0	OK
+VR	Sqlite	E2-SEL-IntPositive	Executes	2	2	OK
+VR	Sqlite	E2-SEL-IntNegative	Executes	-1	-1	OK
+VR	Sqlite	E2-SEL-Long	Executes	2	2	OK
+VR	Sqlite	E2-SEL-Short	Executes	~	2	OK
+VR	Sqlite	E2-SEL-Byte	Executes	~	2	OK
+VR	Sqlite	E2-SEL-Double	Executes	2.5	2.5	OK
+VR	Sqlite	E2-SEL-DoubleWhole	Executes	2	2	OK
+VR	Sqlite	E2-SEL-Decimal	Executes	2.5	2.5	OK
+VR	Sqlite	E2-SEL-Text	Executes	b	b	OK
+VR	Sqlite	E2-SEL-Char	Executes	b	b	OK
+VR	Sqlite	E2-SEL-Bool	Executes	1	1	OK
+VR	Sqlite	E2-SEL-UserEnum	Executes	2	2	OK
+VR	Sqlite	E2-SEL-DateTime	Executes	~	2024-01-02 03:04:05	OK
+VR	Sqlite	E2-SEL-Guid	Executes	~	BUILD-THROW	MISMATCH
+VR	Sqlite	E2-SEL-DateTimeOffset	Executes	~	BUILD-THROW	MISMATCH
+VR	Sqlite	E2-SEL-TimeSpan	Executes	~	BUILD-THROW	MISMATCH
+VR	Sqlite	E2-SEL-BindInt	Executes	2	2	OK
+VR	Sqlite	E2-SEL-BindText	Executes	b	b	OK
+VR	Sqlite	E2-SEL-BindNull	Executes	NULL	DRIVER-ERROR: NotSupportedException	MISMATCH
+VR	Sqlite	E2-SEL-SqlNull	Executes	NULL	NULL	OK
+VR	Sqlite	E2-SEL-Column	Executes	50	50	OK
+VR	Sqlite	E2-SEL-Expression	Executes	51	51	OK
+VR	Sqlite	E2-SEL-Subquery	Executes	40	40	OK
+VR	Sqlite	E2-EQ-Quantified	AnalyzerWarns	(2,4)	ENGINE-ERROR: SQLite Error 1: 'near "SELECT": syntax error'.	RECORDED
+VR	Sqlite	E2-EQ-SqlNull	AnalyzerWarns	()		RECORDED
+VR	Sqlite	E2-EQ-Column	Executes	1,2,3,4,5	1,2,3,4,5	OK
+VR	Sqlite	E2-EQ-BindInt	Executes			OK
+VR	Sqlite	E2-PLUS-Text	AnalyzerWarns	-	0	RECORDED
+VR	Sqlite	E2-PLUS-Char	AnalyzerWarns	-	0	RECORDED
+VR	Sqlite	E2-ROUND-IntNegative	AnalyzerWarns	(80)	75	RECORDED
+VR	Sqlite	E2-ROUND-IntPositive	Executes	75	75	OK
+VR	Sqlite	E4-PLUSDATE-TimeSpan	Executes	2024-01-01T12:00:00.0000000	BUILD-THROW	MISMATCH
+VR	Sqlite	E4-MINUSDATE-TimeSpan	Executes	2024-01-01T08:00:00.0000000	BUILD-THROW	MISMATCH
+VR	Sqlite	E4-SETSWAP-Column	Executes	1|1|50	1|1|50	OK
+VR	Sqlite	E3-ORD-Subquery-IntPositive	Executes	4,5	4,5	OK
+VR	Sqlite	E3-ORD-Subquery-BindInt	Executes	1,2	1,2	OK
+VR	Sqlite	E3-ORD-Subquery-Double	Executes	1,2	1,2	OK
+VR	Sqlite	E3-ORD-Subquery-DoubleWhole	Executes	1,2	1,2	OK
+VR	Sqlite	E3-ORD-Subquery-IntNegative	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	Sqlite	E3-ORD-Subquery-SqlNull	Executes	1,2	1,2	OK
+VR	Sqlite	E3-ORD-Subquery-Column	Executes	4,5	4,5	OK
+VR	Sqlite	E3-ORD-Cte-IntPositive	Executes	4,5	4,5	OK
+VR	Sqlite	E3-ORD-Cte-BindInt	Executes	1,2	1,2	OK
+VR	Sqlite	E3-ORD-Cte-Double	Executes	1,2	1,2	OK
+VR	Sqlite	E3-ORD-Cte-DoubleWhole	Executes	1,2	1,2	OK
+VR	Sqlite	E3-ORD-Cte-IntNegative	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	Sqlite	E3-ORD-Cte-SqlNull	Executes	1,2	1,2	OK
+VR	Sqlite	E3-ORD-Cte-Column	Executes	4,5	4,5	OK
+VR	Sqlite	E3-ORD-SetOperationBranch-IntPositive	Executes	5,4,3,2,1	5,4,3,2,1	OK
+VR	Sqlite	E3-ORD-SetOperationBranch-BindInt	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: SQLite Error 1: '1st ORDER BY term does not match any column in the result set'.	OK
+VR	Sqlite	E3-ORD-SetOperationBranch-Double	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: SQLite Error 1: '1st ORDER BY term does not match any column in the result set'.	OK
+VR	Sqlite	E3-ORD-SetOperationBranch-DoubleWhole	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: SQLite Error 1: '1st ORDER BY term does not match any column in the result set'.	OK
+VR	Sqlite	E3-ORD-SetOperationBranch-IntNegative	BuildRejects	BUILD-THROW	BUILD-THROW	OK
+VR	Sqlite	E3-ORD-SetOperationBranch-SqlNull	EngineRejects	ENGINE-ERROR	ENGINE-ERROR: SQLite Error 1: '1st ORDER BY term does not match any column in the result set'.	OK
+VR	Sqlite	E3-ORD-SetOperationBranch-Column	Executes	5,4,3,2,1	5,4,3,2,1	OK
+VR	Sqlite	E3-ORDX-AGG-BindInt	Executes	e,d,c,b,a	e,d,c,b,a	OK
+VR	Sqlite	E3-ORDX-AGG-SqlNull	Executes	e,d,c,b,a	e,d,c,b,a	OK
+VR	Sqlite	E3-ORDX-AGG-Column	Executes	a,b,c,d,e	a,b,c,d,e	OK

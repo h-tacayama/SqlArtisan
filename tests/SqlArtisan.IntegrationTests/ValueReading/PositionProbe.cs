@@ -364,6 +364,10 @@ public static class PositionProbe
             null => null,
             SqlStatement statement => statement,
             ISqlBuilder builder => builder.Build(dbms),
+            // Ahead of SqlExpression: before #707 these were SqlExpressions (backtest).
+            QuantifiedExpression or QuantifiedSubquery => Select(t.Column("a")).From(t)
+                .Where(t.Column("b") == node).Build(dbms),
+            IntervalExpression interval => Select(t.Column("d") + interval).From(t).Build(dbms),
             CaseElseExpression @else => Select(Case(When(t.Column("b") > 0).Then(1), @else))
                 .From(t).Build(dbms),
             ExpressionAlias alias => Select(alias).From(t).Build(dbms),
@@ -384,9 +388,6 @@ public static class PositionProbe
             SearchedCaseWhenClause searched => Select(Case(searched)).From(t).Build(dbms),
             SimpleCaseWhenClause simple => Select(Case(t.Column("b"), simple)).From(t)
                 .Build(dbms),
-            QuantifiedExpression or QuantifiedSubquery => Select(t.Column("a")).From(t)
-                .Where(t.Column("b") == node).Build(dbms),
-            IntervalExpression interval => Select(t.Column("d") + interval).From(t).Build(dbms),
             SqlPart part when part.GetType().Name is "GroupingElement" or "RollupElement"
                 or "CubeElement" || part.GetType().BaseType?.Name == "GroupingElement"
                 => Select(t.Column("g")).From(t).GroupBy(part).Build(dbms),
