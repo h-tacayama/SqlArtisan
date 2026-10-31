@@ -73,6 +73,27 @@ public class DialectMatrixDocsTests
                 + $"{missing.Count} missing tokens:\n  " + string.Join("\n  ", missing));
     }
 
+    // The other end of the chain: a fixture's pinned image, which the dictionary
+    // once named as the module default it no longer tracks (#681).
+    [Theory]
+    [InlineData("MySql")]
+    [InlineData("Oracle")]
+    [InlineData("PostgreSql")]
+    [InlineData("SqlServer")]
+    public void VerifiedAgainstVersion_NamesTheFixtureImage(string dbms)
+    {
+        string source = File.ReadAllText(Path.Combine(
+            FindRepoRoot(),
+            "tests",
+            "SqlArtisan.IntegrationTests",
+            "Infrastructure",
+            $"{dbms}Fixture.cs"));
+        string image = Regex.Match(source, @"\.WithImage\(""([^""]+)""\)").Groups[1].Value;
+
+        Assert.NotEmpty(image);
+        Assert.Contains($"`{image}`", DialectMatrix.VerifiedAgainstVersion[Enum.Parse<TargetDbms>(dbms)]);
+    }
+
     private static string FindRepoRoot()
     {
         DirectoryInfo? dir = new(AppContext.BaseDirectory);
