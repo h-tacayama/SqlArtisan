@@ -17,13 +17,8 @@ public sealed record EngineExample(
     Context Context,
     string Template);
 
-/// <summary>
-/// Derives the engine Examples from the model by rule (see the report § Derivation):
-/// E1 every key class x every value kind that reaches the engine on some lane;
-/// E2 the value-domain and operand cells (string `+`, ROUND scale, ANY, Sql.Null) and the
-/// select-item control over every kind; E3 the contexts the known examples raised
-/// (#521 CTE / nested block, #757 compound, #678/#693 window and aggregate orderings).
-/// </summary>
+// Derives the engine Examples from the model by rule E1–E4; the rules and why each
+// exists are in trials/value-reading/REPORT.md § 3.2.
 public static class ExampleCatalog
 {
     // id | a | b | g — column 2 (b) sorts opposite to id, and g makes three groups,

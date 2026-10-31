@@ -2,10 +2,8 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.IntegrationTests.ValueReading;
 
-/// <summary>The value-kind axis: every kind the trial brief names, plus four the
-/// records cover (double, a whole double, a user enum, Sql.Null, a subquery), the short and
-/// byte integers mutation testing showed missing (step 4), and the two
-/// position-bound operands.</summary>
+// The brief's kinds, plus the ones the records raise, the two position-bound operands,
+// and the whole double, short and byte the trial's own steps showed missing.
 public enum ValueKind
 {
     IntZero,

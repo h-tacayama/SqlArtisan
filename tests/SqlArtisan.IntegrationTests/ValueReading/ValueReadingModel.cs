@@ -173,11 +173,8 @@ public enum PositionClass
     NotSql,
 }
 
-/// <summary>
-/// The hazard model for "a value, at a position, read with another meaning by some
-/// engine". Each cell's expectation cites a record clause, an ADR or an engine manual;
-/// a cell with no such ground is a <see cref="Questions"/> entry, never a guess.
-/// </summary>
+// Each cell cites a record clause, an ADR or an engine manual; a cell with no such ground
+// is a Questions entry, never a guess.
 public static class ValueReadingModel
 {
     public static readonly Lane[] Lanes = Enum.GetValues<Lane>();
@@ -598,11 +595,8 @@ public static class ValueReadingModel
     {
         Dbms d = DbmsOf(lane);
 
-        // A compound's ORDER BY sorts the combined result by its output columns: a key that
-        // is no output column name or position is refused by PostgreSQL (select.sgml: 'only
-        // output column names or numbers') and SQLite (lang_select.html, compound ORDER BY).
-        // SQLite takes a term identical to a result-column expression (the qualified
-        // column the branches select), PostgreSQL only an output name or number.
+        // A compound ORDER BY: PostgreSQL takes only an output name or number (select.sgml),
+        // SQLite also a term identical to a result-column expression (lang_select.html).
         if (ctx == Context.SetOperationBranch && v is ValueKind.BindInt or ValueKind.BindText
             or ValueKind.BindNull or ValueKind.SqlNull or ValueKind.Column or ValueKind.Expression
             or ValueKind.Double or ValueKind.DoubleWhole or ValueKind.Decimal)

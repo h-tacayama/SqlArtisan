@@ -2,12 +2,8 @@ using System.Text;
 
 namespace SqlArtisan.IntegrationTests.ValueReading;
 
-/// <summary>
-/// The DB-less half of the trial: the classification gate (every enumerated slot has a
-/// class) and the build-level Examples (every slot x every value kind x every dialect,
-/// observed and compared with the model's expectation). No Engine trait, so no lane
-/// runs it; the CI-style filter is FullyQualifiedName~ValueReading.
-/// </summary>
+// The DB-less half: the classification gate and the build-level Examples. No Engine
+// trait, so no integration lane runs it.
 public sealed class ValueReadingModelTests
 {
     private static readonly Dbms[] Dialects =

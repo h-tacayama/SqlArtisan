@@ -2,13 +2,8 @@ using System.Reflection;
 
 namespace SqlArtisan.IntegrationTests.ValueReading;
 
-/// <summary>
-/// The position axis, enumerated from the shipped assembly by reflection rather than
-/// from memory: every parameter of a public member of an exported type whose type can
-/// carry a value (an object, a SqlExpression, a numeric literal, a string, an enum, a
-/// value-typed generic). Structural parameters (tables, columns, sort orders, builders)
-/// are counted separately and are not positions of this hazard type.
-/// </summary>
+// The position axis, enumerated from the shipped assembly by reflection rather than from
+// memory; structural parameters (tables, sort orders, builders) are counted, not kept.
 public static class PositionInventory
 {
     public sealed record Slot(

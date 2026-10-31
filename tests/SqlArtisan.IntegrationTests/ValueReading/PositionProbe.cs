@@ -16,12 +16,8 @@ public enum Observed
     Unreachable,
 }
 
-/// <summary>
-/// Injects one value kind into one position slot and builds the result for one dialect.
-/// The filler logic follows FactoryGuardSweepTests (a valid value for every other
-/// parameter, so the injected value is the only variable); builder-stage slots take a
-/// fresh chain from <see cref="StagePool"/>, since one builder is one chain (#676).
-/// </summary>
+// Fillers follow FactoryGuardSweepTests, so the injected value is the only variable;
+// a builder-stage slot gets a fresh chain, since one builder is one chain (#676).
 public static class PositionProbe
 {
     public sealed record Result(Observed Observed, string Detail);
