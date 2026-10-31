@@ -189,6 +189,20 @@ public class NullComparisonAnalyzerTests
     public Task NotBetweenWithNullBound_StaysSilent() =>
         RunSilent("var q = Select(t.Id).From(t).Where(t.Id.NotBetween(Null, 10));");
 
+    [Fact]
+    public Task NotInWithNullInCollectionExpression_ReportsSqla0303() =>
+        RunReporting(
+            "var q = Select(t.Id).From(t).Where({|#0:t.Id.NotIn([1, Null])|});",
+            "NOT IN",
+            "drop the NULL from the list");
+
+    // The collection overload takes a list built elsewhere, which is not read.
+    [Fact]
+    public Task InWithNullInCollectionOverload_StaysSilent() =>
+        RunSilent(
+            "var q = Select(t.Id).From(t).Where("
+                + "t.Id.In(new System.Collections.Generic.List<object> { Null }));");
+
     // A list built elsewhere is not read.
     [Fact]
     public Task NotInWithArrayVariable_StaysSilent() =>

@@ -120,13 +120,34 @@ internal static class NullComparisonRule
         context.ReportDiagnostic(Diagnostic.Create(
             DiagnosticDescriptors.NullComparison, operation.Syntax.GetLocation(), token, remedy));
 
-    // The values of a params list written at the call; an array built elsewhere is unread.
-    private static List<IOperation>? ListValues(IInvocationOperation call) =>
-        call.Arguments.Length == 1
-        && call.TargetMethod.Parameters[0].Type is IArrayTypeSymbol
-        && call.Arguments[0].Value is IArrayCreationOperation { Initializer: { } list }
-            ? [.. list.ElementValues]
-            : null;
+    // The values of a params list written at the call, as arguments or a collection
+    // expression (its children, as ArgumentValueValidityRule.Elements reads GroupBy's);
+    // an array built elsewhere is unread.
+    private static List<IOperation>? ListValues(IInvocationOperation call)
+    {
+        if (call.Arguments.Length != 1
+            || call.TargetMethod.Parameters[0].Type is not IArrayTypeSymbol)
+        {
+            return null;
+        }
+
+        IOperation value = call.Arguments[0].Value;
+        if (value is IConversionOperation conversion)
+        {
+            value = conversion.Operand;
+        }
+
+        return value switch
+        {
+            IArrayCreationOperation { Initializer: { } list } => [.. list.ElementValues],
+            IArrayCreationOperation => null,
+            { Type: IArrayTypeSymbol } and not (IInvocationOperation or ILocalReferenceOperation
+                or IParameterReferenceOperation or IFieldReferenceOperation
+                or IPropertyReferenceOperation or IConversionOperation) =>
+                [.. value.ChildOperations],
+            _ => null,
+        };
+    }
 
     private static string? Token(BinaryOperatorKind kind) => kind switch
     {

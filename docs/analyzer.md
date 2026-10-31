@@ -1312,8 +1312,11 @@ Test for NULL with `u.Name.IsNull` or `IsNotNull`, and in a CASE with a searched
 `When(u.Name.IsNull)`; drop the NULL from a `NotIn(...)` list, and compare a
 `Between(...)` column with `>=` or `<=` on the bound that is not NULL. A list or
 both bounds of NULL alone leave nothing to keep, so those take the NULL test. `In(1, Null)`
-stays silent, since `1` can still match, and so does `NotBetween(...)`, whose other
-bound still decides (both match rows in the same twin); a list held in an array variable is not read. A C# `null` there (`u.Name == null`) throws at the call
+stays silent, since `1` can still match, and so does a `NotBetween(...)` with one
+NULL bound, whose other bound still decides (both match rows in the same twin). A
+list is read where it is written at the call, as arguments or a collection
+expression (`NotIn([1, Null])`); one held in an array variable, or passed to the
+`In(...)` / `NotIn(...)` overload that takes a collection, is not. A C# `null` there (`u.Name == null`) throws at the call
 and names `IsNull`; `Sql.Null` is the spelling that reaches the engine.
 
 `==` also writes a `SET` assignment — `Update(u).Set(u.Name == Null)` sets the
