@@ -1,6 +1,6 @@
 # ADR 0017 — Join predicate completeness: rejecting an omitted `ON`/`USING` that some dialects silently reinterpret as `CROSS JOIN`
 
-**Status:** Accepted
+**Status:** Accepted; corrected in #675 (§ Correction)
 
 ## Context
 
@@ -29,7 +29,7 @@ falsified that — SQLite accepts the omission on all three, not just
 
 | Engine | `INNER`/bare `JOIN` omitted | `LEFT`/`RIGHT`/`FULL JOIN` omitted | `CROSS JOIN` (control) |
 |---|---|---|---|
-| SQLite 3.45.1 | Accepted — cartesian product | **Accepted**, identical row-for-row to the `INNER`/`CROSS` case on these tables, which both had rows; no implicit same-name-column matching is attempted even though both test tables shared a column name. With one side empty the outer join keeps the other side's rows, which `CROSS JOIN` drops (corrected in #675, below) | Accepted |
+| SQLite 3.45.1 | Accepted — cartesian product | **Accepted — cartesian product**, identical row-for-row to the `INNER`/`CROSS` case; no implicit same-name-column matching is attempted even though both test tables shared a column name | Accepted |
 | PostgreSQL 16 | `ERROR: syntax error at or near ";"` | `ERROR: syntax error at or near ";"` | Accepted |
 | MySQL 8.0.46 | Accepted — cartesian product | `ERROR 1064 (42000)` (`FullJoin` isn't a MySQL construct at all — separate, pre-existing dialect-availability fact) | Accepted |
 | Oracle 21c (Testcontainers) | Rejected (`ORA` syntax error) | Rejected | Accepted |
@@ -43,21 +43,18 @@ therefore *dialect availability*, which ADR 0007 says the library must never
 throw for.
 
 Yet nobody who writes `.InnerJoin(x)`/`.LeftJoin(x)`/`.JoinLateral(x, alias)`
-with no following predicate is choosing SQLite's (or MySQL's) predicate-less
+with no following predicate is choosing SQLite's (or MySQL's) cartesian-product
 reading on purpose: the interface's own doc says "supply its `ON` predicate,"
 and the construct that *does* mean "I want the unfiltered cartesian product"
 already has its own explicit, faithfully-emitted name — `CrossJoin` — which
 every dialect accepts unconditionally (`IJoinOperator.CrossJoin`, "the
 unfiltered Cartesian product, so no `ON` follows"; confirmed live above,
-identical output to the lenient dialects' omitted-predicate inner join).
+identical output to the lenient dialects' omitted-predicate reading).
 PostgreSQL's own documentation states `CROSS JOIN` "is equivalent to
-`INNER JOIN ON (TRUE)`", and on the SQLite live run's tables the
-omitted-predicate `LEFT`/`RIGHT`/`FULL JOIN` output was row for row the
-`CROSS JOIN` output. That holds only while both sides have rows: with one side
-empty, SQLite 3.50.4 keeps the other side's rows, NULL-padded, where
-`CROSS JOIN` returns none (`SqliteTests.OmittedOuterJoinPredicate_KeepsARowCrossJoinDrops`;
-corrected in #675). So the empty-`ON` message names `CROSS JOIN` after an inner
-join only.
+`INNER JOIN ON (TRUE)`" — and the SQLite live run goes further than any
+documentation claim: the omitted-predicate `LEFT`/`RIGHT`/`FULL JOIN` output is
+not merely *equivalent to* `CROSS JOIN`, it is byte-for-byte identical to it,
+row for row, with no outer-join NULL-padding attempted at all.
 
 ## Decision
 
@@ -71,19 +68,18 @@ This is a **bounded exception to ADR 0007**, admitted only because all three
 hold together:
 
 - **The accepting dialects don't treat the omission as a distinct construct.**
-  Confirmed live: SQLite runs every omitted-predicate join type as that join
-  with no condition, the `CROSS JOIN` output for an inner one; MySQL's manual states `JOIN`,
+  Confirmed live: SQLite's output for every omitted-predicate join type is
+  identical to its `CROSS JOIN` output; MySQL's manual states `JOIN`,
   `CROSS JOIN`, and `INNER JOIN` are "syntactic equivalents" and that
   `INNER JOIN` with no join condition is "semantically equivalent" to a
   comma-join, i.e. a cartesian product. This is unlike ordinary dialect
   availability (`CUBE` on MySQL), where the two dialects genuinely disagree
   about a real, independent feature.
 - **No caller intentionally targets that reading.** `CrossJoin` is the
-  cartesian product's real, explicit, faithfully-emitted name on every dialect,
-  including the lenient ones. For `InnerJoin` and `JoinLateral` that reading is
-  the cartesian product, which a caller who wants it writes as `CrossJoin`; one
-  who reaches `Build()`/`ForUpdate()` from any of the five members with no
-  predicate has an unfinished chain, not a deliberate choice —
+  construct's real, explicit, faithfully-emitted name on every dialect,
+  including the lenient ones. A caller who wants the cartesian product writes
+  `CrossJoin`; one who reaches `Build()`/`ForUpdate()` from any of the five
+  members with no predicate has an unfinished chain, not a deliberate choice —
   mirroring exactly the "no valid spelling was actually intended here" logic
   ADR 0011 uses for its own bounded exception.
 - **Fits the deterministic-guard mission (ADR 0010).** A missing `.On(...)`/
@@ -107,15 +103,15 @@ justification, no per-member split.
   audit, pass 3): a caller holding a *pre-join* stage reference can call a
   join member and then build from the held reference, bypassing the pending
   type entirely — the chain compiles and the dangling join renders as the
-  silent predicate-less join this ADR rejects. The duplicate-clause walk in
+  silent cartesian product this ADR rejects. The duplicate-clause walk in
   `SqlBuilderBase` therefore also throws when a conditioned join
   (`InnerJoin`/`LeftJoin`/`RightJoin`/`FullJoin`/`JoinLateral`, and the DML
   builders' joined forms) is not followed by its `ON`/`USING`. The
   compile-time pending type stays primary; the backstop is dialect-blind,
   matching the uniform scope above, and runs from every nested render as
   well (release audit, pass 4): a subquery, CTE body, or scalar item never
-  passes through `BuildCore`, and a dangling join is no less a predicate-less
-  join one level down. A held join completed only after a later one is
+  passes through `BuildCore`, and a dangling join is no less a cartesian
+  product one level down. A held join completed only after a later one is
   rejected too, on another ground: `j = q.InnerJoin(u); q.InnerJoin(v).On(c1);
   j.On(c2)` would render `t INNER JOIN u INNER JOIN v ON (c1) ON (c2)`, which
   PostgreSQL 16 runs re-nested as `t JOIN (u JOIN v ON c1) ON c2`
@@ -147,3 +143,21 @@ justification, no per-member split.
   full — closing the one item this cluster still owed the #414 epic's
   "run the integration matrix" backlog for this construct.
 - Complements ADR 0007 and ADR 0011; supersedes neither. See #400, #420.
+
+## Correction (#675)
+
+The rejection is unchanged; these points narrow what the text above claims:
+
+- SQLite's predicate-less `LEFT` / `RIGHT` / `FULL JOIN` matched `CROSS JOIN`
+  row for row on the tables run, which both had rows. With one side empty,
+  SQLite 3.50.4 keeps the other side's rows where `CROSS JOIN` returns none
+  (`SqliteTests.OmittedOuterJoinPredicate_KeepsARowCrossJoinDrops`).
+  "Cartesian product" and "identical to `CROSS JOIN`" above, as readings of
+  an omitted predicate, hold for `InnerJoin` only, and the empty-`ON` message
+  after an outer join names no `CROSS JOIN`.
+- SQLite has no `JOIN LATERAL` (`DialectMatrix`'s `JoinLateral` cell is
+  `false`, which the SQLite sweep lane checks), so "lenient on MySQL and
+  SQLite" and "SQLite is lenient across all five" do not hold for
+  `JoinLateral`.
+- `JoinLateral` emits `JOIN LATERAL`, not a bare `JOIN`, and its
+  condition-free form is `CrossJoinLateral`, not `CrossJoin`.

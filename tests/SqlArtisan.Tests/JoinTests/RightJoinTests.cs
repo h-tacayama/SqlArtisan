@@ -34,7 +34,8 @@ public class RightJoinTests
     [Fact]
     public void RightJoin_OnAllConditionsExcluded_ThrowsArgumentException()
     {
-        // An outer join's message names no CROSS JOIN, which drops the rows it keeps.
+        // An outer join's message names no CROSS JOIN, which drops a row it keeps when a side
+        // is empty.
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Select(_t.Code)
             .From(_t)
