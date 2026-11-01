@@ -22,29 +22,6 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         _fixture = fixture;
     }
 
-    // #681 probe: what rejects the BindArray and CosineDistance sweep negatives here.
-    [Fact]
-    public void SweepNegative_Probe()
-    {
-        UsersTable u = new();
-        using IDbConnection connection = _fixture.OpenConnection();
-        List<string> results = [];
-        results.Add(Run("BindArray", () => connection.Query<int>(Select(u.Id).From(u).Where(u.Id == Any(BindArray([1, 2])))).Count()));
-        Assert.Fail(string.Join(" | ", results));
-
-        static string Run(string name, Func<object?> run)
-        {
-            try
-            {
-                return $"{name}: ran, {run()}";
-            }
-            catch (Exception ex)
-            {
-                return $"{name}: threw {ex.GetType().Name}: {ex.Message}";
-            }
-        }
-    }
-
     [Fact]
     public void Pagination_OffsetFetch_Executes()
     {

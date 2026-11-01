@@ -131,6 +131,8 @@ internal static class MatrixSweepCatalog
             OrdersTable jo = new("o");
             return Select(Count(ju.Id)).From(ju).CrossJoin(jo);
         });
+        // Aliased, so MySQL's rejection is the join's own: after an unaliased table it reads
+        // FULL as that table's alias (MySqlTests.FullJoin_UnaliasedLeftTable_ReadsFullAsItsAlias).
         Add("FullJoin", _ =>
         {
             UsersTable ju = new("u");
@@ -669,14 +671,22 @@ internal static class MatrixSweepCatalog
         Add("JsonbExists", _ => WherePredicate(JsonbExists(u.Data, "name")));
         Add("JsonbExistsAll", _ => WherePredicate(JsonbExistsAll(u.Data, "name", "address")));
         Add("JsonbExistsAny", _ => WherePredicate(JsonbExistsAny(u.Data, "name", "address")));
-        // pgvector operators (#343): the CAST operands carry MySQL's negative verdict
-        // (<=> is its equality), and the 23ai lane uses bare strings (ORA-22849 on CAST).
+        // pgvector operators (#343): the CAST operands carry MySQL's negative verdict (skipped
+        // for CosineDistance, whose <=> MySQL runs), and the 23ai lane uses bare strings.
         Add("L2Distance", dbms => dbms == Dbms.Oracle
             ? Scalar(L2Distance("[1,2]", "[3,4]"))
             : Scalar(L2Distance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))));
-        Add("CosineDistance", dbms => dbms == Dbms.Oracle
-            ? Scalar(CosineDistance("[1,2]", "[3,4]"))
-            : Scalar(CosineDistance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))));
+        cases.Add(new SweepCase(new MatrixKey("CosineDistance"),
+            dbms => dbms == Dbms.Oracle
+                ? Scalar(CosineDistance("[1,2]", "[3,4]"))
+                : Scalar(CosineDistance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))),
+            NegativeSkips: new Dictionary<Dbms, string>
+            {
+                [Dbms.MySql] = "MySQL reads <=> as NULL-safe equality "
+                    + "(MySqlTests.CosineDistance_ReadsAsNullSafeEquality), and MySQL 8.0 "
+                    + "rejects the CAST(... AS vector) operands first, so the rejection proves "
+                    + "no CosineDistance cell.",
+            }));
         Add("NegativeInnerProduct", dbms => dbms == Dbms.Oracle
             ? Scalar(NegativeInnerProduct("[1,2]", "[3,4]"))
             : Scalar(NegativeInnerProduct(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))));
@@ -689,16 +699,12 @@ internal static class MatrixSweepCatalog
             _ => WherePredicate(u.Id == Any(BindArray([1, 2]))),
             NegativeSkips: new Dictionary<Dbms, string>
             {
-                [Dbms.MySql] = "The array-typed parameter is not rejected client-side "
-                    + "(MySqlConnector infers a fallback type without an open connection); "
-                    + "any rejection happens at execute time, outside this client-side sweep.",
-                [Dbms.Oracle] = "The array-typed parameter is not rejected client-side "
-                    + "(Oracle.ManagedDataAccess infers a fallback type without an open "
-                    + "connection); any rejection happens at execute time, proven by the "
-                    + "nightly matrix.",
-                [Dbms.Sqlite] = "The array-typed parameter is rejected client-side "
-                    + "(no mapping exists from System.Int32[] to a known managed provider "
-                    + "native type), so the statement never reaches the engine's grammar.",
+                [Dbms.MySql] = "MySqlConnector rejects the Int32[] parameter itself "
+                    + "(NotSupportedException), so the statement never reaches the engine.",
+                [Dbms.Oracle] = "Oracle.ManagedDataAccess rejects the Int32[] parameter itself "
+                    + "(InvalidCastException), so the statement never reaches the engine.",
+                [Dbms.Sqlite] = "The statement fails at ANY, the Any row's construct (no such "
+                    + "function: ANY on SQLite 3.50.4), so the rejection proves no BindArray cell.",
                 [Dbms.SqlServer] = "The array-typed parameter is rejected client-side "
                     + "(no mapping exists from System.Int32[] to a known managed provider "
                     + "native type), so the statement never reaches the engine's grammar.",

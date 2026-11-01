@@ -22,30 +22,6 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     }
 
     // #681: the other meanings behind three false cells, each run where the matrix reports it.
-    // #681 probe: what rejects the BindArray and CosineDistance sweep negatives here.
-    [Fact]
-    public void SweepNegative_Probe()
-    {
-        UsersTable u = new();
-        using IDbConnection connection = _fixture.OpenConnection();
-        List<string> results = [];
-        results.Add(Run("BindArray", () => connection.Query<int>(Select(u.Id).From(u).Where(u.Id == Any(BindArray([1, 2])))).Count()));
-        results.Add(Run("CosineDistance", () => connection.Query<object>(Select(CosineDistance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))).From(u).Where(u.Id == 1)).Count()));
-        Assert.Fail(string.Join(" | ", results));
-
-        static string Run(string name, Func<object?> run)
-        {
-            try
-            {
-                return $"{name}: ran, {run()}";
-            }
-            catch (Exception ex)
-            {
-                return $"{name}: threw {ex.GetType().Name}: {ex.Message}";
-            }
-        }
-    }
-
     [Fact]
     public void DoublePipe_ReadsAsLogicalOr()
     {
