@@ -16,7 +16,7 @@ namespace SqlArtisan.IntegrationTests.Infrastructure;
 /// <param name="Build">Produces the statement; receives the engine so union entries (e.g. <c>Match</c>) can pick the dialect-appropriate form.</param>
 /// <param name="Mutating">Whether to run inside a rolled-back transaction (DML).</param>
 /// <param name="PositiveSkips">Engines where the supported side cannot be exercised here, with the reason (e.g. container lacks the full-text feature).</param>
-/// <param name="NegativeSkips">Engines where the unsupported side cannot be asserted — the engine parses the text as something else entirely, or the builder rejects the statement client-side before it reaches the engine — with the reason.</param>
+/// <param name="NegativeSkips">Engines where the unsupported side cannot be asserted — the engine parses the text as something else entirely, or the driver rejects the key's parameter client-side — with the reason.</param>
 internal sealed record SweepCase(
     MatrixKey Key,
     Func<Dbms, ISqlBuilder> Build,
@@ -671,8 +671,8 @@ internal static class MatrixSweepCatalog
         Add("JsonbExists", _ => WherePredicate(JsonbExists(u.Data, "name")));
         Add("JsonbExistsAll", _ => WherePredicate(JsonbExistsAll(u.Data, "name", "address")));
         Add("JsonbExistsAny", _ => WherePredicate(JsonbExistsAny(u.Data, "name", "address")));
-        // pgvector operators (#343): CosineDistance's MySQL negative is skipped, since MySQL
-        // runs <=>, and the 23ai lane uses bare strings.
+        // pgvector operators (#343): the operators Oracle shares drop the Cast there, as
+        // docs/expressions.md directs.
         Add("L2Distance", dbms => dbms == Dbms.Oracle
             ? Scalar(L2Distance("[1,2]", "[3,4]"))
             : Scalar(L2Distance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))));
