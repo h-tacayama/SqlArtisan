@@ -671,8 +671,8 @@ internal static class MatrixSweepCatalog
         Add("JsonbExists", _ => WherePredicate(JsonbExists(u.Data, "name")));
         Add("JsonbExistsAll", _ => WherePredicate(JsonbExistsAll(u.Data, "name", "address")));
         Add("JsonbExistsAny", _ => WherePredicate(JsonbExistsAny(u.Data, "name", "address")));
-        // pgvector operators (#343): the CAST operands carry MySQL's negative verdict (skipped
-        // for CosineDistance, whose <=> MySQL runs), and the 23ai lane uses bare strings.
+        // pgvector operators (#343): CosineDistance's MySQL negative is skipped, since MySQL
+        // runs <=>, and the 23ai lane uses bare strings.
         Add("L2Distance", dbms => dbms == Dbms.Oracle
             ? Scalar(L2Distance("[1,2]", "[3,4]"))
             : Scalar(L2Distance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))));
@@ -702,8 +702,9 @@ internal static class MatrixSweepCatalog
                 [Dbms.Oracle] = "Oracle.ManagedDataAccess rejects the Int32[] parameter itself "
                     + "(InvalidCastException), so the statement never reaches the engine.",
                 [Dbms.Sqlite] = "This form needs ANY, whose own cell is false, and BindArray "
-                    + "alone never reaches the engine: Microsoft.Data.Sqlite rejects the Int32[] "
-                    + "parameter itself (InvalidOperationException).",
+                    + "alone fails at bind: after SQLite compiles the text, Microsoft.Data.Sqlite "
+                    + "rejects the Int32[] parameter (InvalidOperationException, not a "
+                    + "DbException).",
                 [Dbms.SqlServer] = "The array-typed parameter is rejected client-side "
                     + "(no mapping exists from System.Int32[] to a known managed provider "
                     + "native type), so the statement never reaches the engine's grammar.",
