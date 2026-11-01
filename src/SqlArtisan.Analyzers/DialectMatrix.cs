@@ -805,9 +805,8 @@ internal static class DialectMatrix
         [new MatrixKey("JsonValue")] = new VersionBounds(mySql: V("8.0.21"), postgreSql: V("17")),
         [new MatrixKey("Nowait")] = new VersionBounds(mySql: V("8.0")),
         [new MatrixKey("SkipLocked")] = new VersionBounds(mySql: V("8.0")),
-        // OnDuplicateKeyUpdate/Excluded: SqlArtisan always emits MySQL's 8.0.19+ row-alias
-        // UPSERT form (`AS new` — MySqlDialect.ExcludedName, RowAliasClause), never the
-        // legacy VALUES() function, so the row alias's version is the real floor.
+        // OnDuplicateKeyUpdate/Excluded: every ODKU emits MySQL's 8.0.19+ row alias (`AS new`,
+        // RowAliasClause), Excluded or not, never the legacy VALUES(), so that is the floor.
         [new MatrixKey("OnDuplicateKeyUpdate")] = new VersionBounds(mySql: V("8.0.19")),
         [new MatrixKey("Excluded")] = new VersionBounds(mySql: V("8.0.19")),
 

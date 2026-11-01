@@ -1285,8 +1285,9 @@ SqlStatement sql =
 ```
 
 MySQL keys off any unique index implicitly (no conflict target). SqlArtisan
-emits the row-alias form (`AS new` … `new.column`) to avoid the deprecated
-`VALUES()` function; MySQL added the row alias in a specific release — see the
+emits the row-alias form (`AS new` … `new.column`) on every
+`OnDuplicateKeyUpdate(...)`, whether or not an assignment reads `Excluded(...)`,
+never the deprecated `VALUES()` function; MySQL added the row alias in a specific release — see the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 **Note:** `ON CONFLICT` is PostgreSQL/SQLite-only and `ON DUPLICATE KEY UPDATE`
