@@ -10,7 +10,7 @@ public interface IInsertBuilderTable
     /// Builds the row from <c>column == value</c> assignments, emitting the column list and one
     /// <c>VALUES</c> row from them (<c>INSERT INTO t (code, name) VALUES (:0, :1)</c>).
     /// </summary>
-    /// <param name="assignments">The per-column assignments; each left side names a column and each right side its value (literals are auto-parameterized); a <see langword="null"/> element inserts <c>NULL</c>.</param>
+    /// <param name="assignments">The per-column assignments; each left side names a column and each right side its value (literals are auto-parameterized).</param>
     /// <returns>The builder positioned for <c>RETURNING</c>, an upsert clause, or build.</returns>
     IInsertBuilderSet Set(params EqualityCondition[] assignments);
 

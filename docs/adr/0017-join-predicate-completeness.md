@@ -43,7 +43,7 @@ therefore *dialect availability*, which ADR 0007 says the library must never
 throw for.
 
 Yet nobody who writes `.InnerJoin(x)`/`.LeftJoin(x)`/`.JoinLateral(x, alias)`
-with no following predicate is choosing SQLite's (or MySQL's) cartesian-product
+with no following predicate is choosing SQLite's (or MySQL's) predicate-less
 reading on purpose: the interface's own doc says "supply its `ON` predicate,"
 and the construct that *does* mean "I want the unfiltered cartesian product"
 already has its own explicit, faithfully-emitted name — `CrossJoin` — which
@@ -80,9 +80,10 @@ hold together:
   about a real, independent feature.
 - **No caller intentionally targets that reading.** `CrossJoin` is the
   construct's real, explicit, faithfully-emitted name on every dialect,
-  including the lenient ones. A caller who wants the cartesian product writes
-  `CrossJoin`; one who reaches `Build()`/`ForUpdate()` from any of the five
-  members with no predicate has an unfinished chain, not a deliberate choice —
+  including the lenient ones. For `InnerJoin` and `JoinLateral` that reading is
+  the cartesian product, which a caller who wants it writes as `CrossJoin`; one
+  who reaches `Build()`/`ForUpdate()` from any of the five members with no
+  predicate has an unfinished chain, not a deliberate choice —
   mirroring exactly the "no valid spelling was actually intended here" logic
   ADR 0011 uses for its own bounded exception.
 - **Fits the deterministic-guard mission (ADR 0010).** A missing `.On(...)`/
@@ -106,15 +107,15 @@ justification, no per-member split.
   audit, pass 3): a caller holding a *pre-join* stage reference can call a
   join member and then build from the held reference, bypassing the pending
   type entirely — the chain compiles and the dangling join renders as the
-  silent cartesian product this ADR rejects. The duplicate-clause walk in
+  silent predicate-less join this ADR rejects. The duplicate-clause walk in
   `SqlBuilderBase` therefore also throws when a conditioned join
   (`InnerJoin`/`LeftJoin`/`RightJoin`/`FullJoin`/`JoinLateral`, and the DML
   builders' joined forms) is not followed by its `ON`/`USING`. The
   compile-time pending type stays primary; the backstop is dialect-blind,
   matching the uniform scope above, and runs from every nested render as
   well (release audit, pass 4): a subquery, CTE body, or scalar item never
-  passes through `BuildCore`, and a dangling join is no less a cartesian
-  product one level down. A held join completed only after a later one is
+  passes through `BuildCore`, and a dangling join is no less a predicate-less
+  join one level down. A held join completed only after a later one is
   rejected too, on another ground: `j = q.InnerJoin(u); q.InnerJoin(v).On(c1);
   j.On(c2)` would render `t INNER JOIN u INNER JOIN v ON (c1) ON (c2)`, which
   PostgreSQL 16 runs re-nested as `t JOIN (u JOIN v ON c1) ON c2`

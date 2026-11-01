@@ -16,7 +16,7 @@ public interface IMergeBuilderWhenMatchedAnd
     /// <summary>
     /// Appends <c>THEN UPDATE SET col = value, ...</c>, updating the matched rows.
     /// </summary>
-    /// <param name="assignments">The <c>column == value</c> updates; values are typically source columns and literals are auto-parameterized; a <see langword="null"/> element inserts <c>NULL</c>.</param>
+    /// <param name="assignments">The <c>column == value</c> updates; values are typically source columns and literals are auto-parameterized.</param>
     /// <returns>The builder positioned to chain another <c>WHEN</c> branch or build.</returns>
     /// <remarks>Oracle, PostgreSQL (15+), and SQL Server syntax for the action; the
     /// conditioned branch is PostgreSQL's and SQL Server's.</remarks>
