@@ -46,7 +46,7 @@ public class ConfigTests : IDisposable
             .Build();
 
         StringBuilder expected = new();
-        // Oracle rejects AS on a table alias (ORA-00933): alias follows with a
+        // Oracle's DML grammar takes a table alias with no AS, so it follows with a
         // space. The SET target stays unqualified; the WHERE qualifies via alias.
         expected.Append("UPDATE test_table \"t\" ");
         expected.Append("SET name = :0 ");

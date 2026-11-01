@@ -33,8 +33,9 @@ internal sealed record SweepCase(
 internal static class MatrixSweepCatalog
 {
     private const string FieldMarker =
-        "An IntervalLiteral field argument with no SQL of its own; the IntervalLiteral "
-        + "cases sweep the bare form, and the arity-1 case sweeps the precision.";
+        "An IntervalLiteral field argument with no SQL of its own. Year() and Day() appear "
+        + "bare in the IntervalLiteral cases, and each field's arity-1 case sweeps the same "
+        + "keyword with a precision.";
 
     /// <summary>Matrix entries deliberately not swept, with the reason.</summary>
     public static readonly IReadOnlyDictionary<MatrixKey, string> ExcludedEntries =

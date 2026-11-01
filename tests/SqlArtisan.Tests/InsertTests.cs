@@ -152,7 +152,7 @@ public class InsertTests
     [Fact]
     public void InsertInto_Oracle_WithAlias_CorrectSql()
     {
-        // Oracle rejects AS on a table alias (ORA-00933): the alias follows the
+        // Oracle's DML grammar takes a table alias with no AS: the alias follows the
         // table name with only a space.
         TestTable t = new("t");
         SqlStatement sql =

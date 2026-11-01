@@ -539,8 +539,8 @@ internal static class DialectMatrix
         [new MatrixKey("Over")] = DbmsSupport.All,
         [new MatrixKey("PartitionBy")] = DbmsSupport.All,
         [new MatrixKey("Rows")] = DbmsSupport.All,
-        // Range: T-SQL only allows RANGE with UNBOUNDED/CURRENT ROW bounds (no numeric offsets) —
-        // a bound-value nuance the key cannot see; union, under-restricts SQL Server.
+        // Range, RangeBetween, and Preceding/Following inside them: T-SQL only allows RANGE with
+        // UNBOUNDED/CURRENT ROW bounds, a bound-value nuance no key sees; union, under-restricts.
         [new MatrixKey("Range")] = DbmsSupport.All,
         [new MatrixKey("RowsBetween")] = DbmsSupport.All,
         [new MatrixKey("RangeBetween")] = DbmsSupport.All,
