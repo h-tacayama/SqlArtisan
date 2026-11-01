@@ -69,3 +69,13 @@ Rules for `Format` implementations and `Keywords.cs` (#207 / #208):
    until #661: SQL Server 2022 refuses `BOTH` at compatibility level 150,
    where `TRIM(c FROM s)` runs, and Microsoft's reference has the form from
    2017.
+
+8. **A name the library emits resolves, in its position, to what the C# names.**
+   A column of an unaliased table, and a `SET` target, render by name alone, so
+   a same-named output alias, another relation's column or `EXCLUDED` can
+   capture the reference. Where the C# names something the text would not
+   reach, the library qualifies it (`DO UPDATE SET` over an unaliased target,
+   #721), rejects the call, or documents the shape it leaves (a statement
+   `ORDER BY`); `guards-and-empty-states.md` records each: a bare sort key
+   (#672), a bare `SET` target (#674) and an unaliased table in a nested block
+   (#677) (#675).

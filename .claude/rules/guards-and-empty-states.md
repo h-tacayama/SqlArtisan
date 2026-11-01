@@ -57,9 +57,9 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   as the set quantifier, another construct (the `Decode` line above), so they throw
   too (#666); any of `InnerJoin`/`LeftJoin`/
   `RightJoin`/`FullJoin`/`JoinLateral` with no `.On(...)`/`.Using(...)` —
-  accepted on SQLite (all five) or MySQL (`InnerJoin`/`JoinLateral` only) as an
-  unlabeled `CROSS JOIN` spelling, not a construct with independent meaning
-  (ADR 0017); `Output(...)` (SQL Server) combined with `Returning(...)`, with
+  accepted on SQLite (all but `JoinLateral`, which it lacks) or MySQL
+  (`InnerJoin`/`JoinLateral` only) as that join with no condition, which no
+  caller writes on purpose (ADR 0017 and its correction); `Output(...)` (SQL Server) combined with `Returning(...)`, with
   `Using(...)` on `DELETE`, with `OnConflict(...)`/`OnDuplicateKeyUpdate(...)`
   on `INSERT`, with a `WITH` between `INSERT INTO` and its `SELECT` (SQL Server
   2022 takes one only ahead of `INSERT INTO`, `ContextRule_InsertSelectWith_Rejected`,
@@ -125,7 +125,10 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   shape is final — a joined multi-table `UPDATE` with distinct correlation
   names stays legal — after rejecting at `Set(...)` the pairs that share one,
   or that are both unaliased, which render one token either way), a `WITH` clause's CTE names, a `Values(...)`
-  source's column names, an `UNNEST` column alias list (PostgreSQL 16.15 runs
+  source's column names, a `.WithColumnList()` list derived from select items
+  that share a name (PostgreSQL 16.15 and SQLite 3.50.4 run `WITH x(a, a)`, but
+  PostgreSQL then rejects a reference to `a` and SQLite reads the first such
+  column, `DuplicateCteColumnName_Reference*`, #675), an `UNNEST` column alias list (PostgreSQL 16.15 runs
   `unnest(...) u (x, x)`; only a later `u.x` is ambiguous, #664), an
   `ON CONFLICT` target, a join `USING` list, an `OUTPUT ... INTO` list — and
   an `OUTPUT ... INTO` list whose width differs from the `OUTPUT` list; a `SET` target another table owns, in an arm that
@@ -317,21 +320,23 @@ shape § "Minimum-arity enforcement" keeps (`public-api-design.md`, #552). The
 database is the arbiter (#664; the twins `WindowFunctionInWhere_IsRejectedByTheEngine`
 on PostgreSQL and SQLite, `Unnest_SeveralArraysInSelectList_IsRejectedByTheEngine`).
 
-**Five shapes the engines that run them reject stay unguarded (decided — do not
+**Six shapes the engines that run them reject stay unguarded (decided — do not
 re-file):** a `RANGE` offset over two or more `ORDER BY` keys; a percentile
 `WithinGroup(...)` over two or more keys; `WithRollup()` after a `GROUP BY`
 holding a grouping element; a lateral or apply join given a derived table that
-carries its own source, which it then emits twice; and an `INSERT ... SELECT` CTE
+carries its own source, which it then emits twice; an `INSERT ... SELECT` CTE
 body given `.WithColumnList()` or read through a reference, since it has no
-columns to name or read (with neither, the body runs, write-only). Each fails loudly where it was run — PostgreSQL 16.15 for
+columns to name or read (with neither, the body runs, write-only); and an empty
+`Group()` inside `Rollup(...)` or `Cube(...)`, the grand total only `GroupingSets(...)`
+takes (#675). Each fails loudly where it was run — PostgreSQL 16.15 for
 all but `WithRollup()` and the apply joins, SQLite 3.50.4 for the frame, SQL
-Server 2022 for `WithRollup()`, the one dialect the matrix gives both halves, and
-SQL Server 2022 and Oracle XE 21.3.0 for `CrossApply` — so there is no silent
-wrongness to convert. None is a construct missing a part, which a held stage's
+Server 2022 for `WithRollup()`, the one dialect the matrix gives both halves,
+SQL Server 2022 and Oracle XE 21.3.0 for `CrossApply`, and those two for the
+empty grouping set — so there is no silent wrongness to convert. None is a construct missing a part, which a held stage's
 backstop takes (the *Incomplete* list): each is complete, in a shape its engines
 refuse. A twin per shape asserts the rejection beside a control that runs (the
 `*_IsRejectedByTheEngine` twins #675 added). The other engines are not run for
-these: one that runs a shape, with any meaning, reopens it (#675's CI items).
+these: one that runs a shape, with any meaning, reopens it (#767's CI items).
 
 **An `OUTPUT` item reading the target bare, and a `*` before `INTO`, stay
 unguarded (decided — do not re-file):** on an `INSERT`, `UPDATE` or `DELETE`
@@ -491,9 +496,9 @@ name are emitted as bare identifiers, invalid as whitespace on every dialect;
 an alias is quoted, where whitespace is legal. The stricter check is correct
 where it is, and the asymmetry is not a defect.
 
-**An empty `In` / `NotIn` list or quoted name, or an empty or blank
-`IntervalLiteral` value, is rejected, though an engine runs it (decided — do not
-re-file):** `In(...)` and `NotIn(...)` with no value, an empty `As(...)` alias,
+**An empty `In` / `NotIn` list, quoted name or `SELECT` list, or an empty or
+blank `IntervalLiteral` value, is rejected, though an engine runs it (decided —
+do not re-file):** `In(...)` and `NotIn(...)` with no value, an empty `As(...)` alias,
 CTE or derived-table name, and an empty or whitespace-only `IntervalLiteral`
 value throw at the call on every dialect. SQLite 3.50.4 runs `IN ()`,
 `NOT IN ()` and a zero-length alias, CTE name or subquery derived-table name;
@@ -507,7 +512,9 @@ PostgreSQL 16.15 (`In_EmptyList_*`, `EmptyQuotedName_*`,
 `IntervalLiteral_EmptyOrBlankValue_*`). An empty `Values(...)` name throws with
 them, though SQLite 3.50.4 does not run one: it rejects the column list
 `Values(...)` always emits, whatever the name
-(`SqliteTests.ValuesColumnList_IsRejectedByTheEngine`). The blank interval value
+(`SqliteTests.ValuesColumnList_IsRejectedByTheEngine`). So does `Select()` with no
+item, though PostgreSQL 16.15 runs `SELECT FROM t`, each row with no column
+(`PostgreSqlTests.EmptySelectList_IsAcceptedByTheEngine`, #675). The blank interval value
 departs from the clause above, which keeps whitespace in a quoted position:
 whitespace is a legal name there, while MySQL reads this value as 0. `Array()`
 takes no element instead: PostgreSQL, its one engine, runs an empty `ARRAY[]` only under a cast the caller writes,
@@ -761,8 +768,8 @@ on this policy; never cite a row as already-enforced without checking the code.
 
 | Position | All-empty behavior |
 |---|---|
-| Any written condition clause — `.Where(...)` (SELECT/UPDATE/DELETE), `.Having(...)`, aggregate `.Filter(...)`, JOIN/MERGE `.On(...)`, CASE `When(...)`, MERGE `.WhenMatched(cond)` / `.WhenNotMatched(cond)` / `.WhenNotMatchedBySource(cond)` / `.DeleteWhere(...)` / action `.Where(...)` | **throw at Build()** |
-| Empty SELECT list (#236); empty `SELECT`/`UPDATE` `.From()`; empty `IN`/`NOT IN`, empty `VALUES` row (#243); empty `SET`/`DO UPDATE SET`/`ON DUPLICATE KEY UPDATE`/MERGE `.ThenUpdateSet()`; empty `Sql.Decode(...)` pairs (#396); INSERT column-list vs. `VALUES` row width mismatch (#397); empty explicit `INSERT` column list (1.0 release review); empty explicit MERGE `.ThenInsert(cols)` column list and its column-list vs. `VALUES` width mismatch — `ThenInsert()` with no arguments stays the positional form, exactly as columnless `InsertInto(table)` does (release audit pass 1) | throw **eagerly** |
+| Any written condition clause — `.Where(...)` (SELECT/UPDATE/DELETE, and `DoUpdateSet(...).Where(...)`), `.Having(...)`, aggregate `.Filter(...)`, JOIN/MERGE `.On(...)`, CASE `When(...)`, `If(...)` / `Iif(...)`'s condition, MERGE `.WhenMatched(cond)` / `.WhenNotMatched(cond)` / `.WhenNotMatchedBySource(cond)` / `.DeleteWhere(...)` / action `.Where(...)` | **throw at Build()** |
+| Empty SELECT list (#236); empty `.From()` on SELECT, UPDATE and DELETE, and an empty DELETE `.Using(...)`; empty `GROUP BY`, `ORDER BY` (a statement's, `OVER`, `WITHIN GROUP` and an inline aggregate ordering), `PARTITION BY` and `DISTINCT ON`; empty `WITH` / `WITH RECURSIVE`; empty `RETURNING` and its `INTO`; empty `OUTPUT`; empty `IN`/`NOT IN`, empty `VALUES` row (#243) and an empty `Values(rows)` collection; empty `SET`/`DO UPDATE SET`/`ON DUPLICATE KEY UPDATE`/MERGE `.ThenUpdateSet()`; empty `Sql.Decode(...)` pairs (#396); an empty `Case(...)` WHEN list, `Greatest(...)` / `Least(...)` list, `Unnest(...)` array or column alias list, `Sql.Values(...)` column or row list, and `JsonbExistsAll` / `JsonbExistsAny` key list (#675); INSERT column-list vs. `VALUES` row width mismatch (#397); empty explicit `INSERT` column list (1.0 release review); empty explicit MERGE `.ThenInsert(cols)` column list and its column-list vs. `VALUES` width mismatch — `ThenInsert()` with no arguments stays the positional form, exactly as columnless `InsertInto(table)` does (release audit pass 1). `Array()` and `Group()` take no element by design, and `OnConflict()` / `Into(t)` keep their column-less forms (below) | throw **eagerly** |
 
 There is **no elision** — omitting a clause is the only "no restriction". The
 throw lives in the clause node's own `Format` (Build()-time), so it fires
@@ -868,7 +875,9 @@ the caller did not mean. Judge a null argument by which failure it produces:
 - **Documented null** (the parameter is annotated nullable and its docs give
   `null` a meaning): no guard is owed, because the statement builds exactly
   as documented. `DbTableBase` / `DbTable`'s `tableAlias` is `string?`, where
-  `null` and an empty string both mean no alias (#614).
+  `null` and an empty string both mean no alias (#614); an `INSERT`, MERGE
+  `ThenInsert(...)` or `Sql.Values(...)` row element is `object?`, where `null`
+  inserts `NULL` (#169, #675).
 
 Settled during the 1.0 release review, where one panel seat filed the loud-NRE
 class as a defect and another declined the identical class as
@@ -961,7 +970,9 @@ stage.
 
 Each copy doubles later edits to the stage it mirrors (all but one later
 commit to an `INSERT IGNORE` stage since #275 also edited its `INSERT` twin);
-that is the cost the line prices. How rarely the pairing is written, and
+that is the cost the line prices. A split that removes a call shape that runs
+today, such as a run-time array, counts against it beside the copies, as
+`public-api-design.md` § "Minimum-arity enforcement" weighs one (#664, #675). How rarely the pairing is written, and
 whether the analyzer reports it, are not inputs. Either way, a held stage
 that can reach both halves needs a `Build()` backstop, since a type
 constrains one chain and not a held instance (the walk, `ReturningGuard`); a
@@ -1089,8 +1100,11 @@ so the wording is part of the contract.
   `From(...)` chain and "join through `From(target, ...)`" on the direct-join
   chain, which has no FROM (the `DELETE ... USING` guard was the first such
   split, pass 5; the UPDATE twin, pass 8). The empty join `ON` names
-  `CROSS JOIN` only on the `SELECT` chain, the one with `CrossJoin`; a joined
-  `UPDATE` or `DELETE` states the requirement alone (`DmlOnClause`, #582).
+  `CROSS JOIN` only after a `SELECT` chain's `InnerJoin` or `JoinLateral`, whose
+  condition-free forms are `CrossJoin` and `CrossJoinLateral`; an outer join,
+  which keeps a row `CROSS JOIN` drops when a side is empty, and a joined
+  `UPDATE` or `DELETE`, which has no `CrossJoin`, state the requirement alone
+  (`RequirementOnlyOnClause`, #582, #675).
   Recorded exception (#677): the every-table correlated guard's "must be
   aliased" also fires for a MySQL `ON DUPLICATE KEY UPDATE` subquery reading
   the `INSERT` target, which MySQL cannot alias. The buffer that throws does

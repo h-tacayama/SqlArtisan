@@ -17,11 +17,9 @@ public static partial class Sql
         new GreatestFunction(Resolve(expressions, nameof(expressions)));
 
     /// <summary>
-    /// A parenthesized grouping element for <c>GroupingSets(...)</c>,
-    /// <c>Rollup(...)</c>, or <c>Cube(...)</c>. Rendered as <c>(a, b)</c> for two or
-    /// more columns and as the bare column for a single column. Call with no
-    /// columns — <c>Group()</c> — for the empty set <c>()</c> that produces the
-    /// grand total.
+    /// A parenthesized grouping element for <c>GroupingSets(...)</c>, <c>Rollup(...)</c> or
+    /// <c>Cube(...)</c>: <c>(a, b)</c>, or the bare column for one. With no columns it is the
+    /// empty set <c>()</c>, the grand total, which only <c>GroupingSets(...)</c> takes.
     /// </summary>
     /// <param name="columns">The columns of the grouping element; none for the
     /// empty set <c>()</c>.</param>

@@ -16,13 +16,13 @@ public interface IInsertIgnoreBuilderTable
 
     /// <inheritdoc cref="IInsertBuilderTable.Values(object[])" path="/*[not(self::returns)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
-    IInsertIgnoreBuilderValues Values(params object[] values);
+    IInsertIgnoreBuilderValues Values(params object?[] values);
 
     /// <inheritdoc cref="IInsertBuilderTable.Values(IEnumerable{object[]})" path="/*[not(self::remarks or self::returns)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
-    IInsertIgnoreBuilderValues Values(IEnumerable<object[]> rows);
+    IInsertIgnoreBuilderValues Values(IEnumerable<object?[]> rows);
 
     /// <inheritdoc cref="IInsertBuilderTable.Values(object[][])" path="/*[not(self::remarks or self::returns)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
-    IInsertIgnoreBuilderValues Values(object[][] rows);
+    IInsertIgnoreBuilderValues Values(object?[][] rows);
 }

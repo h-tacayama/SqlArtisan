@@ -8,11 +8,11 @@ namespace SqlArtisan;
 public interface IInsertBuilderOutputColumns : ISelectBuilder
 {
     /// <inheritdoc cref="IInsertBuilderColumns.Values(object[])"/>
-    IInsertBuilderValues Values(params object[] values);
+    IInsertBuilderValues Values(params object?[] values);
 
     /// <inheritdoc cref="IInsertBuilderColumns.Values(IEnumerable{object[]})"/>
-    IInsertBuilderValues Values(IEnumerable<object[]> rows);
+    IInsertBuilderValues Values(IEnumerable<object?[]> rows);
 
     /// <inheritdoc cref="IInsertBuilderColumns.Values(object[][])"/>
-    IInsertBuilderValues Values(object[][] rows);
+    IInsertBuilderValues Values(object?[][] rows);
 }

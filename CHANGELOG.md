@@ -124,6 +124,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   set operator and `ForUpdate(...)` stays silent. (#742)
 
 ### Changed
+- A `VALUES` row's elements are typed `object?` on the `INSERT`, `INSERT IGNORE` and
+  MERGE `Values(...)` overloads and on `Sql.Values(...)`, and their docs say a
+  `null` element emits `NULL`, as it already did. (#675)
 - `Build()` accepts a set-operator branch's `TOP` beside the compound's
   `OffsetRows(...)` / `FetchNext(...)`, which SQL Server 2022 runs; it threw
   `TOP cannot be combined with LIMIT, OFFSET, or FETCH`. (#669)
@@ -450,10 +453,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   assignment.` The `SET`, `UPDATE SET` and `DO UPDATE SET` lists are reworded
   the same way (`The SET assignment list ...`,
   `The left side of each SET assignment ...`). (#582)
-- An empty join `ON` in a joined `UPDATE` or `DELETE` now reads
-  `A JOIN's ON clause requires a condition.`: the `SELECT` message's
-  "an unconditioned join is a CROSS JOIN" pointed at a `CrossJoin` those chains
-  do not have. The `SELECT` message is unchanged. (#582)
+- An empty join `ON` in a joined `UPDATE` or `DELETE`, or after a `LeftJoin`,
+  `RightJoin` or `FullJoin`, now reads
+  `A JOIN's ON clause requires a condition.`: the earlier message's
+  "an unconditioned join is a CROSS JOIN" pointed at a `CrossJoin` the `UPDATE`
+  and `DELETE` chains do not have, and an outer join keeps a row `CROSS JOIN`
+  drops when a side is empty. The message after `InnerJoin` and `JoinLateral` is
+  unchanged. (#582, #675)
 - **Breaking:** TableClassGen keeps combining marks in the class and property
   names it generates. It dropped them as word separators, which removed the
   vowel signs of Thai and Devanagari names and could turn one word into another:
@@ -1053,6 +1059,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   that conditions the earlier matched branch (#685).
 
 ### Docs
+- `Sql.Group()`'s docs and `docs/query-statements.md` say the empty set `()` is a
+  grand total only inside `GroupingSets(...)`; `Rollup(...)` and `Cube(...)` take
+  none. (#675)
 - `docs/analyzer.md` gives its sweep-skip causes as examples, not a complete
   list, and no longer says a driver-side skip stops before the engine (#681).
 - The `Dbms` summaries say the dialect quotes only aliases and CTE names; table

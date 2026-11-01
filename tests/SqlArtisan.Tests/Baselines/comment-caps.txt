@@ -16,7 +16,6 @@ src/SqlArtisan.Dapper/SqlMapper.cs 1
 src/SqlArtisan/Internal/SqlBuilder/SqlBuildingBuffer.cs 2
 src/SqlArtisan/SqlPart/AsteriskMarker.cs 1
 src/SqlArtisan/Internal/SqlPart/Clause/GroupBy/CubeGrouping.cs 1
-src/SqlArtisan/SqlPart/Clause/GroupBy/GroupingSet.cs 1
 src/SqlArtisan/Internal/SqlPart/Clause/GroupBy/GroupingSetsGrouping.cs 1
 src/SqlArtisan/Internal/SqlPart/Clause/GroupBy/RollupGrouping.cs 1
 src/SqlArtisan/SqlPart/Clause/Separator/SeparatorClause.cs 1
@@ -31,7 +30,7 @@ src/SqlArtisan/Sql/Sql.B.cs 2
 src/SqlArtisan/Sql/Sql.C.cs 6
 src/SqlArtisan/Sql/Sql.D.cs 7
 src/SqlArtisan/Sql/Sql.F.cs 2
-src/SqlArtisan/Sql/Sql.G.cs 3
+src/SqlArtisan/Sql/Sql.G.cs 2
 src/SqlArtisan/Sql/Sql.H.cs 2
 src/SqlArtisan/Sql/Sql.I.cs 8
 src/SqlArtisan/Sql/Sql.L.cs 3

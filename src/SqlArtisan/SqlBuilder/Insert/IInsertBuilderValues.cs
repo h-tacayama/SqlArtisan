@@ -10,9 +10,9 @@ public interface IInsertBuilderValues : ISqlBuilder, IReturning, IUpsert
     /// Appends another row to the <c>VALUES</c> clause, producing a multi-row
     /// insert (<c>VALUES (...), (...)</c>).
     /// </summary>
-    /// <param name="values">The row values, one per column; must be non-empty, and literals are auto-parameterized.</param>
+    /// <param name="values">The row values, one per column; must be non-empty, and literals are auto-parameterized; a <see langword="null"/> element inserts <c>NULL</c>.</param>
     /// <returns>The builder positioned to append more rows, add <c>RETURNING</c> or an upsert clause, or build.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, SQLite, and SQL Server — on Oracle
     /// version-bound: 21c rejects it, 23ai accepts it.</remarks>
-    IInsertBuilderValues Values(params object[] values);
+    IInsertBuilderValues Values(params object?[] values);
 }

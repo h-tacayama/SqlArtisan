@@ -34,7 +34,8 @@ public class LeftJoinTests
     [Fact]
     public void LeftJoin_OnAllConditionsExcluded_ThrowsArgumentException()
     {
-        // LEFT/RIGHT/FULL joins share the single OnClause guard with INNER JOIN.
+        // An outer join's message names no CROSS JOIN, which drops a row it keeps when a side
+        // is empty.
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Select(_t.Code)
             .From(_t)
@@ -42,8 +43,6 @@ public class LeftJoinTests
             .On(ConditionIf(false, _t.Code == _s.Code))
             .Build());
 
-        Assert.Equal(
-            "A JOIN's ON clause requires a condition; an unconditioned join is a CROSS JOIN.",
-            ex.Message);
+        Assert.Equal("A JOIN's ON clause requires a condition.", ex.Message);
     }
 }

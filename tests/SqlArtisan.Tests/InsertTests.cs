@@ -33,7 +33,7 @@ public class InsertTests
         TestTable t = new();
         SqlStatement sql =
             InsertInto(t, t.Code, t.Name)
-            .Values(1, null!)
+            .Values(1, null)
             .Build();
 
         Assert.Equal("INSERT INTO test_table (code, name) VALUES (:0, NULL)", sql.Text);

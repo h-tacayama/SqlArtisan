@@ -7,6 +7,21 @@ public class SelectTests
 {
     private readonly TestTable _t = new("t");
 
+    // #675: a clause keeps the array it is given; public-api-design.md records why.
+    [Fact]
+    public void From_ArrayChangedBeforeBuild_RendersTheChangedArray()
+    {
+        TestTable s = new("s");
+        TestTable u = new("u");
+        TableReference[] tables = [_t, s];
+        ISqlBuilder query = Select(_t.Code).From(tables);
+
+        tables[1] = u;
+
+        Assert.Equal(
+            "SELECT \"t\".code FROM test_table \"t\", test_table \"u\"", query.Build().Text);
+    }
+
     [Fact]
     public void Select_WithNullItem_ThrowsArgumentNullException()
     {

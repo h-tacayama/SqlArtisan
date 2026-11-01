@@ -10,6 +10,15 @@ public class DerivedTableTests
     private readonly TestTable _a = new("a");
 
     [Fact]
+    public void Values_NullValue_EmitsNullLiteral()
+    {
+        SqlStatement sql = Select(Asterisk).From(Values("v", ["a", "b"], [[1, null]])).Build();
+
+        Assert.Equal("SELECT * FROM (VALUES (:0, NULL)) \"v\" (a, b)", sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+    }
+
+    [Fact]
     public void DerivedTable_SqlServer_CrossApplyWithColumn_CorrectSql()
     {
         DerivedTable x = new("x");

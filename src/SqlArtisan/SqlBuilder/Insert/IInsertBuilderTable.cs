@@ -17,21 +17,21 @@ public interface IInsertBuilderTable
     /// <summary>
     /// Appends a positional <c>VALUES (...)</c> row for the table's columns in declaration order.
     /// </summary>
-    /// <param name="values">The row values, one per column; must be non-empty, and literals are auto-parameterized.</param>
+    /// <param name="values">The row values, one per column; must be non-empty, and literals are auto-parameterized; a <see langword="null"/> element inserts <c>NULL</c>.</param>
     /// <returns>The builder positioned to append more rows, add <c>RETURNING</c> or an upsert clause, or build.</returns>
-    IInsertBuilderValues Values(params object[] values);
+    IInsertBuilderValues Values(params object?[] values);
 
     /// <summary>
     /// Appends one positional <c>VALUES (...)</c> row per element of <paramref name="rows"/> — the
     /// collection-driven multi-row insert, without a per-row <c>Values(...)</c> call.
     /// </summary>
-    /// <param name="rows">The rows, each an array of values in column order; must be non-empty, and every row must be the same width.</param>
+    /// <param name="rows">The rows, each an array of values in column order; must be non-empty, and every row must be the same width; a <see langword="null"/> value in a row inserts <c>NULL</c>.</param>
     /// <returns>The builder positioned to append more rows, add <c>RETURNING</c> or an upsert clause, or build.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, SQLite, and SQL Server — on Oracle
     /// version-bound when it emits more than one row: 21c rejects a multi-row
     /// <c>VALUES</c>, 23ai accepts it.</remarks>
-    IInsertBuilderValues Values(IEnumerable<object[]> rows);
+    IInsertBuilderValues Values(IEnumerable<object?[]> rows);
 
     /// <inheritdoc cref="Values(IEnumerable{object[]})"/>
-    IInsertBuilderValues Values(object[][] rows);
+    IInsertBuilderValues Values(object?[][] rows);
 }

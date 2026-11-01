@@ -75,7 +75,7 @@ internal sealed class DeleteBuilder(
 
     public IDeleteBuilderFrom On(SqlCondition condition)
     {
-        AddPart(new DmlOnClause(condition));
+        AddPart(new RequirementOnlyOnClause(condition));
         return this;
     }
 

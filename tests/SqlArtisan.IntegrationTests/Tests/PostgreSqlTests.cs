@@ -991,6 +991,18 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(1, count);
     }
 
+    // #675: why .WithColumnList() rejects a duplicate name though the list runs here.
+    [Fact]
+    public void DuplicateCteColumnName_ReferenceIsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar<int>("WITH x(a, b) AS (SELECT 1, 2) SELECT a FROM x");
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "WITH x(a, a) AS (SELECT 1, 2) SELECT a FROM x"));
+    }
+
     [Fact]
     public void DuplicateCteName_IsRejectedByTheEngine()
     {
@@ -1961,6 +1973,19 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             "SELECT 1 AS \"\""));
     }
 
+    // #675: the empty SELECT list Select() rejects though this engine runs it, each row
+    // with no column.
+    [Fact]
+    public void EmptySelectList_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        long rows = connection.ExecuteScalar<long>(
+            "SELECT COUNT(*) FROM (SELECT FROM users) s");
+
+        Assert.Equal(5, rows);
+    }
+
     // #669: an empty and a blank interval value are both rejected here.
     [Fact]
     public void IntervalLiteral_EmptyOrBlankValue_IsRejectedByTheEngine()
@@ -2005,5 +2030,23 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
 
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             Select(u.Name + u.Name).From(u).Where(u.Id == 1)));
+    }
+
+    // #675: ROLLUP and CUBE take no empty grouping set, which GROUPING SETS reads as the
+    // grand total, so Group() is that total only inside GroupingSets(...).
+    [Fact]
+    public void EmptyGroupingSetInRollupOrCube_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<object>(Select(u.DepartmentId)
+            .From(u)
+            .GroupBy(GroupingSets(Group(u.DepartmentId), Group())));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<object>(
+            Select(u.DepartmentId).From(u).GroupBy(Rollup(u.DepartmentId, Group()))));
+        Assert.ThrowsAny<DbException>(() => connection.Query<object>(
+            Select(u.DepartmentId).From(u).GroupBy(Cube(u.DepartmentId, Group()))));
     }
 }

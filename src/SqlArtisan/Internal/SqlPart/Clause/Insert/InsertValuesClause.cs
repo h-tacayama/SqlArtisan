@@ -10,7 +10,7 @@ internal sealed class InsertValuesClause : SqlPart
     }
 
     // A VALUES derived table borrows this clause but names its own position (#569).
-    internal static InsertValuesClause Parse(object[] values, string position = "InsertValue") =>
+    internal static InsertValuesClause Parse(object?[] values, string position = "InsertValue") =>
         new(InsertValueResolver.Resolve(values, position));
 
     internal static InsertValuesClause FromResolved(SqlExpression[] firstRow) => new(firstRow);
@@ -19,7 +19,7 @@ internal sealed class InsertValuesClause : SqlPart
 
     internal void AddResolvedRow(SqlExpression[] row) => _rows.Add(row);
 
-    internal void AddRow(object[] values, string position = "InsertValue")
+    internal void AddRow(object?[] values, string position = "InsertValue")
     {
         SqlExpression[] row = InsertValueResolver.Resolve(values, position);
 

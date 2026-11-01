@@ -469,7 +469,7 @@ SqlStatement sql =
 
 Building the expression twice instead binds separate parameters per occurrence (`GROUP BY ... WHEN :3 ...`), and Oracle, PostgreSQL, and SQL Server reject the statement — they match `GROUP BY` expressions syntactically and cannot prove the two parameter sets equal (ORA-00979 / 42803 / Msg 8120; MySQL and SQLite accept it). Two alternatives avoid the repetition: project the expression in a CTE and group over the projected column, or — if you'd rather keep the expression's shape written out in each clause — hoist *every* value with `Sql.Bind(value)` (`BindValue p10 = Bind(10);`, and likewise each `THEN` and `ELSE` value) and pass the same handles to both occurrences: a literal left in either occurrence still binds a parameter of its own, as building the expression twice does. `Bind(...)` is otherwise just an explicit form of the parameterization every literal already gets automatically.
 
-For subtotal/grand-total reports, `GroupBy(...)` also accepts the grouping extensions `Rollup(...)`, `Cube(...)`, and `GroupingSets(...)`. Wrap columns in `Group(...)` to form a composite grouping element — a multi-column set inside `GroupingSets(...)`, or a parenthesized composite column inside `Rollup(...)` / `Cube(...)` — and use `Group()` with no columns for the empty set (the grand total):
+For subtotal/grand-total reports, `GroupBy(...)` also accepts the grouping extensions `Rollup(...)`, `Cube(...)`, and `GroupingSets(...)`. Wrap columns in `Group(...)` to form a composite grouping element — a multi-column set inside `GroupingSets(...)`, or a parenthesized composite column inside `Rollup(...)` / `Cube(...)` — and use `Group()` with no columns for the empty set (the grand total) inside `GroupingSets(...)`; `Rollup(...)` and `Cube(...)` take no empty set:
 
 ```csharp
 SalesTable s = new();
@@ -1123,6 +1123,9 @@ only columns of the target table.` at the call, as `OnConflict(...)`'s target an
 an `OUTPUT ... INTO` list do for their tables. Tables are compared by name, as for
 `SET` (see [UPDATE Statement](#update-statement)).
 
+A `null` value in a row inserts `NULL`, the keyword rather than a bind parameter; a
+MERGE `ThenInsert(...).Values(...)` row and a `Sql.Values(...)` source do the same.
+
 **Dialect note:** On MySQL and SQL Server the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`). T-SQL introduces a table alias through a `FROM` clause instead, and MySQL's `INSERT` grammar has no target-alias slot at all (its `AS new` row alias is the separate UPSERT construct) — building an aliased target for either throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-update-or-skip), and Oracle and SQLite accept the alias as well.
 
 ---
@@ -1282,8 +1285,9 @@ SqlStatement sql =
 ```
 
 MySQL keys off any unique index implicitly (no conflict target). SqlArtisan
-emits the row-alias form (`AS new` … `new.column`) to avoid the deprecated
-`VALUES()` function; MySQL added the row alias in a specific release — see the
+emits the row-alias form (`AS new` … `new.column`) on every
+`OnDuplicateKeyUpdate(...)`, whether or not an assignment reads `Excluded(...)`,
+never the deprecated `VALUES()` function; MySQL added the row alias in a specific release — see the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 **Note:** `ON CONFLICT` is PostgreSQL/SQLite-only and `ON DUPLICATE KEY UPDATE`

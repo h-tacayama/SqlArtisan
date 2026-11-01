@@ -499,7 +499,7 @@ verdict exactly; where the bound sits above the dialect's verified baseline
 | `Grouping` (both forms) | MySQL | 8.0 | `GROUPING(...)` needs 8.0. |
 | `Except`, `Intersect`, `ExceptAll`, `IntersectAll` | MySQL | 8.0.31 | `EXCEPT`/`INTERSECT` landed in 8.0.31. |
 | `Nowait`, `SkipLocked` | MySQL | 8.0 | `FOR UPDATE NOWAIT`/`SKIP LOCKED` need 8.0. |
-| `OnDuplicateKeyUpdate`, `Excluded` | MySQL | 8.0.19 | SqlArtisan always emits the row-alias UPSERT form (`... AS new ON DUPLICATE KEY UPDATE col = new.col`), which needs the row alias MySQL added in 8.0.19 — the pre-8.0.19 `VALUES()` function form is never emitted. |
+| `OnDuplicateKeyUpdate`, `Excluded` | MySQL | 8.0.19 | SqlArtisan emits the row alias (`... AS new ON DUPLICATE KEY UPDATE col = new.col`) on every `OnDuplicateKeyUpdate`, whether or not an assignment reads `Excluded`, and the row alias needs MySQL 8.0.19 — the pre-8.0.19 `VALUES()` function form is never emitted. |
 | `JsonValue` | MySQL | 8.0.21 | `JSON_VALUE` landed in 8.0.21. |
 | `Except`, `ExceptAll`, `IntersectAll`, `MinusAll` | Oracle | 21 | `EXCEPT`, `EXCEPT ALL`, `INTERSECT ALL`, and `MINUS ALL` landed in Oracle 21c (plain `INTERSECT`/`MINUS` predate it) — live-verified forward-compatible on Oracle 23ai too. |
 | `L2Distance`, `CosineDistance`, `NegativeInnerProduct` | Oracle | 23 | The `<->`, `<=>`, and `<#>` vector distance shorthands landed with Oracle 23ai's AI Vector Search (the other three pgvector operators have no Oracle spelling at any version). |

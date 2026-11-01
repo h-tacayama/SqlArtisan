@@ -30,4 +30,17 @@ public class FullJoinTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void FullJoin_OnAllConditionsExcluded_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code)
+            .From(_t)
+            .FullJoin(_s)
+            .On(ConditionIf(false, _t.Code == _s.Code))
+            .Build());
+
+        Assert.Equal("A JOIN's ON clause requires a condition.", ex.Message);
+    }
 }

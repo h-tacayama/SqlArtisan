@@ -1,6 +1,6 @@
 # ADR 0017 — Join predicate completeness: rejecting an omitted `ON`/`USING` that some dialects silently reinterpret as `CROSS JOIN`
 
-**Status:** Accepted
+**Status:** Accepted; corrected in #675 (§ Correction)
 
 ## Context
 
@@ -143,3 +143,24 @@ justification, no per-member split.
   full — closing the one item this cluster still owed the #414 epic's
   "run the integration matrix" backlog for this construct.
 - Complements ADR 0007 and ADR 0011; supersedes neither. See #400, #420.
+
+## Correction (#675)
+
+The rejection is unchanged; these points narrow what the text above claims:
+
+- SQLite's predicate-less `LEFT` / `RIGHT` / `FULL JOIN` matched `CROSS JOIN`
+  row for row on the tables run, which both had rows. When a preserved side
+  has rows and the other side is empty, SQLite 3.50.4 keeps those rows where
+  `CROSS JOIN` returns none
+  (`SqliteTests.OmittedOuterJoinPredicate_KeepsARowCrossJoinDrops`).
+  "Cartesian product" and "identical to `CROSS JOIN`" above, as readings of
+  an omitted predicate, hold for `InnerJoin` only, and the empty-`ON` message
+  after an outer join names no `CROSS JOIN`.
+- SQLite has no `JOIN LATERAL` (`DialectMatrix`'s `JoinLateral` cell is
+  `false`, which the SQLite sweep lane checks), so "lenient on MySQL and
+  SQLite" and "SQLite is lenient across all five" do not hold for
+  `JoinLateral`.
+- `JoinLateral` emits `JOIN LATERAL`, not a bare `JOIN`, and its
+  condition-free form is `CrossJoinLateral`, not `CrossJoin`. Its MySQL
+  leniency above rests on the bare-`JOIN` run, and no twin runs
+  `JOIN LATERAL` with no `ON` there.

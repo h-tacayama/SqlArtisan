@@ -461,6 +461,16 @@ compose and set-operator freezes, and the duplicate-clause guard
 chain") reject the reuse shapes that would rewrite a statement already holding
 the builder; two statements cut from one held prefix still share it.
 
+**A caller's array is read at `Build()`, not copied (decided — do not
+re-file):** a clause that keeps the array it is given (`From(...)`,
+`OnConflict(...)` and `With(...)` among them) renders what the array holds when
+the statement builds, so changing it after the call changes the statement and
+gets past a guard that checked it at the call
+(`From_ArrayChangedBeforeBuild_RendersTheChangedArray`). A `params` call
+allocates an array no caller holds, so a copy in every such constructor would
+cost each stage call an allocation for the rarer array a caller reuses
+(ADR 0006); a changed array is the caller's own write (#675).
+
 ## One namespace (ADR 0027)
 
 Every public type lives in the root namespace `SqlArtisan`, its file under
