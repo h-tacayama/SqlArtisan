@@ -1714,11 +1714,11 @@ executes the entries against a live engine per dialect (the versions in the
 table below), asserting that accept/reject outcomes match the matrix both ways.
 The entries with no SQL of their own (the interval field markers and
 `ConditionIf`) and Oracle's `Into` are excluded by name, and some cases skip
-individual engines for a recorded reason: the shared runner or the container image cannot execute the
-statement — SQL Server's image ships without Full-Text Search, for example —
-the engine executes the text as a *different* construct, so its acceptance
-would prove nothing about the entry, or the driver rejects the statement's
-parameter client-side.
+individual engines for a recorded reason, among them: the shared runner or the
+container image cannot execute the statement — SQL Server's image ships without
+Full-Text Search, for example — the engine executes the text as a *different*
+construct, so its acceptance would prove nothing about the entry, and the
+driver rejects the statement's parameter client-side.
 
 ---
 
