@@ -33,7 +33,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             connection.ExecuteScalar<long>(Select(DoublePipe("a", "b")).From(u).Where(u.Id == 1)));
     }
 
-    // A plain = would give NULL against NULL; <=> gives 0.
+    // A plain = gives NULL when one side is NULL; <=> gives 0.
     [Fact]
     public void CosineDistance_ReadsAsNullSafeEquality()
     {
