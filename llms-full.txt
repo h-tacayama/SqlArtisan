@@ -3605,8 +3605,8 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 > [!NOTE]
 > MySQL, PostgreSQL, and SQLite each have their own `FORMAT()`, none matching SQL Server's
 > .NET-style format strings: MySQL 8.0 formats a number (`Format(u.CreatedAt, "yyyy-MM")`
-> returns `20,200,315,103,000`), SQLite 3.50's `printf()`-style one returns the timestamp
-> unchanged, and PostgreSQL's takes `text` first, so a number or a date errors outright.
+> returns `20,200,315,103,000`), PostgreSQL's takes `text` first, so a number or a date
+> errors outright, and SQLite 3.50's `printf()`-style one returns the timestamp unchanged.
 
 > [!NOTE]
 > Both names have a near-twin elsewhere in the API: `Isnull(expr, alt)` is this
