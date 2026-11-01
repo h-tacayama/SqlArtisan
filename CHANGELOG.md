@@ -124,6 +124,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   set operator and `ForUpdate(...)` stays silent. (#742)
 
 ### Changed
+- A `VALUES` row's elements are typed `object?` on the `INSERT`, `INSERT IGNORE` and
+  MERGE `Values(...)` overloads and on `Sql.Values(...)`, and their docs say a
+  `null` element emits `NULL`, as it already did. (#675)
 - `Build()` accepts a set-operator branch's `TOP` beside the compound's
   `OffsetRows(...)` / `FetchNext(...)`, which SQL Server 2022 runs; it threw
   `TOP cannot be combined with LIMIT, OFFSET, or FETCH`. (#669)

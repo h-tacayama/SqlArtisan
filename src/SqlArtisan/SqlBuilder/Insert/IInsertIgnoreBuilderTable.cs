@@ -10,19 +10,19 @@ public interface IInsertIgnoreBuilderTable
     /// Builds the row from <c>column == value</c> assignments, emitting the column list and one
     /// <c>VALUES</c> row from them (<c>INSERT IGNORE INTO t (code, name) VALUES (?0, ?1)</c>).
     /// </summary>
-    /// <param name="assignments">The per-column assignments; each left side names a column and each right side its value (literals are auto-parameterized).</param>
+    /// <param name="assignments">The per-column assignments; each left side names a column and each right side its value (literals are auto-parameterized); a <see langword="null"/> element inserts <c>NULL</c>.</param>
     /// <returns>The builder positioned to build.</returns>
     IInsertIgnoreBuilderSet Set(params EqualityCondition[] assignments);
 
     /// <inheritdoc cref="IInsertBuilderTable.Values(object[])" path="/*[not(self::returns)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
-    IInsertIgnoreBuilderValues Values(params object[] values);
+    IInsertIgnoreBuilderValues Values(params object?[] values);
 
     /// <inheritdoc cref="IInsertBuilderTable.Values(IEnumerable{object[]})" path="/*[not(self::remarks or self::returns)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
-    IInsertIgnoreBuilderValues Values(IEnumerable<object[]> rows);
+    IInsertIgnoreBuilderValues Values(IEnumerable<object?[]> rows);
 
     /// <inheritdoc cref="IInsertBuilderTable.Values(object[][])" path="/*[not(self::remarks or self::returns)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
-    IInsertIgnoreBuilderValues Values(object[][] rows);
+    IInsertIgnoreBuilderValues Values(object?[][] rows);
 }

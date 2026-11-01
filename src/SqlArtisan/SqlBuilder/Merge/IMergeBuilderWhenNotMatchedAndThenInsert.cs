@@ -10,7 +10,7 @@ public interface IMergeBuilderWhenNotMatchedAndThenInsert
     /// <summary>
     /// Appends <c>VALUES (...)</c> for the columns named by the preceding <c>INSERT</c>.
     /// </summary>
-    /// <param name="values">The row values, one per inserted column; must be non-empty — any expression, typically source columns (literals are auto-parameterized).</param>
+    /// <param name="values">The row values, one per inserted column; must be non-empty — any expression, typically source columns (literals are auto-parameterized); a <see langword="null"/> element inserts <c>NULL</c>.</param>
     /// <returns>The builder positioned to chain another <c>WHEN</c> branch or build.</returns>
-    IMergeBuilderWhen Values(params object[] values);
+    IMergeBuilderWhen Values(params object?[] values);
 }

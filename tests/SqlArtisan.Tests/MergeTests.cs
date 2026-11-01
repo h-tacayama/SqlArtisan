@@ -827,6 +827,23 @@ public class MergeTests
     }
 
     [Fact]
+    public void ThenInsertValues_NullValue_EmitsNullLiteral()
+    {
+        SqlStatement sql =
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenNotMatched().ThenInsert(_t.Code, _t.Name).Values(_s.Code, null)
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal(
+            "MERGE INTO test_table \"t\" USING test_table \"s\" ON (\"t\".code = \"s\".code) "
+                + "WHEN NOT MATCHED THEN INSERT (code, name) VALUES (\"s\".code, NULL)",
+            sql.Text);
+        Assert.Equal(0, sql.Parameters.Count);
+    }
+
+    [Fact]
     public void ThenInsertValues_FewerValuesThanColumns_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>

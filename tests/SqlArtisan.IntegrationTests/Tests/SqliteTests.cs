@@ -927,6 +927,17 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.Equal(1, count);
     }
 
+    // #675: why .WithColumnList() rejects a duplicate name though the list runs here.
+    [Fact]
+    public void DuplicateCteColumnName_ReferenceReadsTheFirstColumn()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        int a = connection.ExecuteScalar<int>("WITH x(a, a) AS (SELECT 1, 2) SELECT a FROM x");
+
+        Assert.Equal(1, a);
+    }
+
     [Fact]
     public void DuplicateCteName_IsRejectedByTheEngine()
     {

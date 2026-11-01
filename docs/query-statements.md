@@ -1123,6 +1123,9 @@ only columns of the target table.` at the call, as `OnConflict(...)`'s target an
 an `OUTPUT ... INTO` list do for their tables. Tables are compared by name, as for
 `SET` (see [UPDATE Statement](#update-statement)).
 
+A `null` value in a row inserts `NULL`, the keyword rather than a bind parameter; a
+MERGE `ThenInsert(...).Values(...)` row and a `Sql.Values(...)` source do the same.
+
 **Dialect note:** On MySQL and SQL Server the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`). T-SQL introduces a table alias through a `FROM` clause instead, and MySQL's `INSERT` grammar has no target-alias slot at all (its `AS new` row alias is the separate UPSERT construct) — building an aliased target for either throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-update-or-skip), and Oracle and SQLite accept the alias as well.
 
 ---

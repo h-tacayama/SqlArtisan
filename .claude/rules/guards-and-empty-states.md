@@ -124,7 +124,10 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   shape is final — a joined multi-table `UPDATE` with distinct correlation
   names stays legal — after rejecting at `Set(...)` the pairs that share one,
   or that are both unaliased, which render one token either way), a `WITH` clause's CTE names, a `Values(...)`
-  source's column names, an `UNNEST` column alias list (PostgreSQL 16.15 runs
+  source's column names, a `.WithColumnList()` list derived from select items
+  that share a name (PostgreSQL 16.15 and SQLite 3.50.4 run `WITH x(a, a)`, but
+  PostgreSQL then rejects a reference to `a` and SQLite reads the first such
+  column, `DuplicateCteColumnName_Reference*`, #675), an `UNNEST` column alias list (PostgreSQL 16.15 runs
   `unnest(...) u (x, x)`; only a later `u.x` is ambiguous, #664), an
   `ON CONFLICT` target, a join `USING` list, an `OUTPUT ... INTO` list — and
   an `OUTPUT ... INTO` list whose width differs from the `OUTPUT` list; a `SET` target another table owns, in an arm that
@@ -764,8 +767,8 @@ on this policy; never cite a row as already-enforced without checking the code.
 
 | Position | All-empty behavior |
 |---|---|
-| Any written condition clause — `.Where(...)` (SELECT/UPDATE/DELETE), `.Having(...)`, aggregate `.Filter(...)`, JOIN/MERGE `.On(...)`, CASE `When(...)`, MERGE `.WhenMatched(cond)` / `.WhenNotMatched(cond)` / `.WhenNotMatchedBySource(cond)` / `.DeleteWhere(...)` / action `.Where(...)` | **throw at Build()** |
-| Empty SELECT list (#236); empty `SELECT`/`UPDATE` `.From()`; empty `IN`/`NOT IN`, empty `VALUES` row (#243); empty `SET`/`DO UPDATE SET`/`ON DUPLICATE KEY UPDATE`/MERGE `.ThenUpdateSet()`; empty `Sql.Decode(...)` pairs (#396); INSERT column-list vs. `VALUES` row width mismatch (#397); empty explicit `INSERT` column list (1.0 release review); empty explicit MERGE `.ThenInsert(cols)` column list and its column-list vs. `VALUES` width mismatch — `ThenInsert()` with no arguments stays the positional form, exactly as columnless `InsertInto(table)` does (release audit pass 1) | throw **eagerly** |
+| Any written condition clause — `.Where(...)` (SELECT/UPDATE/DELETE, and `DoUpdateSet(...).Where(...)`), `.Having(...)`, aggregate `.Filter(...)`, JOIN/MERGE `.On(...)`, CASE `When(...)`, `If(...)` / `Iif(...)`'s condition, MERGE `.WhenMatched(cond)` / `.WhenNotMatched(cond)` / `.WhenNotMatchedBySource(cond)` / `.DeleteWhere(...)` / action `.Where(...)` | **throw at Build()** |
+| Empty SELECT list (#236); empty `.From()` on SELECT, UPDATE and DELETE, and an empty DELETE `.Using(...)`; empty `GROUP BY`, `ORDER BY` (a statement's, `OVER`, `WITHIN GROUP` and an inline aggregate ordering), `PARTITION BY` and `DISTINCT ON`; empty `WITH` / `WITH RECURSIVE`; empty `RETURNING` and its `INTO`; empty `OUTPUT`; empty `IN`/`NOT IN`, empty `VALUES` row (#243) and an empty `Values(rows)` collection; empty `SET`/`DO UPDATE SET`/`ON DUPLICATE KEY UPDATE`/MERGE `.ThenUpdateSet()`; empty `Sql.Decode(...)` pairs (#396); an empty `Case(...)` WHEN list, `Greatest(...)` / `Least(...)` list, `Unnest(...)` array or column alias list, `Sql.Values(...)` column or row list, and `JsonbExistsAll` / `JsonbExistsAny` key list (#675); INSERT column-list vs. `VALUES` row width mismatch (#397); empty explicit `INSERT` column list (1.0 release review); empty explicit MERGE `.ThenInsert(cols)` column list and its column-list vs. `VALUES` width mismatch — `ThenInsert()` with no arguments stays the positional form, exactly as columnless `InsertInto(table)` does (release audit pass 1). `Array()` and `Group()` take no element by design, and `OnConflict()` / `Into(t)` keep their column-less forms (below) | throw **eagerly** |
 
 There is **no elision** — omitting a clause is the only "no restriction". The
 throw lives in the clause node's own `Format` (Build()-time), so it fires
@@ -871,7 +874,9 @@ the caller did not mean. Judge a null argument by which failure it produces:
 - **Documented null** (the parameter is annotated nullable and its docs give
   `null` a meaning): no guard is owed, because the statement builds exactly
   as documented. `DbTableBase` / `DbTable`'s `tableAlias` is `string?`, where
-  `null` and an empty string both mean no alias (#614).
+  `null` and an empty string both mean no alias (#614); an `INSERT`, MERGE
+  `ThenInsert(...)` or `Sql.Values(...)` row element is `object?`, where `null`
+  inserts `NULL` (#169, #675).
 
 Settled during the 1.0 release review, where one panel seat filed the loud-NRE
 class as a defect and another declined the identical class as

@@ -9,7 +9,7 @@ public interface IInsertIgnoreBuilderValues : ISqlBuilder
     /// Appends another row to the <c>VALUES</c> clause, producing a multi-row
     /// insert (<c>VALUES (...), (...)</c>).
     /// </summary>
-    /// <param name="values">The row values, one per column; must be non-empty, and literals are auto-parameterized.</param>
+    /// <param name="values">The row values, one per column; must be non-empty, and literals are auto-parameterized; a <see langword="null"/> element inserts <c>NULL</c>.</param>
     /// <returns>The builder positioned to append more rows or build.</returns>
-    IInsertIgnoreBuilderValues Values(params object[] values);
+    IInsertIgnoreBuilderValues Values(params object?[] values);
 }

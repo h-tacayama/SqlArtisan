@@ -110,14 +110,14 @@ internal sealed class InsertBuilder :
     IInsertIgnoreBuilderSet IInsertIgnoreBuilderTable.Set(params EqualityCondition[] assignments) =>
         (IInsertIgnoreBuilderSet)Set(assignments);
 
-    public IInsertBuilderValues Values(params object[] values)
+    public IInsertBuilderValues Values(params object?[] values)
     {
         ThrowIfBuilt();
         AddValuesRow(values);
         return this;
     }
 
-    public IInsertBuilderValues Values(IEnumerable<object[]> rows)
+    public IInsertBuilderValues Values(IEnumerable<object?[]> rows)
     {
         ThrowIfBuilt();
         if (rows is null)
@@ -129,7 +129,7 @@ internal sealed class InsertBuilder :
         return this;
     }
 
-    public IInsertBuilderValues Values(object[][] rows)
+    public IInsertBuilderValues Values(object?[][] rows)
     {
         ThrowIfBuilt();
         if (rows is null)
@@ -141,25 +141,25 @@ internal sealed class InsertBuilder :
         return this;
     }
 
-    IInsertIgnoreBuilderValues IInsertIgnoreBuilderColumns.Values(params object[] values) =>
+    IInsertIgnoreBuilderValues IInsertIgnoreBuilderColumns.Values(params object?[] values) =>
         (IInsertIgnoreBuilderValues)Values(values);
 
-    IInsertIgnoreBuilderValues IInsertIgnoreBuilderColumns.Values(IEnumerable<object[]> rows) =>
+    IInsertIgnoreBuilderValues IInsertIgnoreBuilderColumns.Values(IEnumerable<object?[]> rows) =>
         (IInsertIgnoreBuilderValues)Values(rows);
 
-    IInsertIgnoreBuilderValues IInsertIgnoreBuilderColumns.Values(object[][] rows) =>
+    IInsertIgnoreBuilderValues IInsertIgnoreBuilderColumns.Values(object?[][] rows) =>
         (IInsertIgnoreBuilderValues)Values(rows);
 
-    IInsertIgnoreBuilderValues IInsertIgnoreBuilderTable.Values(params object[] values) =>
+    IInsertIgnoreBuilderValues IInsertIgnoreBuilderTable.Values(params object?[] values) =>
         (IInsertIgnoreBuilderValues)Values(values);
 
-    IInsertIgnoreBuilderValues IInsertIgnoreBuilderTable.Values(IEnumerable<object[]> rows) =>
+    IInsertIgnoreBuilderValues IInsertIgnoreBuilderTable.Values(IEnumerable<object?[]> rows) =>
         (IInsertIgnoreBuilderValues)Values(rows);
 
-    IInsertIgnoreBuilderValues IInsertIgnoreBuilderTable.Values(object[][] rows) =>
+    IInsertIgnoreBuilderValues IInsertIgnoreBuilderTable.Values(object?[][] rows) =>
         (IInsertIgnoreBuilderValues)Values(rows);
 
-    IInsertIgnoreBuilderValues IInsertIgnoreBuilderValues.Values(params object[] values) =>
+    IInsertIgnoreBuilderValues IInsertIgnoreBuilderValues.Values(params object?[] values) =>
         (IInsertIgnoreBuilderValues)Values(values);
 
     // The DO UPDATE SET WHERE filter. Explicit implementation keeps this distinct
@@ -259,12 +259,12 @@ internal sealed class InsertBuilder :
     // Resolve and width-check the whole batch before touching builder state: a
     // throw on a later row would otherwise leave the earlier rows appended, and
     // the supported fix-up retry on the same instance would insert them twice.
-    private void AddValuesRows(IEnumerable<object[]> rows)
+    private void AddValuesRows(IEnumerable<object?[]> rows)
     {
         List<SqlExpression[]> resolved = [];
         int expectedWidth = _valuesClause?.RowWidth ?? 0;
 
-        foreach (object[] row in rows)
+        foreach (object?[] row in rows)
         {
             if (row is null)
             {
@@ -326,7 +326,7 @@ internal sealed class InsertBuilder :
 
     // A repeat Values(...) call grows the held clause (AddRow checks its width)
     // rather than adding a second VALUES part.
-    private void AddValuesRow(object[] values)
+    private void AddValuesRow(object?[] values)
     {
         if (values is null)
         {

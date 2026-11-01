@@ -991,6 +991,18 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(1, count);
     }
 
+    // #675: why .WithColumnList() rejects a duplicate name though the list runs here.
+    [Fact]
+    public void DuplicateCteColumnName_ReferenceIsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar<int>("WITH x(a, b) AS (SELECT 1, 2) SELECT a FROM x");
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar<int>(
+            "WITH x(a, a) AS (SELECT 1, 2) SELECT a FROM x"));
+    }
+
     [Fact]
     public void DuplicateCteName_IsRejectedByTheEngine()
     {

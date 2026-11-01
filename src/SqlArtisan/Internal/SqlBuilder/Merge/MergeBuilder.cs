@@ -114,7 +114,7 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         return this;
     }
 
-    public IMergeBuilderValues Values(params object[] values)
+    public IMergeBuilderValues Values(params object?[] values)
     {
         // Checked here, not left to the resolver: the width guard below would
         // otherwise dereference a null array before any named guard runs.
@@ -138,7 +138,7 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         return this;
     }
 
-    IMergeBuilderWhen IMergeBuilderWhenNotMatchedAndThenInsert.Values(params object[] values)
+    IMergeBuilderWhen IMergeBuilderWhenNotMatchedAndThenInsert.Values(params object?[] values)
     {
         Values(values);
         return this;
