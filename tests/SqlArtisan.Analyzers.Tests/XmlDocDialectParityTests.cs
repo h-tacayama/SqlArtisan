@@ -423,18 +423,18 @@ public class XmlDocDialectParityTests
     {
         string signature = memberId[2..];
         int parenIndex = signature.IndexOf('(');
-        if (parenIndex < 0)
-        {
-            return (signature[(signature.LastIndexOf('.') + 1)..], null);
-        }
-
-        string beforeParen = signature[..parenIndex];
+        string beforeParen = parenIndex < 0 ? signature : signature[..parenIndex];
         string name = beforeParen[(beforeParen.LastIndexOf('.') + 1)..];
         // A generic method's id carries ``N after its name (BindArray``1), which no key spells.
         int arityMarker = name.IndexOf("``", StringComparison.Ordinal);
         if (arityMarker >= 0)
         {
             name = name[..arityMarker];
+        }
+
+        if (parenIndex < 0)
+        {
+            return (name, null);
         }
 
         string parameters = signature[(parenIndex + 1)..^1];

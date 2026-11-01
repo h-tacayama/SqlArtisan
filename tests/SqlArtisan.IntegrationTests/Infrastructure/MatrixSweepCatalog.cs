@@ -683,9 +683,7 @@ internal static class MatrixSweepCatalog
             NegativeSkips: new Dictionary<Dbms, string>
             {
                 [Dbms.MySql] = "MySQL reads <=> as NULL-safe equality "
-                    + "(MySqlTests.CosineDistance_ReadsAsNullSafeEquality), and MySQL 8.0 "
-                    + "rejects the CAST(... AS vector) operands first, so the rejection proves "
-                    + "no CosineDistance cell.",
+                    + "(MySqlTests.CosineDistance_ReadsAsNullSafeEquality).",
             }));
         Add("NegativeInnerProduct", dbms => dbms == Dbms.Oracle
             ? Scalar(NegativeInnerProduct("[1,2]", "[3,4]"))
@@ -703,8 +701,9 @@ internal static class MatrixSweepCatalog
                     + "(NotSupportedException), so the statement never reaches the engine.",
                 [Dbms.Oracle] = "Oracle.ManagedDataAccess rejects the Int32[] parameter itself "
                     + "(InvalidCastException), so the statement never reaches the engine.",
-                [Dbms.Sqlite] = "The statement fails at ANY, the Any row's construct (no such "
-                    + "function: ANY on SQLite 3.50.4), so the rejection proves no BindArray cell.",
+                [Dbms.Sqlite] = "This form needs ANY, whose own cell is false, and BindArray "
+                    + "alone never reaches the engine: Microsoft.Data.Sqlite rejects the Int32[] "
+                    + "parameter itself (InvalidOperationException).",
                 [Dbms.SqlServer] = "The array-typed parameter is rejected client-side "
                     + "(no mapping exists from System.Int32[] to a known managed provider "
                     + "native type), so the statement never reaches the engine's grammar.",
