@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.13.0-beta.1] - 2026-11-01
 ### Added
 - `SQLA0206` reports a column the generated table class declares text as an
   operand of `+` (`t.FirstName + t.LastName`, `t.FirstName + separator`) on
