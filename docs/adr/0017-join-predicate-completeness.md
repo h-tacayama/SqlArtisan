@@ -149,8 +149,9 @@ justification, no per-member split.
 The rejection is unchanged; these points narrow what the text above claims:
 
 - SQLite's predicate-less `LEFT` / `RIGHT` / `FULL JOIN` matched `CROSS JOIN`
-  row for row on the tables run, which both had rows. With one side empty,
-  SQLite 3.50.4 keeps the other side's rows where `CROSS JOIN` returns none
+  row for row on the tables run, which both had rows. When a preserved side
+  has rows and the other side is empty, SQLite 3.50.4 keeps those rows where
+  `CROSS JOIN` returns none
   (`SqliteTests.OmittedOuterJoinPredicate_KeepsARowCrossJoinDrops`).
   "Cartesian product" and "identical to `CROSS JOIN`" above, as readings of
   an omitted predicate, hold for `InnerJoin` only, and the empty-`ON` message
@@ -160,4 +161,6 @@ The rejection is unchanged; these points narrow what the text above claims:
   SQLite" and "SQLite is lenient across all five" do not hold for
   `JoinLateral`.
 - `JoinLateral` emits `JOIN LATERAL`, not a bare `JOIN`, and its
-  condition-free form is `CrossJoinLateral`, not `CrossJoin`.
+  condition-free form is `CrossJoinLateral`, not `CrossJoin`. Its MySQL
+  leniency above rests on the bare-`JOIN` run, and no twin runs
+  `JOIN LATERAL` with no `ON` there.

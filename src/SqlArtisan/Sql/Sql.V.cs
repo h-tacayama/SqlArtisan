@@ -12,7 +12,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="alias">The source alias.</param>
     /// <param name="columnNames">The source column names, in row-value order.</param>
-    /// <param name="rows">The literal rows; each supplies one value per column, a <see langword="null"/> one emitting <c>NULL</c>.</param>
+    /// <param name="rows">The literal rows; each supplies one value per column, a <see langword="null"/> value in a row emitting <c>NULL</c>.</param>
     /// <returns>A <see cref="ValuesDerivedTable"/> usable wherever a derived table is.</returns>
     /// <remarks>PostgreSQL and SQL Server. Oracle has no <c>VALUES</c> row
     /// constructor in <c>USING</c> — wrap the rows in a subquery source instead.</remarks>

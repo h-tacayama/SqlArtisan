@@ -175,8 +175,7 @@ override — so every build path (including `Returning()`, which funnels through
   `INTERVAL ' ' DAY` as 0, MySQL 8.0.46 inserts a row of defaults for
   `VALUES ()`, and PostgreSQL 16 runs `SELECT FROM t`. An empty value there is
   likelier a slip than the statement meant, so each is rejected at the call on
-  every dialect; `guards-and-empty-states.md` names the twins and the lanes
-  that reject each.
+  every dialect; `guards-and-empty-states.md` names each one's twins.
 - **Revisit when joined DML lands (#237).** Once `UPDATE … FROM` / `DELETE … FROM`
   give SQL Server a real spelling for the aliased/correlated shape, this guard's
   premise ("no valid spelling exists") weakens; re-evaluate whether it should
