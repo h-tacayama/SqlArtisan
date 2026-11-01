@@ -79,7 +79,7 @@ hold together:
   availability (`CUBE` on MySQL), where the two dialects genuinely disagree
   about a real, independent feature.
 - **No caller intentionally targets that reading.** `CrossJoin` is the
-  construct's real, explicit, faithfully-emitted name on every dialect,
+  cartesian product's real, explicit, faithfully-emitted name on every dialect,
   including the lenient ones. For `InnerJoin` and `JoinLateral` that reading is
   the cartesian product, which a caller who wants it writes as `CrossJoin`; one
   who reaches `Build()`/`ForUpdate()` from any of the five members with no

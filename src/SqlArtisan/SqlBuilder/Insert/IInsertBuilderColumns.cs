@@ -18,7 +18,7 @@ public interface IInsertBuilderColumns : ISelectBuilder, IWithBuilder
     /// the declared column list — the collection-driven multi-row insert, without a per-row
     /// <c>Values(...)</c> call.
     /// </summary>
-    /// <param name="rows">The rows, each an array of values in column order; must be non-empty, and every row must be the same width; a <see langword="null"/> element inserts <c>NULL</c>.</param>
+    /// <param name="rows">The rows, each an array of values in column order; must be non-empty, and every row must be the same width; a <see langword="null"/> value in a row inserts <c>NULL</c>.</param>
     /// <returns>The builder positioned to append more rows, add <c>RETURNING</c> or an upsert clause, or build.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, SQLite, and SQL Server — on Oracle
     /// version-bound when it emits more than one row: 21c rejects a multi-row
