@@ -1717,8 +1717,8 @@ The entries with no SQL of their own (the interval field markers and
 individual engines for a recorded reason: the shared runner or the container image cannot execute the
 statement — SQL Server's image ships without Full-Text Search, for example —
 the engine executes the text as a *different* construct, so its acceptance
-would prove nothing about the entry, or the driver rejects the statement
-client-side before it reaches the engine.
+would prove nothing about the entry, or the driver rejects the statement's
+parameter client-side.
 
 ---
 
