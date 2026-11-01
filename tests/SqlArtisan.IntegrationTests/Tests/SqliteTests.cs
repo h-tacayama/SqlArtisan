@@ -885,6 +885,28 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
+    // ADR 0017 (#675): SQLite runs an outer join with no ON, which keeps a row CROSS JOIN
+    // drops once a side is empty, so the empty-ON message names CROSS JOIN for inner joins only.
+    [Theory]
+    [InlineData("LEFT")]
+    [InlineData("RIGHT")]
+    [InlineData("FULL")]
+    public void OmittedOuterJoinPredicate_KeepsARowCrossJoinDrops(string join)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        string empty = "(SELECT id FROM orders WHERE id < 0) e";
+        string preserved = join == "RIGHT"
+            ? $"{empty} {join} JOIN users u"
+            : $"users u {join} JOIN {empty}";
+
+        long outerRows = connection.ExecuteScalar<long>($"SELECT COUNT(*) FROM {preserved}");
+        long crossRows = connection.ExecuteScalar<long>(
+            $"SELECT COUNT(*) FROM users u CROSS JOIN {empty}");
+
+        Assert.Equal(5, outerRows);
+        Assert.Equal(0, crossRows);
+    }
+
     [Fact]
     public void DuplicateUsingColumn_IsAcceptedByTheEngine()
     {

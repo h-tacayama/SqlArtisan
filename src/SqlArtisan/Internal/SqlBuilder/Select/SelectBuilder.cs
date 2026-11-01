@@ -271,7 +271,8 @@ internal class SelectBuilder :
 
     public ISelectBuilderFrom On(SqlCondition condition)
     {
-        AddPart(new OnClause(condition));
+        bool outerJoin = PartsSpan is [.., LeftJoinClause or RightJoinClause or FullJoinClause];
+        AddPart(outerJoin ? new RequirementOnlyOnClause(condition) : new OnClause(condition));
         return this;
     }
 

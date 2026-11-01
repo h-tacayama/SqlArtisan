@@ -25,35 +25,6 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
 
     // OracleDialect.DmlTableAliasSeparator is a space: Oracle rejects AS before a DML
     // target's alias, and runs the alias without it (#679).
-    // #675 probe: which engines run an empty grouping set inside ROLLUP / CUBE.
-    [Fact]
-    public void EmptyGroupingSet_Probe()
-    {
-        UsersTable u = new();
-        using IDbConnection connection = _fixture.OpenConnection();
-        List<string> results = [];
-        results.Add(Run("Rollup", () => connection.Query<object>(
-            Select(u.DepartmentId).From(u).GroupBy(Rollup(u.DepartmentId, Group()))).Count()));
-        results.Add(Run("Cube", () => connection.Query<object>(
-            Select(u.DepartmentId).From(u).GroupBy(Cube(u.DepartmentId, Group()))).Count()));
-        results.Add(Run("GroupingSets", () => connection.Query<object>(
-            Select(u.DepartmentId).From(u).GroupBy(GroupingSets(Group(u.DepartmentId), Group())))
-            .Count()));
-        Assert.Fail(string.Join(" | ", results));
-
-        static string Run(string name, Func<object?> run)
-        {
-            try
-            {
-                return $"{name}: ran, {run()}";
-            }
-            catch (Exception ex)
-            {
-                return $"{name}: threw {ex.GetType().Name}: {ex.Message}";
-            }
-        }
-    }
-
     [Fact]
     public void DmlTargetAlias_WithAs_IsRejectedByTheEngine()
     {

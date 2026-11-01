@@ -29,7 +29,7 @@ falsified that — SQLite accepts the omission on all three, not just
 
 | Engine | `INNER`/bare `JOIN` omitted | `LEFT`/`RIGHT`/`FULL JOIN` omitted | `CROSS JOIN` (control) |
 |---|---|---|---|
-| SQLite 3.45.1 | Accepted — cartesian product | **Accepted — cartesian product**, identical row-for-row to the `INNER`/`CROSS` case; no implicit same-name-column matching is attempted even though both test tables shared a column name | Accepted |
+| SQLite 3.45.1 | Accepted — cartesian product | **Accepted**, identical row-for-row to the `INNER`/`CROSS` case on these tables, which both had rows; no implicit same-name-column matching is attempted even though both test tables shared a column name. With one side empty the outer join keeps the other side's rows, which `CROSS JOIN` drops (corrected in #675, below) | Accepted |
 | PostgreSQL 16 | `ERROR: syntax error at or near ";"` | `ERROR: syntax error at or near ";"` | Accepted |
 | MySQL 8.0.46 | Accepted — cartesian product | `ERROR 1064 (42000)` (`FullJoin` isn't a MySQL construct at all — separate, pre-existing dialect-availability fact) | Accepted |
 | Oracle 21c (Testcontainers) | Rejected (`ORA` syntax error) | Rejected | Accepted |
@@ -49,12 +49,15 @@ and the construct that *does* mean "I want the unfiltered cartesian product"
 already has its own explicit, faithfully-emitted name — `CrossJoin` — which
 every dialect accepts unconditionally (`IJoinOperator.CrossJoin`, "the
 unfiltered Cartesian product, so no `ON` follows"; confirmed live above,
-identical output to the lenient dialects' omitted-predicate reading).
+identical output to the lenient dialects' omitted-predicate inner join).
 PostgreSQL's own documentation states `CROSS JOIN` "is equivalent to
-`INNER JOIN ON (TRUE)`" — and the SQLite live run goes further than any
-documentation claim: the omitted-predicate `LEFT`/`RIGHT`/`FULL JOIN` output is
-not merely *equivalent to* `CROSS JOIN`, it is byte-for-byte identical to it,
-row for row, with no outer-join NULL-padding attempted at all.
+`INNER JOIN ON (TRUE)`", and on the SQLite live run's tables the
+omitted-predicate `LEFT`/`RIGHT`/`FULL JOIN` output was row for row the
+`CROSS JOIN` output. That holds only while both sides have rows: with one side
+empty, SQLite 3.50.4 keeps the other side's rows, NULL-padded, where
+`CROSS JOIN` returns none (`SqliteTests.OmittedOuterJoinPredicate_KeepsARowCrossJoinDrops`;
+corrected in #675). So the empty-`ON` message names `CROSS JOIN` after an inner
+join only.
 
 ## Decision
 
@@ -68,8 +71,8 @@ This is a **bounded exception to ADR 0007**, admitted only because all three
 hold together:
 
 - **The accepting dialects don't treat the omission as a distinct construct.**
-  Confirmed live: SQLite's output for every omitted-predicate join type is
-  identical to its `CROSS JOIN` output; MySQL's manual states `JOIN`,
+  Confirmed live: SQLite runs every omitted-predicate join type as that join
+  with no condition, the `CROSS JOIN` output for an inner one; MySQL's manual states `JOIN`,
   `CROSS JOIN`, and `INNER JOIN` are "syntactic equivalents" and that
   `INNER JOIN` with no join condition is "semantically equivalent" to a
   comma-join, i.e. a cartesian product. This is unlike ordinary dialect

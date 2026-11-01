@@ -450,10 +450,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   assignment.` The `SET`, `UPDATE SET` and `DO UPDATE SET` lists are reworded
   the same way (`The SET assignment list ...`,
   `The left side of each SET assignment ...`). (#582)
-- An empty join `ON` in a joined `UPDATE` or `DELETE` now reads
-  `A JOIN's ON clause requires a condition.`: the `SELECT` message's
-  "an unconditioned join is a CROSS JOIN" pointed at a `CrossJoin` those chains
-  do not have. The `SELECT` message is unchanged. (#582)
+- An empty join `ON` in a joined `UPDATE` or `DELETE`, or after a `LeftJoin`,
+  `RightJoin` or `FullJoin`, now reads
+  `A JOIN's ON clause requires a condition.`: the earlier message's
+  "an unconditioned join is a CROSS JOIN" pointed at a `CrossJoin` the `UPDATE`
+  and `DELETE` chains do not have, and an outer join keeps a row `CROSS JOIN`
+  drops when a side is empty. The message after `InnerJoin` and `JoinLateral` is
+  unchanged. (#582, #675)
 - **Breaking:** TableClassGen keeps combining marks in the class and property
   names it generates. It dropped them as word separators, which removed the
   vowel signs of Thai and Devanagari names and could turn one word into another:

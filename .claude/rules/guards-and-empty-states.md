@@ -57,9 +57,8 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   as the set quantifier, another construct (the `Decode` line above), so they throw
   too (#666); any of `InnerJoin`/`LeftJoin`/
   `RightJoin`/`FullJoin`/`JoinLateral` with no `.On(...)`/`.Using(...)` —
-  accepted on SQLite (all five) or MySQL (`InnerJoin`/`JoinLateral` only) as an
-  unlabeled `CROSS JOIN` spelling, not a construct with independent meaning
-  (ADR 0017); `Output(...)` (SQL Server) combined with `Returning(...)`, with
+  accepted on SQLite (all five) or MySQL (`InnerJoin`/`JoinLateral` only) as
+  that join with no condition, which no caller writes on purpose (ADR 0017); `Output(...)` (SQL Server) combined with `Returning(...)`, with
   `Using(...)` on `DELETE`, with `OnConflict(...)`/`OnDuplicateKeyUpdate(...)`
   on `INSERT`, with a `WITH` between `INSERT INTO` and its `SELECT` (SQL Server
   2022 takes one only ahead of `INSERT INTO`, `ContextRule_InsertSelectWith_Rejected`,
@@ -1089,8 +1088,11 @@ so the wording is part of the contract.
   `From(...)` chain and "join through `From(target, ...)`" on the direct-join
   chain, which has no FROM (the `DELETE ... USING` guard was the first such
   split, pass 5; the UPDATE twin, pass 8). The empty join `ON` names
-  `CROSS JOIN` only on the `SELECT` chain, the one with `CrossJoin`; a joined
-  `UPDATE` or `DELETE` states the requirement alone (`DmlOnClause`, #582).
+  `CROSS JOIN` only after a `SELECT` chain's `InnerJoin` or `JoinLateral`, whose
+  rows a `CROSS JOIN` returns; an outer join, which keeps a row `CROSS JOIN`
+  drops when a side is empty, and a joined `UPDATE` or `DELETE`, which has no
+  `CrossJoin`, state the requirement alone (`RequirementOnlyOnClause`, #582,
+  #675).
   Recorded exception (#677): the every-table correlated guard's "must be
   aliased" also fires for a MySQL `ON DUPLICATE KEY UPDATE` subquery reading
   the `INSERT` target, which MySQL cannot alias. The buffer that throws does

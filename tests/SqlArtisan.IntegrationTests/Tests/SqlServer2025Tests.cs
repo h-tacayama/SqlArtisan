@@ -4,7 +4,6 @@ using Dapper;
 using SqlArtisan;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
-using SqlArtisan.IntegrationTests.Schema;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.IntegrationTests.Tests;
@@ -26,35 +25,6 @@ public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
 
     // An upgraded database can keep compatibility level 160, where REGEXP_LIKE alone of
     // the 2025 constructs is not recognized — the version bound cannot see the level.
-    // #675 probe: which engines run an empty grouping set inside ROLLUP / CUBE.
-    [Fact]
-    public void EmptyGroupingSet_Probe()
-    {
-        UsersTable u = new();
-        using IDbConnection connection = _fixture.OpenConnection();
-        List<string> results = [];
-        results.Add(Run("Rollup", () => connection.Query<object>(
-            Select(u.DepartmentId).From(u).GroupBy(Rollup(u.DepartmentId, Group()))).Count()));
-        results.Add(Run("Cube", () => connection.Query<object>(
-            Select(u.DepartmentId).From(u).GroupBy(Cube(u.DepartmentId, Group()))).Count()));
-        results.Add(Run("GroupingSets", () => connection.Query<object>(
-            Select(u.DepartmentId).From(u).GroupBy(GroupingSets(Group(u.DepartmentId), Group())))
-            .Count()));
-        Assert.Fail(string.Join(" | ", results));
-
-        static string Run(string name, Func<object?> run)
-        {
-            try
-            {
-                return $"{name}: ran, {run()}";
-            }
-            catch (Exception ex)
-            {
-                return $"{name}: threw {ex.GetType().Name}: {ex.Message}";
-            }
-        }
-    }
-
     [Fact]
     public void AddedConstructs_AtCompatibilityLevel160_RejectOnlyRegexpLike()
     {
