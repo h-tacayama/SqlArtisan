@@ -1056,6 +1056,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   that conditions the earlier matched branch (#685).
 
 ### Docs
+- `Sql.Group()`'s docs and `docs/query-statements.md` say the empty set `()` is a
+  grand total only inside `GroupingSets(...)`; `Rollup(...)` and `Cube(...)` take
+  none. (#675)
 - `docs/analyzer.md` gives its sweep-skip causes as examples, not a complete
   list, and no longer says a driver-side skip stops before the engine (#681).
 - The `Dbms` summaries say the dialect quotes only aliases and CTE names; table

@@ -168,11 +168,12 @@ override — so every build path (including `Returning()`, which funnels through
   still bind, since no factory takes either as an argument
   (`public-api-design.md` § "Separator/format-string parameters").
   The eighth is a value computed empty that an engine runs without an error
-  (#669, #679): an `In` / `NotIn` list with no value, an empty `As(...)` alias,
-  CTE or subquery derived-table name, an empty or blank `IntervalLiteral` value, and
-  an empty `INSERT` row. SQLite 3.50.4 runs `IN ()`, `NOT IN ()` and a zero-length name,
-  MySQL 8.0 reads `INTERVAL '' DAY` and `INTERVAL ' ' DAY` as 0, and MySQL
-  8.0.46 inserts a row of defaults for `VALUES ()`. An empty value there is
+  (#669, #679, #675): an `In` / `NotIn` list with no value, an empty `As(...)` alias,
+  CTE or subquery derived-table name, an empty or blank `IntervalLiteral` value,
+  an empty `INSERT` row, and an empty `SELECT` list. SQLite 3.50.4 runs `IN ()`,
+  `NOT IN ()` and a zero-length name, MySQL 8.0 reads `INTERVAL '' DAY` and
+  `INTERVAL ' ' DAY` as 0, MySQL 8.0.46 inserts a row of defaults for
+  `VALUES ()`, and PostgreSQL 16 runs `SELECT FROM t`. An empty value there is
   likelier a slip than the statement meant, so each is rejected at the call on
   every dialect; `guards-and-empty-states.md` names the twins and the lanes
   that reject each.

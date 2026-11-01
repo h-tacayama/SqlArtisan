@@ -3,11 +3,9 @@ using SqlArtisan.Internal;
 namespace SqlArtisan;
 
 /// <summary>
-/// A parenthesized grouping element built with <c>Sql.Group(...)</c>: a grouping
-/// set inside <c>GROUPING SETS(...)</c>, or a composite column inside
-/// <c>ROLLUP(...)</c> / <c>CUBE(...)</c>. Rendered as a parenthesized list
-/// (<c>(a, b)</c>) for two or more columns, the bare column for a single column,
-/// or the empty set <c>()</c> for the grand total when no columns are given.
+/// A grouping element built with <c>Sql.Group(...)</c> for <c>GROUPING SETS(...)</c>,
+/// <c>ROLLUP(...)</c> or <c>CUBE(...)</c>: <c>(a, b)</c>, or the bare column for one. With
+/// no columns it is the empty set <c>()</c>, a grand total only in <c>GROUPING SETS(...)</c>.
 /// </summary>
 public sealed class GroupingSet : SqlPart
 {

@@ -1721,4 +1721,22 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             .From(u)
             .Where(Case(u.Id, When(BindNull()).Then(1), Else(0)) == 1)));
     }
+
+    // #675: ROLLUP and CUBE take no empty grouping set, which GROUPING SETS reads as the
+    // grand total, so Group() is that total only inside GroupingSets(...).
+    [Fact]
+    public void EmptyGroupingSetInRollupOrCube_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<object>(Select(u.DepartmentId)
+            .From(u)
+            .GroupBy(GroupingSets(Group(u.DepartmentId), Group())));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<object>(
+            Select(u.DepartmentId).From(u).GroupBy(Rollup(u.DepartmentId, Group()))));
+        Assert.ThrowsAny<DbException>(() => connection.Query<object>(
+            Select(u.DepartmentId).From(u).GroupBy(Cube(u.DepartmentId, Group()))));
+    }
 }

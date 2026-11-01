@@ -316,17 +316,19 @@ shape § "Minimum-arity enforcement" keeps (`public-api-design.md`, #552). The
 database is the arbiter (#664; the twins `WindowFunctionInWhere_IsRejectedByTheEngine`
 on PostgreSQL and SQLite, `Unnest_SeveralArraysInSelectList_IsRejectedByTheEngine`).
 
-**Five shapes the engines that run them reject stay unguarded (decided — do not
+**Six shapes the engines that run them reject stay unguarded (decided — do not
 re-file):** a `RANGE` offset over two or more `ORDER BY` keys; a percentile
 `WithinGroup(...)` over two or more keys; `WithRollup()` after a `GROUP BY`
 holding a grouping element; a lateral or apply join given a derived table that
-carries its own source, which it then emits twice; and an `INSERT ... SELECT` CTE
+carries its own source, which it then emits twice; an `INSERT ... SELECT` CTE
 body given `.WithColumnList()` or read through a reference, since it has no
-columns to name or read (with neither, the body runs, write-only). Each fails loudly where it was run — PostgreSQL 16.15 for
+columns to name or read (with neither, the body runs, write-only); and an empty
+`Group()` inside `Rollup(...)` or `Cube(...)`, the grand total only `GroupingSets(...)`
+takes (#675). Each fails loudly where it was run — PostgreSQL 16.15 for
 all but `WithRollup()` and the apply joins, SQLite 3.50.4 for the frame, SQL
-Server 2022 for `WithRollup()`, the one dialect the matrix gives both halves, and
-SQL Server 2022 and Oracle XE 21.3.0 for `CrossApply` — so there is no silent
-wrongness to convert. None is a construct missing a part, which a held stage's
+Server 2022 for `WithRollup()`, the one dialect the matrix gives both halves,
+SQL Server 2022 and Oracle XE 21.3.0 for `CrossApply`, and those two for the
+empty grouping set — so there is no silent wrongness to convert. None is a construct missing a part, which a held stage's
 backstop takes (the *Incomplete* list): each is complete, in a shape its engines
 refuse. A twin per shape asserts the rejection beside a control that runs (the
 `*_IsRejectedByTheEngine` twins #675 added). The other engines are not run for
@@ -490,9 +492,9 @@ name are emitted as bare identifiers, invalid as whitespace on every dialect;
 an alias is quoted, where whitespace is legal. The stricter check is correct
 where it is, and the asymmetry is not a defect.
 
-**An empty `In` / `NotIn` list or quoted name, or an empty or blank
-`IntervalLiteral` value, is rejected, though an engine runs it (decided — do not
-re-file):** `In(...)` and `NotIn(...)` with no value, an empty `As(...)` alias,
+**An empty `In` / `NotIn` list, quoted name or `SELECT` list, or an empty or
+blank `IntervalLiteral` value, is rejected, though an engine runs it (decided —
+do not re-file):** `In(...)` and `NotIn(...)` with no value, an empty `As(...)` alias,
 CTE or derived-table name, and an empty or whitespace-only `IntervalLiteral`
 value throw at the call on every dialect. SQLite 3.50.4 runs `IN ()`,
 `NOT IN ()` and a zero-length alias, CTE name or subquery derived-table name;
@@ -506,7 +508,9 @@ PostgreSQL 16.15 (`In_EmptyList_*`, `EmptyQuotedName_*`,
 `IntervalLiteral_EmptyOrBlankValue_*`). An empty `Values(...)` name throws with
 them, though SQLite 3.50.4 does not run one: it rejects the column list
 `Values(...)` always emits, whatever the name
-(`SqliteTests.ValuesColumnList_IsRejectedByTheEngine`). The blank interval value
+(`SqliteTests.ValuesColumnList_IsRejectedByTheEngine`). So does `Select()` with no
+item, though PostgreSQL 16.15 runs `SELECT FROM t`, each row with no column
+(`PostgreSqlTests.EmptySelectList_IsAcceptedByTheEngine`, #675). The blank interval value
 departs from the clause above, which keeps whitespace in a quoted position:
 whitespace is a legal name there, while MySQL reads this value as 0. `Array()`
 takes no element instead: PostgreSQL, its one engine, runs an empty `ARRAY[]` only under a cast the caller writes,

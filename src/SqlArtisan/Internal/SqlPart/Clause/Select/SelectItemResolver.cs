@@ -4,9 +4,9 @@ namespace SqlArtisan.Internal;
 
 internal static class SelectItemResolver
 {
-    // The eager guard for the SELECT list (the #236 empty-state policy): a SELECT
-    // list can never legally be empty, so it throws at the call rather than at
-    // Build(). RETURNING guards its own emptiness in ReturningBuilder.Create.
+    // The eager guard for the SELECT list (#236): PostgreSQL runs an empty one, but a list
+    // computed empty is likelier a slip, so it throws at the call (ADR 0011, #675).
+    // RETURNING guards its own emptiness in ReturningBuilder.Create.
     internal static SqlPart[] ResolveOrThrow(object[] selectItems)
     {
         CollectionGuard.ThrowIfEmpty(
