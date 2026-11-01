@@ -973,6 +973,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#645)
 
 ### Security
+- TableClassGen depends on MySqlConnector 2.6.2, up from 2.4.0, which the
+  advisory GHSA-473q-m89c-ghf8 covers (versions before 2.6.1).
 - **Breaking:** PostgreSQL: a forced literal holding a backslash — a `JsonArrow`
   / `JsonArrowText` string key, `IntervalLiteral` text, a JSON path, the
   `NEXTVAL` / `CURRVAL` sequence name, a text-search configuration, the
