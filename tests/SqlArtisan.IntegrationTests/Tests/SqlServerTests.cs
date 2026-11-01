@@ -20,6 +20,34 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         _fixture = fixture;
     }
 
+    // #681: the other meanings behind two false cells, each run where the matrix reports it.
+    [Fact]
+    public void LogWithBase_ReadsTheValueFirst()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        double log = connection.ExecuteScalar<double>(Select(Log(2, 8)).From(u).Where(u.Id == 1));
+
+        Assert.Equal(1.0 / 3, log, 10);
+    }
+
+    // Every user id is also an order id, so a set difference would return no row.
+    [Fact]
+    public void Minus_ReturnsTheFirstBranchRows()
+    {
+        UsersTable u = new();
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        int[] users = [.. connection.Query<int>(Select(u.Id).From(u))];
+        int[] orders = [.. connection.Query<int>(Select(o.Id).From(o))];
+
+        Assert.Empty(users.Except(orders));
+        Assert.Equal(
+            users,
+            connection.Query<int>(Select(u.Id).From(u).Minus.Select(o.Id).From(o)));
+    }
+
     [Fact]
     public void Pagination_OffsetFetch_Executes()
     {

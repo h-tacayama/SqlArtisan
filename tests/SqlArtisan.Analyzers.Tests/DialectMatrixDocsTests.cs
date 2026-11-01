@@ -5,12 +5,9 @@ using System.Text.RegularExpressions;
 namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
-/// Guards docs/analyzer.md's verified-against table against drifting from
-/// <see cref="DialectMatrix.VerifiedAgainstVersion"/> — the Oracle row did
-/// exactly that once (the dictionary said <c>gvenzl/oracle-free</c> while the
-/// actual CI container was the XE 21c image). Every version-shaped token in a
-/// dictionary value's display part must appear somewhere in the doc; a display
-/// part with no such token must appear verbatim.
+/// Ties <see cref="DialectMatrix.VerifiedAgainstVersion"/> to both ends: docs/analyzer.md's
+/// verified-against table, and the engine each dialect's baseline lane pins. The Oracle row
+/// has drifted from each: the doc once, the fixture until #681.
 /// </summary>
 public class DialectMatrixDocsTests
 {
@@ -71,6 +68,51 @@ public class DialectMatrixDocsTests
             $"docs/analyzer.md's verified-against table has drifted from "
                 + $"DialectMatrix.VerifiedAgainstVersion — "
                 + $"{missing.Count} missing tokens:\n  " + string.Join("\n  ", missing));
+    }
+
+    // The other end of the chain: a fixture's pinned image, which the dictionary
+    // once named as the module default it no longer tracks (#681).
+    [Theory]
+    [InlineData("MySql")]
+    [InlineData("Oracle")]
+    [InlineData("PostgreSql")]
+    [InlineData("SqlServer")]
+    public void VerifiedAgainstVersion_NamesTheFixtureImage(string dbms)
+    {
+        string source = File.ReadAllText(Path.Combine(
+            FindRepoRoot(),
+            "tests",
+            "SqlArtisan.IntegrationTests",
+            "Infrastructure",
+            $"{dbms}Fixture.cs"));
+        string image = Regex.Match(source, @"\.WithImage\(""([^""]+)""\)").Groups[1].Value;
+
+        Assert.NotEmpty(image);
+        Assert.Contains(
+            $"`{image}`", DialectMatrix.VerifiedAgainstVersion[Enum.Parse<TargetDbms>(dbms)]);
+    }
+
+    // SQLite runs in-process, so its pin is the integration project's two package versions.
+    [Theory]
+    [InlineData("Microsoft.Data.Sqlite")]
+    [InlineData("SQLitePCLRaw.bundle_e_sqlite3")]
+    public void VerifiedAgainstVersion_NamesTheSqlitePackages(string package)
+    {
+        string project = File.ReadAllText(Path.Combine(
+            FindRepoRoot(),
+            "tests",
+            "SqlArtisan.IntegrationTests",
+            "SqlArtisan.IntegrationTests.csproj"));
+        string version = Regex.Match(
+            project,
+            $@"<PackageReference Include=""{Regex.Escape(package)}"" Version=""([^""]+)""")
+            .Groups[1].Value;
+
+        Assert.NotEmpty(version);
+        // Bounded, so a recorded 10.0.0-rc.2 does not pass for a pinned 10.0.0.
+        Assert.Matches(
+            $@"{Regex.Escape($"{package} {version}")}(?![\w.\-])",
+            DialectMatrix.VerifiedAgainstVersion[TargetDbms.Sqlite]);
     }
 
     private static string FindRepoRoot()

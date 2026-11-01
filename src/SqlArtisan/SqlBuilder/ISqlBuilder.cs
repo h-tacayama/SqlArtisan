@@ -17,7 +17,7 @@ public interface ISqlBuilder
     /// <summary>
     /// Builds the statement for the given dialect.
     /// </summary>
-    /// <param name="dbms">The target engine, whose dialect shapes parameter markers, identifier quoting, and other token-level spellings.</param>
+    /// <param name="dbms">The target engine, whose dialect shapes parameter markers, alias quoting, and other token-level spellings.</param>
     /// <returns>The rendered SQL text and its bound parameters.</returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="dbms"/> is <see cref="Dbms.Unknown"/> or an undefined value.</exception>
     /// <exception cref="ArgumentException">The builder was already built or was continued by a set

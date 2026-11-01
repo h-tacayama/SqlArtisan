@@ -57,7 +57,7 @@ internal static class DialectMatrix
         new Dictionary<TargetDbms, string>
         {
             [TargetDbms.MySql] = "MySQL 8.0 (Testcontainers `mysql:8.0`)",
-            [TargetDbms.Oracle] = "Oracle Database XE 21c (Testcontainers.Oracle module default image, gvenzl/oracle-xe:21.3.0-slim-faststart)",
+            [TargetDbms.Oracle] = "Oracle Database XE 21c (Testcontainers `gvenzl/oracle-xe:21.3.0-slim-faststart`)",
             [TargetDbms.PostgreSql] = "PostgreSQL 16 (Testcontainers `pgvector/pgvector:0.8.6-pg16`)",
             [TargetDbms.Sqlite] = "the SQLite engine shipped by the pinned SQLitePCLRaw.bundle_e_sqlite3 3.0.3, via Microsoft.Data.Sqlite 9.0.5 (in-process, no container)",
             [TargetDbms.SqlServer] = "SQL Server 2022 (Testcontainers `mcr.microsoft.com/mssql/server:2022-latest`)",

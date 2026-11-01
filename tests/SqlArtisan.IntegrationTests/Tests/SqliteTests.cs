@@ -18,6 +18,19 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         _fixture = fixture;
     }
 
+    // #681: SQLite's format() is printf, which reads the value as the format string.
+    [Fact]
+    public void Format_ReadsAsPrintf()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            "2020-03-15 10:30:00",
+            connection.ExecuteScalar<string>(
+                Select(Format(u.CreatedAt, "yyyy-MM")).From(u).Where(u.Id == 1)));
+    }
+
     [Fact]
     public void Pagination_LimitOffset_Executes()
     {

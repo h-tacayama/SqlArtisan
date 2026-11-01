@@ -41,7 +41,7 @@ resembling SQL; the library decides the exact grammar that reaches the
 database.
 
 **Faithful query builders** (SqlArtisan) emit the SQL you write. The C#
-maps directly to SQL tokens — bind-parameter markers, identifier quoting,
+maps directly to SQL tokens — bind-parameter markers, alias quoting,
 and same-meaning token spellings are normalized, but SQL grammar is never
 rewritten. You target one engine
 and get its full SQL surface, never flattened to a lowest common

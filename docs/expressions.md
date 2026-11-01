@@ -171,8 +171,8 @@ SqlStatement sql =
 > [!NOTE]
 > `DoublePipe(...)` is a trap on MySQL: under the default `sql_mode`, `||` is
 > **logical OR**, not concatenation — valid SQL with a completely different
-> result, not a syntax error. `SQLA0100` flags it there; use `Concat(...)`
-> instead.
+> result, not a syntax error (`DoublePipe("a", "b")` returns `0` on MySQL 8.0).
+> `SQLA0100` flags it there; use `Concat(...)` instead.
 
 > [!WARNING]
 > **`+` between strings adds numbers on MySQL and SQLite.** `"Dr. " + u.LastName`
@@ -574,7 +574,12 @@ SqlStatement sql =
 
 `L2Distance` (`<->`), `CosineDistance` (`<=>`), and `NegativeInnerProduct` (`<#>`) work on Oracle and PostgreSQL (Oracle gained the three shared operators in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)); `L1Distance` (`<+>`), `HammingDistance` (`<~>`), and `JaccardDistance` (`<%>`) are PostgreSQL only, via the pgvector extension. On PostgreSQL all six need the [pgvector](https://github.com/pgvector/pgvector) extension installed in the database (`CREATE EXTENSION vector`); on Oracle the three shared operators are built in.
 
-A bound vector literal reaches PostgreSQL as `text` — wrap it in `Cast(text, "vector")` (or `Cast(bits, "bit(n)")` for the bit operators) as above. On Oracle, drop the `Cast` — Oracle rejects `CAST(... AS vector)` outright (ORA-22849); pass the vector string bare (`L2Distance(u.Embedding, "[0.1,0.2,0.3]")`) and Oracle converts the bound string implicitly. `NegativeInnerProduct` returns the **negative** inner product, so the smallest value is still the most similar. On MySQL, `<=>` is the NULL-safe equality operator — the same glyph as `CosineDistance` with entirely different meaning — so keep cosine-distance queries off MySQL connections.
+A bound vector literal reaches PostgreSQL as `text` — wrap it in `Cast(text, "vector")` (or `Cast(bits, "bit(n)")` for the bit operators) as above. On Oracle, drop the `Cast` — Oracle rejects `CAST(... AS vector)` outright (ORA-22849); pass the vector string bare (`L2Distance(u.Embedding, "[0.1,0.2,0.3]")`) and Oracle converts the bound string implicitly. `NegativeInnerProduct` returns the **negative** inner product, so the smallest value is still the most similar.
+
+> [!NOTE]
+> **`CosineDistance` on MySQL is NULL-safe equality.** Its `<=>` is MySQL's own operator
+> there: MySQL 8.0 runs `CosineDistance(u.Id, u.Id)` and returns `1`, not a distance.
+> `SQLA0100` reports it on MySQL; keep cosine-distance queries off MySQL connections.
 
 To bind a `Pgvector.Vector` instance instead of a cast string literal, construct the bind directly — `new BindValue(vector)` — and register pgvector's Dapper type handler (`VectorTypeHandler`, from the `Pgvector.Dapper` package) plus `UseVector()` on the Npgsql data source (from the `Pgvector` package); the held value then flows to the driver untouched.
 
