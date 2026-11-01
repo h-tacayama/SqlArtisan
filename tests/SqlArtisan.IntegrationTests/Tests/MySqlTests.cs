@@ -46,7 +46,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
                 Select(CosineDistance(u.Id, u.Id)).From(u).Where(u.Id == 1)));
         Assert.Equal(
             0L,
-            connection.ExecuteScalar<long>(
+            connection.ExecuteScalar<long?>(
                 Select(CosineDistance(u.Id, Null)).From(u).Where(u.Id == 1)));
     }
 

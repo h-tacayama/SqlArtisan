@@ -1054,7 +1054,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Docs
 - The `Dbms` summaries say the dialect quotes only aliases and CTE names; table
-  and column names are emitted as written. `docs/expressions.md` and
+  and column names are emitted as written. The `Build(Dbms)` parameter doc, the
+  README and `docs/comparison.md` say alias quoting to match. `docs/expressions.md` and
   `docs/query-statements.md` gain a `[!NOTE]` for `CosineDistance` on MySQL,
   which reads `<=>` as NULL-safe equality, and for `Minus` after an unaliased
   table on SQL Server, whose first result set holds the first branch's rows; the
