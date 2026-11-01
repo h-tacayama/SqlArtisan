@@ -335,7 +335,7 @@ empty grouping set — so there is no silent wrongness to convert. None is a con
 backstop takes (the *Incomplete* list): each is complete, in a shape its engines
 refuse. A twin per shape asserts the rejection beside a control that runs (the
 `*_IsRejectedByTheEngine` twins #675 added). The other engines are not run for
-these: one that runs a shape, with any meaning, reopens it (#675's CI items).
+these: one that runs a shape, with any meaning, reopens it (#767's CI items).
 
 **An `OUTPUT` item reading the target bare, and a `*` before `INTO`, stay
 unguarded (decided — do not re-file):** on an `INSERT`, `UPDATE` or `DELETE`
