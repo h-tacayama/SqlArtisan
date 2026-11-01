@@ -969,7 +969,9 @@ stage.
 
 Each copy doubles later edits to the stage it mirrors (all but one later
 commit to an `INSERT IGNORE` stage since #275 also edited its `INSERT` twin);
-that is the cost the line prices. How rarely the pairing is written, and
+that is the cost the line prices. A split that removes a call shape that runs
+today, such as a run-time array, counts against it beside the copies, as
+`public-api-design.md` § "Minimum-arity enforcement" weighs one (#664, #675). How rarely the pairing is written, and
 whether the analyzer reports it, are not inputs. Either way, a held stage
 that can reach both halves needs a `Build()` backstop, since a type
 constrains one chain and not a held instance (the walk, `ReturningGuard`); a
