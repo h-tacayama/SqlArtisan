@@ -14,7 +14,7 @@ internal sealed class SqlServerDialect : IDbmsDialect
 
     public string ExcludedName => "EXCLUDED";
 
-    // T-SQL requires MERGE to end with a semicolon; omitting it is a syntax error.
+    // T-SQL's MERGE syntax ends in a semicolon.
     public string MergeTerminator => ";";
 
     public bool NonAsciiLiteralsUseNationalPrefix => true;

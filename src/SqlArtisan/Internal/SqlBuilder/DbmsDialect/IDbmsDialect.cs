@@ -40,8 +40,8 @@ internal interface IDbmsDialect
     string ExcludedName { get; }
 
     /// <summary>
-    /// The token appended after a <c>MERGE</c> statement, required only by SQL
-    /// Server. It is specific to <c>MERGE</c> — SqlArtisan does not otherwise
+    /// The token appended after a <c>MERGE</c> statement, which only T-SQL's <c>MERGE</c>
+    /// syntax ends with. It is specific to <c>MERGE</c> — SqlArtisan does not otherwise
     /// terminate statements, deferring that to the caller or driver.
     /// </summary>
     string MergeTerminator { get; }

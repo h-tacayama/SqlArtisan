@@ -41,7 +41,7 @@ public class DeleteTests
     [Fact]
     public void DeleteFrom_Oracle_WithWhereClause_CorrectSql()
     {
-        // Oracle rejects AS on a table alias (ORA-00933), so the alias follows
+        // Oracle's DML grammar takes a table alias with no AS, so the alias follows
         // the table name with only a space.
         SqlStatement sql =
             DeleteFrom(_t)

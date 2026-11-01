@@ -65,8 +65,9 @@ a table alias before a second statement. The engine runs the text, so nothing
 fails; the report is the only layer that sees the meaning change, at the price
 of a report on a deliberate use of the engine's own reading, which a
 suppression at the site removes. Such a cell needs a sweep `NegativeSkip`
-naming the other meaning, a per-engine twin that asserts that meaning, and, on
-its own, a `[!NOTE]` docs callout, since the analyzer catches it (`docs-style.md`
+naming the other meaning (none where the sweep's form is rejected at the key
+itself, as `FullJoin`'s aliased form is on MySQL), a per-engine twin that
+asserts that meaning, and, on its own, a `[!NOTE]` docs callout, since the analyzer catches it (`docs-style.md`
 § "Hazard callouts"); #681 tracks the cells that lack them. The same function
 with engine-defined semantics stays `true` and is a docs matter (ADR 0003):
 `LOG(x)`'s base, `STDDEV`'s population or sample. `GroupConcat(expr, sep)` on
