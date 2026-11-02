@@ -64,9 +64,14 @@ jobs:
   publish:
     needs: integration
     runs-on: ubuntu-latest
-    # Holds the NUGET_API_KEY secret; attach required reviewers here to gate the
-    # push behind a manual approval.
+    # nuget.org's trusted-publishing policy names this environment; attach
+    # required reviewers here to gate the push behind a manual approval.
     environment: nuget
+    # id-token: write lets NuGet/login trade the job's OIDC token for a
+    # short-lived API key (trusted publishing), so no key is stored as a secret.
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout
@@ -110,10 +115,17 @@ jobs:
           done
           exit $missing
 
+      # Right before the push: the key it returns lasts about an hour.
+      - name: NuGet login
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: h.tacayama
+
       # --skip-duplicate makes re-running the workflow on the same version a no-op.
       - name: Push to NuGet
         run: >
           dotnet nuget push "artifacts/*.nupkg"
           --source https://api.nuget.org/v3/index.json
-          --api-key "${{ secrets.NUGET_API_KEY }}"
+          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
           --skip-duplicate
