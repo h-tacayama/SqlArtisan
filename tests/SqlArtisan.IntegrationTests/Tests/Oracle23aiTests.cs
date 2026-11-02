@@ -459,4 +459,34 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
             Select(L2Distance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))).From(Dual)));
         Assert.Contains("ORA-22849", ex.Message);
     }
+
+    // #767: two of the shapes guards-and-empty-states.md leaves to the engine (#675), run at
+    // 23ai too; each control runs, so the assertion fails only for the shape it names.
+    [Fact]
+    public void RangeOffset_SeveralOrderByKeys_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<long>(
+            Select(Count(u.Id).Over(OrderBy(u.Id).RangeBetween(Preceding(1), CurrentRow)))
+            .From(u));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<long>(
+            Select(Count(u.Id).Over(OrderBy(u.Id, u.Age).RangeBetween(Preceding(1), CurrentRow)))
+            .From(u)));
+    }
+
+    [Fact]
+    public void PercentileWithinGroup_SeveralKeys_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<double?>(
+            Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age))).From(u));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<double?>(
+            Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age, u.Id))).From(u)));
+    }
 }

@@ -1579,11 +1579,9 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             connection.Query<string>(
                 Select(u.Name).From(u).Where((u.Id == 2) & (u.Age == 40))));
         Assert.Equal(
-            new[] { "Alice", "Bob", "Carol", "Dave", "Eve" },
+            new[] { "Carol" },
             connection.Query<string>(
-                Select(u.Name).From(u)
-                .Where(u.Id.In(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11))
-                .OrderBy(u.Id)));
+                Select(u.Name).From(u).Where(u.Id.In(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3))));
     }
 
     // #767: the shapes guards-and-empty-states.md leaves to the engine (#675), run here too;

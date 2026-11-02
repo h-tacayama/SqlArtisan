@@ -331,7 +331,8 @@ columns to name or read (with neither, the body runs, write-only); and an empty
 takes (#675). Each fails loudly where it was run — PostgreSQL 16.15 for
 all but `WithRollup()` and the apply joins; SQLite 3.50.4 for the frame; MySQL
 8.0 for the frame and the lateral join; Oracle XE 21.3.0 for the
-frame, the percentile, the lateral and apply joins and the empty grouping set;
+frame, the percentile, the lateral and apply joins and the empty grouping set,
+and Free 23ai for the frame and the percentile;
 and SQL Server 2022 for the percentile, `WithRollup()`, the one dialect the
 matrix gives both halves, `CrossApply` and the empty grouping set — so there is
 no silent wrongness to convert. None is a construct missing a part, which a held stage's
