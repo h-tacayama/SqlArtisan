@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Tests
+- Twins pin the engine claims #767 found with no version or twin: Free 23ai
+  rejects `WITH RECURSIVE` with or without a column list (ORA-02000) and
+  `CAST(... AS VECTOR)` (ORA-22849); Oracle XE 21.3.0 rejects a recursive plain
+  `WITH` without its column list (ORA-32039), and ODP.NET fails reading an
+  unrounded `EXP` result; SQL Server 2022 takes `RANGE` only with `UNBOUNDED` /
+  `CURRENT ROW` bounds; SQLite 3.50.4 rejects a bare quoted alias as an FTS5
+  `MATCH` target; MySQL 8.0 runs `JOIN LATERAL` with no `ON` and returns the
+  rows `CROSS JOIN LATERAL` returns; and the `?n` markers bind through
+  `MySql.Data`, which `DbmsResolver` registers. (#767)
+- MySQL 8.0, Oracle XE 21.3.0 and SQL Server 2022 twins run the shapes `Build()`
+  leaves to the engine (#675) that each has the constructs for — a `RANGE`
+  offset over two keys, a percentile over two keys, `WithRollup()` after
+  `Cube(...)`, a lateral join given a source-carrying derived table — and each
+  rejects them. (#767)
 - Dialect-sweep cases that a `false` engine rejected at another construct the
   statement needs are now rejected there by the construct they test:
   `WithRecursive` carries a column list on Oracle, `Offset` stands alone on
@@ -21,6 +35,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   and the sweep skips that negative. (#767)
 
 ### Docs
+- `docs/expressions.md` names the release that rejects `CAST(... AS vector)` on
+  Oracle, Free 23ai. (#767)
 - `docs/expressions.md` notes that `ArrayOverlaps` is logical AND on MySQL, and
   `docs/analyzer.md` lists `&&` among the spellings a dialect reads as something
   else. (#767)

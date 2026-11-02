@@ -75,8 +75,7 @@ public abstract class DbTableBase : TableReference
     // Renders the reference a predicate targets by table (SQLite FTS5
     // `tbl MATCH ...`). FTS5 resolves the target as the hidden column named
     // after the table, so an aliased table must qualify it (`"a".tbl`) — a bare
-    // quoted alias falls back to a string literal (no such column) and fails
-    // with "unable to use function MATCH in the requested context". A schema
+    // quoted alias names no column (SQLite 3.50.4). A schema
     // there reads as a qualifier (`main.ft` is "no such column", SQLite 3.45.1).
     internal void FormatAsMatchTarget(SqlBuildingBuffer buffer)
     {

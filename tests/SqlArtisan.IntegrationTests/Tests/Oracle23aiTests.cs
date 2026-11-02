@@ -415,4 +415,48 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
 
         connection.Execute(sql);
     }
+
+    // DialectMatrix's WithRecursive cell and bound note: 23ai reads RECURSIVE as the query
+    // name with or without the column list, quoted or bare, and runs the plain-WITH form.
+    [Fact]
+    public void WithRecursive_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        const string Bare =
+            " AS (SELECT 1 AS n FROM DUAL UNION ALL SELECT n + 1 FROM c WHERE n < 3) "
+            + "SELECT n FROM c";
+        const string Quoted =
+            " AS (SELECT 1 AS n FROM DUAL UNION ALL SELECT n + 1 FROM \"c\" WHERE n < 3) "
+            + "SELECT n FROM \"c\"";
+
+        Assert.Equal(3, connection.Query<int>("WITH c (n)" + Bare).Count());
+
+        foreach (string sql in new[]
+        {
+            "WITH RECURSIVE c (n)" + Bare,
+            "WITH RECURSIVE c" + Bare,
+            "WITH RECURSIVE \"c\" (n)" + Quoted,
+            "WITH RECURSIVE \"c\"" + Quoted,
+        })
+        {
+            DbException ex = Assert.ThrowsAny<DbException>(() => connection.Query<int>(sql));
+            Assert.Contains("ORA-02000", ex.Message);
+        }
+    }
+
+    // docs/expressions.md: Oracle takes a bare vector string and rejects CAST(... AS VECTOR).
+    [Fact]
+    public void VectorCast_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            Math.Sqrt(8),
+            connection.ExecuteScalar<double>(Select(L2Distance("[1,2]", "[3,4]")).From(Dual)),
+            6);
+
+        DbException ex = Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(L2Distance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))).From(Dual)));
+        Assert.Contains("ORA-22849", ex.Message);
+    }
 }

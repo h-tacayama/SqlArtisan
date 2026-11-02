@@ -605,7 +605,7 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
                 .Single();
 
             // Alias-qualified target: "f".users_fts MATCH :0 — a bare quoted
-            // alias would fall back to a string literal and fail (#153 review).
+            // alias names no column (#153 review).
             DbTable f = new("users_fts", "f");
             string aliased = connection
                 .Query<string>(
@@ -614,6 +614,8 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
 
             Assert.Equal("Alice", name);
             Assert.Equal("Alice", aliased);
+            Assert.ThrowsAny<DbException>(() => connection.Query<string>(
+                "SELECT name FROM users_fts \"f\" WHERE \"f\" MATCH 'database'"));
         }
         finally
         {
