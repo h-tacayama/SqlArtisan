@@ -145,9 +145,9 @@ internal static class DialectMatrix
         [new MatrixKey("StringAgg")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
         [new MatrixKey("StringAgg", 3)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("Listagg")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
-        // GroupConcat: see the key-collision caveat above — the three arity-2 overloads, each
-        // spelling one of MySQL's and SQLite's forms, collapse to this MySQL/SQLite union, so
-        // a form used on the engine without it stays silent.
+        // GroupConcat: see the key-collision caveat above — its overloads, each spelling one of
+        // MySQL's and SQLite's forms, share this one key, so a form used on the engine without it
+        // stays silent.
         [new MatrixKey("GroupConcat")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
 
         // --- PostgreSQL / Oracle single-dialect helpers ---
@@ -541,9 +541,8 @@ internal static class DialectMatrix
         // --- Character/numeric functions with real dialect gaps (vendor docs, per row) ---
         // Mod: T-SQL has no MOD() function (only the % operator).
         [new MatrixKey("Mod")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
-        // Log/Ln/Log10 (#440): only Oracle rejects single-argument LOG(x), its LOG taking both
-        // arguments. The base of LOG(x) is a semantics fact no support bool carries; the factory's
-        // XML remark and docs/functions.md record it.
+        // Log/Ln/Log10 (#440): the base of single-argument LOG(x) is a semantics fact no support
+        // bool carries; the factory's XML remark and docs/functions.md record it.
         [new MatrixKey("Log", 1)] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
         // The 2-argument form reads base-first on MySQL/Oracle/PostgreSQL/SQLite, but
         // T-SQL declares LOG(float_expression [, base]) — value first, base second — so
@@ -654,7 +653,7 @@ internal static class DialectMatrix
         [new MatrixKey("WithinGroup")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         // PercentileCont/Disc: which of the bare WITHIN GROUP and OVER forms an engine takes
         // differs by chain (Sql.P.cs remarks) — a builder-state nuance the key cannot see, so
-        // the cell is the member-level union; MySQL and SQLite have neither.
+        // the cell is the member-level union.
         [new MatrixKey("PercentileCont")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("PercentileDisc")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
 
