@@ -641,7 +641,7 @@ internal static class MatrixSweepCatalog
             _ => Select(u.Id).From(u).Where(ContainsScore(u.Name, "Alice") > 0),
             (Dbms.Oracle, "No Oracle Text CONTEXT index in the container schema; the accept "
                 + "side needs one."));
-        // SCORE alone off Oracle: MySQL would reject the CONTAINS predicate first.
+        // SCORE alone off Oracle, so a negative stops at SCORE, not at Oracle Text's CONTAINS.
         AddSkips("Score",
             dbms => dbms == Dbms.Oracle
                 ? Select(Score(1)).From(u).Where(ContainsScore(u.Name, "Alice", 1) > 0)
@@ -801,8 +801,8 @@ internal static class MatrixSweepCatalog
         AddMutating("Using", dbms => dbms is Dbms.MySql or Dbms.Sqlite
             ? DeleteUsingShape()
             : MergeShape());
-        // The literal-row upsert MERGE is the SQL Server hole this closes (also PostgreSQL);
-        // Oracle rejects the VALUES source, and MySQL and SQLite, with no MERGE, read it in FROM.
+        // The literal-row upsert MERGE is the SQL Server hole this closes (also PostgreSQL), and
+        // Oracle XE 21.3.0 rejects its VALUES source; MySQL and SQLite read it in FROM instead.
         cases.Add(new SweepCase(new MatrixKey("Values", 3), dbms =>
         {
             UsersTable t = new("t");
