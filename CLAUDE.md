@@ -75,7 +75,7 @@ Three GitHub Actions workflows in `.github/workflows/`:
 |----------|---------|-------------|
 | `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests`, `Analyzers.Tests`, `TableClassGen.Tests`), and the DB-less `MatrixSweepCatalogTests`, `DialectGuardTwinTests` and `DateTimePartNumberingTests` slices. |
 | `integration.yml` | Nightly cron, `workflow_call`, manual | Integration tests across 8 lanes in parallel (Oracle runs at both 21c and 23ai, PostgreSQL at both 16 and 17, SQL Server at both 2022 and 2025). |
-| `release.yml` | Tag push (`v*`) | Full verify plus a vulnerable-package audit of `src/` → integration tests → pack & push 4 NuGet packages. |
+| `release.yml` | Tag push (`v*`); manual from `main` to re-publish a tagged release whose push failed | Full verify plus a vulnerable-package audit of `src/` → integration tests → pack & push 4 NuGet packages (trusted publishing). |
 
 ## How to add a new SQL function (the most common task)
 
