@@ -616,6 +616,9 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
             Assert.Equal("Alice", aliased);
             Assert.ThrowsAny<DbException>(() => connection.Query<string>(
                 "SELECT name FROM users_fts \"f\" WHERE \"f\" MATCH 'database'"));
+            DbException schema = Assert.ThrowsAny<DbException>(() => connection.Query<string>(
+                "SELECT name FROM users_fts WHERE main.users_fts MATCH 'database'"));
+            Assert.Contains("no such column", schema.Message);
         }
         finally
         {

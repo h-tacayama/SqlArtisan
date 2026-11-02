@@ -416,8 +416,8 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         connection.Execute(sql);
     }
 
-    // DialectMatrix's WithRecursive cell and bound note: 23ai reads RECURSIVE as the query
-    // name with or without the column list, quoted or bare, and runs the plain-WITH form.
+    // DialectMatrix's WithRecursive note: 23ai rejects WITH RECURSIVE (ORA-02000) with or
+    // without the column list, quoted or bare, and runs the plain-WITH form.
     [Fact]
     public void WithRecursive_IsRejectedByTheEngine()
     {
