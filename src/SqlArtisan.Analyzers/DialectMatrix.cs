@@ -491,11 +491,11 @@ internal static class DialectMatrix
         // Statistical aggregates (Sql.S.cs/Sql.V.cs XML docs, #442): StddevPop/StddevSamp/
         // VarPop/VarSamp are MySQL/Oracle/PostgreSQL only — no SQLite spelling, and SQL Server
         // uses its own distinct tokens (Stdevp/Stdev below) instead. Stddev/Variance are the
-        // same three dialects' short-form aliases, but not the same statistic on all three —
-        // the matrix asserts grammar acceptance only, not which statistic runs; see
-        // docs/functions.md's warning table. Stdev/Stdevp/Var/Varp are SQL Server's own tokens (no
-        // double-D spelling there) and appear on no other dialect. Sweep-confirm on all five
-        // live engines alongside this entry (#442).
+        // same three dialects' short-form aliases; which statistic each computes is in
+        // docs/functions.md's warning table — the matrix asserts grammar acceptance only.
+        // Stdev/Stdevp/Var/Varp are SQL Server's own tokens (no double-D spelling there) and
+        // appear on no other dialect. Sweep-confirm on all five live engines alongside this
+        // entry (#442).
         [new MatrixKey("StddevPop")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("StddevSamp")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("Stddev")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
@@ -551,10 +551,10 @@ internal static class DialectMatrix
         // --- Character/numeric functions with real dialect gaps (vendor docs, per row) ---
         // Mod: T-SQL has no MOD() function (only the % operator).
         [new MatrixKey("Mod")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
-        // Log/Ln/Log10 (#440). Single-argument LOG(x) has no shared base. Only Oracle
-        // *rejects* the call — its LOG takes both arguments, no exception — so Oracle is the
-        // one false. The base is a semantics fact no support bool can carry; it ships as the
-        // factory's XML remark and a docs note.
+        // Log/Ln/Log10 (#440). Only Oracle *rejects* single-argument LOG(x) — its LOG takes both
+        // arguments, no exception — so Oracle is the one false. The base of LOG(x) is a
+        // semantics fact no support bool carries; the factory's XML remark and
+        // docs/functions.md record it.
         [new MatrixKey("Log", 1)] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
         // The 2-argument form reads base-first on MySQL/Oracle/PostgreSQL/SQLite, but
         // T-SQL declares LOG(float_expression [, base]) — value first, base second — so
