@@ -13,13 +13,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   unrounded `EXP` result; SQL Server 2022 takes `RANGE` only with `UNBOUNDED` /
   `CURRENT ROW` bounds; SQLite 3.50.4 rejects a bare quoted alias as an FTS5
   `MATCH` target; MySQL 8.0 runs `JOIN LATERAL` with no `ON` and returns the
-  rows `CROSS JOIN LATERAL` returns; and the `?n` markers bind through
-  `MySql.Data`, which `DbmsResolver` registers. (#767)
+  rows `CROSS JOIN LATERAL` returns, and rejects `GROUP BY CUBE(a) WITH ROLLUP`
+  at `CUBE`, which it lacks; and the `?n` markers bind through `MySql.Data`,
+  which `DbmsResolver` registers. (#767)
 - MySQL 8.0, Oracle XE 21.3.0 and SQL Server 2022 twins run the shapes `Build()`
   leaves to the engine (#675) that each has the constructs for — a `RANGE`
-  offset over two keys, a percentile over two keys, `WithRollup()` after
-  `Cube(...)`, a lateral join given a source-carrying derived table — and each
-  rejects them. (#767)
+  offset over two keys, a percentile over two keys, a lateral join given a
+  source-carrying derived table — and each rejects them. (#767)
 - Dialect-sweep cases that a `false` engine rejected at another construct the
   statement needs are now rejected there by the construct they test:
   `WithRecursive` carries a column list on Oracle, `Offset` stands alone on

@@ -1604,19 +1604,6 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     }
 
     [Fact]
-    public void WithRollup_AfterGroupingElement_IsRejectedByTheEngine()
-    {
-        UsersTable u = new();
-        using IDbConnection connection = _fixture.OpenConnection();
-
-        connection.Query<int?>(
-            Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId).WithRollup());
-
-        Assert.ThrowsAny<DbException>(() => connection.Query<int?>(
-            Select(u.DepartmentId).From(u).GroupBy(Cube(u.DepartmentId)).WithRollup()));
-    }
-
-    [Fact]
     public void CrossJoinLateral_SourceCarryingDerivedTable_IsRejectedByTheEngine()
     {
         UsersTable u = new("u");
@@ -1629,6 +1616,21 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
             Select(u.Id).From(u).CrossJoinLateral(sub, sub.AsTable("z"))));
+    }
+
+    // #767: MySQL 8.0 has no CUBE, so it rejects GROUP BY CUBE(a) WITH ROLLUP at CUBE; this
+    // pins that rejection, not the grouping-element shape guards-and-empty-states.md names.
+    [Fact]
+    public void GroupByCubeWithRollup_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int?>(
+            Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId).WithRollup());
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int?>(
+            Select(u.DepartmentId).From(u).GroupBy(Cube(u.DepartmentId)).WithRollup()));
     }
 
     // ADR 0017's correction (#767): MySQL reads JOIN LATERAL with no ON as the condition-free

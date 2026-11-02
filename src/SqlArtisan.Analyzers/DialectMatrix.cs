@@ -409,8 +409,8 @@ internal static class DialectMatrix
         [new MatrixKey("With")] = DbmsSupport.All,
         // WithRecursive: the RECURSIVE keyword itself is the gap — Oracle and SQL Server write
         // recursive CTEs as plain WITH and reject WITH RECURSIVE. Oracle rejects it on both
-        // pinned images (XE 21.3.0: ORA-00905, the sweep; Free 23ai: ORA-02000, RECURSIVE parsed
-        // as the query name, Oracle23aiTests.WithRecursive_IsRejectedByTheEngine), so the
+        // pinned images (XE 21.3.0, the sweep; Free 23ai: ORA-02000, RECURSIVE parsed as the
+        // query name, Oracle23aiTests.WithRecursive_IsRejectedByTheEngine), so the
         // once-registered "accepted at 23ai" claim is disproven; no version bound applies.
         [new MatrixKey("WithRecursive")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         // WithColumnList: the explicit CTE column list (`WITH cte(a, b) AS ...`) is standard
@@ -781,7 +781,7 @@ internal static class DialectMatrix
         // without the CTE column list, quoted or bare (ORA-02000, the parser reading RECURSIVE
         // as the query name), and runs the plain-WITH recursive form
         // (Oracle23aiTests.WithRecursive_IsRejectedByTheEngine), disproving the register's
-        // "accepted at 23ai" premise. The Entries comment carries the per-image error codes.
+        // "accepted at 23ai" premise.
         [new MatrixKey("WithRecursive")] = new VersionBounds(mySql: V("8.0")),
         // Oracle 23ai added the <->, <=>, <#> vector distance shorthands (Oracle AI
         // Vector Search User's Guide 23ai); the 21c baseline lacks them. <+>/<~>/<%>

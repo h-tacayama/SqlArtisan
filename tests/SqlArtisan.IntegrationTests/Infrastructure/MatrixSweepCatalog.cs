@@ -318,7 +318,7 @@ internal static class MatrixSweepCatalog
         Add("Ln", _ => Scalar(Ln(1)));
         Add("Log10", _ => Scalar(Log10(1000)));
         AddArity("Log", 1, _ => Scalar(Log(100)));
-        // Oracle-only rounding, for the reason Exp above gives on both engines.
+        // Rounded on Oracle, as Exp above is.
         cases.Add(new SweepCase(new MatrixKey("Log", 2),
             dbms => Scalar(dbms == Dbms.Oracle ? Round(Log(2, 8), 4) : Log(2, 8)),
             NegativeSkips: new Dictionary<Dbms, string>
