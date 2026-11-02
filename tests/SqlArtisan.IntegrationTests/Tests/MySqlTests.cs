@@ -63,6 +63,23 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
                 Select(Format(u.CreatedAt, "yyyy-MM")).From(u).Where(u.Id == 1)));
     }
 
+    // && is MySQL's logical AND: two nonzero operands match every row, a zero one none.
+    [Fact]
+    public void ArrayOverlaps_ReadsAsLogicalAnd()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            5L,
+            connection.ExecuteScalar<long>(
+                Select(Count(u.Id)).From(u).Where(ArrayOverlaps(u.Id, u.Age))));
+        Assert.Equal(
+            0L,
+            connection.ExecuteScalar<long>(
+                Select(Count(u.Id)).From(u).Where(ArrayOverlaps(u.Id, 0))));
+    }
+
     [Fact]
     public void Pagination_LimitOffset_Executes()
     {

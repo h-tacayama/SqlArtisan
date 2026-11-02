@@ -130,9 +130,9 @@ rather than guessed at, so an incomplete matrix can under-warn but never
 produce a false positive.
 
 One kind of entry reports SQL the engine runs: a spelling the dialect reads as
-something else — `||` as logical OR on MySQL, `<=>` as MySQL's NULL-safe
-equality, MySQL's and SQLite's own `FORMAT()`, SQL Server's value-first
-`LOG(x, b)`, `MINUS`, which SQL Server reads as a table alias, and `FULL JOIN`
+something else — `||` as logical OR on MySQL, `&&` as logical AND on MySQL,
+`<=>` as MySQL's NULL-safe equality, MySQL's and SQLite's own `FORMAT()`, SQL
+Server's value-first `LOG(x, b)`, `MINUS`, which SQL Server reads as a table alias, and `FULL JOIN`
 after an unaliased table, which MySQL reads as that table's alias `FULL` before
 an inner `JOIN` when no column the join names is ambiguous. Nothing fails
 there, so the warning is the only signal; where you mean the dialect's own

@@ -58,17 +58,17 @@ faithfully and leave availability to the database and the analyzer (ADR 0003) �
 do not gate it at `Build` time.
 
 **A token the engine reads as something else is unavailable too, and its
-cell is `false`** — `||` (logical OR on MySQL), `<=>` (MySQL's NULL-safe
-equality, not pgvector's cosine distance), the foreign `FORMAT()` of MySQL and
-SQLite, T-SQL's value-first `LOG(x, b)`, and `MINUS`, which SQL Server reads as
-a table alias before a second statement. The engine runs the text, so nothing
+cell is `false`** — `||` (logical OR on MySQL), `&&` (logical AND on MySQL),
+`<=>` (MySQL's NULL-safe equality, not pgvector's cosine distance), the foreign
+`FORMAT()` of MySQL and SQLite, T-SQL's value-first `LOG(x, b)`, and `MINUS`,
+which SQL Server reads as a table alias before a second statement. The engine runs the text, so nothing
 fails; the report is the only layer that sees the meaning change, at the price
 of a report on a deliberate use of the engine's own reading, which a
 suppression at the site removes. Such a cell needs a sweep `NegativeSkip`
 naming the other meaning (none where the sweep's form is rejected at the key
 itself, as `FullJoin`'s aliased form is on MySQL), a per-engine twin that
 asserts that meaning, and, on its own, a `[!NOTE]` docs callout, since the analyzer catches it (`docs-style.md`
-§ "Hazard callouts"); #681 tracks the cells that lack them. The same function
+§ "Hazard callouts"). The same function
 with engine-defined semantics stays `true` and is a docs matter (ADR 0003):
 `LOG(x)`'s base, `STDDEV`'s population or sample. `GroupConcat(expr, sep)` on
 MySQL, which reads `sep` as another value, belongs to the class but stays
@@ -87,8 +87,7 @@ does. Where the API can emit a statement that isolates
 the key, the case uses it, per engine if need be (`Build` receives the engine);
 where the key cannot be emitted without a construct that is itself `false` on
 that engine (a `MERGE` branch step, `DoNothing` after `OnConflict`, `Listagg`
-before its `WITHIN GROUP`), the case says so. #681 tracks the cases that do not
-yet.
+before its `WITHIN GROUP`), the case says so.
 
 Three further classes look like dialect differences but belong in **neither**
 the dialect layer nor a plain matrix entry (the first two identified in the

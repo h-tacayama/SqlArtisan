@@ -177,16 +177,18 @@ internal static class MatrixSweepCatalog
             return With(c.As(Select(u.Id).From(u).Where(u.Age >= 40)))
                 .Select(Count(c.Column("id"))).From(c);
         });
-        Add("WithRecursive", _ =>
+        // Oracle's recursive WITH needs the column list, so there the case carries one and
+        // is rejected at RECURSIVE alone.
+        Add("WithRecursive", dbms =>
         {
             UsersTable ru = new("ru");
             Cte c = new("c");
-            return WithRecursive(
-                    c.As(
-                        Select(ru.Id.As(c.Column("id"))).From(ru).Where(ru.Id == 1)
-                        .UnionAll
-                        .Select(ru.Id).From(ru).InnerJoin(c).On(ru.Id == c.Column("id") + 1)
-                        .Where(ru.Id <= 3)))
+            CommonTableExpression body = c.As(
+                Select(ru.Id.As(c.Column("id"))).From(ru).Where(ru.Id == 1)
+                .UnionAll
+                .Select(ru.Id).From(ru).InnerJoin(c).On(ru.Id == c.Column("id") + 1)
+                .Where(ru.Id <= 3));
+            return WithRecursive(dbms == Dbms.Oracle ? body.WithColumnList() : body)
                 .Select(c.Column("id")).From(c);
         });
         // Non-recursive: MySQL and PostgreSQL require RECURSIVE for a self-reference;
@@ -431,8 +433,8 @@ internal static class MatrixSweepCatalog
         Add("Strftime", _ => Scalar(Strftime("%Y-%m", u.CreatedAt)));
         Add("LastDay", _ => Scalar(LastDay(u.CreatedAt)));
         Add("MonthsBetween", _ => Scalar(MonthsBetween(u.CreatedAt, u.CreatedAt)));
-        Add("Sysdate", _ => Select(Sysdate).From(Dual));
-        Add("Systimestamp", _ => Select(Systimestamp).From(Dual));
+        Add("Sysdate", _ => Scalar(Sysdate));
+        Add("Systimestamp", _ => Scalar(Systimestamp));
         // Isolated from SYSDATE so MySQL's FROM DUAL support is actually exercised.
         Add("Dual", _ => Select(Abs(-1)).From(Dual));
 
@@ -512,7 +514,17 @@ internal static class MatrixSweepCatalog
                 .GroupBy(u.DepartmentId, u.Age).WithRollup()
             : Select(Grouping(u.DepartmentId, u.Age)).From(u).GroupBy(
                 Rollup(u.DepartmentId, u.Age)));
-        AddArity("GroupingId", 2, _ => Select(GroupingId(u.DepartmentId, u.Age)).From(u).GroupBy(Rollup(u.DepartmentId, u.Age)));
+        // MySQL groups through WITH ROLLUP and SQLite has no ROLLUP, so there GROUPING_ID
+        // itself is what the engine rejects.
+        AddArity("GroupingId", 2, dbms => dbms switch
+        {
+            Dbms.MySql => Select(GroupingId(u.DepartmentId, u.Age)).From(u)
+                .GroupBy(u.DepartmentId, u.Age).WithRollup(),
+            Dbms.Sqlite => Select(GroupingId(u.DepartmentId, u.Age)).From(u)
+                .GroupBy(u.DepartmentId, u.Age),
+            _ => Select(GroupingId(u.DepartmentId, u.Age)).From(u)
+                .GroupBy(Rollup(u.DepartmentId, u.Age)),
+        });
 
         // --- Set operators ---
         Add("Union", _ => Select(u.DepartmentId).From(u).Union.Select(u.DepartmentId).From(u));
@@ -542,7 +554,10 @@ internal static class MatrixSweepCatalog
                 + "(ER_NOT_SUPPORTED_YET), "
                 + "though it supports LIMIT itself — proven by the Offset case; covered by context "
                     + "rule SQLA0102 (#264)."));
-        Add("Offset", _ => Select(u.Id).From(u).OrderBy(u.Id).Limit(2).Offset(1));
+        // Build() takes OFFSET only after LIMIT on MySQL and SQLite; elsewhere it stands alone.
+        Add("Offset", dbms => dbms is Dbms.MySql or Dbms.Sqlite
+            ? Select(u.Id).From(u).OrderBy(u.Id).Limit(2).Offset(1)
+            : Select(u.Id).From(u).OrderBy(u.Id).Offset(1));
         Add("OffsetRows", _ => Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).FetchNext(2));
         Add("FetchNext", _ => Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).FetchNext(2));
         // FetchFirst exercises the aliased-scalar-subquery position (#240): the Oracle
@@ -626,8 +641,11 @@ internal static class MatrixSweepCatalog
             _ => Select(u.Id).From(u).Where(ContainsScore(u.Name, "Alice") > 0),
             (Dbms.Oracle, "No Oracle Text CONTEXT index in the container schema; the accept "
                 + "side needs one."));
+        // SCORE alone off Oracle: MySQL would reject the CONTAINS predicate first.
         AddSkips("Score",
-            _ => Select(Score(1)).From(u).Where(ContainsScore(u.Name, "Alice", 1) > 0),
+            dbms => dbms == Dbms.Oracle
+                ? Select(Score(1)).From(u).Where(ContainsScore(u.Name, "Alice", 1) > 0)
+                : Select(Score(1)).From(u).Where(u.Id == 1),
             (Dbms.Oracle, "No Oracle Text CONTEXT index in the container schema; the accept "
                 + "side needs one."));
         AddSkips("Contains",
@@ -642,12 +660,10 @@ internal static class MatrixSweepCatalog
                 "The mssql container image ships without Full-Text Search installed."));
         Add("TsMatch", _ => Select(u.Id).From(u)
             .Where(TsMatch(ToTsvector("english", u.Name), ToTsquery("english", "alice"))));
-        Add("ToTsvector", _ => Select(u.Id).From(u)
-            .Where(TsMatch(ToTsvector("english", u.Name), ToTsquery("english", "alice"))));
-        Add("ToTsquery", _ => Select(u.Id).From(u)
-            .Where(TsMatch(ToTsvector("english", u.Name), ToTsquery("english", "alice"))));
-        Add("PlaintoTsquery", _ => Select(u.Id).From(u)
-            .Where(TsMatch(ToTsvector("english", u.Name), PlaintoTsquery("english", "alice"))));
+        // Each function alone, so a negative stops at its name rather than at @@.
+        Add("ToTsvector", _ => Scalar(ToTsvector("english", u.Name)));
+        Add("ToTsquery", _ => Scalar(ToTsquery("english", "alice")));
+        Add("PlaintoTsquery", _ => Scalar(PlaintoTsquery("english", "alice")));
 
         // --- JSON ---
         Add("JsonExtract", _ => Scalar(JsonExtract(u.Data, "$.name")));
@@ -661,36 +677,56 @@ internal static class MatrixSweepCatalog
             : Scalar(JsonArrowText(u.Data, "$.city")));
         Add("JsonHashArrow", _ => Scalar(JsonHashArrow(u.Data, Cast("{address}", "text[]"))));
         Add("JsonHashArrowText", _ => Scalar(JsonHashArrowText(u.Data, Cast("{address,zip}", "text[]"))));
-        // ARRAY[...] operands on both sides: MySQL has no ARRAY grammar at all (unlike
-        // ||, && isn't sql_mode-dependent there), so the DoublePipe hazard can't recur.
         Add("Array", _ => Scalar(Array("a", "b")));
-        Add("ArrayOverlaps", _ => WherePredicate(ArrayOverlaps(Array("a", "b"), Array("b", "c"))));
-        Add("ArrayContains", _ => WherePredicate(ArrayContains(Array("a", "b"), Array("a"))));
-        Add("ArrayContainedBy", _ => WherePredicate(ArrayContainedBy(Array("a"), Array("a", "b"))));
+        // Off PostgreSQL two columns stand in for the ARRAY[...] operands, so there the
+        // operator is the one construct the engine reads.
+        cases.Add(new SweepCase(new MatrixKey("ArrayOverlaps"),
+            dbms => dbms == Dbms.PostgreSql
+                ? WherePredicate(ArrayOverlaps(Array("a", "b"), Array("b", "c")))
+                : WherePredicate(ArrayOverlaps(u.Name, u.Name)),
+            NegativeSkips: new Dictionary<Dbms, string>
+            {
+                [Dbms.MySql] = "MySQL reads && as logical AND "
+                    + "(MySqlTests.ArrayOverlaps_ReadsAsLogicalAnd).",
+            }));
+        Add("ArrayContains", dbms => dbms == Dbms.PostgreSql
+            ? WherePredicate(ArrayContains(Array("a", "b"), Array("a")))
+            : WherePredicate(ArrayContains(u.Name, u.Name)));
+        Add("ArrayContainedBy", dbms => dbms == Dbms.PostgreSql
+            ? WherePredicate(ArrayContainedBy(Array("a"), Array("a", "b")))
+            : WherePredicate(ArrayContainedBy(u.Name, u.Name)));
         Add("JsonbContains", _ => WherePredicate(JsonbContains(u.Data, Cast("{\"name\":\"n\"}", "jsonb"))));
+        // MySqlConnector binds the ? of these operators as a positional parameter, so on MySQL
+        // the operator never reaches the engine, and no spelling of the key avoids the ?.
         Add("JsonbExists", _ => WherePredicate(JsonbExists(u.Data, "name")));
         Add("JsonbExistsAll", _ => WherePredicate(JsonbExistsAll(u.Data, "name", "address")));
         Add("JsonbExistsAny", _ => WherePredicate(JsonbExistsAny(u.Data, "name", "address")));
-        // pgvector operators (#343): the operators Oracle shares drop the Cast there, as
-        // docs/expressions.md directs.
-        Add("L2Distance", dbms => dbms == Dbms.Oracle
-            ? Scalar(L2Distance("[1,2]", "[3,4]"))
-            : Scalar(L2Distance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))));
+        // pgvector operators (#343): PostgreSQL alone casts the operands. Oracle converts bare
+        // strings (docs/expressions.md); elsewhere they leave the operator the one construct.
+        Add("L2Distance", dbms => dbms == Dbms.PostgreSql
+            ? Scalar(L2Distance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector")))
+            : Scalar(L2Distance("[1,2]", "[3,4]")));
         cases.Add(new SweepCase(new MatrixKey("CosineDistance"),
-            dbms => dbms == Dbms.Oracle
-                ? Scalar(CosineDistance("[1,2]", "[3,4]"))
-                : Scalar(CosineDistance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))),
+            dbms => dbms == Dbms.PostgreSql
+                ? Scalar(CosineDistance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector")))
+                : Scalar(CosineDistance("[1,2]", "[3,4]")),
             NegativeSkips: new Dictionary<Dbms, string>
             {
                 [Dbms.MySql] = "MySQL reads <=> as NULL-safe equality "
                     + "(MySqlTests.CosineDistance_ReadsAsNullSafeEquality).",
             }));
-        Add("NegativeInnerProduct", dbms => dbms == Dbms.Oracle
-            ? Scalar(NegativeInnerProduct("[1,2]", "[3,4]"))
-            : Scalar(NegativeInnerProduct(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))));
-        Add("L1Distance", _ => Scalar(L1Distance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))));
-        Add("HammingDistance", _ => Scalar(HammingDistance(Cast("101", "bit(3)"), Cast("111", "bit(3)"))));
-        Add("JaccardDistance", _ => Scalar(JaccardDistance(Cast("101", "bit(3)"), Cast("111", "bit(3)"))));
+        Add("NegativeInnerProduct", dbms => dbms == Dbms.PostgreSql
+            ? Scalar(NegativeInnerProduct(Cast("[1,2]", "vector"), Cast("[3,4]", "vector")))
+            : Scalar(NegativeInnerProduct("[1,2]", "[3,4]")));
+        Add("L1Distance", dbms => dbms == Dbms.PostgreSql
+            ? Scalar(L1Distance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector")))
+            : Scalar(L1Distance("[1,2]", "[3,4]")));
+        Add("HammingDistance", dbms => dbms == Dbms.PostgreSql
+            ? Scalar(HammingDistance(Cast("101", "bit(3)"), Cast("111", "bit(3)")))
+            : Scalar(HammingDistance("101", "111")));
+        Add("JaccardDistance", dbms => dbms == Dbms.PostgreSql
+            ? Scalar(JaccardDistance(Cast("101", "bit(3)"), Cast("111", "bit(3)")))
+            : Scalar(JaccardDistance("101", "111")));
         // The single array-typed bind (= ANY (:0)) doubles as the live proof of the
         // Dapper ArrayQueryParameter path.
         cases.Add(new SweepCase(new MatrixKey("BindArray"),
@@ -709,11 +745,12 @@ internal static class MatrixSweepCatalog
                     + "(no mapping exists from System.Int32[] to a known managed provider "
                     + "native type), so the statement never reaches the engine's grammar.",
             }));
-        // ARRAY[...] operand (not BindArray) so every parameter is a scalar and each
-        // engine's accept/reject verdict is about the UNNEST grammar itself.
-        Add("Unnest", _ =>
+        // An ARRAY[...] operand on PostgreSQL, not BindArray, so every parameter is a scalar;
+        // elsewhere a bound scalar, so UNNEST is what the engine rejects.
+        Add("Unnest", dbms =>
         {
-            UnnestDerivedTable t = Unnest(Array("a", "b")).AsTable("t");
+            UnnestDerivedTable t = (dbms == Dbms.PostgreSql ? Unnest(Array("a", "b")) : Unnest("a"))
+                .AsTable("t");
             return Select(t.Column("t")).From(t);
         });
 
@@ -748,24 +785,34 @@ internal static class MatrixSweepCatalog
         AddMutating("DoNothing", _ => InsertInto(u, u.Id, u.Name).Values(1, "Sweep").OnConflict(u.Id).DoNothing());
         AddMutating("DoUpdateSet", _ => InsertInto(u, u.Id, u.Name).Values(1, "Sweep").OnConflict(u.Id).DoUpdateSet(u.Name == "Sweep"));
         AddMutating("OnDuplicateKeyUpdate", _ => InsertInto(u, u.Id, u.Name).Values(1, "Sweep").OnDuplicateKeyUpdate(u.Name == Sql.Excluded(u.Name)));
-        AddMutating("Excluded", dbms => dbms == Dbms.MySql
-            ? InsertInto(u, u.Id, u.Name).Values(1, "Sweep").OnDuplicateKeyUpdate(
-                u.Name == Sql.Excluded(u.Name))
-            : InsertInto(u, u.Id, u.Name).Values(1, "Sweep").OnConflict(u.Id).DoUpdateSet(
-                u.Name == Sql.Excluded(u.Name)));
+        // Oracle and SQL Server have no ON CONFLICT, so there a MERGE carries the pseudo-row.
+        AddMutating("Excluded", dbms => dbms switch
+        {
+            Dbms.MySql => InsertInto(u, u.Id, u.Name).Values(1, "Sweep").OnDuplicateKeyUpdate(
+                u.Name == Sql.Excluded(u.Name)),
+            Dbms.Oracle or Dbms.SqlServer => MergeExcludedShape(),
+            _ => InsertInto(u, u.Id, u.Name).Values(1, "Sweep").OnConflict(u.Id).DoUpdateSet(
+                u.Name == Sql.Excluded(u.Name)),
+        });
 
         // --- MERGE ---
         AddMutating("MergeInto", _ => MergeShape());
-        AddMutating("Using", _ => MergeShape());
+        // MySQL and SQLite have no MERGE, so there the key's DELETE ... USING form isolates it.
+        AddMutating("Using", dbms => dbms is Dbms.MySql or Dbms.Sqlite
+            ? DeleteUsingShape()
+            : MergeShape());
         // The literal-row upsert MERGE is the SQL Server hole this closes (also PostgreSQL);
-        // MySQL/SQLite reject at MERGE, Oracle at the VALUES source.
-        cases.Add(new SweepCase(new MatrixKey("Values", 3), _ =>
+        // Oracle rejects the VALUES source, and MySQL and SQLite, with no MERGE, read it in FROM.
+        cases.Add(new SweepCase(new MatrixKey("Values", 3), dbms =>
         {
             UsersTable t = new("t");
             ValuesDerivedTable s = Values("s", ["id", "name"], [[701, "Sweep"]]);
-            return MergeInto(t).Using(s).On(t.Id == s.Column("id"))
-                .WhenMatched().ThenUpdateSet(t.Name == s.Column("name"))
-                .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Column("id"), s.Column("name"));
+            return dbms is Dbms.MySql or Dbms.Sqlite
+                ? Select(s.Column("id")).From(s)
+                : MergeInto(t).Using(s).On(t.Id == s.Column("id"))
+                    .WhenMatched().ThenUpdateSet(t.Name == s.Column("name"))
+                    .WhenNotMatched().ThenInsert(t.Id, t.Name)
+                    .Values(s.Column("id"), s.Column("name"));
         }, Mutating: true));
         AddMutating("WhenMatched", _ => MergeUpdateShape());
         // The conditioned branch: Oracle rejects the AND-on-WHEN spelling (its filter is a
@@ -869,6 +916,21 @@ internal static class MatrixSweepCatalog
                 .On(t.Id == s.Id)
                 .WhenMatched().ThenUpdateSet(t.Name == s.Name)
                 .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Id, s.Name);
+        }
+
+        ISqlBuilder MergeExcludedShape()
+        {
+            UsersTable t = new("t");
+            UsersTable s = new("s");
+            return MergeInto(t).Using(s).On(t.Id == s.Id).WhenMatched().ThenUpdateSet(
+                t.Name == Sql.Excluded(s.Name));
+        }
+
+        ISqlBuilder DeleteUsingShape()
+        {
+            OrdersTable d = new("o");
+            UsersTable j = new("u");
+            return DeleteFrom(d).Using(j).Where((d.UserId == j.Id) & (j.Id < 0));
         }
 
         ISqlBuilder MergeUpdateShape()
