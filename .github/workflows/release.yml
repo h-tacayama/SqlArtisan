@@ -4,11 +4,14 @@ name: Release
 # SqlArtisan.Dapper / SqlArtisan.TableClassGen) to nuget.org. Triggered by pushing a version tag
 # (e.g. v0.4.0-beta.1); the package version comes from Directory.Build.props,
 # not the tag, so keep the tag in sync with VersionPrefix/VersionSuffix.
+# workflow_dispatch re-publishes from main without a new tag, for a release whose
+# tag is already pushed but whose publish failed.
 
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -63,6 +66,8 @@ jobs:
 
   publish:
     needs: integration
+    # A manual run publishes from main only, never from a feature branch.
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     # nuget.org's trusted-publishing policy names this environment; attach
     # required reviewers here to gate the push behind a manual approval.
