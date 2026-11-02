@@ -5,6 +5,25 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Tests
+- Dialect-sweep cases that a `false` engine rejected at another construct the
+  statement needs are now rejected there by the construct they test:
+  `WithRecursive` carries a column list on Oracle, `Offset` stands alone on
+  Oracle and SQL Server, `Sysdate` / `Systimestamp` read from a table,
+  `ToTsvector`, `ToTsquery` and `PlaintoTsquery` run alone, and so does `Score`
+  off Oracle; off PostgreSQL the array predicates take two columns, `Unnest` a
+  bound scalar and the vector distance operators bare strings;
+  `("GroupingId", 2)` groups through `WITH ROLLUP` on MySQL and with no `ROLLUP`
+  on SQLite; `Excluded` sits in a `MERGE` on Oracle and SQL Server; and `Using`
+  and `Values(...)` take `DELETE ... USING` and a `FROM` source on MySQL and
+  SQLite. The `JsonbExists` cases state why MySQL cannot be isolated. (#767)
+- A MySQL twin pins that MySQL 8.0 runs `ArrayOverlaps`' `&&` as logical AND,
+  and the sweep skips that negative. (#767)
+
+### Docs
+- `docs/expressions.md` notes that `ArrayOverlaps` is logical AND on MySQL, and
+  `docs/analyzer.md` lists `&&` among the spellings a dialect reads as something
+  else. (#767)
 
 ## [0.13.0-beta.1] - 2026-11-01
 ### Added

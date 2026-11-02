@@ -549,6 +549,11 @@ SqlStatement sql =
 
 PostgreSQL only. `ArrayOverlaps` (`&&`) tests whether two arrays share at least one element; `ArrayContains` (`@>`) tests whether the left array contains every element of the right one; `ArrayContainedBy` (`<@`) tests the reverse. With no elements, `Array()` emits `ARRAY[]`, which PostgreSQL runs only under a cast — `Cast(Array(), "int[]")` — and rejects bare (observed on PostgreSQL 16.15).
 
+> [!NOTE]
+> **`ArrayOverlaps` on MySQL is logical AND.** Its `&&` is MySQL's own operator there:
+> MySQL 8.0 runs `ArrayOverlaps(u.Id, u.Age)` with no error and matches every row whose
+> two values are nonzero. `SQLA0100` reports it on MySQL.
+
 String elements form a `text[]`; for another element type, pass typed values (`Array(1, 2)` binds an integer array).
 
 To filter a column against a whole .NET collection bound as a single parameter, see [ANY / ALL with a Bound Array](#any--all-with-a-bound-array-postgresql); to expand an array into rows, see [UNNEST as a Table](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#unnest-as-a-table-postgresql).
