@@ -210,10 +210,11 @@ reports under `SQLA0104` with its cell in `ArgumentValueValidity`.
 ceiling: MySQL 8.0 rejects 7 on both and Oracle XE 21.3.0 and 23.26.3 reject
 `CURRENT_TIMESTAMP(10)` (`CurrentTimestamp_PrecisionAboveSix_IsRejectedByTheEngine`,
 `CurrentTimestamp_PrecisionAboveNine_IsRejectedByTheEngine`), while PostgreSQL
-16.15 runs 10, clamped to 6 (`CurrentTimestamp_Precision_RejectsOnlyANegativeOne`).
-It added an Oracle `IntervalLiteral` value of three leading digits under a `DAY`
-or `YEAR` with no precision, which Oracle XE 21.3.0 and 23.26.3 reject and run
-under `DAY(3)` (`IntervalLiteral_ThreeDigitDayOrYearValue_IsRejectedByTheEngine`).
+16.15 runs 10 (`CurrentTimestamp_Precision_RejectsOnlyANegativeOne`).
+It added an Oracle `IntervalLiteral` value of three or more leading digits under a
+`DAY` or `YEAR` with no precision, which Oracle XE 21.3.0 and 23.26.3 reject and run
+once the field's precision covers it, as `DAY(3)` and `DAY(4)` do
+(`IntervalLiteral_DayOrYearValuePastTwoDigits_IsRejectedByTheEngine`).
 Both report under `SQLA0104`, their cells in `ArgumentValueValidity`.
 
 Related: #528, #529 (this change), #523 (the triage that surfaced both),

@@ -606,7 +606,7 @@ public class ArgumentValueValidityAnalyzerTests
             """var e = CurrentTimestamp(9);""",
             AnalyzerVerifier.EditorConfig("oracle"));
 
-    // PostgreSQL runs a precision above 6, clamped to 6.
+    // PostgreSQL runs a precision above 6.
     [Fact]
     public Task CurrentTimestamp_PostgreSql_PrecisionAboveNine_StaysSilent() =>
         RunSilent(

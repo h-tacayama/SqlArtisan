@@ -511,7 +511,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     // #742: SQLA0104's interval cell. Each control differs only by the leading precision,
     // and a three-digit value under another leading field runs with none.
     [Fact]
-    public void IntervalLiteral_ThreeDigitDayOrYearValue_IsRejectedByTheEngine()
+    public void IntervalLiteral_DayOrYearValuePastTwoDigits_IsRejectedByTheEngine()
     {
         using IDbConnection connection = _fixture.OpenConnection();
         (IntervalLiteralExpression Rejected, IntervalLiteralExpression Control)[] pairs =
@@ -520,6 +520,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             (IntervalLiteral("100", Year()), IntervalLiteral("100", Year(3))),
             (IntervalLiteral("100-1", Year(), ToMonth), IntervalLiteral("100-1", Year(3), ToMonth)),
             (IntervalLiteral("100 1", Day(), ToHour), IntervalLiteral("100 1", Day(3), ToHour)),
+            (IntervalLiteral("1000", Day()), IntervalLiteral("1000", Day(4))),
         ];
 
         foreach ((IntervalLiteralExpression rejected, IntervalLiteralExpression control) in pairs)

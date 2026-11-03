@@ -493,7 +493,7 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
     // #742: 23ai rejects SQLA0104's interval cell as 21c does (OracleTests' twin of this
     // name), and runs the same value under another leading field.
     [Fact]
-    public void IntervalLiteral_ThreeDigitDayOrYearValue_IsRejectedByTheEngine()
+    public void IntervalLiteral_DayOrYearValuePastTwoDigits_IsRejectedByTheEngine()
     {
         using IDbConnection connection = _fixture.OpenConnection();
         (IntervalLiteralExpression Rejected, IntervalLiteralExpression Control)[] pairs =
@@ -502,6 +502,7 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
             (IntervalLiteral("100", Year()), IntervalLiteral("100", Year(3))),
             (IntervalLiteral("100-1", Year(), ToMonth), IntervalLiteral("100-1", Year(3), ToMonth)),
             (IntervalLiteral("100 1", Day(), ToHour), IntervalLiteral("100 1", Day(3), ToHour)),
+            (IntervalLiteral("1000", Day()), IntervalLiteral("1000", Day(4))),
         ];
 
         foreach ((IntervalLiteralExpression rejected, IntervalLiteralExpression control) in pairs)

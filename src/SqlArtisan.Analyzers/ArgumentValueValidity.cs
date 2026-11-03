@@ -145,7 +145,7 @@ internal static class ArgumentValueValidity
     internal const string PrecisionParameterName = "precision";
 
     // MySQL 8.0 rejects 7 on both (error 1426), and Oracle XE 21.3.0 and 23.26.3 reject
-    // CURRENT_TIMESTAMP(10) (ORA-30088); PostgreSQL 16.15 runs one above 6, clamped to 6.
+    // CURRENT_TIMESTAMP(10) (ORA-30088); PostgreSQL 16.15 runs CURRENT_TIMESTAMP(10).
     private static readonly Dictionary<(string Member, TargetDbms Dbms), int> PrecisionCeiling =
         new()
         {
@@ -165,8 +165,9 @@ internal static class ArgumentValueValidity
         [3] = "leadingField",
     };
 
-    // Oracle XE 21.3.0 and 23.26.3 reject a three-digit DAY or YEAR value under no precision
-    // (ORA-01873) and run it under DAY(3); they run '100' MONTH, HOUR, MINUTE and SECOND.
+    // Oracle XE 21.3.0 and 23.26.3 reject a DAY or YEAR value of three or more digits under no
+    // precision (ORA-01873) and run it under one that covers it; '100' MONTH, HOUR, MINUTE
+    // and SECOND run under none.
     private static readonly HashSet<string> DefaultPrecisionLeadingFields =
         new(StringComparer.Ordinal) { "Day", "Year" };
 
@@ -206,8 +207,8 @@ internal static class ArgumentValueValidity
         PrecisionCeiling.TryGetValue((memberName, dbms), out int ceiling) ? ceiling : null;
 
     /// <summary>
-    /// Whether <paramref name="dbms"/> is measured to reject a three-digit value under
-    /// the no-precision <paramref name="fieldFactory"/> leading an interval literal.
+    /// Whether <paramref name="dbms"/> is measured to reject a value of three or more digits
+    /// under the no-precision <paramref name="fieldFactory"/> leading an interval literal.
     /// </summary>
     public static bool RejectsThreeDigitLeadingValue(string fieldFactory, TargetDbms dbms) =>
         dbms == TargetDbms.Oracle && DefaultPrecisionLeadingFields.Contains(fieldFactory);

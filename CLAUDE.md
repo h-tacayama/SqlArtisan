@@ -130,7 +130,7 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships eighteen diagnostics:
   constant `Round` scale, which SQLite reads as 0; a string or `char`
   constant beside `+`, which only SQL Server concatenates; a constant
   `CurrentTimestamp` / `CurrentTime` precision above an engine's ceiling; and an
-  Oracle `IntervalLiteral` value of three leading digits under a no-precision
+  Oracle `IntervalLiteral` value of three or more leading digits under a no-precision
   `Day()` or `Year()`. The silence cells are
   load-bearing — Oracle executes a negative `FETCH` and SQLite reads `LIMIT -1`
   as "no limit". Enum values resolve by matching the argument's constant

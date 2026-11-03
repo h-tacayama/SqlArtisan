@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - `SQLA0104` reports a constant `CurrentTimestamp` / `CurrentTime` precision
   above an engine's ceiling: above 6 on MySQL, and above 9 for
-  `CurrentTimestamp` on Oracle. PostgreSQL, which runs one clamped to 6, is not
+  `CurrentTimestamp` on Oracle. PostgreSQL, which runs one above 6, is not
   reported. (#742)
 - `SQLA0104` reports an `IntervalLiteral` value of three or more leading digits
   under a `Day()` or `Year()` with no precision on Oracle, which rejects it
