@@ -1376,7 +1376,9 @@ The rule reads the query passed to `SqlArtisan.Dapper`'s typed `Query`,
 its `Async` form: written at the call, or held in a local that is assigned once,
 where it is declared. In that query it reads the root `Select(...)` — or the
 `Select(...)` right after `With(...)` / `WithRecursive(...)` — and each item there
-aliased `.As(nameof(Model.Member))` or `.As(nameof(instance.Member))`. The alias
+aliased with a `nameof` of a member, such as `.As(nameof(Model.Member))`,
+`.As(nameof(instance.Member))` or `.As(nameof(Member))`; a `nameof` of a local, a
+parameter or a type is not read. The alias
 matches when it names a property or field of the model or of a base type,
 whatever its access, or a parameter of one of its constructors, ignoring case and
 underscores; Dapper ignores underscores only when
@@ -1397,12 +1399,12 @@ cannot see what does:
 - The query is not one the rule can see whole: a local assigned again, a query
   picked by `?:`, `??` or a `switch` expression, or one taken from a field, a
   property, a parameter or a method of your own. A query with a set operation
-  (`UnionAll`, …) is not read either, nor an alias inside a subquery or a
-  `Returning(...)`.
+  (`UnionAll`, …) is not read either, nor an alias inside a subquery, a
+  `Returning(...)` or an `Output(...)`.
 
 Only a `nameof` alias is read. A string alias may be meant for a type map or a
 handler registered at run time, or for an extra column Dapper ignores on
-purpose; a `nameof(x.Member)` alias says the alias is a member name, which is
+purpose; a `nameof` of a member says the alias is a member name, which is
 what lets the rule be on by default.
 
 Two shapes report on code that works. A handler registered for the model with

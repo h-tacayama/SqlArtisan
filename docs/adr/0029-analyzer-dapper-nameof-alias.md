@@ -21,9 +21,9 @@ the rule.
 
 ## Decision
 
-**`SQLA0304`, `SqlArtisan.Validity`, Warning and on by default, reports a
-`nameof(x.Member)` alias in a query's root select list that names no member of
-the model a typed `SqlArtisan.Dapper` verb reads the row into.**
+**`SQLA0304`, `SqlArtisan.Validity`, Warning and on by default, reports an
+alias written as a `nameof` of a member in a query's root select list that names
+no member of the model a typed `SqlArtisan.Dapper` verb reads the row into.**
 
 ### What it reads
 
@@ -33,10 +33,11 @@ form, recognized by the type `SqlArtisan.Dapper.SqlMapper` in the assembly of
 that name. From there the walk goes through SqlArtisan's instance methods to
 the static `Sql.Select(...)`, or to a `Select(...)` on the static
 `Sql.With(...)` / `Sql.WithRecursive(...)`, and reads that call's
-compiler-built `params` items aliased with a `nameof` of a member. A name
-matches a property or field of the model or a base type, whatever its access,
-or a parameter of one of its constructors, ignoring case and underscores — wider
-than Dapper, which ignores underscores only with `MatchNamesWithUnderscores` set.
+compiler-built `params` items aliased with a `nameof` of a member; a `nameof`
+of a local, a parameter or a type is not read. A name matches a property or
+field of the model or a base type, whatever its access, or a parameter of one of
+its constructors, ignoring case and underscores — wider than Dapper, which
+ignores underscores only with `MatchNamesWithUnderscores` set.
 
 ### Following a local assigned once
 
@@ -75,7 +76,7 @@ expression.
 
 A string alias may be meant for a type map or a handler registered at run
 time, or for an extra column Dapper ignores on purpose, such as a pagination
-row number. A `nameof(x.Member)` alias says the alias is a member name, so
+row number. A `nameof` of a member says the alias is a member name, so
 name-based mapping is the declared intent; string aliases get no rule.
 
 Two shapes still report on code that works, and are suppressed per ID: a

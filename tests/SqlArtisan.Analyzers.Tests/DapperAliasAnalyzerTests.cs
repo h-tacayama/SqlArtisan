@@ -138,6 +138,22 @@ public class DapperAliasAnalyzerTests
             var r = cnn.Query<OrderSummary>(q);
             """);
 
+    // A member of the calling type is a member name too, so it is read like Model.Member.
+    [Fact]
+    public Task UnqualifiedMemberNameOf_ReportsSqla0304() =>
+        RunReporting(string.Empty, """
+            class Repo
+            {
+                public string Name { get; set; }
+
+                void N(IDbConnection cnn)
+                {
+                    T t = new T("t");
+                    var r = cnn.Query<OrderSummary>(Select(t.Code.As({|#0:nameof(Name)|})).From(t));
+                }
+            }
+            """);
+
     [Fact]
     public Task DerivedModel_ReportsSqla0304() =>
         RunReporting(
@@ -305,6 +321,8 @@ public class DapperAliasAnalyzerTests
 
     [Theory]
     [InlineData("string Name = \"Name\";", "t.Code.As(nameof(Name))")]
+    [InlineData("", "t.Code.As(nameof(cnn))")]
+    [InlineData("", "t.Code.As(nameof(CustomerSummary))")]
     [InlineData("", "t.Code.As(\"Name\")")]
     [InlineData("", "t.Code.As(t.Amount)")]
     [InlineData("ExpressionAlias a = t.Code.As(MISS);", "a")]
