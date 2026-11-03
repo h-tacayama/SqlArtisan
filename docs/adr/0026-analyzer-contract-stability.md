@@ -1,6 +1,8 @@
 # ADR 0026 — The analyzer's contract: what a release may change in its IDs and configuration
 
-**Status:** Accepted
+**Status:** Accepted — a category added later, with its band, is a minor
+release and covered from then on, per
+[ADR 0028](0028-analyzer-new-category-band.md).
 
 ## Context
 
