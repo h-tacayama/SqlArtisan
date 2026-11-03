@@ -31,6 +31,7 @@ public interface IJoinOperator
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
     /// <returns>The builder positioned back in the <c>FROM</c> state.</returns>
+    /// <remarks>MySQL (8.0.14+), Oracle, and PostgreSQL syntax.</remarks>
     ISelectBuilderFrom CrossJoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
@@ -58,6 +59,7 @@ public interface IJoinOperator
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
     /// <returns>The builder positioned to supply the join predicate.</returns>
+    /// <remarks>MySQL (8.0.14+), Oracle, and PostgreSQL syntax.</remarks>
     ISelectBuilderJoin JoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
@@ -76,6 +78,7 @@ public interface IJoinOperator
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
     /// <returns>The builder positioned back in the <c>FROM</c> state.</returns>
+    /// <remarks>MySQL (8.0.14+), Oracle (23ai+), and PostgreSQL syntax.</remarks>
     ISelectBuilderFrom LeftJoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>

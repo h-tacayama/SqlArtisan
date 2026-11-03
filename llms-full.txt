@@ -1161,7 +1161,7 @@ SqlStatement sql =
 - `SkipLocked` for `SKIP LOCKED`
 - `Wait()` for `WAIT`
 
-**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Wait(...)` is Oracle-only, and `Of(...)` has one form per side: `Of(column)` is Oracle's, which MySQL and PostgreSQL reject, and `Of(table, ...)` is theirs, which Oracle rejects. Oracle XE 21.3.0 and PostgreSQL 16 also reject `FOR UPDATE` over a grouped query, where MySQL 8.0 locks the base rows; the analyzer reports that position as `SQLA0102`. Oracle XE 21.3.0 rejects it after a row-limiting clause as well (`FETCH FIRST` / `OFFSET ... ROWS`), which PostgreSQL 16 runs; MySQL 8.0 has neither clause and runs its own `LIMIT ... FOR UPDATE`. Also `SQLA0102`. Oracle takes `FOR UPDATE` only in a top-level `SELECT`, so Oracle XE 21.3.0 and Free 23ai reject a locked subquery, CTE body or derived table; MySQL 8.0 and PostgreSQL 16 run a locked `IN` subquery, CTE body and derived table. `SQLA0102` reports the Oracle position too.
+**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Wait(...)` is Oracle-only, and `Of(...)` has one form per side: `Of(column)` is Oracle's, which MySQL and PostgreSQL reject, and `Of(table, ...)` is theirs (MySQL from a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)), which Oracle rejects. Oracle XE 21.3.0 and PostgreSQL 16 also reject `FOR UPDATE` over a grouped query, where MySQL 8.0 locks the base rows; the analyzer reports that position as `SQLA0102`. Oracle XE 21.3.0 rejects it after a row-limiting clause as well (`FETCH FIRST` / `OFFSET ... ROWS`), which PostgreSQL 16 runs; MySQL 8.0 has neither clause and runs its own `LIMIT ... FOR UPDATE`. Also `SQLA0102`. Oracle takes `FOR UPDATE` only in a top-level `SELECT`, so Oracle XE 21.3.0 and Free 23ai reject a locked subquery, CTE body or derived table; MySQL 8.0 and PostgreSQL 16 run a locked `IN` subquery, CTE body and derived table. `SQLA0102` reports the Oracle position too.
 
 > [!WARNING]
 > **On MySQL, `ForUpdate(...)` after a set operator locks only the last branch's rows.** MySQL 8.0
@@ -4309,7 +4309,7 @@ verdict exactly; where the bound sits above the dialect's verified baseline
 | `JsonValue` | MySQL | 8.0.21 | `JSON_VALUE` landed in 8.0.21. |
 | `Except`, `ExceptAll`, `IntersectAll`, `MinusAll` | Oracle | 21 | `EXCEPT`, `EXCEPT ALL`, `INTERSECT ALL`, and `MINUS ALL` landed in Oracle 21c (plain `INTERSECT`/`MINUS` predate it) — live-verified forward-compatible on Oracle 23ai too. |
 | `LeftJoinLateral` | Oracle | 23 | Its `ON TRUE` needs the `TRUE` literal, new in Oracle 23ai — Oracle XE 21.3.0 rejects it. |
-| `Values` (the `Sql.Values(alias, columnNames, rows)` source) | Oracle | 23 | The `VALUES` table value constructor is new in Oracle 23ai — Oracle XE 21.3.0 rejects it in `FROM` and in `MERGE ... USING`. |
+| `Values` (the `Sql.Values(alias, columnNames, rows)` source) | Oracle | 23 | The `VALUES` table value constructor is new in Oracle 23ai — Oracle XE 21.3.0 rejects it in `MERGE ... USING`. |
 | `L2Distance`, `CosineDistance`, `NegativeInnerProduct` | Oracle | 23 | The `<->`, `<=>`, and `<#>` vector distance shorthands landed with Oracle 23ai's AI Vector Search (the other three pgvector operators have no Oracle spelling at any version). |
 | `MergeInto`, `WhenMatched`, `WhenNotMatched`, `ThenInsert`, `ThenUpdateSet`, `ThenDelete` | PostgreSQL | 15 | `MERGE` landed in PostgreSQL 15. `Using` itself carries no bound — the key is shared with `DeleteBuilder`'s plain `DELETE ... USING`, which predates and does not require PostgreSQL 15; the `MergeInto` bound still flags a MERGE statement below 15. |
 | `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr`, `RegexpInstr` | PostgreSQL | 15 | `regexp_like`, `regexp_count`, `regexp_substr`, and `regexp_instr` landed in PostgreSQL 15. `regexp_replace` predates it — 15 is where it gained the position and occurrence arguments — so the bound covers only `RegexpReplace`'s position/occurrence/options overloads (4+ arguments); the 3-argument call is not reported below 15. MySQL's `REGEXP_SUBSTR`/`REGEXP_INSTR` top out at 5/6 arguments respectively (neither has `subexpr`), so `RegexpSubstr`'s 6-argument and `RegexpInstr`'s 7-argument overloads are MySQL-unsupported at any version, independent of this PostgreSQL bound. |
@@ -5913,7 +5913,9 @@ SqlStatement sql =
 This shape runs on all five dialects (only markers and quoting differ). On
 MySQL, Oracle, PostgreSQL, and SQL Server, a
 [row-limited `LATERAL` / `APPLY` subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#row-limited-queries-as-subqueries)
-is the per-group top-N alternative.
+is the per-group top-N alternative (MySQL takes `LATERAL` from a specific
+release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)).
 
 ### Pivoting rows to columns
 
