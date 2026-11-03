@@ -96,8 +96,8 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   configuration surface, correcting 0009's patch-release claim and 0022's on
   splitting an ID; 0028 lets a later release add a category with its own band
   as a minor change, covered from then like 0018's four; 0029 adds SQLA0304,
-  the first rule to follow a local and to couple to `SqlArtisan.Dapper` and
-  Dapper beyond 0009's three points.
+  which follows a builder chain through a local assigned once and couples to
+  `SqlArtisan.Dapper` and Dapper beyond 0009's three points.
 
 ## Consolidation trigger
 

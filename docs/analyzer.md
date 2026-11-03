@@ -118,7 +118,7 @@ still needs naming by ID.
 | `SQLA0301` | Warning | `==` or `!=` that C# resolves as reference equality, because the left operand is not a SqlArtisan expression, passed to a SqlArtisan member or operator — it binds a `bool` instead of comparing in SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
 | `SQLA0302` | Warning | A SqlArtisan object interpolated or concatenated into a string passed to a SqlArtisan member or operator — it binds the object's type name instead of SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
 | `SQLA0303` | Warning | A comparison (`==`, `!=`, `<`, `<=`, `>`, `>=`), a `NotIn(...)` list, an `In(...)` list of NULLs alone, a `Between(...)` bound or a `Like(...)` / `NotLike(...)` pattern that is `Sql.Null` or `BindNull()`, or a simple CASE `When(Null)`, which is never true, so the predicate matches no row; see [Comparisons with NULL](#comparisons-with-null-sqla0303). |
-| `SQLA0304` | Warning | A `nameof` alias in the root select list of a query read by a typed `SqlArtisan.Dapper` verb (`Query<T>`, `QuerySingle<T>`, …) names no member of `T`, so Dapper ignores the column and leaves the member it was meant for at its default; see [Dapper model aliases](#dapper-model-aliases-sqla0304). |
+| `SQLA0304` | Warning | A `nameof` alias in the root select list of a query read by a typed `SqlArtisan.Dapper` verb (`Query<T>`, `QuerySingle<T>`, …) names no member of `T`, so Dapper cannot map the column to the member it was meant for; see [Dapper model aliases](#dapper-model-aliases-sqla0304). |
 
 `SQLA0001` is a compilation-end diagnostic with no file location: it appears in **build** output (CLI and CI, and an IDE's Error
 List after an explicit build — check that the list's source filter includes
@@ -1356,10 +1356,10 @@ or `dotnet_diagnostic.SQLA0303.severity`).
 
 A `nameof` alias ties a column to the member of the model Dapper reads it into,
 so renaming the member renames the alias. It compiles just as well when it names
-a member of another type, and Dapper then ignores the column: a model it fills
-through a parameterless constructor keeps that member at its default, with no
-error (Dapper 2.1.66 on SQLite, live:
-`SqliteTests.QueryNameOfAlias_ParameterlessModel_MapsByMemberName`).
+a member of another type, and Dapper then cannot map the column: a model it
+fills through a parameterless constructor keeps that member at its default, with
+no error, and one it builds through a constructor throws (Dapper 2.1.66 on
+SQLite, live: `SqliteTests.QueryNameOfAlias_*`).
 `SQLA0304` reports such an alias.
 
 ```csharp
@@ -1368,7 +1368,7 @@ IEnumerable<OrderSummary> rows = cnn.Query<OrderSummary>(
     Select(o.OrderCode.As(nameof(CustomerSummary.Name)), Sum(o.Amount).As(nameof(OrderSummary.Total)))
     .From(o)
     .GroupBy(o.OrderCode));
-// warning SQLA0304: Alias 'Name' names no member of 'OrderSummary', so Dapper ignores the column and ...
+// warning SQLA0304: Alias 'Name' names no member of 'OrderSummary', so Dapper cannot map the column ...
 ```
 
 The rule reads the query passed to `SqlArtisan.Dapper`'s typed `Query`,
@@ -1882,7 +1882,7 @@ for, not a bug in the matrix.
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)
   for what's entered.
 - **The dialect-independent rules need a configured target too.**
-  `SQLA0300`–`SQLA0304` and the schema-aware `SQLA0200`–`SQLA0205` report
+  `SQLA0300`–`SQLA0304` and the schema-aware `SQLA0200`–`SQLA0206` report
   facts that hold on every engine, but every rule from `SQLA0100` on stays
   silent until a dialect is configured — without one, `SQLA0300`'s `Build()`
   guard is the only report and the schema rules have none.

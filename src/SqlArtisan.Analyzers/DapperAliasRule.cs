@@ -232,7 +232,7 @@ internal static class DapperAliasRule
     {
         IOperation child = reference;
         IOperation? parent = reference.Parent;
-        while (parent is ITupleOperation)
+        while (parent is ITupleOperation or IConditionalOperation { IsRef: true })
         {
             child = parent;
             parent = parent.Parent;

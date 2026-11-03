@@ -172,7 +172,7 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships eighteen diagnostics:
   read as a `SqlCondition` (`docs/analyzer.md` names the silent cases).
 - **SQLA0304** — A `nameof` alias in the root select list of a query read by a
   typed `SqlArtisan.Dapper` verb (`Query<T>`, …) that names no member of `T`, so
-  Dapper ignores the column and leaves the member at its default. Follows a local
+  Dapper cannot map the column to the member. Follows a local
   assigned once at its declaration; silent for a model declared in another
   assembly (**ADR 0029**).
 

@@ -260,6 +260,19 @@ public class DapperAliasAnalyzerTests
     public Task Chain_NotFollowed_Silent(string declaration) =>
         RunSilent(declaration + " var r = cnn.Query<OrderSummary>(q);", Holders);
 
+    // A write through a ref alias or a ref conditional reaches q under another name.
+    [Theory]
+    [InlineData("ref ISqlBuilder a = ref q; a = Select(t.Code).From(t);")]
+    [InlineData("ref ISqlBuilder a = ref (f ? ref q : ref x); a = Select(t.Code).From(t);")]
+    [InlineData("(f ? ref q : ref x) = Select(t.Code).From(t);")]
+    [InlineData("Helpers.Ref(ref f ? ref q : ref x);")]
+    public Task Chain_WrittenThroughARef_Silent(string write) =>
+        RunSilent(
+            "ISqlBuilder q = SEL; ISqlBuilder x = null; bool f = true; "
+                + write
+                + " var r = cnn.Query<OrderSummary>(q);",
+            Holders);
+
     [Fact]
     public Task Chain_FromHelperMethod_Silent() =>
         RunSilent("var r = cnn.Query<OrderSummary>(Holders.Method());", Holders);

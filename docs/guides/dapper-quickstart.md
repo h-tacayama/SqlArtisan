@@ -136,7 +136,7 @@ IEnumerable<UserSummary> summaries = await connection.QueryAsync<UserSummary>(
 
 > [!NOTE]
 > **`nameof` compiles just as well when it names a member of another type**, and
-> Dapper then ignores the column: a model it fills through a parameterless
+> Dapper then cannot map the column: a model it fills through a parameterless
 > constructor keeps that member at its default, with no error. Once a dialect is
 > configured, the analyzer reports such an alias where it can read the query.
 

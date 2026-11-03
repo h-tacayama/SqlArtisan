@@ -113,7 +113,8 @@ An opt-in Roslyn analyzer that reports configuration problems; constructs,
 identifiers and argument values a target dialect doesn't support; what the
 generated table classes' schema metadata says about a query; and validity
 problems — a correlated DML target `Build()` would reject, C# that binds a
-value instead of building SQL, or a comparison with NULL that is never true.
+value instead of building SQL, a comparison with NULL that is never true, or a
+`nameof` alias no member of the Dapper model takes.
 
 [Enabling It](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it) ·
 [Rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules) ·

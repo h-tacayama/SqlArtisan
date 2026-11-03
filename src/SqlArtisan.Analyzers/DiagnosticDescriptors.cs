@@ -289,8 +289,8 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor DapperAliasNamesNoMember = new(
         id: "SQLA0304",
         title: "A nameof alias names no member of the model Dapper reads the row into",
-        messageFormat: "Alias '{0}' names no member of '{1}', so Dapper ignores the column and "
-            + "leaves the member it was meant for at its default",
+        messageFormat: "Alias '{0}' names no member of '{1}', so Dapper cannot map the column to "
+            + "the member it was meant for",
         category: ValidityCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,

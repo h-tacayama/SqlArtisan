@@ -7,15 +7,16 @@
 Mapping a `SELECT` into a model whose members are named differently from the
 columns takes an alias per column, and `nameof` keeps the alias tied to the
 member through a rename. It compiles just as well when it names a member of
-another type, and Dapper then ignores the column: a model it fills through a
-parameterless constructor keeps that member at its default, with no error
-(Dapper 2.1.66 on SQLite, `SqliteTests.QueryNameOfAlias_ParameterlessModel_MapsByMemberName`).
+another type, and Dapper then cannot map the column: a model it fills through a
+parameterless constructor keeps that member at its default, with no error, and
+one it builds through a constructor throws (Dapper 2.1.66 on SQLite,
+`SqliteTests.QueryNameOfAlias_*`).
 
 `SqlArtisan.Dapper` runs a builder chain through Dapper, so the query and the
-model it is read into meet at one call. No rule read the code that consumes a
-query before this one, and none followed a local: ADR 0010 leaves a chain
-assembled across statements alone, and `.claude/rules/analyzer-rules.md` holds
-that a climb leaving through a variable proves nothing beyond it. #716 proposed
+model it is read into meet at one call. ADR 0010 leaves a chain assembled
+across statements alone, and `.claude/rules/analyzer-rules.md` holds that a
+climb leaving through a variable proves nothing beyond it; `SQLA0300` follows a
+DML target's local to the table its initializer constructs. #716 proposed
 the rule.
 
 ## Decision
@@ -41,7 +42,8 @@ than Dapper, which ignores underscores only with `MatchNamesWithUnderscores` set
 
 The walk follows a local declared with an initializer and written nowhere else
 in its member — lambdas and local functions included, a `ref`, `out` or `in`
-argument and a `ref` alias counted as writes. That is sound here because the
+argument and a write through a `ref` alias or a `ref` conditional counted as
+writes. That is sound here because the
 verdict reads only what the root `Select(...)` fixes: select items are taken only
 by `Sql.Select` and `ISelectBuilder.Select`, and the walk accepts the latter only
 on the static `Sql.With(...)` / `Sql.WithRecursive(...)` — never after a set

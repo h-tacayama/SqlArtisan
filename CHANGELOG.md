@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - `SQLA0304` reports a `nameof` alias in a query's root select list that names no
   member of the model a typed `SqlArtisan.Dapper` verb (`Query<T>`,
-  `QuerySingle<T>`, …) reads the row into. Dapper ignores such a column, and a
+  `QuerySingle<T>`, …) reads the row into. Dapper cannot map such a column: a
   model it fills through a parameterless constructor keeps that member at its
   default with no error. On by default; a string alias is not read. (#716)
 
