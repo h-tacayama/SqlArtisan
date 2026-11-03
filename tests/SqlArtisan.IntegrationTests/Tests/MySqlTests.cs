@@ -1563,4 +1563,85 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.Equal(0, connection.ExecuteScalar<int>(
             Select(u.Name + u.Name).From(u).Where(u.Id == 1)));
     }
+
+    // #767: DbmsResolver registers MySql.Data too, so the ?n markers bind through it, ?1
+    // apart from ?10.
+    [Fact]
+    public void NumberedMarkers_BindThroughMySqlData()
+    {
+        UsersTable u = new();
+        using MySql.Data.MySqlClient.MySqlConnection connection =
+            new(_fixture.ConnectionString + ";AllowPublicKeyRetrieval=True");
+        connection.Open();
+
+        Assert.Equal(
+            new[] { "Bob" },
+            connection.Query<string>(
+                Select(u.Name).From(u).Where((u.Id == 2) & (u.Age == 40))));
+        Assert.Equal(
+            new[] { "Carol" },
+            connection.Query<string>(
+                Select(u.Name).From(u).Where(u.Id.In(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3))));
+    }
+
+    // #767: the shapes guards-and-empty-states.md leaves to the engine (#675), run here too;
+    // each control runs, so the assertion fails only for the shape it names.
+    [Fact]
+    public void RangeOffset_SeveralOrderByKeys_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<long>(
+            Select(Count(u.Id).Over(OrderBy(u.Id).RangeBetween(Preceding(1), CurrentRow)))
+            .From(u));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<long>(
+            Select(Count(u.Id).Over(OrderBy(u.Id, u.Age).RangeBetween(Preceding(1), CurrentRow)))
+            .From(u)));
+    }
+
+    [Fact]
+    public void CrossJoinLateral_SourceCarryingDerivedTable_IsRejectedByTheEngine()
+    {
+        UsersTable u = new("u");
+        UsersTable s = new("s");
+        using IDbConnection connection = _fixture.OpenConnection();
+        ISubquery sub = Select(s.Id).From(s).Where(s.Id == u.Id);
+
+        connection.Query<int>(
+            Select(u.Id).From(u).CrossJoinLateral(sub, new DerivedTable("z")));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.Id).From(u).CrossJoinLateral(sub, sub.AsTable("z"))));
+    }
+
+    // #767: MySQL 8.0 has no CUBE, so it rejects GROUP BY CUBE(a) WITH ROLLUP at CUBE; this
+    // pins that rejection, not the grouping-element shape guards-and-empty-states.md names.
+    [Fact]
+    public void GroupByCubeWithRollup_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int?>(
+            Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId).WithRollup());
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int?>(
+            Select(u.DepartmentId).From(u).GroupBy(Cube(u.DepartmentId)).WithRollup()));
+    }
+
+    // ADR 0017's correction (#767): MySQL reads JOIN LATERAL with no ON as the condition-free
+    // join, so it returns CROSS JOIN LATERAL's rows.
+    [Fact]
+    public void JoinLateralWithoutOn_ReturnsTheCrossJoinLateralRows()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        const string Body =
+            " LATERAL (SELECT o.id FROM orders o WHERE o.user_id = u.id) x ORDER BY u.id, x.id";
+
+        Assert.Equal(
+            connection.Query<int>("SELECT u.id FROM users u CROSS JOIN" + Body),
+            connection.Query<int>("SELECT u.id FROM users u JOIN" + Body));
+    }
 }

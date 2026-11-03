@@ -1739,4 +1739,80 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.ThrowsAny<DbException>(() => connection.Query<object>(
             Select(u.DepartmentId).From(u).GroupBy(Cube(u.DepartmentId, Group()))));
     }
+
+    // #767: why MatrixSweepCatalog rounds EXP on Oracle — the full NUMBER fails in the
+    // reader, client-side, while the rounded value reads.
+    [Fact]
+    public void Exp_UnroundedNumber_FailsInTheReader()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(Select(Round(Exp(1), 4)).From(u).Where(u.Id == 1));
+
+        Exception ex = Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            Select(Exp(1)).From(u).Where(u.Id == 1)));
+        Assert.IsNotAssignableFrom<DbException>(ex);
+    }
+
+    // DialectMatrix's WithColumnList note: a recursive plain WITH runs with the list only.
+    [Fact]
+    public void RecursiveWithWithoutColumnList_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        const string Body =
+            " AS (SELECT 1 AS n FROM DUAL UNION ALL SELECT n + 1 FROM c WHERE n < 3) "
+            + "SELECT n FROM c";
+
+        Assert.Equal(3, connection.Query<int>("WITH c (n)" + Body).Count());
+
+        OracleException ex = Assert.Throws<OracleException>(
+            () => connection.Query<int>("WITH c" + Body));
+        Assert.Equal(32039, ex.Number);
+    }
+
+    // #767: the shapes guards-and-empty-states.md leaves to the engine (#675), run here too;
+    // each control runs, so the assertion fails only for the shape it names.
+    [Fact]
+    public void RangeOffset_SeveralOrderByKeys_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<long>(
+            Select(Count(u.Id).Over(OrderBy(u.Id).RangeBetween(Preceding(1), CurrentRow)))
+            .From(u));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<long>(
+            Select(Count(u.Id).Over(OrderBy(u.Id, u.Age).RangeBetween(Preceding(1), CurrentRow)))
+            .From(u)));
+    }
+
+    [Fact]
+    public void PercentileWithinGroup_SeveralKeys_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<double?>(
+            Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age))).From(u));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<double?>(
+            Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age, u.Id))).From(u)));
+    }
+
+    [Fact]
+    public void CrossJoinLateral_SourceCarryingDerivedTable_IsRejectedByTheEngine()
+    {
+        UsersTable u = new("u");
+        UsersTable s = new("s");
+        using IDbConnection connection = _fixture.OpenConnection();
+        ISubquery sub = Select(s.Id).From(s).Where(s.Id == u.Id);
+
+        connection.Query<int>(
+            Select(u.Id).From(u).CrossJoinLateral(sub, new DerivedTable("z")));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.Id).From(u).CrossJoinLateral(sub, sub.AsTable("z"))));
+    }
 }

@@ -1,6 +1,6 @@
 # ADR 0017 — Join predicate completeness: rejecting an omitted `ON`/`USING` that some dialects silently reinterpret as `CROSS JOIN`
 
-**Status:** Accepted; corrected in #675 (§ Correction)
+**Status:** Accepted; corrected in #675 (§ Correction (#675)) and #767 (§ Correction (#767))
 
 ## Context
 
@@ -164,3 +164,12 @@ The rejection is unchanged; these points narrow what the text above claims:
   condition-free form is `CrossJoinLateral`, not `CrossJoin`. Its MySQL
   leniency above rests on the bare-`JOIN` run, and no twin runs
   `JOIN LATERAL` with no `ON` there.
+
+## Correction (#767)
+
+- MySQL 8.0 runs `JOIN LATERAL (...) x` with no `ON` and returns the rows
+  `CROSS JOIN LATERAL` returns
+  (`MySqlTests.JoinLateralWithoutOn_ReturnsTheCrossJoinLateralRows`). The
+  MySQL leniency claimed for `JoinLateral` above rests on that run, and the
+  #675 correction's "no twin runs `JOIN LATERAL` with no `ON` there" no longer
+  holds.

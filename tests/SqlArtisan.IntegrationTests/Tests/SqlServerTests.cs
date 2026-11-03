@@ -1698,4 +1698,34 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.ThrowsAny<DbException>(() => connection.Query<object>(
             Select(u.DepartmentId).From(u).GroupBy(Cube(u.DepartmentId, Group()))));
     }
+
+    // DialectMatrix's Range note: RANGE takes UNBOUNDED and CURRENT ROW bounds only.
+    [Fact]
+    public void RangeOffset_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<long>(
+            Select(Count(u.Id).Over(OrderBy(u.Id).RangeBetween(UnboundedPreceding, CurrentRow)))
+            .From(u));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<long>(
+            Select(Count(u.Id).Over(OrderBy(u.Id).RangeBetween(Preceding(1), CurrentRow)))
+            .From(u)));
+    }
+
+    // #767: the shape guards-and-empty-states.md leaves to the engine (#675), run here too.
+    [Fact]
+    public void PercentileWithinGroup_SeveralKeys_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<double?>(
+            Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age)).Over()).From(u));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<double?>(
+            Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age, u.Id)).Over()).From(u)));
+    }
 }

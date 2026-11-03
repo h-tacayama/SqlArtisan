@@ -72,12 +72,9 @@ public abstract class DbTableBase : TableReference
     internal void FormatNameWithoutSchema(SqlBuildingBuffer buffer) =>
         buffer.Append(NameWithoutSchema);
 
-    // Renders the reference a predicate targets by table (SQLite FTS5
-    // `tbl MATCH ...`). FTS5 resolves the target as the hidden column named
-    // after the table, so an aliased table must qualify it (`"a".tbl`) — a bare
-    // quoted alias falls back to a string literal (no such column) and fails
-    // with "unable to use function MATCH in the requested context". A schema
-    // there reads as a qualifier (`main.ft` is "no such column", SQLite 3.45.1).
+    // Renders the reference a predicate targets by table (SQLite FTS5 `tbl MATCH ...`), resolved as
+    // the hidden column named after the table: an aliased table qualifies it (`"a".tbl`), since a
+    // bare quoted alias names no column and a schema reads as a qualifier (SQLite 3.50.4).
     internal void FormatAsMatchTarget(SqlBuildingBuffer buffer)
     {
         if (!string.IsNullOrEmpty(_tableAlias))
