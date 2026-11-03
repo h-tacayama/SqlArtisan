@@ -5045,7 +5045,8 @@ var q = Select(u.CreatedAt + IntervalLiteral("365", Day())).From(u);
 
 Only a `Day()` or `Year()` written in the call itself is checked: a field held in a
 variable, or one with a precision, is not. Nor is a value that opens with a sign,
-a space or a zero.
+a space or a zero. A range Oracle does not allow, such as `Day()` to `ToMonth`, is
+rejected at the call instead.
 
 Every match-option, `GROUP BY`, row-count, scale, operand, precision and
 interval-value verdict above — the rejections
@@ -5069,8 +5070,8 @@ Five cases, never a false positive:
   would otherwise double-report the same usage.
 - **A `Round` scale typed `double`, `float` or `decimal`** — `Round(x, -1.0)` is
   not checked; see [A negative `ROUND` scale](#a-negative-round-scale).
-- **An interval value under a leading field with a precision or held in a
-  variable, or opening with a sign, a space or a zero** — not checked; see
+- **An interval value under a field held in a variable or a leading field with a
+  precision, or opening with a sign, a space or a zero** — not checked; see
   [An Oracle interval value past the default leading precision](#an-oracle-interval-value-past-the-default-leading-precision).
 
 Suppression is per rule ID (`#pragma warning disable SQLA0104`, a

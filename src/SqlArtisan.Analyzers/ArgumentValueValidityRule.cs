@@ -105,8 +105,8 @@ internal static class ArgumentValueValidityRule
             invalidOn);
     }
 
-    // The leading field must be the factory call itself, written with no precision; a
-    // field held in a variable could carry one, so it stays silent.
+    // The fields must be the factory calls themselves, the lead written with no precision: a
+    // field held in a variable could carry one, or form a range the call rejects.
     private static void CheckIntervalLeadingValue(
         OperationAnalysisContext context,
         IInvocationOperation invocation,
@@ -123,6 +123,7 @@ internal static class ArgumentValueValidityRule
                 is not IInvocationOperation { TargetMethod: { Parameters.Length: 0 } field }
             || field.ContainingType?.ToDisplayString() != "SqlArtisan.Sql"
             || !DialectUsageAnalyzer.IsFromSqlArtisan(field.ContainingAssembly)
+            || fieldParameter == "leadingField" && !FormsAdmittedRange(field, invocation)
             || ValueDomainScope.For(context, invocation) is not { } scope)
         {
             return;
@@ -140,6 +141,23 @@ internal static class ArgumentValueValidityRule
         }
 
         Report(context, argument, memberName, text, IntervalValueNoun, invalidOn);
+    }
+
+    private static bool FormsAdmittedRange(IMethodSymbol leading, IInvocationOperation invocation)
+    {
+        IOperation? trailing = FindArgument(
+            invocation.Arguments,
+            ArgumentValueValidity.IntervalTrailingFieldParameterName)?.Value;
+        (ISymbol? factory, int arity) = trailing switch
+        {
+            IPropertyReferenceOperation { Property: { } property } => (property, 0),
+            IInvocationOperation { TargetMethod: { } method } => (method, method.Parameters.Length),
+            _ => ((ISymbol?)null, 0),
+        };
+
+        return factory?.ContainingType?.ToDisplayString() == "SqlArtisan.Sql"
+            && DialectUsageAnalyzer.IsFromSqlArtisan(factory.ContainingAssembly)
+            && ArgumentValueValidity.AdmitsRange(leading.Name, factory.Name, arity);
     }
 
     // A sign, a space or a leading zero is a reading nobody has measured, so it stays silent.

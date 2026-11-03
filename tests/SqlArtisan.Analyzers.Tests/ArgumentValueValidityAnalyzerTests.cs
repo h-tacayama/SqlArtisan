@@ -651,6 +651,8 @@ public class ArgumentValueValidityAnalyzerTests
     [InlineData("""IntervalLiteral({|#0:"100-1"|}, Year(), ToMonth)""", "100-1")]
     [InlineData("""IntervalLiteral({|#0:"100 1"|}, Day(), ToHour)""", "100 1")]
     [InlineData("""IntervalLiteral({|#0:"1000 1:2:3"|}, Day(), ToSecond())""", "1000 1:2:3")]
+    [InlineData("""IntervalLiteral({|#0:"100 1:2:3"|}, Day(), ToSecond(3))""", "100 1:2:3")]
+    [InlineData("""IntervalLiteral({|#0:"100 1"|}, Day(), Hour())""", "100 1")]
     public Task IntervalLiteral_Oracle_ThreeDigitLeadingValue_ReportsSqla0104(
         string literal, string value) =>
         RunReporting(
@@ -681,6 +683,23 @@ public class ArgumentValueValidityAnalyzerTests
         RunSilent(
             """var e = IntervalLiteral("365", Day());""",
             AnalyzerVerifier.EditorConfig(dbms));
+
+    // The call rejects the range, so the value is not the problem to name.
+    [Theory]
+    [InlineData("""IntervalLiteral("100", Day(), ToMonth)""")]
+    [InlineData("""IntervalLiteral("100-1", Year(), ToHour)""")]
+    [InlineData("""IntervalLiteral("100 1", Day(), Hour(2))""")]
+    public Task IntervalLiteral_Oracle_RangeTheCallRejects_StaysSilent(string literal) =>
+        RunSilent($"var e = {literal};", AnalyzerVerifier.EditorConfig("oracle"));
+
+    [Fact]
+    public Task IntervalLiteral_Oracle_TrailingFieldInVariable_StaysSilent() =>
+        RunSilent(
+            """
+            IntervalField f = ToHour;
+            var e = IntervalLiteral("100 1", Day(), f);
+            """,
+            AnalyzerVerifier.EditorConfig("oracle"));
 
     // A field held in a variable could carry a precision.
     [Fact]

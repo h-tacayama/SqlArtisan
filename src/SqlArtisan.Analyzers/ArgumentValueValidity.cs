@@ -159,6 +159,8 @@ internal static class ArgumentValueValidity
     // The parameters SQLA0104 reads the value and the leading field out of, per arity.
     internal const string IntervalValueParameterName = "value";
 
+    internal const string IntervalTrailingFieldParameterName = "trailingField";
+
     internal static readonly Dictionary<int, string> IntervalLeadingFieldParameterName = new()
     {
         [2] = "field",
@@ -170,6 +172,21 @@ internal static class ArgumentValueValidity
     // and SECOND run under none.
     private static readonly HashSet<string> DefaultPrecisionLeadingFields =
         new(StringComparer.Ordinal) { "Day", "Year" };
+
+    // The trailing fields (factory, declared arity) the core admits after each such lead; any
+    // other range throws at the call, so the value is not the problem to name there.
+    private static readonly HashSet<(string Leading, string Trailing, int Arity)> AdmittedRanges =
+    [
+        ("Day", "Hour", 0),
+        ("Day", "Minute", 0),
+        ("Day", "Second", 0),
+        ("Day", "ToHour", 0),
+        ("Day", "ToMinute", 0),
+        ("Day", "ToSecond", 0),
+        ("Day", "ToSecond", 1),
+        ("Year", "Month", 0),
+        ("Year", "ToMonth", 0),
+    ];
 
     /// <summary>
     /// Whether <paramref name="dbms"/> is measured not to read a <c>GROUP BY</c>
@@ -212,6 +229,17 @@ internal static class ArgumentValueValidity
     /// </summary>
     public static bool RejectsThreeDigitLeadingValue(string fieldFactory, TargetDbms dbms) =>
         dbms == TargetDbms.Oracle && DefaultPrecisionLeadingFields.Contains(fieldFactory);
+
+    /// <summary>
+    /// Whether the core admits the trailing field <paramref name="trailingFactory"/>, a factory
+    /// of <paramref name="arity"/> declared parameters, after <paramref name="leadingFactory"/>.
+    /// </summary>
+    public static bool AdmitsRange(string leadingFactory, string trailingFactory, int arity) =>
+        AdmittedRanges.Contains((leadingFactory, trailingFactory, arity));
+
+    /// <summary>Every range the interval cell reports on — the parity gate's check.</summary>
+    internal static IEnumerable<(string Leading, string Trailing, int Arity)> AllAdmittedRanges =>
+        AdmittedRanges;
 
     /// <summary>Every (member, dialect) cell the precision table holds — the parity
     /// gate's coverage check.</summary>
