@@ -308,6 +308,28 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
+    // An unaliased FROM relation's column renders bare, and SQLite reads a bare
+    // RETURNING name from the target: user 2's id comes back, not its order's.
+    [Fact]
+    public void Returning_Sqlite_UnaliasedJoinedRelationColumn_ReadsTheTarget()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int orderId = connection.Query<int>(
+            Select(o.Id).From(o).Where(o.UserId == 2), transaction).First();
+        int returned = connection.Query<int>(
+            Update(u).Set(u.Age == 41).From(o).Where((o.UserId == u.Id) & (u.Id == 2))
+                .Returning(o.Id),
+            transaction).Single();
+
+        Assert.NotEqual(2, orderId);
+        Assert.Equal(2, returned);
+        transaction.Rollback();
+    }
+
     [Fact]
     public void Returning_Sqlite_SelfJoinedUpdate_ReturnsTheTarget()
     {

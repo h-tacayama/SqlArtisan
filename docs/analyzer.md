@@ -849,10 +849,12 @@ var q = DeleteFrom(u).Where(u.Id == 1).Returning(u.Asterisk);
 ```
 
 **A joined table in a SQLite `RETURNING`.** SQLite's `RETURNING` reads the
-target alone, so it rejects a column of a table an `UPDATE`'s `From(...)` joins
-(`no such column`), and the read is not available there. The rule reads the
-`UPDATE ... FROM` chain `Returning(...)` is written on: a chain held in a variable
-first, or a column read inside a subquery, stays silent.
+target alone, so a column of a table an `UPDATE`'s `From(...)` joins is not
+available there. SQLite rejects it when the joined table is aliased (`no such
+column`); unaliased, the column renders bare and SQLite reads the target's column
+of that name instead, rejecting it only when the target has none. The rule reads
+the `UPDATE ... FROM` chain `Returning(...)` is written on: a chain held in a
+variable first, or a column read inside a subquery, stays silent.
 
 ```csharp
 // sqlartisan_syntax_sqlite = any
@@ -891,7 +893,7 @@ verified baseline, as the version-bound register does.
 
 These seven are settled by the builder stage the call binds to rather than by
 reading the chain, so they still warn when the builder is held in a variable —
-as the `RETURNING` rule does, since it reads only what follows the call; the
+as the `RETURNING`-without-`INTO` rule does, since it reads only what follows the call; the
 rules that read back up the chain stay silent there. The joined `DELETE` rule
 reads the chain past Oracle's floor alone, as the next paragraph says.
 
@@ -1014,7 +1016,7 @@ point the builder's type can never accept the suffix — and a chain that
 still ends at `.GroupBy(...)` stays silent. The percentile rule reads the
 same way: it warns only where the expression is passed straight into the
 clause that consumes it, since a percentile parked in a variable can still
-acquire `.Over()` on a later line. The `RETURNING` rule warns once the result
+acquire `.Over()` on a later line. The `RETURNING`-without-`INTO` rule warns once the result
 is built or widened to `ISqlBuilder`, the one type it can no longer leave to
 take `.Into(...)`; a result still held as the `Returning` stage stays silent.
 

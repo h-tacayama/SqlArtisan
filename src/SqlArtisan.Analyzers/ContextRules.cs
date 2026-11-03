@@ -641,8 +641,9 @@ internal static class ContextRules
     };
 
     /// <summary>
-    /// SQLite's <c>RETURNING</c> reads the target alone: SQLite 3.50.4 rejects a column of
-    /// a table an <c>UPDATE ... FROM</c> joins (<c>no such column</c>). Live twin on that lane.
+    /// SQLite's <c>RETURNING</c> reads the target alone: SQLite 3.50.4 rejects an aliased
+    /// joined table's column (<c>no such column</c>) and reads an unaliased one's bare name
+    /// from the target. Live twins on that lane.
     /// </summary>
     public static void CheckReturningReadsJoinedTable(
         OperationAnalysisContext context, IInvocationOperation returning, string dialectName)

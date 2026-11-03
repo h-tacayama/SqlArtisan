@@ -1701,7 +1701,10 @@ SqlStatement sql =
 
 A subquery or CTE body inside that `RETURNING` must not expose a relation under the target's table name: the table itself unaliased, a CTE named after it, or an alias equal to it. The table name would bind that inner relation instead of the target, so the target keeps its alias there and SQLite rejects the statement (on SQLite 3.50.4). A relation aliased like the target keeps the alias too; there `"u".id` reads that inner relation, as the statement is written.
 
-SQLite's `RETURNING` reads the target alone: a column of a table an `UPDATE`'s `From(...)` joins is rejected (`no such column` on SQLite 3.50.4), so that read is not available there. `SQLA0102` reports it.
+SQLite's `RETURNING` reads the target alone, so a column of a table an `UPDATE`'s `From(...)` joins is not available there; `SQLA0102` reports a read of one. SQLite 3.50.4 rejects it when the joined table is aliased (`no such column`).
+
+> [!WARNING]
+> **On SQLite, `Returning(...)` of an unaliased joined table's column returns the target's column of that name.** The column renders bare, and SQLite 3.50.4 binds a bare `RETURNING` name to the target, rejecting it only when the target has no such column. Alias the joined table so the read fails loudly.
 
 ### RETURNING INTO (Oracle)
 
