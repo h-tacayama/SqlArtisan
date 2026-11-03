@@ -798,9 +798,10 @@ var q = Select(u.Id).From(u).Union.Select(o.UserId).From(o).ForUpdate();
 list carries `Distinct` or an aggregate function, inside an expression too.
 PostgreSQL also rejects one beside `DistinctOn(...)`, and one beside a window
 function in the select list or `ORDER BY`; Oracle runs the window function. Lock
-the rows in a statement of their own. The rule reads the lock's own query block, so an aggregate in a
-subquery, or a select item held in a variable, stays silent; a grouped or
-set-operated query is reported once, by the `GROUP BY` or set-operator rule above.
+the rows in a statement of their own. The rule reads the lock's own query block,
+so an aggregate in a subquery, or a select item held in a variable, stays silent;
+a grouped or set-operated query is reported once, by the `GROUP BY` or
+set-operator rule above.
 
 ```csharp
 // sqlartisan_syntax_postgresql = any
