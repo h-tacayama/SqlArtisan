@@ -508,6 +508,34 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             Select(IntervalLiteral("1 2:3:4.5", Day(), ToSecond(10))).From(Dual)));
     }
 
+    // #742: SQLA0104's interval cell. Each control differs only by the leading precision,
+    // and a three-digit value under another leading field runs with none.
+    [Fact]
+    public void IntervalLiteral_ThreeDigitDayOrYearValue_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        (IntervalLiteralExpression Rejected, IntervalLiteralExpression Control)[] pairs =
+        [
+            (IntervalLiteral("365", Day()), IntervalLiteral("365", Day(3))),
+            (IntervalLiteral("100", Year()), IntervalLiteral("100", Year(3))),
+            (IntervalLiteral("100-1", Year(), ToMonth), IntervalLiteral("100-1", Year(3), ToMonth)),
+            (IntervalLiteral("100 1", Day(), ToHour), IntervalLiteral("100 1", Day(3), ToHour)),
+        ];
+
+        foreach ((IntervalLiteralExpression rejected, IntervalLiteralExpression control) in pairs)
+        {
+            connection.ExecuteScalar(Select(control).From(Dual));
+            Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+                Select(rejected).From(Dual)));
+        }
+
+        connection.ExecuteScalar(Select(IntervalLiteral("100", Month())).From(Dual));
+        connection.ExecuteScalar(Select(IntervalLiteral("100", Hour())).From(Dual));
+        connection.ExecuteScalar(Select(IntervalLiteral("100", Minute())).From(Dual));
+        connection.ExecuteScalar(Select(IntervalLiteral("100", Second())).From(Dual));
+        connection.ExecuteScalar(Select(IntervalLiteral("100:1", Hour(), ToMinute)).From(Dual));
+    }
+
     // #664: Oracle runs LISTAGG without WITHIN GROUP, so its pending type rests on
     // WithinGroup(OrderBy(Null)) aggregating the same values, the order left to Oracle.
     [Fact]
@@ -549,6 +577,18 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             "SELECT CURRENT_TIMESTAMP(-1) FROM DUAL"));
+    }
+
+    // #742: SQLA0104's precision cell.
+    [Fact]
+    public void CurrentTimestamp_PrecisionAboveNine_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(Select(CurrentTimestamp(9)).From(Dual));
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(CurrentTimestamp(10)).From(Dual)));
     }
 
     [Fact] // ADR 0012 (#402): anchors WindowFrameGuard.

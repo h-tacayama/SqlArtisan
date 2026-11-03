@@ -139,6 +139,37 @@ internal static class ArgumentValueValidity
     private static readonly HashSet<TargetDbms> FractionalGroupKeyRejected =
         [TargetDbms.PostgreSql, TargetDbms.SqlServer];
 
+    // --- CURRENT_TIMESTAMP / CURRENT_TIME precisions: each engine's ceiling (#742) ---
+
+    // The parameter SQLA0104 reads the precision out of.
+    internal const string PrecisionParameterName = "precision";
+
+    // MySQL 8.0 rejects 7 on both (error 1426), and Oracle XE 21.3.0 and 23.26.3 reject
+    // CURRENT_TIMESTAMP(10) (ORA-30088); PostgreSQL 16.15 runs one above 6, clamped to 6.
+    private static readonly Dictionary<(string Member, TargetDbms Dbms), int> PrecisionCeiling =
+        new()
+        {
+            [("CurrentTime", TargetDbms.MySql)] = 6,
+            [("CurrentTimestamp", TargetDbms.MySql)] = 6,
+            [("CurrentTimestamp", TargetDbms.Oracle)] = 9,
+        };
+
+    // --- Interval literals: a leading value past Oracle's default precision (#742) ---
+
+    // The parameters SQLA0104 reads the value and the leading field out of, per arity.
+    internal const string IntervalValueParameterName = "value";
+
+    internal static readonly Dictionary<int, string> IntervalLeadingFieldParameterName = new()
+    {
+        [2] = "field",
+        [3] = "leadingField",
+    };
+
+    // Oracle XE 21.3.0 and 23.26.3 reject a three-digit DAY or YEAR value under no precision
+    // (ORA-01873) and run it under DAY(3); they run '100' MONTH, HOUR, MINUTE and SECOND.
+    private static readonly HashSet<string> DefaultPrecisionLeadingFields =
+        new(StringComparer.Ordinal) { "Day", "Year" };
+
     /// <summary>
     /// Whether <paramref name="dbms"/> is measured not to read a <c>GROUP BY</c>
     /// constant as a select-list position.
@@ -166,6 +197,25 @@ internal static class ArgumentValueValidity
     /// </summary>
     public static bool RejectsFractionalGroupKey(TargetDbms dbms) =>
         FractionalGroupKeyRejected.Contains(dbms);
+
+    /// <summary>
+    /// The highest <paramref name="memberName"/> precision <paramref name="dbms"/> is
+    /// measured to accept, or <see langword="null"/> when this rule has none for the pair.
+    /// </summary>
+    public static int? PrecisionCeilingFor(string memberName, TargetDbms dbms) =>
+        PrecisionCeiling.TryGetValue((memberName, dbms), out int ceiling) ? ceiling : null;
+
+    /// <summary>
+    /// Whether <paramref name="dbms"/> is measured to reject a three-digit value under
+    /// the no-precision <paramref name="fieldFactory"/> leading an interval literal.
+    /// </summary>
+    public static bool RejectsThreeDigitLeadingValue(string fieldFactory, TargetDbms dbms) =>
+        dbms == TargetDbms.Oracle && DefaultPrecisionLeadingFields.Contains(fieldFactory);
+
+    /// <summary>Every (member, dialect) cell the precision table holds — the parity
+    /// gate's coverage check.</summary>
+    internal static IEnumerable<(string Member, TargetDbms Dbms)> AllPrecisionCells =>
+        PrecisionCeiling.Keys;
 
     /// <summary>
     /// The valid <c>RegexpOptions</c> member-name set for <paramref name="dbms"/>,

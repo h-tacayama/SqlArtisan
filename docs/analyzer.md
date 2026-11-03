@@ -106,7 +106,7 @@ still needs naming by ID.
 | `SQLA0101` | Warning | A construct is supported on a configured dialect, but not at its declared version — see [Version-aware warnings](#version-aware-warnings-sqla0101). Checking more than one dialect reports one diagnostic per failing dialect. |
 | `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
 | `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` or `Unnest(...).AsTable(...)` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
-| `SQLA0104` | Warning | A literal argument value a configured dialect rejects, or runs with another meaning, where the construct itself runs there: a `DateTimePart` the function's grammar does not accept or reads as another field, a `RegexpOptions` member outside that engine's match-parameter alphabet, a negative `Top`/`FetchFirst`/`FetchNext`/`Limit` count, a `GroupBy` column ordinal on an engine that has no `GROUP BY` positions, a negative integer-typed `Round` scale on SQLite, or a string or `char` constant beside `+` on any engine but SQL Server — see [Argument value validity](#argument-value-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
+| `SQLA0104` | Warning | A literal argument value a configured dialect rejects, or runs with another meaning, where the construct itself runs there: a `DateTimePart` the function's grammar does not accept or reads as another field, a `RegexpOptions` member outside that engine's match-parameter alphabet, a negative `Top`/`FetchFirst`/`FetchNext`/`Limit` count, a `GroupBy` column ordinal on an engine that has no `GROUP BY` positions, a negative integer-typed `Round` scale on SQLite, a string or `char` constant beside `+` on any engine but SQL Server, a `CurrentTimestamp` / `CurrentTime` precision above an engine's ceiling, or an Oracle `IntervalLiteral` value of three or more leading digits under a `Day()` or `Year()` with no precision — see [Argument value validity](#argument-value-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join or super-aggregate grouping on its own spine — past one, the anti-join or the grand-total row makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0201` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0202` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
@@ -1041,8 +1041,8 @@ A construct can exist on a dialect while one *value* of one of its arguments
 does not. The dialect matrix keys on the construct — `Extract`, `RegexpLike`,
 `Limit` — so it has nothing to say about that, and the mismatch surfaces only
 when the database runs the statement. `SQLA0104` closes that gap at the
-argument level, for six kinds of value the analyzer can read at the call
-site. All six share one ID: the verdict is the same in each case, and so is
+argument level, for eight kinds of value the analyzer can read at the call
+site. All eight share one ID: the verdict is the same in each case, and so is
 the remedy — change the value, or stop targeting that dialect.
 
 ### A `DateTimePart` a function does not accept
@@ -1202,7 +1202,43 @@ A numeric string meant as a number (`u.Age + "1"`) reports too: write the number
 instead (`u.Age + 1`). To concatenate, use `Concat(...)` on MySQL and `DoublePipe(...)` on
 Oracle, PostgreSQL and SQLite.
 
-Every match-option, `GROUP BY`, row-count, scale and operand verdict above — the rejections
+### A `CURRENT_TIMESTAMP` / `CURRENT_TIME` precision above an engine's ceiling
+
+`CurrentTimestamp(p)` and `CurrentTime(p)` take the fractional-second digits, and
+the highest count is each engine's. MySQL rejects one above 6 on both, and Oracle
+one above 9 on `CurrentTimestamp`; PostgreSQL runs one above 6, clamped to 6, so it
+is not reported.
+
+```csharp
+// sqlartisan_syntax_mysql = any
+var q = Select(CurrentTimestamp(7));
+// warning SQLA0104: '7' is not a valid precision for 'CurrentTimestamp' on MySQL
+```
+
+A negative precision is rejected at the call instead, on every dialect.
+
+### An Oracle interval value past the default leading precision
+
+With no precision on its leading field, Oracle reads an interval literal's
+leading value in at most two digits for `DAY` and `YEAR`, so
+`IntervalLiteral("365", Day())` fails there where `IntervalLiteral("365", Day(3))`
+runs. A value of three or more digits is reported on Oracle, alone or leading a
+range (`IntervalLiteral("100-1", Year(), ToMonth)`). Oracle runs the same value under
+`Month()`, `Hour()`, `Minute()` and `Second()`, and MySQL and PostgreSQL run it
+under `Day()` and `Year()` too, so none of those is reported.
+
+```csharp
+// sqlartisan_syntax_oracle = any
+var q = Select(u.CreatedAt + IntervalLiteral("365", Day())).From(u);
+// warning SQLA0104: '365' is not a valid interval value for 'IntervalLiteral' on Oracle
+```
+
+Only a `Day()` or `Year()` written in the call itself is checked: a field held in a
+variable, or one with a precision, is not. Nor is a value that opens with a sign,
+a space or a zero.
+
+Every match-option, `GROUP BY`, row-count, scale, operand, precision and
+interval-value verdict above — the rejections
 and the acceptances that keep the other engines silent — is checked against the
 engine versions in [Verified-against versions](#verified-against-versions).
 The datepart lists carry the narrower claim stated with them.
@@ -1212,8 +1248,8 @@ The datepart lists carry the narrower claim stated with them.
 Four cases, never a false positive:
 
 - **The argument is not a compile-time constant** — a datepart, an option, a
-  count, a scale or a `+` operand that arrives through a variable or a computed
-  expression cannot be resolved, the same provable-from-the-expression-or-silent contract [Context
+  count, a scale, a `+` operand, a precision or an interval value that arrives
+  through a variable or a computed expression cannot be resolved, the same provable-from-the-expression-or-silent contract [Context
   rules](#context-rules-sqla0102) follows.
 - **This rule has no fact for the pair** — `Extract` targeting SQL Server,
   which `SQLA0100` already rejects outright; or an engine absent from this
@@ -1226,7 +1262,7 @@ Four cases, never a false positive:
 
 Suppression is per rule ID (`#pragma warning disable SQLA0104`, a
 `[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0104.severity`), and
-it covers all six value domains together; a `sqlartisan_construct_*` override
+it covers all eight value domains together; a `sqlartisan_construct_*` override
 never silences a value verdict on a dialect where the construct runs. An
 `unsupported` override hands the whole usage to `SQLA0100`, and a `supported`
 override on a dialect the matrix flags unsupported re-arms this check there —
@@ -1857,8 +1893,8 @@ driver rejects the statement's parameter client-side.
 ## Verified-against versions
 
 The matrix's `verified` entries, and the match-option, `GROUP BY`, row-count,
-scale and operand facts [Argument value validity](#argument-value-validity-sqla0104)
-reports, were checked against one representative version per dialect (the same engines the
+scale, operand, precision and interval-value facts
+[Argument value validity](#argument-value-validity-sqla0104) reports, were checked against one representative version per dialect (the same engines the
 integration test matrix runs against):
 
 | Dialect | Verified against |

@@ -489,4 +489,44 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         Assert.ThrowsAny<DbException>(() => connection.Query<double?>(
             Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age, u.Id))).From(u)));
     }
+
+    // #742: 23ai rejects SQLA0104's interval cell as 21c does (OracleTests' twin of this
+    // name), and runs the same value under another leading field.
+    [Fact]
+    public void IntervalLiteral_ThreeDigitDayOrYearValue_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        (IntervalLiteralExpression Rejected, IntervalLiteralExpression Control)[] pairs =
+        [
+            (IntervalLiteral("365", Day()), IntervalLiteral("365", Day(3))),
+            (IntervalLiteral("100", Year()), IntervalLiteral("100", Year(3))),
+            (IntervalLiteral("100-1", Year(), ToMonth), IntervalLiteral("100-1", Year(3), ToMonth)),
+            (IntervalLiteral("100 1", Day(), ToHour), IntervalLiteral("100 1", Day(3), ToHour)),
+        ];
+
+        foreach ((IntervalLiteralExpression rejected, IntervalLiteralExpression control) in pairs)
+        {
+            connection.ExecuteScalar(Select(control).From(Dual));
+            Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+                Select(rejected).From(Dual)));
+        }
+
+        connection.ExecuteScalar(Select(IntervalLiteral("100", Month())).From(Dual));
+        connection.ExecuteScalar(Select(IntervalLiteral("100", Hour())).From(Dual));
+        connection.ExecuteScalar(Select(IntervalLiteral("100", Minute())).From(Dual));
+        connection.ExecuteScalar(Select(IntervalLiteral("100", Second())).From(Dual));
+        connection.ExecuteScalar(Select(IntervalLiteral("100:1", Hour(), ToMinute)).From(Dual));
+    }
+
+    // #742: 23ai rejects SQLA0104's precision cell as 21c does (OracleTests' twin).
+    [Fact]
+    public void CurrentTimestamp_PrecisionAboveNine_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(Select(CurrentTimestamp(9)).From(Dual));
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(CurrentTimestamp(10)).From(Dual)));
+    }
 }

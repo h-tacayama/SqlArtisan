@@ -758,6 +758,18 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             "SELECT CURRENT_TIME(-1)"));
     }
 
+    // #742: SQLA0104's interval cell is Oracle's; PostgreSQL runs a three-digit leading value.
+    [Fact]
+    public void IntervalLiteral_ThreeDigitDayOrYearValue_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(Select(IntervalLiteral("365", Day())));
+        connection.ExecuteScalar(Select(IntervalLiteral("100", Year())));
+        connection.ExecuteScalar(Select(IntervalLiteral("100-1", Year(), ToMonth)));
+        connection.ExecuteScalar(Select(IntervalLiteral("100 1", Day(), ToHour)));
+    }
+
     [Fact]
     public void JoinedUpdateFrom_Executes()
     {

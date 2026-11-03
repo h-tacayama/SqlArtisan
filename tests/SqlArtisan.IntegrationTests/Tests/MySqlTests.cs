@@ -605,6 +605,32 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             "SELECT CURRENT_TIME(-1)"));
     }
 
+    // #742: SQLA0104's precision cells.
+    [Fact]
+    public void CurrentTimestamp_PrecisionAboveSix_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(Select(CurrentTimestamp(6), CurrentTime(6)));
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+            Select(CurrentTimestamp(7))));
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(Select(CurrentTime(7))));
+    }
+
+    // #742: SQLA0104's interval cell is Oracle's; MySQL runs a three-digit leading value.
+    [Fact]
+    public void IntervalLiteral_ThreeDigitDayOrYearValue_IsAcceptedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(
+            Select(u.CreatedAt + IntervalLiteral("365", Day())).From(u).Where(u.Id == 1));
+        connection.ExecuteScalar(
+            Select(u.CreatedAt + IntervalLiteral("100", Year())).From(u).Where(u.Id == 1));
+    }
+
     // Live twins of the duplicate-list guards (guards-and-empty-states.md): the
     // guards reject the shape everywhere, so each lane pins what its engine does.
     [Fact]

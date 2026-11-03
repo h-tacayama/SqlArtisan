@@ -204,6 +204,18 @@ PostgreSQL 16 rejects it (the same twin), and SQL Server 2022 concatenates it
 `op_Addition` key, so only the operand's value can tell them apart, and it
 reports under `SQLA0104` with its cell in `ArgumentValueValidity`.
 
+### A seventh and an eighth domain, added under this decision
+
+#742 added a `CurrentTimestamp` / `CurrentTime` precision above an engine's
+ceiling: MySQL 8.0 rejects 7 on both and Oracle XE 21.3.0 and 23.26.3 reject
+`CURRENT_TIMESTAMP(10)` (`CurrentTimestamp_PrecisionAboveSix_IsRejectedByTheEngine`,
+`CurrentTimestamp_PrecisionAboveNine_IsRejectedByTheEngine`), while PostgreSQL
+16.15 runs 10, clamped to 6 (`CurrentTimestamp_Precision_RejectsOnlyANegativeOne`).
+It added an Oracle `IntervalLiteral` value of three leading digits under a `DAY`
+or `YEAR` with no precision, which Oracle XE 21.3.0 and 23.26.3 reject and run
+under `DAY(3)` (`IntervalLiteral_ThreeDigitDayOrYearValue_IsRejectedByTheEngine`).
+Both report under `SQLA0104`, their cells in `ArgumentValueValidity`.
+
 Related: #528, #529 (this change), #523 (the triage that surfaced both),
 ADR 0012 (why none is a `Build()` guard, and where it classified the
 `RegexpOptions` gap), ADR 0013 (the context dimension and the
