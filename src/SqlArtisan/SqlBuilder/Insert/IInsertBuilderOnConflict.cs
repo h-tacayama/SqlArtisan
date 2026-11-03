@@ -10,7 +10,7 @@ public interface IInsertBuilderOnConflict
     /// Appends <c>DO NOTHING</c>, silently skipping the row on a conflict.
     /// </summary>
     /// <returns>The builder positioned for <c>RETURNING</c> or build.</returns>
-    /// <remarks>PostgreSQL and SQLite syntax.</remarks>
+    /// <remarks>PostgreSQL and SQLite (3.24+) syntax.</remarks>
     IInsertBuilderConflictAction DoNothing();
 
     /// <summary>

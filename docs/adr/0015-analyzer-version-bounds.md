@@ -4,7 +4,7 @@
 `sqlartisan_syntax_<dbms>` (ADR 0019); the `sqlartisan_target_version` key
 named below was removed by
 [ADR 0024](0024-analyzer-legacy-target-pair-removal.md). Everything else here
-stands.
+stands, as corrected in #767 (§ Correction (#767)).
 
 ## Context
 
@@ -204,3 +204,12 @@ the release its tag resolves to.
   rejection categories and enumerated exceptions specifically, which this
   ADR does not add — noted here as a signal for a future consolidation
   discussion, not acted on now.
+
+## Correction (#767)
+
+`LeftJoinLateral` now carries an Oracle 23 bound, which the Decision section
+records as dropped. The bound rests on a primary source, not the inference:
+[Explore SQL Features in Oracle Database 23ai](https://docs.oracle.com/en/learn/db23ai-sql-features/index.html)
+lists the `BOOLEAN` type's `TRUE` literal as new in 23ai. XE 21.3.0 rejects the
+emitted `ON TRUE` (ORA-00920) and Free 23ai runs it, and
+`Oracle23aiBoundSweepTests` holds the 23ai side.

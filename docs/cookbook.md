@@ -265,7 +265,9 @@ SqlStatement sql =
 This shape runs on all five dialects (only markers and quoting differ). On
 MySQL, Oracle, PostgreSQL, and SQL Server, a
 [row-limited `LATERAL` / `APPLY` subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#row-limited-queries-as-subqueries)
-is the per-group top-N alternative.
+is the per-group top-N alternative (MySQL takes `LATERAL` from a specific
+release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)).
 
 ### Pivoting rows to columns
 

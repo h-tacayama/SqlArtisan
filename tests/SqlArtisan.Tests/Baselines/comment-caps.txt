@@ -3,7 +3,7 @@ src/SqlArtisan.Analyzers/AnalyzerConfigResolver.cs 3
 src/SqlArtisan.Analyzers/ConstructKeyNaming.cs 2
 src/SqlArtisan.Analyzers/CorrelatedDmlRule.cs 1
 src/SqlArtisan.Analyzers/DiagnosticDescriptors.cs 1
-src/SqlArtisan.Analyzers/DialectMatrix.cs 21
+src/SqlArtisan.Analyzers/DialectMatrix.cs 20
 src/SqlArtisan.Analyzers/DialectSupportResolver.cs 1
 src/SqlArtisan.Analyzers/MatrixKey.cs 1
 src/SqlArtisan.Analyzers/TargetDbms.cs 1

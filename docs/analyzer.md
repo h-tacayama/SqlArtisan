@@ -498,12 +498,17 @@ verdict exactly; where the bound sits above the dialect's verified baseline
 | Construct | Dialect | Minimum version | Why |
 |---|---|---|---|
 | `WithRecursive` | MySQL | 8.0 | `WITH RECURSIVE` needs MySQL's CTE support, added in 8.0. |
+| `With`, `WithColumnList` | MySQL | 8.0 | A common table expression needs 8.0. |
 | `Grouping` (both forms) | MySQL | 8.0 | `GROUPING(...)` needs 8.0. |
 | `Except`, `Intersect`, `ExceptAll`, `IntersectAll` | MySQL | 8.0.31 | `EXCEPT`/`INTERSECT` landed in 8.0.31. |
 | `Nowait`, `SkipLocked` | MySQL | 8.0 | `FOR UPDATE NOWAIT`/`SKIP LOCKED` need 8.0. |
+| `Of` (table form) | MySQL | 8.0 | `FOR UPDATE OF` needs 8.0. |
+| `CrossJoinLateral`, `JoinLateral`, `LeftJoinLateral` | MySQL | 8.0.14 | `LATERAL` derived tables landed in 8.0.14. |
 | `OnDuplicateKeyUpdate`, `Excluded` | MySQL | 8.0.19 | SqlArtisan emits the row alias (`... AS new ON DUPLICATE KEY UPDATE col = new.col`) on every `OnDuplicateKeyUpdate`, whether or not an assignment reads `Excluded`, and the row alias needs MySQL 8.0.19 — the pre-8.0.19 `VALUES()` function form is never emitted. |
 | `JsonValue` | MySQL | 8.0.21 | `JSON_VALUE` landed in 8.0.21. |
 | `Except`, `ExceptAll`, `IntersectAll`, `MinusAll` | Oracle | 21 | `EXCEPT`, `EXCEPT ALL`, `INTERSECT ALL`, and `MINUS ALL` landed in Oracle 21c (plain `INTERSECT`/`MINUS` predate it) — live-verified forward-compatible on Oracle 23ai too. |
+| `LeftJoinLateral` | Oracle | 23 | Its `ON TRUE` needs the `TRUE` literal, new in Oracle 23ai — Oracle XE 21.3.0 rejects it. |
+| `Values` (the `Sql.Values(alias, columnNames, rows)` source) | Oracle | 23 | The `VALUES` table value constructor is new in Oracle 23ai — Oracle XE 21.3.0 rejects it in `MERGE ... USING`. |
 | `L2Distance`, `CosineDistance`, `NegativeInnerProduct` | Oracle | 23 | The `<->`, `<=>`, and `<#>` vector distance shorthands landed with Oracle 23ai's AI Vector Search (the other three pgvector operators have no Oracle spelling at any version). |
 | `MergeInto`, `WhenMatched`, `WhenNotMatched`, `ThenInsert`, `ThenUpdateSet`, `ThenDelete` | PostgreSQL | 15 | `MERGE` landed in PostgreSQL 15. `Using` itself carries no bound — the key is shared with `DeleteBuilder`'s plain `DELETE ... USING`, which predates and does not require PostgreSQL 15; the `MergeInto` bound still flags a MERGE statement below 15. |
 | `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr`, `RegexpInstr` | PostgreSQL | 15 | `regexp_like`, `regexp_count`, `regexp_substr`, and `regexp_instr` landed in PostgreSQL 15. `regexp_replace` predates it — 15 is where it gained the position and occurrence arguments — so the bound covers only `RegexpReplace`'s position/occurrence/options overloads (4+ arguments); the 3-argument call is not reported below 15. MySQL's `REGEXP_SUBSTR`/`REGEXP_INSTR` top out at 5/6 arguments respectively (neither has `subexpr`), so `RegexpSubstr`'s 6-argument and `RegexpInstr`'s 7-argument overloads are MySQL-unsupported at any version, independent of this PostgreSQL bound. |
@@ -513,6 +518,7 @@ verdict exactly; where the bound sits above the dialect's verified baseline
 | `JsonValue`, `JsonQuery` | PostgreSQL | 17 | `JSON_VALUE` and `JSON_QUERY` landed in PostgreSQL 17 — live-verified on the PostgreSQL 17 lane. |
 | `RightJoin`, `FullJoin`, `NaturalRightJoin`, `NaturalFullJoin` | SQLite | 3.39 | `RIGHT JOIN`/`FULL JOIN` landed in SQLite 3.39. |
 | `Returning` | SQLite | 3.35 | `RETURNING` landed in SQLite 3.35. |
+| `OnConflict`, `DoNothing`, `DoUpdateSet` | SQLite | 3.24 | `ON CONFLICT` landed in SQLite 3.24. A `DoUpdateSet` after an `OnConflict()` with no conflict target needs 3.35, and no bound records that, so a declared SQLite from 3.24 to 3.34 does not report it. |
 | `Ceil`, `Ceiling`, `Exp`, `Floor`, `Ln`, `Log` (both forms), `Log10`, `Mod`, `Power`, `Sign`, `Sqrt`, `Trunc` (1-argument form) | SQLite | 3.35 | The `SQLITE_ENABLE_MATH_FUNCTIONS` extension landed in 3.35 (enabled in the project's pinned `bundle_e_sqlite3`), and `sign()` arrived in the same release as a core function; none of these functions exist below it. |
 | `Substring` | SQLite | 3.34 | SQLite registered `SUBSTRING` as a second name for `substr()` in 3.34. |
 | `StringAgg` (both overloads), `Concat` (both overloads), `ConcatWs` | SQLite | 3.44 | `string_agg`/`concat`/`concat_ws` landed in SQLite 3.44. |
@@ -556,11 +562,12 @@ version (Oracle 23ai, PostgreSQL 17, SQL Server 2025) reproduces the support.
 - [`WITH RECURSIVE` / common table expressions](https://dev.mysql.com/doc/refman/8.0/en/with.html) — 8.0.1.
 - [`GROUPING()` under `WITH ROLLUP`](https://dev.mysql.com/doc/refman/8.0/en/group-by-modifiers.html) — 8.0.1.
 - [`INTERSECT` / `EXCEPT`](https://dev.mysql.com/doc/refman/8.0/en/set-operations.html) — 8.0.31.
-- [`FOR UPDATE ... NOWAIT` / `SKIP LOCKED`](https://dev.mysql.com/doc/refman/8.0/en/innodb-locking-reads.html) — 8.0.1.
+- [`FOR UPDATE ... NOWAIT` / `SKIP LOCKED` / `OF`](https://dev.mysql.com/doc/refman/8.0/en/innodb-locking-reads.html) — 8.0.1.
+- [`LATERAL` derived tables](https://dev.mysql.com/doc/refman/8.0/en/lateral-derived-tables.html) — 8.0.14.
 - [row-alias `INSERT ... AS new ON DUPLICATE KEY UPDATE`](https://dev.mysql.com/doc/refman/8.0/en/insert-on-duplicate.html) — 8.0.19.
 - [`JSON_VALUE()`](https://dev.mysql.com/doc/refman/8.0/en/json-search-functions.html) — 8.0.21.
 
-(`WITH RECURSIVE`, `GROUPING()` and `NOWAIT` / `SKIP LOCKED` arrived in the 8.0.1
+(Common table expressions, `GROUPING()` and `NOWAIT` / `SKIP LOCKED` / `OF` arrived in the 8.0.1
 development milestone; their bounds round to `8.0`, whose first production release
 — 8.0.11 — already includes them.)
 
@@ -572,10 +579,11 @@ and the
 (the set-operators section). The `<->` / `<=>` / `<#>` vector distance
 shorthands are documented in the
 [Oracle AI Vector Search User's Guide](https://docs.oracle.com/en/database/oracle/oracle-database/23/vecse/vector-distance-functions-and-operators.html)
-as new in Oracle Database 23ai. The `UPDATE ... FROM` direct join and the
-multi-row `VALUES` table value constructor are new in 23ai, per
+as new in Oracle Database 23ai. The `UPDATE ... FROM` direct join, the
+`VALUES` table value constructor and the `BOOLEAN` type's `TRUE` literal are new
+in 23ai, per
 [Explore SQL Features in Oracle Database 23ai](https://docs.oracle.com/en/learn/db23ai-sql-features/index.html);
-both are live-verified on Free 23ai, and their rejection on XE 21.3.0.
+all three are live-verified on Free 23ai, and their rejection on XE 21.3.0.
 `DELETE ... USING` is in the
 [SQL Language Reference's `DELETE` page](https://docs.oracle.com/en/database/oracle/oracle-database/26/sqlrf/DELETE.html),
 whose `from_using_clause` opens with `FROM` or `USING`. That page is the 26
@@ -600,6 +608,7 @@ functions.
 
 **SQLite** — the per-release change logs:
 
+- [`ON CONFLICT` (UPSERT)](https://sqlite.org/releaselog/3_24_0.html) — 3.24.0 (2018-06-04); a `DO UPDATE` with no conflict target from [3.35.0](https://sqlite.org/releaselog/3_35_0.html), per the [UPSERT page](https://sqlite.org/lang_upsert.html).
 - [`NULLS FIRST` / `NULLS LAST`](https://sqlite.org/releaselog/3_30_0.html) — 3.30.0 (2019-10-04).
 - [`RETURNING`](https://sqlite.org/releaselog/3_35_0.html) — 3.35.0 (2021-03-12).
 - [The math-functions extension](https://sqlite.org/releaselog/3_35_0.html) (`ceil`, `ceiling`, `exp`, `floor`, `ln`, `log`, `log10`, `mod`, `power`, `sqrt`, `trunc`) — 3.35.0, same release as `RETURNING`.

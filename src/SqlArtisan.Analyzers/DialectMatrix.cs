@@ -167,8 +167,7 @@ internal static class DialectMatrix
         [new MatrixKey("CrossApply")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("OuterApply")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
         // Oracle 12c+ also accepts CROSS JOIN LATERAL and JOIN LATERAL ... ON (live-verified on
-        // XE 21c). LeftJoinLateral stays false on Oracle: the emitted `ON TRUE` needs a boolean
-        // literal, which Oracle SQL (pre-23ai) does not have.
+        // XE 21c). LeftJoinLateral's `ON TRUE` is rejected there (ORA-00920); Bounds has its 23.
         [new MatrixKey("CrossJoinLateral")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("LeftJoinLateral")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("JoinLateral")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
@@ -718,7 +717,7 @@ internal static class DialectMatrix
         [new MatrixKey("Using")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         // Sql.Values(alias, columnNames, rows) — the FROM, join or MERGE USING literal-row
         // source; arity 3 keeps it out of the arity-less Values union above (the builder's instance
-        // Values(...) overloads are all arity 1). Oracle has no VALUES row constructor in USING.
+        // Values(...) overloads are all arity 1). XE 21.3.0 rejects it; Bounds has Oracle's 23.
         [new MatrixKey("Values", 3)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("WhenMatched")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("WhenNotMatched")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
@@ -761,10 +760,10 @@ internal static class DialectMatrix
         [new MatrixKey("ExceptAll")] = new VersionBounds(mySql: V("8.0.31"), oracle: V("21")),
         [new MatrixKey("IntersectAll")] = new VersionBounds(mySql: V("8.0.31"), oracle: V("21")),
         [new MatrixKey("MinusAll")] = new VersionBounds(oracle: V("21")),
-        // LeftJoinLateral is deliberately NOT entered here: the pre-23ai gap is a
-        // chained inference (no boolean literal -> ON TRUE unrepresentable), not a
-        // documented "landed in 23ai" fact — untested, so it stays a plain
-        // DbmsSupport false (a follow-up bound needs its own primary source).
+        // LeftJoinLateral's ON TRUE and the ("Values", 3) row constructor: 23ai added the
+        // BOOLEAN literal and the table value constructor (Oracle's 23ai SQL features page).
+        [new MatrixKey("LeftJoinLateral")] = new VersionBounds(mySql: V("8.0.14"), oracle: V("23")),
+        [new MatrixKey("Values", 3)] = new VersionBounds(oracle: V("23")),
 
         // WithRecursive carries no Oracle bound; its Entries comment says why.
         [new MatrixKey("WithRecursive")] = new VersionBounds(mySql: V("8.0")),
@@ -784,6 +783,12 @@ internal static class DialectMatrix
         [new MatrixKey("JsonValue")] = new VersionBounds(mySql: V("8.0.21"), postgreSql: V("17")),
         [new MatrixKey("Nowait")] = new VersionBounds(mySql: V("8.0")),
         [new MatrixKey("SkipLocked")] = new VersionBounds(mySql: V("8.0")),
+        [new MatrixKey("Of", 2)] = new VersionBounds(mySql: V("8.0")),
+        [new MatrixKey("With")] = new VersionBounds(mySql: V("8.0")),
+        [new MatrixKey("WithColumnList")] = new VersionBounds(mySql: V("8.0")),
+        // LATERAL derived tables landed in 8.0.14; LeftJoinLateral's row sits with Oracle's.
+        [new MatrixKey("CrossJoinLateral")] = new VersionBounds(mySql: V("8.0.14")),
+        [new MatrixKey("JoinLateral")] = new VersionBounds(mySql: V("8.0.14")),
         // OnDuplicateKeyUpdate/Excluded: every ODKU emits MySQL's 8.0.19+ row alias (`AS new`,
         // RowAliasClause), Excluded or not, never the legacy VALUES(), so that is the floor.
         [new MatrixKey("OnDuplicateKeyUpdate")] = new VersionBounds(mySql: V("8.0.19")),
@@ -800,8 +805,8 @@ internal static class DialectMatrix
         [new MatrixKey("ThenInsert")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("ThenUpdateSet")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("ThenDelete")] = new VersionBounds(postgreSql: V("15")),
-        // ("Values", 3) carries no bound: the factory feeds FROM and joins too, which
-        // predate PostgreSQL 15, and MergeInto's own bound still flags MERGE (#681).
+        // ("Values", 3) carries no PostgreSQL bound: the factory feeds FROM and joins too,
+        // which predate PostgreSQL 15, and MergeInto's own bound still flags MERGE (#681).
 
         // PostgreSQL 16 release notes; the baseline lane's sweep runs it.
         [new MatrixKey("DateAdd")] = new VersionBounds(postgreSql: V("16")),
@@ -837,6 +842,11 @@ internal static class DialectMatrix
         [new MatrixKey("NaturalRightJoin")] = new VersionBounds(sqlite: V("3.39")),
         [new MatrixKey("NaturalFullJoin")] = new VersionBounds(sqlite: V("3.39")),
         [new MatrixKey("Returning")] = new VersionBounds(sqlite: V("3.35")),
+        // UPSERT landed in 3.24. DO UPDATE after a targetless OnConflict() needs 3.35, a shape
+        // no key isolates, so it goes unreported from 3.24 to 3.34 (docs/analyzer.md).
+        [new MatrixKey("OnConflict")] = new VersionBounds(sqlite: V("3.24")),
+        [new MatrixKey("DoNothing")] = new VersionBounds(sqlite: V("3.24")),
+        [new MatrixKey("DoUpdateSet")] = new VersionBounds(sqlite: V("3.24")),
         // Substring: SQLite registered SUBSTRING as a second name for substr() in 3.34
         // (source-verified against the sqlite/sqlite GitHub mirror, func.c's aBuiltinFunc[]
         // table — no "substring" entry at tag version-3.33.0, present at version-3.34.0).

@@ -12,6 +12,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   model it fills through a parameterless constructor keeps that member at its
   default with no error. On by default; a string alias is not read. (#716)
 
+### Changed
+- The analyzer knows Oracle 23ai's `LEFT JOIN LATERAL ... ON TRUE` and `VALUES`
+  row source: with `sqlartisan_syntax_oracle` declaring 23 or later,
+  `LeftJoinLateral` and `Sql.Values(alias, columnNames, rows)` are no longer
+  reported, and below it they report `SQLA0101` instead of `SQLA0100`.
+  Live-verified on Free 23ai. (#767)
+- `SQLA0101` reports more constructs below the release that added them: on
+  MySQL, `With`, `WithColumnList` and the table form of `Of` below 8.0, and
+  `CrossJoinLateral`, `JoinLateral` and `LeftJoinLateral` below 8.0.14; on
+  SQLite, `OnConflict`, `DoNothing` and `DoUpdateSet` below 3.24. A
+  `DoUpdateSet` after an `OnConflict()` with no conflict target needs SQLite
+  3.35 and is not reported from 3.24 to 3.34. (#742)
+
 ### Tests
 - SQLite twins pin how Dapper maps a `nameof` alias: by member name into a model
   with a parameterless constructor, the default left with no error when no member
