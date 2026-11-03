@@ -4358,13 +4358,13 @@ because the suite pins no older image. A version above the baseline is run on
 both sides: the baseline lane reproduces the rejection, and a lane at that
 version (Oracle 23ai, PostgreSQL 17, SQL Server 2025) reproduces the support.
 
-**MySQL** — the reference manual gives the introducing release for each, and MySQL's 8.0.1 announcement for `OF`:
+**MySQL** — the reference manual gives the introducing release for each, and the 8.0.1 release notes for `OF`:
 
 - [`WITH RECURSIVE` / common table expressions](https://dev.mysql.com/doc/refman/8.0/en/with.html) — 8.0.1.
 - [`GROUPING()` under `WITH ROLLUP`](https://dev.mysql.com/doc/refman/8.0/en/group-by-modifiers.html) — 8.0.1.
 - [`INTERSECT` / `EXCEPT`](https://dev.mysql.com/doc/refman/8.0/en/set-operations.html) — 8.0.31.
 - [`FOR UPDATE ... NOWAIT` / `SKIP LOCKED`](https://dev.mysql.com/doc/refman/8.0/en/innodb-locking-reads.html) — 8.0.1.
-- `FOR UPDATE ... OF` — 8.0.1, in the [8.0.1 announcement of `NOWAIT` / `SKIP LOCKED`](https://dev.mysql.com/blog-archive/mysql-8-0-1-using-skip-locked-and-nowait-to-handle-hot-rows/), whose example locks one table with `OF`.
+- [`FOR UPDATE ... OF`](https://dev.mysql.com/doc/relnotes/mysql/8.0/en/news-8-0-1.html) — 8.0.1.
 - [`LATERAL` derived tables](https://dev.mysql.com/doc/refman/8.0/en/lateral-derived-tables.html) — 8.0.14.
 - [row-alias `INSERT ... AS new ON DUPLICATE KEY UPDATE`](https://dev.mysql.com/doc/refman/8.0/en/insert-on-duplicate.html) — 8.0.19.
 - [`JSON_VALUE()`](https://dev.mysql.com/doc/refman/8.0/en/json-search-functions.html) — 8.0.21.
