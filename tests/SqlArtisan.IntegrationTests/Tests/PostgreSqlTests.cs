@@ -758,16 +758,26 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             "SELECT CURRENT_TIME(-1)"));
     }
 
-    // #742: SQLA0104's interval cell is Oracle's; PostgreSQL runs a three-digit leading value.
+    // #742: SQLA0104's interval cell is Oracle's; PostgreSQL runs a three-digit leading value,
+    // added to a timestamp, since Npgsql reads no interval holding months as a TimeSpan.
     [Fact]
     public void IntervalLiteral_ThreeDigitDayOrYearValue_IsAcceptedByTheEngine()
     {
+        UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
+        IntervalLiteralExpression[] intervals =
+        [
+            IntervalLiteral("365", Day()),
+            IntervalLiteral("100", Year()),
+            IntervalLiteral("100-1", Year(), ToMonth),
+            IntervalLiteral("100 1", Day(), ToHour),
+        ];
 
-        connection.ExecuteScalar(Select(IntervalLiteral("365", Day())));
-        connection.ExecuteScalar(Select(IntervalLiteral("100", Year())));
-        connection.ExecuteScalar(Select(IntervalLiteral("100-1", Year(), ToMonth)));
-        connection.ExecuteScalar(Select(IntervalLiteral("100 1", Day(), ToHour)));
+        foreach (IntervalLiteralExpression interval in intervals)
+        {
+            connection.ExecuteScalar(
+                Select(u.CreatedAt + interval).From(u).Where(u.Id == 1));
+        }
     }
 
     [Fact]
