@@ -17,8 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `SQLA0102` reports `ForUpdate()` on a query whose select list carries
   `Distinct` or an aggregate function, on Oracle (ORA-01786) and PostgreSQL
   (SQLSTATE 0A000), and on PostgreSQL also beside `DistinctOn(...)` or a window
-  function in the select list or `ORDER BY`, which Oracle runs; observed on
-  Oracle XE 21.3.0 and PostgreSQL 16. (#742)
+  function in the select list or `ORDER BY`; Oracle runs the window function.
+  Observed on Oracle XE 21.3.0 and PostgreSQL 16. (#742)
 
 ### Changed
 - The analyzer knows Oracle 23ai's `LEFT JOIN LATERAL ... ON TRUE` and `VALUES`

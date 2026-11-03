@@ -796,9 +796,9 @@ var q = Select(u.Id).From(u).Union.Select(o.UserId).From(o).ForUpdate();
 **`FOR UPDATE` with `DISTINCT`, an aggregate or a window function.** Oracle
 (ORA-01786) and PostgreSQL (SQLSTATE 0A000) reject a lock on a query whose select
 list carries `Distinct` or an aggregate function, inside an expression too.
-PostgreSQL also rejects one beside `DistinctOn(...)` or a window function in the
-select list or `ORDER BY`, which Oracle runs. Lock the rows in a statement of
-their own. The rule reads the lock's own query block, so an aggregate in a
+PostgreSQL also rejects one beside `DistinctOn(...)`, and one beside a window
+function in the select list or `ORDER BY`; Oracle runs the window function. Lock
+the rows in a statement of their own. The rule reads the lock's own query block, so an aggregate in a
 subquery, or a select item held in a variable, stays silent; a grouped or
 set-operated query is reported once, by the `GROUP BY` or set-operator rule above.
 
