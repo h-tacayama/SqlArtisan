@@ -417,9 +417,20 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 ContextRules.CheckIntervalRequiresArithmeticOperand(
                     context, invocation, TargetDbmsNames.Display(TargetDbms.MySql));
                 break;
-            case "Returning" when targets.Contains(TargetDbms.Oracle):
-                ContextRules.CheckReturningRequiresInto(
-                    context, invocation, TargetDbmsNames.Display(TargetDbms.Oracle));
+            case "Returning":
+                if (targets.Contains(TargetDbms.Oracle))
+                {
+                    ContextRules.CheckReturningRequiresInto(
+                        context, invocation, TargetDbmsNames.Display(TargetDbms.Oracle));
+                }
+
+                if (targets.Contains(TargetDbms.Sqlite))
+                {
+                    string sqlite = TargetDbmsNames.Display(TargetDbms.Sqlite);
+                    ContextRules.CheckReturningTableAsterisk(context, invocation, sqlite);
+                    ContextRules.CheckReturningReadsJoinedTable(context, invocation, sqlite);
+                }
+
                 break;
             case "WhenMatched" or "WhenNotMatched" or "WhenNotMatchedBySource":
                 ContextRules.CheckRepeatedMergeBranch(context, invocation, targets);

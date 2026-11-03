@@ -58,7 +58,7 @@ SqlStatement sql =
 // FROM users "u"
 // INNER JOIN orders "o" ON "o".user_id = "u".id
 ```
-Both markers are list items — a `SELECT` list, and a `RETURNING` or `OUTPUT` list where the engine takes them — plus one aggregate: `Count(Asterisk)` emits `COUNT(*)`, the only aggregate where `*` is legal. Any other expression position (`Upper(...)`, `ORDER BY`, …) throws or does not compile. Oracle rejects either marker before `INTO`; PostgreSQL's `RETURNING` takes both, and SQLite's only the bare `*`; SQL Server rejects `OUTPUT *` and the target's `t.*` in an `OUTPUT` on a statement that joins nothing.
+Both markers are list items — a `SELECT` list, and a `RETURNING` or `OUTPUT` list where the engine takes them — plus one aggregate: `Count(Asterisk)` emits `COUNT(*)`, the only aggregate where `*` is legal. Any other expression position (`Upper(...)`, `ORDER BY`, …) throws or does not compile. Oracle rejects either marker before `INTO`; PostgreSQL's `RETURNING` takes both, and SQLite's only the bare `*` (`SQLA0102` reports a table's `.Asterisk` there); SQL Server rejects `OUTPUT *` and the target's `t.*` in an `OUTPUT` on a statement that joins nothing.
 
 Do **not** write `Select("*")` — a string in a value position is always a bind value, never SQL, so it emits `SELECT :0` returning the literal `'*'` per row. The same rule protects every string you bind from injection; `Asterisk` is the SQL spelling. For `EXISTS (SELECT * ...)`, prefer the `Exists(Select(1)...)` idiom — see [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions).
 
@@ -1700,6 +1700,11 @@ SqlStatement sql =
 ```
 
 A subquery or CTE body inside that `RETURNING` must not expose a relation under the target's table name: the table itself unaliased, a CTE named after it, or an alias equal to it. The table name would bind that inner relation instead of the target, so the target keeps its alias there and SQLite rejects the statement (on SQLite 3.50.4). A relation aliased like the target keeps the alias too; there `"u".id` reads that inner relation, as the statement is written.
+
+SQLite's `RETURNING` reads the target alone, so a column of a table an `UPDATE`'s `From(...)` joins is not available there; `SQLA0102` reports such a read where it can identify the joined table.
+
+> [!WARNING]
+> **On SQLite, `Returning(...)` of a joined table's column can return the target's column instead of failing** (SQLite 3.50.4), for example when the joined table is unaliased. Read the joined table's value in a statement of its own.
 
 ### RETURNING INTO (Oracle)
 

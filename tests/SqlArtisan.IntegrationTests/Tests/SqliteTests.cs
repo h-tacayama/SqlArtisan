@@ -213,6 +213,16 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
             DeleteFrom(o).Where(o.Id == 90).Returning(o.Asterisk), transaction));
         Assert.Equal(90, connection.Query<int>(
             DeleteFrom(o).Where(o.Id == 90).Returning(Asterisk), transaction).Single());
+
+        OrdersTable aliased = new("x");
+        Assert.ThrowsAny<DbException>(() => connection.Query(
+            InsertInto(aliased, aliased.Id, aliased.UserId, aliased.Amount).Values(91, 1, 10m)
+                .Returning(aliased.Asterisk),
+            transaction));
+        Assert.Equal(91, connection.Query<int>(
+            InsertInto(aliased, aliased.Id, aliased.UserId, aliased.Amount).Values(91, 1, 10m)
+                .Returning(Asterisk),
+            transaction).Single());
         transaction.Rollback();
     }
 
@@ -282,8 +292,8 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
-    // A FROM relation keeps its alias: SQLite's RETURNING cannot read it at
-    // all, so the statement still fails rather than reading the target.
+    // "o".id names no column of the target, so SQLite's RETURNING cannot read the FROM
+    // relation and the statement fails.
     [Fact]
     public void Returning_Sqlite_JoinedRelationColumn_IsRejectedByTheEngine()
     {
@@ -295,6 +305,44 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
             Update(u).Set(u.Age == 41).From(o).Where(o.UserId == u.Id).Returning(o.Id),
             transaction));
+        transaction.Rollback();
+    }
+
+    // An unaliased FROM relation's column renders bare, and SQLite reads a bare
+    // RETURNING name from the target: user 2's id comes back, not its order's.
+    [Fact]
+    public void Returning_Sqlite_UnaliasedJoinedRelationColumn_ReadsTheTarget()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int orderId = connection.Query<int>(
+            Select(o.Id).From(o).Where(o.UserId == 2), transaction).First();
+        int returned = connection.Query<int>(
+            Update(u).Set(u.Age == 41).From(o).Where((o.UserId == u.Id) & (u.Id == 2))
+                .Returning(o.Id),
+            transaction).Single();
+
+        Assert.NotEqual(2, orderId);
+        Assert.Equal(2, returned);
+        transaction.Rollback();
+    }
+
+    // An alias spelling the target's table name qualifies the column as the target.
+    [Fact]
+    public void Returning_Sqlite_JoinedRelationAliasedAsTargetTable_ReadsTheTarget()
+    {
+        UsersTable u = new("u");
+        OrdersTable named = new("users");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.Equal(2, connection.Query<int>(
+            Update(u).Set(u.Age == 42).From(named).Where((named.UserId == u.Id) & (u.Id == 2))
+                .Returning(named.Id),
+            transaction).Single());
         transaction.Rollback();
     }
 

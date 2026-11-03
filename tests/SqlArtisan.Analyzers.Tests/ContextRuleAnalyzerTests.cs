@@ -1193,6 +1193,68 @@ public class ContextRuleAnalyzerTests
             """, dbms);
 
     [Theory]
+    [InlineData("InsertInto(t, t.Id).Values(1).Returning(t.Asterisk)")]
+    [InlineData("Update(t).Set(t.Dep == 1).Where(t.Id == 1).Returning(t.Id, t.Asterisk)")]
+    [InlineData("DeleteFrom(t).Where(t.Id == 1).Returning(t.Asterisk)")]
+    public Task ReturningTableAsterisk_Sqlite_ReportsSqla0102(string statement) =>
+        RunReporting($$"""
+            var q = {|#0:{{statement}}|};
+            """, "sqlite");
+
+    [Fact]
+    public Task ReturningAsterisk_Sqlite_StaysSilent() =>
+        RunSilent("""
+            var q = DeleteFrom(t).Where(t.Id == 1).Returning(Asterisk);
+            """, "sqlite");
+
+    [Fact]
+    public Task ReturningTableAsterisk_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = DeleteFrom(t).Where(t.Id == 1).Returning(t.Asterisk);
+            """, "postgresql");
+
+    [Theory]
+    [InlineData("Returning(s.Id)")]
+    [InlineData("Returning(t.Id, s.Dep + 1)")]
+    [InlineData("Returning(Coalesce(s.Dep, 0).As(\"d\"))")]
+    public Task ReturningJoinedTable_Sqlite_ReportsSqla0102(string returning) =>
+        RunReporting($$"""
+            var q = {|#0:Update(t).Set(t.Dep == 1).From(s).Where(s.Id == t.Id).{{returning}}|};
+            """, "sqlite");
+
+    // The subquery is a query block of its own, and the target is what RETURNING reads.
+    [Theory]
+    [InlineData("Returning(t.Id)")]
+    [InlineData("Returning(Select(s.Dep).From(s).Where(s.Id == t.Id))")]
+    public Task ReturningTargetOrSubquery_Sqlite_UpdateFrom_StaysSilent(string returning) =>
+        RunSilent($$"""
+            var q = Update(t).Set(t.Dep == 1).From(s).Where(s.Id == t.Id).{{returning}};
+            """, "sqlite");
+
+    // Build() rejects a RETURNING beside a re-listed target, so its message stands alone.
+    [Theory]
+    [InlineData("From(t)")]
+    [InlineData("From(s, t)")]
+    public Task ReturningAfterRelistedTarget_Sqlite_StaysSilent(string from) =>
+        RunSilent($$"""
+            var q = Update(t).Set(t.Dep == 1).{{from}}.Where(s.Id == t.Id).Returning(s.Id);
+            """, "sqlite");
+
+    [Fact]
+    public Task ReturningJoinedTable_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Update(t).Set(t.Dep == 1).From(s).Where(s.Id == t.Id).Returning(s.Id);
+            """, "postgresql");
+
+    // The UPDATE ... FROM is held first, so its joined table is out of view.
+    [Fact]
+    public Task ReturningJoinedTableViaVariable_Sqlite_StaysSilent() =>
+        RunSilent("""
+            var u = Update(t).Set(t.Dep == 1).From(s).Where(s.Id == t.Id);
+            var q = u.Returning(s.Id);
+            """, "sqlite");
+
+    [Theory]
     [InlineData("oracle")]
     [InlineData("postgresql")]
     public Task ForUpdateAfterGroupBy_ReportsSqla0102(string dbms) =>
