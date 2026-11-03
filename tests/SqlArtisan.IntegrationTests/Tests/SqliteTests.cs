@@ -327,6 +327,13 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
 
         Assert.NotEqual(2, orderId);
         Assert.Equal(2, returned);
+
+        // An alias spelling the target's table name reads the target the same way.
+        OrdersTable named = new("users");
+        Assert.Equal(2, connection.Query<int>(
+            Update(u).Set(u.Age == 42).From(named).Where((named.UserId == u.Id) & (u.Id == 2))
+                .Returning(named.Id),
+            transaction).Single());
         transaction.Rollback();
     }
 
