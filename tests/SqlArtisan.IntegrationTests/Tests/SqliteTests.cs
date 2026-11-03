@@ -292,8 +292,8 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
-    // A FROM relation keeps its alias: SQLite's RETURNING cannot read it at
-    // all, so the statement still fails rather than reading the target.
+    // A FROM relation aliased under another name than the target's table keeps its
+    // alias: SQLite's RETURNING cannot read it, so the statement fails.
     [Fact]
     public void Returning_Sqlite_JoinedRelationColumn_IsRejectedByTheEngine()
     {
@@ -327,9 +327,18 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
 
         Assert.NotEqual(2, orderId);
         Assert.Equal(2, returned);
+        transaction.Rollback();
+    }
 
-        // An alias spelling the target's table name reads the target the same way.
+    // An alias spelling the target's table name qualifies the column as the target.
+    [Fact]
+    public void Returning_Sqlite_JoinedRelationAliasedAsTargetTable_ReadsTheTarget()
+    {
+        UsersTable u = new("u");
         OrdersTable named = new("users");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
         Assert.Equal(2, connection.Query<int>(
             Update(u).Set(u.Age == 42).From(named).Where((named.UserId == u.Id) & (u.Id == 2))
                 .Returning(named.Id),

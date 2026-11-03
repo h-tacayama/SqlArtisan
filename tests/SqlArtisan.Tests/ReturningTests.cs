@@ -546,8 +546,8 @@ public class ReturningTests
     [Fact]
     public void Returning_Sqlite_JoinedUpdate_QualifiesOnlyTheTarget()
     {
-        // A FROM relation stays alias-qualified: SQLite 3.50.4's RETURNING cannot
-        // read it, and the table name would not reach it either, so it still fails.
+        // A FROM relation aliased under another name than the target's table stays
+        // alias-qualified: SQLite 3.50.4's RETURNING cannot read it, so it fails.
         TestTable t = new("t");
         ArchiveTable a = new("a");
         SqlStatement sql =

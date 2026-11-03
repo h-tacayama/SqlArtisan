@@ -856,9 +856,10 @@ renders bare) or aliased as the target's table name, it reads as the target's ow
 so SQLite returns the target's column of that name, rejecting it only when the
 target has none. The rule reads a joined table it can identify, a local or a
 readonly field read through `this` or statically, on the `UPDATE ... FROM` chain
-`Returning(...)` is written on. A chain held in a variable first, a joined table
-passed as a parameter or held in another field, and a column read inside a
-subquery stay silent.
+`Returning(...)` is written on, so it stays silent on other shapes, such as a
+chain held in a variable first, a joined table reached any other way (a
+parameter, a property, another field), or a column passed through a variable, a
+helper, a conditional or a subquery.
 
 ```csharp
 // sqlartisan_syntax_sqlite = any
