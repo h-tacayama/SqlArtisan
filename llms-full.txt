@@ -2807,7 +2807,7 @@ SqlStatement sql =
 
 `L2Distance` (`<->`), `CosineDistance` (`<=>`), and `NegativeInnerProduct` (`<#>`) work on Oracle and PostgreSQL (Oracle gained the three shared operators in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)); `L1Distance` (`<+>`), `HammingDistance` (`<~>`), and `JaccardDistance` (`<%>`) are PostgreSQL only, via the pgvector extension. On PostgreSQL all six need the [pgvector](https://github.com/pgvector/pgvector) extension installed in the database (`CREATE EXTENSION vector`); on Oracle the three shared operators are built in.
 
-A bound vector literal reaches PostgreSQL as `text` — wrap it in `Cast(text, "vector")` (or `Cast(bits, "bit(n)")` for the bit operators) as above. On Oracle, drop the `Cast` — Oracle rejects `CAST(... AS vector)` outright (ORA-22849); pass the vector string bare (`L2Distance(u.Embedding, "[0.1,0.2,0.3]")`) and Oracle converts the bound string implicitly. `NegativeInnerProduct` returns the **negative** inner product, so the smallest value is still the most similar.
+A bound vector literal reaches PostgreSQL as `text` — wrap it in `Cast(text, "vector")` (or `Cast(bits, "bit(n)")` for the bit operators) as above. On Oracle, drop the `Cast` — Oracle rejects `CAST(... AS vector)` outright (ORA-22849, observed on Free 23ai); pass the vector string bare (`L2Distance(u.Embedding, "[0.1,0.2,0.3]")`) and Oracle converts the bound string implicitly. `NegativeInnerProduct` returns the **negative** inner product, so the smallest value is still the most similar.
 
 > [!NOTE]
 > **`CosineDistance` on MySQL is NULL-safe equality.** Its `<=>` is MySQL's own operator

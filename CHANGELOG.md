@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Tests
+- Twins pin the engine claims #767 found with no version or twin: Free 23ai
+  rejects `WITH RECURSIVE` with or without a column list (ORA-02000) and
+  `CAST(... AS VECTOR)` (ORA-22849); Oracle XE 21.3.0 rejects a recursive plain
+  `WITH` without its column list (ORA-32039), and ODP.NET fails reading an
+  unrounded `EXP` result; SQL Server 2022 takes `RANGE` only with `UNBOUNDED` /
+  `CURRENT ROW` bounds; SQLite 3.50.4 rejects a bare quoted alias or a
+  schema-qualified table as an FTS5 `MATCH` target; MySQL 8.0 runs
+  `JOIN LATERAL` with no `ON` and returns the rows `CROSS JOIN LATERAL` returns,
+  and rejects `GROUP BY CUBE(a) WITH ROLLUP` at `CUBE`, which it lacks; and the
+  `?n` markers bind through `MySql.Data`, which `DbmsResolver` registers. (#767)
+- Twins run shapes `Build()` leaves to the engine (#675) where #675 did not,
+  and each engine rejects them: a `RANGE` offset over two keys on MySQL 8.0,
+  Oracle XE 21.3.0 and Free 23ai; a percentile over two keys on Oracle XE
+  21.3.0, Free 23ai and SQL Server 2022; and a lateral join given a
+  source-carrying derived table on MySQL 8.0 and Oracle XE 21.3.0. (#767)
 - Dialect-sweep cases that a `false` engine rejected at another construct the
   statement needs are now rejected there by the construct they test:
   `WithRecursive` carries a column list on Oracle, `Offset` stands alone on
@@ -24,6 +39,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `docs/versioning.md` states that a new analyzer category, with the next
   unused band of IDs, can arrive in a minor release like any new rule, and is
   covered as the four are from that release on. (#738)
+- `docs/expressions.md` names the release Oracle's ORA-22849 rejection of
+  `CAST(... AS vector)` was observed on, Free 23ai. (#767)
 - `docs/expressions.md` notes that `ArrayOverlaps` is logical AND on MySQL, and
   `docs/analyzer.md` lists `&&` among the spellings a dialect reads as something
   else. (#767)

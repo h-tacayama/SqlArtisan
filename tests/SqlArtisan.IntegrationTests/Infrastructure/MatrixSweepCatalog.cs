@@ -191,8 +191,8 @@ internal static class MatrixSweepCatalog
             return WithRecursive(dbms == Dbms.Oracle ? body.WithColumnList() : body)
                 .Select(c.Column("id")).From(c);
         });
-        // Non-recursive: MySQL and PostgreSQL require RECURSIVE for a self-reference;
-        // StatementCatalog's RecursiveCtePlainWith is the Oracle proof.
+        // Non-recursive, since a self-reference is WithRecursive's to sweep; StatementCatalog's
+        // RecursiveCtePlainWith runs the recursive list form on Oracle and SQL Server.
         Add("WithColumnList", _ =>
         {
             Cte c = new("c");
@@ -248,8 +248,8 @@ internal static class MatrixSweepCatalog
         // --- Universal functions ---
         Add("Abs", _ => Scalar(Abs(-5)));
         Add("Floor", _ => Scalar(Floor(1.7)));
-        // Oracle-only rounding: its 38-digit NUMBER overflows System.Decimal client-side,
-        // which the sweep cannot tell from a rejection; PostgreSQL lacks the overload (#440).
+        // Oracle-only rounding: ODP.NET cannot read EXP's full NUMBER as a decimal, and
+        // PostgreSQL 16 has no round(double precision, int).
         Add("Exp", dbms => Scalar(dbms == Dbms.Oracle ? Round(Exp(1), 4) : Exp(1)));
         Add("Power", _ => Scalar(Power(2, 3)));
         Add("Sqrt", _ => Scalar(Sqrt(16)));
@@ -318,8 +318,7 @@ internal static class MatrixSweepCatalog
         Add("Ln", _ => Scalar(Ln(1)));
         Add("Log10", _ => Scalar(Log10(1000)));
         AddArity("Log", 1, _ => Scalar(Log(100)));
-        // Oracle-only rounding, same reason as Exp above; PostgreSQL rejects
-        // round(double precision, int), so it stays bare.
+        // Rounded on Oracle, as Exp above is.
         cases.Add(new SweepCase(new MatrixKey("Log", 2),
             dbms => Scalar(dbms == Dbms.Oracle ? Round(Log(2, 8), 4) : Log(2, 8)),
             NegativeSkips: new Dictionary<Dbms, string>
@@ -834,8 +833,8 @@ internal static class MatrixSweepCatalog
         AddMutating("ThenUpdateSet", _ => MergeUpdateShape());
         AddMutating("WhenNotMatched", _ => MergeShape());
         AddMutating("ThenInsert", _ => MergeShape());
-        // A 1:1 self-merge: a source with duplicate join keys (e.g. orders.user_id) makes
-        // PostgreSQL fail at runtime with "MERGE command cannot affect row a second time".
+        // A 1:1 self-merge, so no source row matches a target row another one already
+        // matched.
         AddMutating("ThenDelete", _ =>
         {
             UsersTable t = new("t");

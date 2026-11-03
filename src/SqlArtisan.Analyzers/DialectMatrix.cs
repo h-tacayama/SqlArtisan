@@ -145,10 +145,9 @@ internal static class DialectMatrix
         [new MatrixKey("StringAgg")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
         [new MatrixKey("StringAgg", 3)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("Listagg")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
-        // GroupConcat: see the key-collision caveat above — the three arity-2 overloads
-        // (the positional separator: SQLite-only; the inline OrderBy: MySQL and SQLite
-        // 3.44+; the SEPARATOR keyword: MySQL-only) collapse to this MySQL/SQLite
-        // union, so a single-dialect form used on the other dialect stays silent.
+        // GroupConcat: one key for every overload (the key-collision caveat above), so SQLite's
+        // positional separator stays silent on MySQL; MySQL's SEPARATOR forms report through
+        // Separator's own cell.
         [new MatrixKey("GroupConcat")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
 
         // --- PostgreSQL / Oracle single-dialect helpers ---
@@ -408,16 +407,13 @@ internal static class DialectMatrix
         // With: the union of the leading Sql.With and the mid-chain IWithBuilder.With, which
         // SQL Server rejects (#569) — the InsertSelectWith context rule carries that verdict.
         [new MatrixKey("With")] = DbmsSupport.All,
-        // WithRecursive: the RECURSIVE keyword itself is the gap — Oracle and SQL Server write
-        // recursive CTEs as plain WITH and reject WITH RECURSIVE; MySQL 8.0+/PostgreSQL require
-        // it for recursion, SQLite accepts it. Oracle's rejection is live-probed on BOTH pinned
-        // images
-        // (21c: ORA-00905, 23ai: ORA-02000 — RECURSIVE parses as the query name), so the
-        // once-registered "accepted at 23ai" claim is disproven; no version bound applies.
+        // WithRecursive: Oracle and SQL Server 2022 write recursion as plain WITH and reject WITH
+        // RECURSIVE, Oracle on both images (XE 21.3.0, the sweep; Free 23ai, ORA-02000,
+        // Oracle23aiTests), so the "accepted at 23ai" claim fell and no version bound applies.
         [new MatrixKey("WithRecursive")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
-        // WithColumnList: the explicit CTE column list (`WITH cte(a, b) AS ...`) is standard
-        // grammar on all five engines; Oracle requires it on a recursive plain-WITH body
-        // (ORA-32039), which is why the opt-in exists (#348).
+        // WithColumnList: the CTE column list (`WITH cte(a, b) AS ...`) is standard grammar on all
+        // five engines; Oracle XE 21.3.0 requires it on a recursive plain-WITH body (ORA-32039,
+        // OracleTests), which is why the opt-in exists (#348).
         [new MatrixKey("WithColumnList")] = DbmsSupport.All,
         // Asterisk: Sql.Asterisk (SELECT *) and TableReference.Asterisk (t.*) share the name — both
         // universal.
@@ -489,15 +485,9 @@ internal static class DialectMatrix
         [new MatrixKey("Max")] = DbmsSupport.All,
         [new MatrixKey("Min")] = DbmsSupport.All,
         [new MatrixKey("Sum")] = DbmsSupport.All,
-        // Statistical aggregates (Sql.S.cs/Sql.V.cs XML docs, #442): StddevPop/StddevSamp/
-        // VarPop/VarSamp are MySQL/Oracle/PostgreSQL only — no SQLite spelling, and SQL Server
-        // uses its own distinct tokens (Stdevp/Stdev below) instead. Stddev/Variance are the
-        // same three dialects' short-form aliases, but not the same statistic on all three
-        // (MySQL: population; Oracle/PostgreSQL: sample) — the matrix asserts grammar
-        // acceptance only, not which statistic runs; see docs/functions.md's warning table
-        // for the semantic split. Stdev/Stdevp/Var/Varp are SQL Server's own tokens (no
-        // double-D spelling there) and appear on no other dialect. Sweep-confirm on all five
-        // live engines alongside this entry (#442).
+        // Statistical aggregates (#442): the StddevPop family is MySQL/Oracle/PostgreSQL's;
+        // Stdev/Stdevp/Var/Varp are SQL Server's. Which statistic Stddev/Variance compute is in
+        // docs/functions.md's warning table; the matrix asserts grammar acceptance only.
         [new MatrixKey("StddevPop")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("StddevSamp")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("Stddev")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
@@ -517,11 +507,9 @@ internal static class DialectMatrix
         // SQLite: concat() since 3.44 (baseline 3.50+); SQL Server: CONCAT since 2012.
         [new MatrixKey("Concat", 2)] = DbmsSupport.All,
         [new MatrixKey("Concat", 4)] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
-        // DoublePipe (Sql.D.cs XML docs, #234): native on Oracle/PostgreSQL/SQLite (every
-        // version). MySQL rejects it under the default sql_mode's PIPES_AS_CONCAT-off
-        // meaning — || is logical OR there, valid SQL with silently different semantics,
-        // exactly the trap this entry exists to flag. SQL Server 2022, the verified baseline,
-        // rejects || (its concatenation operator is +, the existing AdditionOperator).
+        // DoublePipe (#234): MySQL 8.0's default sql_mode reads || as logical OR
+        // (MySqlTests.DoublePipe_ReadsAsLogicalOr), valid SQL with silently different semantics,
+        // the trap this cell flags. SQL Server 2022 rejects ||; its concatenation operator is +.
         [new MatrixKey("DoublePipe")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
 
         // --- Window / analytic (universal on the baselines: MySQL 8.0+, SQLite 3.25+, SQL Server
@@ -539,8 +527,8 @@ internal static class DialectMatrix
         [new MatrixKey("Over")] = DbmsSupport.All,
         [new MatrixKey("PartitionBy")] = DbmsSupport.All,
         [new MatrixKey("Rows")] = DbmsSupport.All,
-        // Range, RangeBetween, and Preceding/Following inside them: T-SQL only allows RANGE with
-        // UNBOUNDED/CURRENT ROW bounds, a bound-value nuance no key sees; union, under-restricts.
+        // Range, RangeBetween, and Preceding/Following inside them: SQL Server 2022 takes RANGE
+        // only with UNBOUNDED/CURRENT ROW bounds, a bound-value nuance no key sees; union.
         [new MatrixKey("Range")] = DbmsSupport.All,
         [new MatrixKey("RowsBetween")] = DbmsSupport.All,
         [new MatrixKey("RangeBetween")] = DbmsSupport.All,
@@ -553,13 +541,8 @@ internal static class DialectMatrix
         // --- Character/numeric functions with real dialect gaps (vendor docs, per row) ---
         // Mod: T-SQL has no MOD() function (only the % operator).
         [new MatrixKey("Mod")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
-        // Log/Ln/Log10 (#440). Single-argument LOG(x) has no shared base: base 10 on
-        // PostgreSQL (docs "log(x) — base 10 logarithm") and SQLite (math functions page;
-        // harness-probed `select log(100)` -> 2 on the pinned bundle_e_sqlite3 3.0.3),
-        // natural on MySQL (LOG(X)) and SQL Server (LOG(float_expression [, base])).
-        // Only Oracle *rejects* the call — its LOG takes both arguments, no exception —
-        // so Oracle is the one false. The base divergence itself is a semantics fact no
-        // support bool can carry; it ships as the factory's XML remark and a docs note.
+        // Log/Ln/Log10 (#440): the base of single-argument LOG(x) is a semantics fact no support
+        // bool carries; the factory's XML remark and docs/functions.md record it.
         [new MatrixKey("Log", 1)] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
         // The 2-argument form reads base-first on MySQL/Oracle/PostgreSQL/SQLite, but
         // T-SQL declares LOG(float_expression [, base]) — value first, base second — so
@@ -668,9 +651,9 @@ internal static class DialectMatrix
         // WithinGroup: union of its three hosts — Listagg (Oracle), StringAgg (SQL Server),
         // PercentileCont/Disc (Oracle + PostgreSQL).
         [new MatrixKey("WithinGroup")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
-        // PercentileCont/Disc: Sql.P.cs remarks — Oracle both forms, PostgreSQL WithinGroup-only,
-        // SQL Server Over-only; MySQL/SQLite not at all. The per-chain narrowing is a
-        // builder-state nuance the key cannot see — member-level union of the three.
+        // PercentileCont/Disc: which of the bare WITHIN GROUP and OVER forms an engine takes
+        // differs by chain (Sql.P.cs remarks) — a builder-state nuance the key cannot see, so
+        // the cell is the member-level union.
         [new MatrixKey("PercentileCont")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("PercentileDisc")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
 
@@ -782,12 +765,8 @@ internal static class DialectMatrix
         // chained inference (no boolean literal -> ON TRUE unrepresentable), not a
         // documented "landed in 23ai" fact — untested, so it stays a plain
         // DbmsSupport false (a follow-up bound needs its own primary source).
-        // WithRecursive carries NO oracle bound: a raw-SQL probe on the pinned 23ai
-        // image rejected WITH RECURSIVE in every shape (with/without the CTE column
-        // list, quoted/bare name — always ORA-02000, the parser reading RECURSIVE as
-        // the query name) while accepting the plain-WITH recursive form, disproving
-        // the register's "accepted at 23ai" premise. The Entries comment carries the
-        // per-image error codes.
+
+        // WithRecursive carries no Oracle bound; its Entries comment says why.
         [new MatrixKey("WithRecursive")] = new VersionBounds(mySql: V("8.0")),
         // Oracle 23ai added the <->, <=>, <#> vector distance shorthands (Oracle AI
         // Vector Search User's Guide 23ai); the 21c baseline lacks them. <+>/<~>/<%>
