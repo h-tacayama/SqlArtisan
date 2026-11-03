@@ -12,7 +12,7 @@ public interface IWithBuilder
     /// <param name="ctes">One or more CTE definitions, each produced by <c>cte.As(subquery)</c>.</param>
     /// <returns>The builder positioned to write the <c>SELECT</c> that draws on the CTEs.</returns>
     /// <remarks>SQL Server rejects a <c>WITH</c> here; use a leading
-    /// <c>With(...).InsertInto(...)</c> there.</remarks>
+    /// <c>With(...).InsertInto(...)</c> there. A CTE needs MySQL (8.0+).</remarks>
     ISelectBuilder With(params CommonTableExpression[] ctes);
 
     /// <summary>

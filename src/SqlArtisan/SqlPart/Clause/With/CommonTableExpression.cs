@@ -38,6 +38,7 @@ public sealed class CommonTableExpression
     /// </summary>
     /// <returns>A new CTE definition emitting its column list; this instance is unchanged.</returns>
     /// <exception cref="ArgumentException">A select item of the first query block has no name, or two share one.</exception>
+    /// <remarks>MySQL (8.0+), Oracle, PostgreSQL, SQLite, and SQL Server syntax.</remarks>
     public CommonTableExpression WithColumnList()
     {
         CteColumnName[] columnNames = TryDeriveColumnNames() ?? throw NoColumnName();

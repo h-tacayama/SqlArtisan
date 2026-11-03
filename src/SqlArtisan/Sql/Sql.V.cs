@@ -14,8 +14,7 @@ public static partial class Sql
     /// <param name="columnNames">The source column names, in row-value order.</param>
     /// <param name="rows">The literal rows; each supplies one value per column, a <see langword="null"/> value in a row emitting <c>NULL</c>.</param>
     /// <returns>A <see cref="ValuesDerivedTable"/> usable wherever a derived table is.</returns>
-    /// <remarks>PostgreSQL and SQL Server. Oracle has no <c>VALUES</c> row
-    /// constructor in <c>USING</c> — wrap the rows in a subquery source instead.</remarks>
+    /// <remarks>Oracle (23ai+), PostgreSQL, and SQL Server syntax.</remarks>
     public static ValuesDerivedTable Values(
         string alias, string[] columnNames, object?[][] rows)
     {

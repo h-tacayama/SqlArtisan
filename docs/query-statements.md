@@ -346,8 +346,9 @@ quoted reference.
 The DBMS column lists where each form is idiomatic, not the limit of what is
 emitted: availability is the target database's concern (and the opt-in
 analyzer's). SQLite supports neither family, and `LATERAL` has no SQL Server
-form. Oracle accepts both families except `LeftJoinLateral`; use `OuterApply`
-there. SqlArtisan emits the construct faithfully rather than
+form. Oracle accepts both families, `LeftJoinLateral` from a specific release,
+and MySQL takes `LATERAL` from a specific release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs). SqlArtisan emits the construct faithfully rather than
 gating it at build time.
 
 ---
@@ -1290,7 +1291,9 @@ emits the row-alias form (`AS new` … `new.column`) on every
 never the deprecated `VALUES()` function; MySQL added the row alias in a specific release — see the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
-**Note:** `ON CONFLICT` is PostgreSQL/SQLite-only and `ON DUPLICATE KEY UPDATE`
+**Note:** `ON CONFLICT` is PostgreSQL/SQLite-only (SQLite from a specific
+release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)) and `ON DUPLICATE KEY UPDATE`
 is MySQL-only. Oracle and SQL Server use [`MERGE`](#merge-statement) instead.
 With the analyzer configured, `SQLA0100` reports either clause on a dialect
 without it; otherwise the database rejects it.
@@ -1475,8 +1478,9 @@ MergeInto(t)
 ```
 
 The alias renders without `AS` — `(…) "s"`, the derived-table spelling every
-dialect accepts. The literal-row source is PostgreSQL and SQL Server only —
-Oracle has no `VALUES` row constructor in `USING`, so it is not available there.
+dialect accepts. The literal-row source is Oracle, PostgreSQL, and SQL Server
+only, Oracle from a specific release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 **Per-dialect branches and pitfalls:**
 
