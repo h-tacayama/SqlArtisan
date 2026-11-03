@@ -850,13 +850,11 @@ var q = DeleteFrom(u).Where(u.Id == 1).Returning(u.Asterisk);
 
 **A joined table in a SQLite `RETURNING`.** SQLite's `RETURNING` reads the
 target alone, so a column of a table an `UPDATE`'s `From(...)` joins is not
-available there. SQLite rejects it when the joined table is aliased under a name
-other than the target's table name (`no such column`). Unaliased (the column
-renders bare) or aliased as the target's table name, it reads as the target's own,
-so SQLite returns the target's column of that name, rejecting it only when the
-target has none. The rule reads a joined table it can identify, a local or a
-readonly field read through `this` or statically, on the `UPDATE ... FROM` chain
-`Returning(...)` is written on, so it stays silent on other shapes, such as a
+available there: SQLite 3.50.4 rejects it, or can read the target's column
+instead, for example when the joined table is unaliased. The rule reads a joined
+table it can identify, a local or a readonly field read through `this` or
+statically, on the `UPDATE ... FROM` chain `Returning(...)` is written on, so it
+stays silent on other shapes, such as a
 chain held in a variable first, a joined table reached any other way (a
 parameter, a property, another field), or a column passed through a variable, a
 helper, a conditional or a subquery.

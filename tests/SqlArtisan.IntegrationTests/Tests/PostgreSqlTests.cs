@@ -179,20 +179,22 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     [Fact]
     public void Returning_BareAndTableAsterisk_Execute()
     {
-        OrdersTable o = new();
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
-        foreach (object star in new object[] { Asterisk, o.Asterisk })
+        foreach (OrdersTable o in new[] { new OrdersTable(), new OrdersTable("x") })
         {
-            Assert.Equal(90, connection.Query<int>(
-                InsertInto(o, o.Id, o.UserId, o.Amount).Values(90, 1, 10m).Returning(star),
-                transaction).Single());
-            Assert.Equal(90, connection.Query<int>(
-                Update(o).Set(o.Amount == 20m).Where(o.Id == 90).Returning(star),
-                transaction).Single());
-            Assert.Equal(90, connection.Query<int>(
-                DeleteFrom(o).Where(o.Id == 90).Returning(star), transaction).Single());
+            foreach (object star in new object[] { Asterisk, o.Asterisk })
+            {
+                Assert.Equal(90, connection.Query<int>(
+                    InsertInto(o, o.Id, o.UserId, o.Amount).Values(90, 1, 10m).Returning(star),
+                    transaction).Single());
+                Assert.Equal(90, connection.Query<int>(
+                    Update(o).Set(o.Amount == 20m).Where(o.Id == 90).Returning(star),
+                    transaction).Single());
+                Assert.Equal(90, connection.Query<int>(
+                    DeleteFrom(o).Where(o.Id == 90).Returning(star), transaction).Single());
+            }
         }
 
         transaction.Rollback();

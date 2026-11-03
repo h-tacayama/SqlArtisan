@@ -21,10 +21,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   Observed on Oracle XE 21.3.0 and PostgreSQL 16. (#742)
 - `SQLA0102` reports, on SQLite, a table's `.Asterisk` in `Returning(...)`, where
   SQLite takes only the bare `*`, and a `Returning(...)` reading a column of a
-  table an `UPDATE`'s `From(...)` joins, which SQLite rejects when that table is
-  aliased under a name other than the target's table name (`no such column`) and
-  otherwise reads from the target's same-named column; observed on SQLite 3.50.4.
-  (#742)
+  table an `UPDATE`'s `From(...)` joins, which SQLite rejects or can read from the
+  target instead; observed on SQLite 3.50.4. (#742)
 
 ### Changed
 - The analyzer knows Oracle 23ai's `LEFT JOIN LATERAL ... ON TRUE` and `VALUES`

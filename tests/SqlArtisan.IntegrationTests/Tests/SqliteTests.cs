@@ -292,8 +292,8 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
-    // A FROM relation aliased under another name than the target's table keeps its
-    // alias: SQLite's RETURNING cannot read it, so the statement fails.
+    // "o".id names no column of the target, so SQLite's RETURNING cannot read the FROM
+    // relation and the statement fails.
     [Fact]
     public void Returning_Sqlite_JoinedRelationColumn_IsRejectedByTheEngine()
     {
