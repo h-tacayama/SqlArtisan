@@ -638,7 +638,7 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. Twenty rules ship today — thirteen reading
+expression where the construct is used. In all, 22 rules ship today — fifteen reading
 the construct's surroundings, seven reading the DML statement a clause sits in.
 Every rejection below is live-verified on the pinned lanes — MySQL 8.0, Oracle
 XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022, the Oracle floors on
@@ -696,6 +696,17 @@ chain `.Over()` (optionally with `PartitionBy(...)`) after `.WithinGroup(...)`.
 // sqlartisan_syntax_sqlserver = any
 var q = Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age))).From(u);
 // warning SQLA0102: 'PercentileCont' is not supported outside an OVER clause on SQL Server
+```
+
+**`OVER` on `PERCENTILE_CONT` / `PERCENTILE_DISC`.** PostgreSQL takes the
+percentiles only as ordered-set aggregates and rejects an `OVER` clause on one,
+so the windowed form is not available there. Oracle runs both forms, and SQL
+Server only this one (the rule above).
+
+```csharp
+// sqlartisan_syntax_postgresql = any
+var q = Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age)).Over()).From(u);
+// warning SQLA0102: 'Over' is not supported over an ordered-set aggregate on PostgreSQL
 ```
 
 **A value analytic function in a window with no `ORDER BY`.** SQL Server
@@ -780,6 +791,22 @@ branch's rows in a statement of its own.
 // sqlartisan_syntax_postgresql = any
 var q = Select(u.Id).From(u).Union.Select(o.UserId).From(o).ForUpdate();
 // warning SQLA0102: 'ForUpdate' is not supported after a set operator on PostgreSQL
+```
+
+**`FOR UPDATE` with `DISTINCT`, an aggregate or a window function.** Oracle
+(ORA-01786) and PostgreSQL (SQLSTATE 0A000) reject a lock on a query whose select
+list carries `Distinct` or an aggregate function, inside an expression too.
+PostgreSQL also rejects one beside `DistinctOn(...)`, and one beside a window
+function in the select list or `ORDER BY`; Oracle runs the window function. Lock
+the rows in a statement of their own. The rule reads the lock's own query block,
+so an aggregate in a subquery, or a select item held in a variable, stays silent;
+a grouped or set-operated query is reported once, by the `GROUP BY` or
+set-operator rule above.
+
+```csharp
+// sqlartisan_syntax_postgresql = any
+var q = Select(Count(u.Id)).From(u).ForUpdate();
+// warning SQLA0102: 'ForUpdate' is not supported with an aggregate function on PostgreSQL
 ```
 
 **`FOR UPDATE` in a subquery.** Oracle takes the `for_update_clause` only in a
@@ -954,7 +981,7 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the thirteen that read the construct's surroundings, any shape the
+itself. For the fifteen that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the

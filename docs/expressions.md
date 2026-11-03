@@ -1055,7 +1055,7 @@ PercentileCont(0.5).WithinGroup(OrderBy(u.Salary)).Over(PartitionBy(u.Department
 // PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salary) OVER (PARTITION BY department_id)
 ```
 
-- Dialect support is split: Oracle allows both forms; PostgreSQL only the plain `WITHIN GROUP` form; SQL Server only the windowed `.Over(...)` form. MySQL and SQLite do not support these functions.
+- Dialect support is split: Oracle allows both forms; PostgreSQL only the plain `WITHIN GROUP` form; SQL Server only the windowed `.Over(...)` form (observed on Oracle XE 21.3.0, PostgreSQL 16 and SQL Server 2022, and reported as `SQLA0102` on the two that reject a form). MySQL and SQLite do not support these functions.
 
 ---
 

@@ -290,6 +290,34 @@ public class ContextRuleAnalyzerTests
             var q = Select(Coalesce(PercentileCont(0.5).WithinGroup(OrderBy(t.Id)).Over(), 0)).From(t);
             """, "sqlserver");
 
+    [Theory]
+    [InlineData("PercentileCont(0.5).WithinGroup(OrderBy(t.Id)).Over()")]
+    [InlineData("PercentileDisc(0.5).WithinGroup(OrderBy(t.Id)).Over(PartitionBy(t.Dep))")]
+    public Task PercentileOver_PostgreSql_ReportsSqla0102(string percentile) =>
+        RunReporting($$"""
+            var q = Select({|#0:{{percentile}}|}).From(t);
+            """, "postgresql");
+
+    // The percentile is held first, so only the Over call is in view; it is still on one.
+    [Fact]
+    public Task PercentileOverViaVariable_PostgreSql_ReportsSqla0102() =>
+        RunReporting("""
+            var p = PercentileCont(0.5).WithinGroup(OrderBy(t.Id));
+            var q = Select({|#0:p.Over()|}).From(t);
+            """, "postgresql");
+
+    [Fact]
+    public Task PercentileOver_Oracle_StaysSilent() =>
+        RunSilent("""
+            var q = Select(PercentileCont(0.5).WithinGroup(OrderBy(t.Id)).Over()).From(t);
+            """, "oracle");
+
+    [Fact]
+    public Task AggregateOver_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(Sum(t.Id).Over(PartitionBy(t.Dep))).From(t);
+            """, "postgresql");
+
     // The receiver leaves the expression, so a later .Over() is invisible (ADR 0003).
     [Fact]
     public Task PercentileContViaVariable_SqlServer_StaysSilent() =>
@@ -1298,6 +1326,76 @@ public class ContextRuleAnalyzerTests
         RunSilent("""
             var u = Select(t.Id).From(t).Union;
             var q = u.Select(s.Id).From(s).ForUpdate();
+            """, "postgresql");
+
+    [Theory]
+    [InlineData("oracle", "Select(Distinct, t.Dep).From(t)")]
+    [InlineData("postgresql", "Select(Distinct, t.Dep).From(t)")]
+    [InlineData("postgresql", "Select(DistinctOn(t.Dep), t.Dep).From(t).OrderBy(t.Dep)")]
+    [InlineData("oracle", "Select(Count(t.Id)).From(t)")]
+    [InlineData("postgresql", "Select(Count(t.Id)).From(t)")]
+    [InlineData("oracle", "Select(Coalesce(Max(t.Dep), 0)).From(t)")]
+    [InlineData("postgresql", "Select(Sum(t.Id).Filter(t.Dep > 0).As(\"s\")).From(t)")]
+    [InlineData("postgresql", "Select(t.Id, RowNumber().Over(OrderBy(t.Id))).From(t)")]
+    [InlineData("postgresql", "Select(t.Id).From(t).OrderBy(RowNumber().Over(OrderBy(t.Id)))")]
+    [InlineData("postgresql", "Select(Sum(t.Id).Over()).From(t)")]
+    [InlineData("postgresql", "With(c.As(Select(t.Id).From(t))).Select(Distinct, t.Id).From(t)")]
+    public Task ForUpdateOverDerivedRows_ReportsSqla0102(string dbms, string query) =>
+        RunReporting($$"""
+            Cte c = new("c");
+            var q = {|#0:{{query}}.ForUpdate()|};
+            """, dbms);
+
+    // Oracle runs a lock beside a window function, and DistinctOn is oracle:false in the
+    // matrix, which SQLA0100 reports.
+    [Theory]
+    [InlineData("Select(t.Id, RowNumber().Over(OrderBy(t.Id))).From(t)")]
+    [InlineData("Select(Sum(t.Id).Over()).From(t)")]
+    [InlineData("Select(t.Id).From(t).OrderBy(RowNumber().Over(OrderBy(t.Id)))")]
+    public Task ForUpdateWithWindowFunction_Oracle_StaysSilent(string query) =>
+        RunSilent($$"""
+            var q = {{query}}.ForUpdate();
+            """, "oracle");
+
+    // The aggregate sits in a scalar subquery, a query block the lock does not reach.
+    [Fact]
+    public Task ForUpdateWithAggregateInScalarSubquery_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Id, Select(Count(s.Id)).From(s).Where(s.Dep == t.Id))
+                .From(t).ForUpdate();
+            """, "postgresql");
+
+    [Fact]
+    public Task ForUpdateWithAggregateViaVariable_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            SqlExpression n = Count(t.Id);
+            var q = Select(n).From(t).ForUpdate();
+            """, "postgresql");
+
+    [Fact]
+    public Task ForUpdateWithAggregate_MySql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(Distinct, Count(t.Id)).From(t).ForUpdate();
+            """);
+
+    // The GROUP BY rule reports the lock; this rule does not report it a second time.
+    [Fact]
+    public Task ForUpdateAfterGroupByWithAggregate_PostgreSql_ReportsOnce() =>
+        RunReporting("""
+            var q = {|#0:Select(Distinct, t.Dep, Count(t.Id)).From(t).GroupBy(t.Dep).OrderBy(t.Dep)
+                .ForUpdate()|};
+            """, "postgresql");
+
+    [Fact]
+    public Task ForUpdateAfterSetOperatorWithDistinct_PostgreSql_ReportsOnce() =>
+        RunReporting("""
+            var q = {|#0:Select(t.Id).From(t).Union.Select(Distinct, s.Id).From(s).ForUpdate()|};
+            """, "postgresql");
+
+    [Fact]
+    public Task ForUpdateWithPlainSelect_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Id, t.Dep + 1).From(t).OrderBy(t.Id).ForUpdate();
             """, "postgresql");
 
     [Theory]

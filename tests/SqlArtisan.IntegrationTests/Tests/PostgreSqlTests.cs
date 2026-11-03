@@ -1426,6 +1426,38 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             UserThenOrder(setOperator).ForUpdate()).ToList());
     }
 
+    [Theory] // SQLSTATE 0A000. Each query runs unlocked, so the lock is the only difference.
+    [InlineData("Distinct")]
+    [InlineData("DistinctOn")]
+    [InlineData("Aggregate")]
+    [InlineData("AggregateInExpression")]
+    [InlineData("WindowFunction")]
+    [InlineData("WindowedAggregate")]
+    [InlineData("WindowFunctionInOrderBy")]
+    public void ContextRule_ForUpdateOverDerivedRows_Rejected(string shape)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query(DerivedRowsQuery(shape, locked: false)).ToList();
+        Assert.ThrowsAny<DbException>(() => connection.Query(
+            DerivedRowsQuery(shape, locked: true)).ToList());
+    }
+
+    [Fact] // SQLSTATE 0A000. The plain WITHIN GROUP form runs, so OVER is the only difference.
+    public void ContextRule_PercentileOver_Rejected()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<double?>(
+            Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age))).From(u)).ToList();
+        Assert.ThrowsAny<DbException>(() => connection.Query<double?>(
+            Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age)).Over()).From(u)).ToList());
+        Assert.ThrowsAny<DbException>(() => connection.Query<double?>(
+            Select(PercentileDisc(0.5).WithinGroup(OrderBy(u.Age))
+                .Over(PartitionBy(u.DepartmentId))).From(u)).ToList());
+    }
+
     // #520: why PostgreSQL is absent from the row-limiting FOR UPDATE context rule
     // — it runs both row-limiting families beside the lock, where Oracle rejects them.
     [Fact]

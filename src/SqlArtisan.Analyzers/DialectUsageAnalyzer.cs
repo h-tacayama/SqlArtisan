@@ -398,6 +398,12 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                     ContextRules.CheckDistinctAggregateWindow(context, invocation, distinctNames);
                 }
 
+                if (targets.Contains(TargetDbms.PostgreSql))
+                {
+                    ContextRules.CheckPercentileWindow(
+                        context, invocation, TargetDbmsNames.Display(TargetDbms.PostgreSql));
+                }
+
                 break;
             case "Inserted" or "Deleted" when targets.Contains(TargetDbms.SqlServer):
                 ContextRules.CheckPseudoTableRequiresOutput(
@@ -437,6 +443,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                     ContextRules.CheckForUpdateAfterSetOperator(
                         context, invocation, setOperatedNames);
                 }
+
+                ContextRules.CheckForUpdateOverDerivedRows(context, invocation, targets);
 
                 if (targets.Contains(TargetDbms.Oracle))
                 {
