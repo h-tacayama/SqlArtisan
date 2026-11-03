@@ -7034,7 +7034,8 @@ property name that stops matching is silent there. So, after 1.0:
     reused, and is removed only by a major that retires its rule or merges its
     reports into another ID; a retired ID stays retired;
   - the four categories (`SqlArtisan.Configuration`, `SqlArtisan.Dialect`,
-    `SqlArtisan.Schema`, `SqlArtisan.Validity`) and their ID bands;
+    `SqlArtisan.Schema`, `SqlArtisan.Validity`) and their ID bands, and a
+    category added later and its band, from the release that adds it;
   - each rule's default severity and whether it is on by default: raising
     either is breaking, lowering either is minor;
   - which reports share an ID: an ID is split or merged only in a major, since
@@ -7056,7 +7057,8 @@ property name that stops matching is silent there. So, after 1.0:
 - **Not covered**: a diagnostic's title, its message text, and its help-link
   anchor.
 - **Minor: any other change that adds reports** — a new rule, at the next ID in
-  its category's band; a new reason under an existing ID; a matrix correction
+  its category's band, or the first rule of a new category, at the start of the
+  next unused band; a new reason under an existing ID; a matrix correction
   or a new verdict that starts reporting something. Each can fail a build that
   treats warnings as errors, so the CHANGELOG marks it **New warning:**. A new
   key, value, or DBMS token (for a new `Dbms` member) is minor too, and so is

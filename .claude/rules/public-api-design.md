@@ -769,7 +769,8 @@ silent there — so these are covered like a signature (ADR 0026, #655):
 
 - **Covered** after 1.0: the diagnostic IDs, never renumbered or reused, and
   removed only by a major that retires the rule or merges its reports into
-  another ID (a removed ID stays retired); the band-to-category strings (ADR 0018); default
+  another ID (a removed ID stays retired); the band-to-category strings (ADR 0018),
+  a category added later included from its release (ADR 0028); default
   severity and enabled-by-default, in the raising direction; which reports
   share an ID; the `sqlartisan_*` key names and the rule deriving a
   construct key from a member's name and declared arity; the values, their
@@ -780,9 +781,9 @@ silent there — so these are covered like a signature (ADR 0026, #655):
   on reports before one is. Not covered: titles, message text, help-link
   anchors.
 - **Any other change that adds reports is minor** — a new rule, a new reason, a
-  matrix correction — and from the first release after 1.0 its CHANGELOG entry
-  is marked `New warning:` (`docs-style.md`); any other that only removes
-  reports is a patch.
+  matrix correction, a new category with the next unused band (ADR 0028) — and
+  from the first release after 1.0 its CHANGELOG entry is marked `New warning:`
+  (`docs-style.md`); any other that only removes reports is a patch.
 - **A key is retired by deprecating it**: both spellings accepted, the old one
   reported under its own `SqlArtisan.Configuration` ID, removal in a major, and
   a removed key still reported rather than ignored (ADR 0024). Never renamed in

@@ -2,7 +2,9 @@
 
 **Status:** Accepted — the Validity band's question widened by
 [ADR 0023](0023-analyzer-csharp-fallback-rules.md) from "would `Build()` reject
-this?" to "can this statement mean what it says?". Everything else here stands.
+this?" to "can this statement mean what it says?", and a further category with
+its own band allowed in a minor release by
+[ADR 0028](0028-analyzer-new-category-band.md). Everything else here stands.
 
 ## Context
 

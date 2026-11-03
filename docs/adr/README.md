@@ -52,6 +52,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 | [0025](0025-analyzer-configuration-validation.md) | Analyzer configuration validation: a line that configures nothing is reported | Analyzer | Accepted |
 | [0026](0026-analyzer-contract-stability.md) | The analyzer's contract: what a release may change in its IDs and configuration | Analyzer | Accepted |
 | [0027](0027-public-surface-one-namespace.md) | The public surface: one namespace, and capability return types | | Accepted |
+| [0028](0028-analyzer-new-category-band.md) | A new analyzer category: added with its own band in a minor release | Analyzer | Accepted |
 
 ### Clusters
 
@@ -71,7 +72,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   join predicate some dialects silently reinterpret as `CROSS JOIN`). All four
   are required to answer "will the library throw for this?"
 - **Analyzer** (0003 + 0008 + 0009 + 0013 + 0014 + 0015 + 0018 + 0019 + 0021 +
-  0022 + 0023 + 0024 + 0025 + 0026) — *How does the dialect analyzer work?* 0003
+  0022 + 0023 + 0024 + 0025 + 0026 + 0028) — *How does the dialect analyzer work?* 0003
   chooses the permissive-API + opt-in-analyzer approach; 0008 designs the override
   configuration; 0009 decides bundled distribution; 0013 adds
   position-dependent context rules (SQLA0102); 0014 adds the advisory
@@ -92,7 +93,8 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   a blank family value, another engine's version spelling) and narrows 0019's
   all-`none` reason; 0026 states what a release may change in the IDs and
   configuration surface, correcting 0009's patch-release claim and 0022's on
-  splitting an ID.
+  splitting an ID; 0028 lets a later release add a category with its own band
+  as a minor change, covered from then like 0018's four.
 
 ## Consolidation trigger
 

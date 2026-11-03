@@ -36,6 +36,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   and the sweep skips that negative. (#767)
 
 ### Docs
+- `docs/versioning.md` states that a new analyzer category, with the next
+  unused band of IDs, can arrive in a minor release like any new rule, and is
+  covered as the four are from that release on. (#738)
 - `docs/expressions.md` names the release Oracle's ORA-22849 rejection of
   `CAST(... AS vector)` was observed on, Free 23ai. (#767)
 - `docs/expressions.md` notes that `ArrayOverlaps` is logical AND on MySQL, and
