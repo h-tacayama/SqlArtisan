@@ -648,6 +648,7 @@ internal static class ContextRules
         OperationAnalysisContext context, IInvocationOperation returning, string dialectName)
     {
         List<ISymbol>? joined = null;
+        ISymbol? target = null;
         bool update = false;
         for (IInvocationOperation? cursor = ChainChild(returning);
             cursor is not null;
@@ -657,6 +658,9 @@ internal static class ContextRules
             if (name == "Update")
             {
                 update = true;
+                target = cursor.Arguments.FirstOrDefault() is { } head
+                    ? CorrelatedDmlRule.ResolveTargetSymbol(head.Value)
+                    : null;
                 break;
             }
 
@@ -670,7 +674,11 @@ internal static class ContextRules
             }
         }
 
-        if (!update || joined is null)
+        // Build() rejects a RETURNING beside a re-listed target on every dialect, with
+        // its own message, so the rule leaves that statement to it.
+        if (!update || joined is null
+            || (target is not null
+                && joined.Any(table => SymbolEqualityComparer.Default.Equals(table, target))))
         {
             return;
         }

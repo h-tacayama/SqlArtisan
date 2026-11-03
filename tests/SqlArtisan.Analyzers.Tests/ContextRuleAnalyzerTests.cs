@@ -1226,9 +1226,18 @@ public class ContextRuleAnalyzerTests
     [Theory]
     [InlineData("Returning(t.Id)")]
     [InlineData("Returning(Select(s.Dep).From(s).Where(s.Id == t.Id))")]
-    public Task ReturningTargetOrSubquery_UpdateFrom_Sqlite_StaysSilent(string returning) =>
+    public Task ReturningTargetOrSubquery_Sqlite_UpdateFrom_StaysSilent(string returning) =>
         RunSilent($$"""
             var q = Update(t).Set(t.Dep == 1).From(s).Where(s.Id == t.Id).{{returning}};
+            """, "sqlite");
+
+    // Build() rejects a RETURNING beside a re-listed target, so its message stands alone.
+    [Theory]
+    [InlineData("From(t)")]
+    [InlineData("From(s, t)")]
+    public Task ReturningAfterRelistedTarget_Sqlite_StaysSilent(string from) =>
+        RunSilent($$"""
+            var q = Update(t).Set(t.Dep == 1).{{from}}.Where(s.Id == t.Id).Returning(s.Id);
             """, "sqlite");
 
     [Fact]
