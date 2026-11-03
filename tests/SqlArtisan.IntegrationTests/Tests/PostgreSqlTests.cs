@@ -1432,6 +1432,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     [InlineData("Aggregate")]
     [InlineData("AggregateInExpression")]
     [InlineData("WindowFunction")]
+    [InlineData("WindowedAggregate")]
     [InlineData("WindowFunctionInOrderBy")]
     public void ContextRule_ForUpdateOverDerivedRows_Rejected(string shape)
     {

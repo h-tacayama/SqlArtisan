@@ -1235,6 +1235,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     // Why Oracle is absent from the window-function half of that context rule.
     [Theory]
     [InlineData("WindowFunction")]
+    [InlineData("WindowedAggregate")]
     [InlineData("WindowFunctionInOrderBy")]
     public void ForUpdateWithWindowFunction_IsAcceptedByTheEngine(string shape)
     {

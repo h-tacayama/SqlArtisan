@@ -175,6 +175,7 @@ public abstract class IntegrationTestBase
             "Aggregate" => Lock(Select(Count(u.Id)).From(u), locked),
             "AggregateInExpression" => Lock(Select(Coalesce(Max(u.Age), 0)).From(u), locked),
             "WindowFunction" => Lock(Select(u.Id, RowNumber().Over(OrderBy(u.Id))).From(u), locked),
+            "WindowedAggregate" => Lock(Select(u.Id, Sum(u.Age).Over()).From(u), locked),
             "WindowFunctionInOrderBy" => Lock(
                 Select(u.Id).From(u).OrderBy(RowNumber().Over(OrderBy(u.Id))), locked),
             _ => throw new ArgumentOutOfRangeException(nameof(shape), shape, null),
