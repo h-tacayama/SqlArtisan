@@ -346,8 +346,9 @@ quoted reference.
 The DBMS column lists where each form is idiomatic, not the limit of what is
 emitted: availability is the target database's concern (and the opt-in
 analyzer's). SQLite supports neither family, and `LATERAL` has no SQL Server
-form. Oracle accepts both families except `LeftJoinLateral`; use `OuterApply`
-there. SqlArtisan emits the construct faithfully rather than
+form. Oracle accepts both families, `LeftJoinLateral` from a specific release,
+and MySQL takes `LATERAL` from a specific release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs). SqlArtisan emits the construct faithfully rather than
 gating it at build time.
 
 ---
@@ -714,7 +715,7 @@ SqlStatement sql =
 - `SkipLocked` for `SKIP LOCKED`
 - `Wait()` for `WAIT`
 
-**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Wait(...)` is Oracle-only, and `Of(...)` has one form per side: `Of(column)` is Oracle's, which MySQL and PostgreSQL reject, and `Of(table, ...)` is theirs, which Oracle rejects. Oracle XE 21.3.0 and PostgreSQL 16 also reject `FOR UPDATE` over a grouped query, where MySQL 8.0 locks the base rows; the analyzer reports that position as `SQLA0102`. Oracle XE 21.3.0 rejects it after a row-limiting clause as well (`FETCH FIRST` / `OFFSET ... ROWS`), which PostgreSQL 16 runs; MySQL 8.0 has neither clause and runs its own `LIMIT ... FOR UPDATE`. Also `SQLA0102`. Oracle takes `FOR UPDATE` only in a top-level `SELECT`, so Oracle XE 21.3.0 and Free 23ai reject a locked subquery, CTE body or derived table; MySQL 8.0 and PostgreSQL 16 run a locked `IN` subquery, CTE body and derived table. `SQLA0102` reports the Oracle position too.
+**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Wait(...)` is Oracle-only, and `Of(...)` has one form per side: `Of(column)` is Oracle's, which MySQL and PostgreSQL reject, and `Of(table, ...)` is theirs (MySQL from a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)), which Oracle rejects. Oracle XE 21.3.0 and PostgreSQL 16 also reject `FOR UPDATE` over a grouped query, where MySQL 8.0 locks the base rows; the analyzer reports that position as `SQLA0102`. Oracle XE 21.3.0 rejects it after a row-limiting clause as well (`FETCH FIRST` / `OFFSET ... ROWS`), which PostgreSQL 16 runs; MySQL 8.0 has neither clause and runs its own `LIMIT ... FOR UPDATE`. Also `SQLA0102`. Oracle takes `FOR UPDATE` only in a top-level `SELECT`, so Oracle XE 21.3.0 and Free 23ai reject a locked subquery, CTE body or derived table; MySQL 8.0 and PostgreSQL 16 run a locked `IN` subquery, CTE body and derived table. `SQLA0102` reports the Oracle position too.
 
 > [!WARNING]
 > **On MySQL, `ForUpdate(...)` after a set operator locks only the last branch's rows.** MySQL 8.0
@@ -1290,7 +1291,9 @@ emits the row-alias form (`AS new` … `new.column`) on every
 never the deprecated `VALUES()` function; MySQL added the row alias in a specific release — see the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
-**Note:** `ON CONFLICT` is PostgreSQL/SQLite-only and `ON DUPLICATE KEY UPDATE`
+**Note:** `ON CONFLICT` is PostgreSQL/SQLite-only (SQLite from a specific
+release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)) and `ON DUPLICATE KEY UPDATE`
 is MySQL-only. Oracle and SQL Server use [`MERGE`](#merge-statement) instead.
 With the analyzer configured, `SQLA0100` reports either clause on a dialect
 without it; otherwise the database rejects it.
@@ -1475,8 +1478,9 @@ MergeInto(t)
 ```
 
 The alias renders without `AS` — `(…) "s"`, the derived-table spelling every
-dialect accepts. The literal-row source is PostgreSQL and SQL Server only —
-Oracle has no `VALUES` row constructor in `USING`, so it is not available there.
+dialect accepts. The literal-row source is Oracle, PostgreSQL, and SQL Server
+only, Oracle from a specific release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 **Per-dialect branches and pitfalls:**
 

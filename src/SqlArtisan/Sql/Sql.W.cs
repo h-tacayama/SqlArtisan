@@ -42,6 +42,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="ctes">One or more CTE definitions, each produced by <c>cte.As(subquery)</c>.</param>
     /// <returns>A <c>WITH</c> builder positioned for the following statement.</returns>
+    /// <remarks>MySQL (8.0+), Oracle, PostgreSQL, SQLite, and SQL Server syntax.</remarks>
     public static IWithBuilderWith With(params CommonTableExpression[] ctes) =>
         new WithBuilder(new WithClause(ctes));
 

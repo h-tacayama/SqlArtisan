@@ -21,7 +21,7 @@ public static partial class Sql
     /// <param name="moreTables">Further tables to lock.</param>
     /// <returns>An <c>OF</c> clause for <c>FOR UPDATE OF ...</c>.</returns>
     /// <remarks>
-    /// MySQL and PostgreSQL syntax. PostgreSQL rejects a plain <c>FOR UPDATE</c> on an outer
+    /// MySQL (8.0+) and PostgreSQL syntax. PostgreSQL rejects a plain <c>FOR UPDATE</c> on an outer
     /// join; naming the preserved side here locks it.
     /// </remarks>
     public static OfClause Of(DbTableBase table, params DbTableBase[] moreTables)
