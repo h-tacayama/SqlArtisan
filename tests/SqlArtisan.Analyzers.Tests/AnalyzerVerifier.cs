@@ -12,7 +12,7 @@ namespace SqlArtisan.Analyzers.Tests;
 /// </summary>
 internal static class AnalyzerVerifier
 {
-    private static readonly ReferenceAssemblies Net80 = new(
+    internal static readonly ReferenceAssemblies Net80 = new(
         "net8.0",
         new PackageIdentity("Microsoft.NETCore.App.Ref", "8.0.0"),
         Path.Combine("ref", "net8.0"));
@@ -57,6 +57,20 @@ internal static class AnalyzerVerifier
         test.TestState.AdditionalProjects.Add("Data", data);
         test.TestState.AdditionalProjectReferences.Add("Data");
 
+        return test;
+    }
+
+    /// <summary>
+    /// Adds SqlArtisan.Dapper and Dapper to the source under test, as an application
+    /// executing through <c>SqlArtisan.Dapper</c> references them.
+    /// </summary>
+    public static CSharpAnalyzerTest<DialectUsageAnalyzer, DefaultVerifier> WithDapper(
+        this CSharpAnalyzerTest<DialectUsageAnalyzer, DefaultVerifier> test)
+    {
+        test.TestState.AdditionalReferences.Add(MetadataReference.CreateFromFile(
+            typeof(SqlArtisan.Dapper.SqlMapper).Assembly.Location));
+        test.TestState.AdditionalReferences.Add(MetadataReference.CreateFromFile(
+            typeof(global::Dapper.SqlMapper).Assembly.Location));
         return test;
     }
 

@@ -15,13 +15,9 @@ namespace SqlArtisan.Analyzers;
 /// a target is configured, and only for constructs the matrix verifiably covers.
 /// </summary>
 /// <remarks>
-/// Coupling to the core library is limited to a three-point contract
-/// (ADR 0009): the containing-assembly name (<c>"SqlArtisan"</c>), the public
-/// member names the matrix keys mirror (gate-enforced both ways by the
-/// integrity and coverage tests), and the <c>.editorconfig</c> / MSBuild
-/// configuration surface. Do not add a build reference to SqlArtisan or share
-/// types with it — the analyzer must stay loadable and correct against any
-/// core version.
+/// Coupled to SqlArtisan by name only (ADR 0009), and to SqlArtisan.Dapper and Dapper's
+/// mapping for SQLA0304 (ADR 0029): a build reference to either would tie the analyzer to
+/// one version of it.
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
@@ -51,7 +47,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.CorrelatedDmlTargetNotAliased,
         DiagnosticDescriptors.ReferenceEqualityBound,
         DiagnosticDescriptors.QueryObjectAsText,
-        DiagnosticDescriptors.NullComparison);
+        DiagnosticDescriptors.NullComparison,
+        DiagnosticDescriptors.DapperAliasNamesNoMember);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -109,6 +106,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         Register(AnalyzeInterpolation, OperationKind.InterpolatedString);
         Register(AnalyzeNullComparison, OperationKind.Binary);
         Register(AnalyzeNullComparison, OperationKind.Invocation);
+        Register(AnalyzeDapperAlias, OperationKind.Invocation);
         context.RegisterCompilationEndAction(ValidateConfiguration);
     }
 
@@ -860,6 +858,19 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 NullComparisonRule.CheckSimpleCaseWhen(context, invocation);
                 NullComparisonRule.CheckPredicate(context, invocation);
                 break;
+        }
+    }
+
+    private static void AnalyzeDapperAlias(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
+    {
+        IInvocationOperation invocation = (IInvocationOperation)context.Operation;
+        if (DapperAliasRule.IsCheckedVerb(invocation.TargetMethod)
+            && !GetTargets(context, cache).IsEmpty)
+        {
+            DapperAliasRule.Check(context, invocation);
         }
     }
 

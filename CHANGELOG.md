@@ -5,7 +5,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- `SQLA0304` reports a `nameof` alias in a query's root select list that names no
+  member of the model a typed `SqlArtisan.Dapper` verb (`Query<T>`,
+  `QuerySingle<T>`, …) reads the row into. Dapper ignores such a column, and a
+  model it fills through a parameterless constructor keeps that member at its
+  default with no error. On by default; a string alias is not read. (#716)
+
 ### Tests
+- SQLite twins pin how Dapper maps a `nameof` alias: by member name into a model
+  with a parameterless constructor, the default left with no error when no member
+  takes it; with an exception into a constructor-built model; and from the first
+  column through a registered type handler, whatever the alias. (#716)
 - Twins pin the engine claims #767 found with no version or twin: Free 23ai
   rejects `WITH RECURSIVE` with or without a column list (ORA-02000) and
   `CAST(... AS VECTOR)` (ORA-22849); Oracle XE 21.3.0 rejects a recursive plain
@@ -36,6 +47,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   and the sweep skips that negative. (#767)
 
 ### Docs
+- `docs/guides/dapper-quickstart.md` maps a column to a member of another name
+  with a `nameof` alias, in both its type-name and unassigned-local forms. (#716)
 - `docs/versioning.md` states that a new analyzer category, with the next
   unused band of IDs, can arrive in a minor release like any new rule, and is
   covered as the four are from that release on. (#738)

@@ -43,3 +43,10 @@ paths:
   its table with every chain in between visible. A member on an operand
   (`col.In(...)`, `cte.As(...)`) or a static factory only wraps, and is
   climbed through rather than read as a chain.
+- **A local is followed only where the verdict reads what the chain's root
+  fixes.** `SQLA0304` reads only the root `Select(...)`'s select list, which no
+  later step changes, so it follows a local declared with an initializer and
+  written nowhere else in its member (lambdas and local functions included; a
+  `ref`, `out` or `in` argument and a `ref` alias count as writes). This is a
+  downward walk to a fact already fixed, not the climb above: a rule whose
+  verdict a later step could change still stops at the variable (ADR 0029).

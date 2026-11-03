@@ -30,6 +30,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SqlArtisan.Analyzers\SqlArtisan.Analyzers.csproj" />
     <ProjectReference Include="..\..\src\SqlArtisan\SqlArtisan.csproj" />
+    <ProjectReference Include="..\..\src\SqlArtisan.Dapper\SqlArtisan.Dapper.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />

@@ -7,6 +7,9 @@ MSBuild properties join the coupling contract's seam list), and by
 `sqlartisan_target_dbms` key and `SqlArtisanTargetDbms` property listed below.
 A matrix correction that adds a report ships in a minor release, not a patch
 ([ADR 0026](0026-analyzer-contract-stability.md)).
+[ADR 0029](0029-analyzer-dapper-nameof-alias.md) couples `SQLA0304` to
+`SqlArtisan.Dapper` and Dapper's mapping beyond the three points, by name and
+held by parity tests.
 
 ## Context
 
