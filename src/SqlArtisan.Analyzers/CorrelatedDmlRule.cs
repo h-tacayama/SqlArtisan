@@ -349,7 +349,7 @@ internal static class CorrelatedDmlRule
 
     // The member belongs to the user's table class; its DbColumn TYPE is the
     // SqlArtisan gate (and disambiguates System.Data.Common.DbColumn).
-    private static bool IsTargetColumn(IOperation node, ISymbol target)
+    internal static bool IsTargetColumn(IOperation node, ISymbol target)
     {
         if (node is not (IPropertyReferenceOperation or IFieldReferenceOperation))
         {

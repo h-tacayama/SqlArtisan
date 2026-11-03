@@ -607,6 +607,149 @@ internal static class ContextRules
     }
 
     /// <summary>
+    /// SQLite's <c>RETURNING</c> takes the bare <c>*</c> only: SQLite 3.50.4 rejects a
+    /// table's <c>t.*</c> there, which PostgreSQL 16 runs. Live twins on both lanes.
+    /// </summary>
+    public static void CheckReturningTableAsterisk(
+        OperationAnalysisContext context, IInvocationOperation returning, string dialectName)
+    {
+        foreach (IArgumentOperation argument in returning.Arguments)
+        {
+            if (HasTableAsterisk(argument.Value))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticDescriptors.ContextRestrictedConstruct,
+                    returning.Syntax.GetLocation(),
+                    "Returning",
+                    "with a table-qualified *",
+                    dialectName));
+                return;
+            }
+        }
+    }
+
+    // A star is a list item only (the core rejects one inside an expression), so the
+    // items themselves are all there is to read.
+    private static bool HasTableAsterisk(IOperation? operation) => operation switch
+    {
+        IConversionOperation conversion => HasTableAsterisk(conversion.Operand),
+        IArrayCreationOperation array => HasTableAsterisk(array.Initializer),
+        IArrayInitializerOperation initializer => initializer.ElementValues.Any(HasTableAsterisk),
+        IPropertyReferenceOperation { Property.Name: "Asterisk", Instance: not null } star =>
+            DialectUsageAnalyzer.IsFromSqlArtisan(star.Property.ContainingAssembly),
+        _ => false,
+    };
+
+    /// <summary>
+    /// SQLite's <c>RETURNING</c> reads the target alone: SQLite 3.50.4 rejects a column of
+    /// a table an <c>UPDATE ... FROM</c> joins (<c>no such column</c>). Live twin on that lane.
+    /// </summary>
+    public static void CheckReturningReadsJoinedTable(
+        OperationAnalysisContext context, IInvocationOperation returning, string dialectName)
+    {
+        List<ISymbol>? joined = null;
+        bool update = false;
+        for (IInvocationOperation? cursor = ChainChild(returning);
+            cursor is not null;
+            cursor = ChainChild(cursor))
+        {
+            string name = cursor.TargetMethod.Name;
+            if (name == "Update")
+            {
+                update = true;
+                break;
+            }
+
+            if (name is "From" or "InnerJoin" or "LeftJoin" or "RightJoin" or "FullJoin"
+                or "CrossJoin")
+            {
+                foreach (IArgumentOperation argument in cursor.Arguments)
+                {
+                    CollectTableSymbols(argument.Value, ref joined);
+                }
+            }
+        }
+
+        if (!update || joined is null)
+        {
+            return;
+        }
+
+        foreach (IArgumentOperation argument in returning.Arguments)
+        {
+            if (ReadsAnyTable(argument.Value, joined))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticDescriptors.ContextRestrictedConstruct,
+                    returning.Syntax.GetLocation(),
+                    "Returning",
+                    "reading a table UPDATE ... FROM joins",
+                    dialectName));
+                return;
+            }
+        }
+    }
+
+    private static void CollectTableSymbols(IOperation? operation, ref List<ISymbol>? symbols)
+    {
+        switch (operation)
+        {
+            case IConversionOperation conversion:
+                CollectTableSymbols(conversion.Operand, ref symbols);
+                break;
+            case IArrayCreationOperation array:
+                CollectTableSymbols(array.Initializer, ref symbols);
+                break;
+            case IArrayInitializerOperation initializer:
+                foreach (IOperation element in initializer.ElementValues)
+                {
+                    CollectTableSymbols(element, ref symbols);
+                }
+
+                break;
+            case not null when CorrelatedDmlRule.ResolveTargetSymbol(operation) is { } symbol:
+                (symbols ??= []).Add(symbol);
+                break;
+        }
+    }
+
+    // The same SqlArtisan-only descent as ScanDerivedRows: a statement chain is a query
+    // block of its own, and a helper or a local may place its value anywhere.
+    private static bool ReadsAnyTable(IOperation? operation, List<ISymbol> tables)
+    {
+        switch (operation)
+        {
+            case IConversionOperation conversion:
+                return ReadsAnyTable(conversion.Operand, tables);
+            case IArrayCreationOperation array:
+                return ReadsAnyTable(array.Initializer, tables);
+            case IArrayInitializerOperation initializer:
+                return initializer.ElementValues.Any(element => ReadsAnyTable(element, tables));
+            case IBinaryOperation { OperatorMethod: { } method } binary
+                when DialectUsageAnalyzer.IsFromSqlArtisan(method.ContainingAssembly):
+                return ReadsAnyTable(binary.LeftOperand, tables)
+                    || ReadsAnyTable(binary.RightOperand, tables);
+            case IUnaryOperation { OperatorMethod: { } method } unary
+                when DialectUsageAnalyzer.IsFromSqlArtisan(method.ContainingAssembly):
+                return ReadsAnyTable(unary.Operand, tables);
+            case IFieldReferenceOperation or IPropertyReferenceOperation
+                when tables.Any(table => CorrelatedDmlRule.IsTargetColumn(operation, table)):
+                return true;
+            case IPropertyReferenceOperation { Instance: { } instance } property
+                when DialectUsageAnalyzer.IsFromSqlArtisan(property.Property.ContainingAssembly):
+                return ReadsAnyTable(instance, tables);
+            case IInvocationOperation invocation
+                when DialectUsageAnalyzer.IsFromSqlArtisan(
+                    invocation.TargetMethod.ContainingAssembly)
+                    && invocation.TargetMethod.ReturnType.TypeKind != TypeKind.Interface:
+                return ReadsAnyTable(invocation.Instance, tables)
+                    || invocation.Arguments.Any(argument => ReadsAnyTable(argument.Value, tables));
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
     /// Oracle XE 21.3.0 takes one branch per WHEN clause (ORA-00905); PostgreSQL 16 and
     /// SQL Server 2022 refuse a branch after an unconditioned one of its clause, and SQL
     /// Server a repeated action too. Live twins on those lanes, BY SOURCE's on PostgreSQL 17.

@@ -638,7 +638,7 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. In all, 22 rules ship today — fifteen reading
+expression where the construct is used. In all, 24 rules ship today — seventeen reading
 the construct's surroundings, seven reading the DML statement a clause sits in.
 Every rejection below is live-verified on the pinned lanes — MySQL 8.0, Oracle
 XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022, the Oracle floors on
@@ -838,6 +838,28 @@ var q = InsertInto(u, u.Id, u.Name).Values(1, "x").Returning(u.Id).Build();
 // warning SQLA0102: 'Returning' is not supported without an INTO clause on Oracle
 ```
 
+**A table's `.Asterisk` in a SQLite `RETURNING`.** SQLite takes only the bare
+`*` there and rejects `t.*`, for a table and an aliased one alike, which
+PostgreSQL runs. On SQLite, return every column with `Returning(Asterisk)`.
+
+```csharp
+// sqlartisan_syntax_sqlite = any
+var q = DeleteFrom(u).Where(u.Id == 1).Returning(u.Asterisk);
+// warning SQLA0102: 'Returning' is not supported with a table-qualified * on SQLite
+```
+
+**A joined table in a SQLite `RETURNING`.** SQLite's `RETURNING` reads the
+target alone, so it rejects a column of a table an `UPDATE`'s `From(...)` joins
+(`no such column`), and the read is not available there. The rule reads the
+`UPDATE ... FROM` chain `Returning(...)` is written on: a chain held in a variable
+first, or a column read inside a subquery, stays silent.
+
+```csharp
+// sqlartisan_syntax_sqlite = any
+var q = Update(u).Set(u.Age == 41).From(o).Where(o.UserId == u.Id).Returning(o.Id);
+// warning SQLA0102: 'Returning' is not supported reading a table UPDATE ... FROM joins on SQLite
+```
+
 **A repeated `MERGE` branch.** The engines bound a `MERGE`'s `WHEN` branches
 differently. Oracle takes one `WHEN MATCHED` and one `WHEN NOT MATCHED`.
 PostgreSQL and SQL Server refuse a branch after an unconditioned branch of the
@@ -981,7 +1003,7 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the fifteen that read the construct's surroundings, any shape the
+itself. For the seventeen that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the

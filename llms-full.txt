@@ -506,7 +506,7 @@ SqlStatement sql =
 // FROM users "u"
 // INNER JOIN orders "o" ON "o".user_id = "u".id
 ```
-Both markers are list items — a `SELECT` list, and a `RETURNING` or `OUTPUT` list where the engine takes them — plus one aggregate: `Count(Asterisk)` emits `COUNT(*)`, the only aggregate where `*` is legal. Any other expression position (`Upper(...)`, `ORDER BY`, …) throws or does not compile. Oracle rejects either marker before `INTO`; PostgreSQL's `RETURNING` takes both, and SQLite's only the bare `*`; SQL Server rejects `OUTPUT *` and the target's `t.*` in an `OUTPUT` on a statement that joins nothing.
+Both markers are list items — a `SELECT` list, and a `RETURNING` or `OUTPUT` list where the engine takes them — plus one aggregate: `Count(Asterisk)` emits `COUNT(*)`, the only aggregate where `*` is legal. Any other expression position (`Upper(...)`, `ORDER BY`, …) throws or does not compile. Oracle rejects either marker before `INTO`; PostgreSQL's `RETURNING` takes both, and SQLite's only the bare `*` (`SQLA0102` reports a table's `.Asterisk` there); SQL Server rejects `OUTPUT *` and the target's `t.*` in an `OUTPUT` on a statement that joins nothing.
 
 Do **not** write `Select("*")` — a string in a value position is always a bind value, never SQL, so it emits `SELECT :0` returning the literal `'*'` per row. The same rule protects every string you bind from injection; `Asterisk` is the SQL spelling. For `EXISTS (SELECT * ...)`, prefer the `Exists(Select(1)...)` idiom — see [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions).
 
@@ -2148,6 +2148,8 @@ SqlStatement sql =
 ```
 
 A subquery or CTE body inside that `RETURNING` must not expose a relation under the target's table name: the table itself unaliased, a CTE named after it, or an alias equal to it. The table name would bind that inner relation instead of the target, so the target keeps its alias there and SQLite rejects the statement (on SQLite 3.50.4). A relation aliased like the target keeps the alias too; there `"u".id` reads that inner relation, as the statement is written.
+
+SQLite's `RETURNING` reads the target alone: a column of a table an `UPDATE`'s `From(...)` joins is rejected (`no such column` on SQLite 3.50.4), so that read is not available there. `SQLA0102` reports it.
 
 ### RETURNING INTO (Oracle)
 
@@ -4443,7 +4445,7 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. In all, 22 rules ship today — fifteen reading
+expression where the construct is used. In all, 24 rules ship today — seventeen reading
 the construct's surroundings, seven reading the DML statement a clause sits in.
 Every rejection below is live-verified on the pinned lanes — MySQL 8.0, Oracle
 XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022, the Oracle floors on
@@ -4643,6 +4645,28 @@ var q = InsertInto(u, u.Id, u.Name).Values(1, "x").Returning(u.Id).Build();
 // warning SQLA0102: 'Returning' is not supported without an INTO clause on Oracle
 ```
 
+**A table's `.Asterisk` in a SQLite `RETURNING`.** SQLite takes only the bare
+`*` there and rejects `t.*`, for a table and an aliased one alike, which
+PostgreSQL runs. On SQLite, return every column with `Returning(Asterisk)`.
+
+```csharp
+// sqlartisan_syntax_sqlite = any
+var q = DeleteFrom(u).Where(u.Id == 1).Returning(u.Asterisk);
+// warning SQLA0102: 'Returning' is not supported with a table-qualified * on SQLite
+```
+
+**A joined table in a SQLite `RETURNING`.** SQLite's `RETURNING` reads the
+target alone, so it rejects a column of a table an `UPDATE`'s `From(...)` joins
+(`no such column`), and the read is not available there. The rule reads the
+`UPDATE ... FROM` chain `Returning(...)` is written on: a chain held in a variable
+first, or a column read inside a subquery, stays silent.
+
+```csharp
+// sqlartisan_syntax_sqlite = any
+var q = Update(u).Set(u.Age == 41).From(o).Where(o.UserId == u.Id).Returning(o.Id);
+// warning SQLA0102: 'Returning' is not supported reading a table UPDATE ... FROM joins on SQLite
+```
+
 **A repeated `MERGE` branch.** The engines bound a `MERGE`'s `WHEN` branches
 differently. Oracle takes one `WHEN MATCHED` and one `WHEN NOT MATCHED`.
 PostgreSQL and SQL Server refuse a branch after an unconditioned branch of the
@@ -4786,7 +4810,7 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the fifteen that read the construct's surroundings, any shape the
+itself. For the seventeen that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the

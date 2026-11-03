@@ -213,6 +213,16 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
             DeleteFrom(o).Where(o.Id == 90).Returning(o.Asterisk), transaction));
         Assert.Equal(90, connection.Query<int>(
             DeleteFrom(o).Where(o.Id == 90).Returning(Asterisk), transaction).Single());
+
+        OrdersTable aliased = new("x");
+        Assert.ThrowsAny<DbException>(() => connection.Query(
+            InsertInto(aliased, aliased.Id, aliased.UserId, aliased.Amount).Values(91, 1, 10m)
+                .Returning(aliased.Asterisk),
+            transaction));
+        Assert.Equal(91, connection.Query<int>(
+            InsertInto(aliased, aliased.Id, aliased.UserId, aliased.Amount).Values(91, 1, 10m)
+                .Returning(Asterisk),
+            transaction).Single());
         transaction.Rollback();
     }
 

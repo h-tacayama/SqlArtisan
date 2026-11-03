@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (SQLSTATE 0A000), and on PostgreSQL also beside `DistinctOn(...)` or a window
   function in the select list or `ORDER BY`; Oracle runs the window function.
   Observed on Oracle XE 21.3.0 and PostgreSQL 16. (#742)
+- `SQLA0102` reports, on SQLite, a table's `.Asterisk` in `Returning(...)`, where
+  SQLite takes only the bare `*`, and a `Returning(...)` reading a column of a
+  table an `UPDATE`'s `From(...)` joins, which SQLite rejects (`no such column`);
+  observed on SQLite 3.50.4. (#742)
 
 ### Changed
 - The analyzer knows Oracle 23ai's `LEFT JOIN LATERAL ... ON TRUE` and `VALUES`
