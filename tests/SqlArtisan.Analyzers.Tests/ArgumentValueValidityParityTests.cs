@@ -142,11 +142,100 @@ public class ArgumentValueValidityParityTests
             wrong.Add($"Round -> '{ArgumentValueValidity.RoundScaleParameterName}'");
         }
 
+        foreach (string member in new[] { "CurrentTime", "CurrentTimestamp" })
+        {
+            if (!HasParameter(member, ArgumentValueValidity.PrecisionParameterName))
+            {
+                wrong.Add($"{member} -> '{ArgumentValueValidity.PrecisionParameterName}'");
+            }
+        }
+
+        foreach (string parameter in ArgumentValueValidity.IntervalLeadingFieldParameterName
+            .Values
+            .Append(ArgumentValueValidity.IntervalValueParameterName))
+        {
+            if (!HasParameter("IntervalLiteral", parameter))
+            {
+                wrong.Add($"IntervalLiteral -> '{parameter}'");
+            }
+        }
+
         Assert.True(
             wrong.Count == 0,
             "entries naming a parameter the factory does not have, so SQLA0104 reads nothing: "
                 + string.Join(", ", wrong));
     }
+
+    // The interval cell reports only on a range the call admits, so its table must match
+    // what the core accepts, field factory by field factory.
+    [Fact]
+    public void EveryAdmittedRange_IsARangeTheCoreAccepts()
+    {
+        List<string> wrong = [];
+        (string Name, int Arity, IntervalField Field)[] factories = [.. IntervalFieldFactories()];
+        (string, IntervalField)[] leads = [("Day", Sql.Day()), ("Year", Sql.Year())];
+
+        foreach ((string leadName, IntervalField lead) in leads)
+        {
+            foreach ((string name, int arity, IntervalField trailing) in factories)
+            {
+                bool accepted = true;
+
+                try
+                {
+                    Sql.IntervalLiteral("1", lead, trailing);
+                }
+                catch (ArgumentException)
+                {
+                    accepted = false;
+                }
+
+                if (accepted != ArgumentValueValidity.AdmitsRange(leadName, name, arity))
+                {
+                    wrong.Add($"{leadName} TO {name}/{arity}: core accepts = {accepted}");
+                }
+            }
+        }
+
+        wrong.AddRange(ArgumentValueValidity.AllAdmittedRanges
+            .Where(range => !factories.Any(f => f.Name == range.Trailing && f.Arity == range.Arity))
+            .Select(range =>
+                $"{range.Leading} TO {range.Trailing}/{range.Arity}: no such factory"));
+
+        Assert.True(
+            wrong.Count == 0,
+            "ranges where SQLA0104's interval table and the core disagree: "
+                + string.Join(", ", wrong));
+    }
+
+    private static IEnumerable<(string Name, int Arity, IntervalField Field)>
+        IntervalFieldFactories()
+    {
+        foreach (PropertyInfo property in typeof(Sql)
+            .GetProperties(BindingFlags.Public | BindingFlags.Static)
+            .Where(p => p.PropertyType == typeof(IntervalField)))
+        {
+            yield return (property.Name, 0, (IntervalField)property.GetValue(null)!);
+        }
+
+        foreach (MethodInfo method in typeof(Sql)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Where(m => m.ReturnType == typeof(IntervalField) && !m.IsSpecialName))
+        {
+            object?[] arguments = [.. method.GetParameters().Select(_ => (object?)3)];
+            yield return (
+                method.Name,
+                arguments.Length,
+                (IntervalField)method.Invoke(null, arguments)!);
+        }
+    }
+
+    private static bool HasParameter(string member, string parameter) =>
+        typeof(Sql)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Where(m => m.Name == member)
+            .SelectMany(m => m.GetParameters())
+            .Any(p => p.Name == parameter);
 
     [Fact]
     public void EveryRowCountConstruct_IsRoutedOrRecordedUnrouted()
@@ -196,10 +285,19 @@ public class ArgumentValueValidityParityTests
             }
         }
 
+        foreach ((string member, TargetDbms dbms) in ArgumentValueValidity.AllPrecisionCells)
+        {
+            if (DialectSupportResolver.MatchMatrixEntry(member, arity: 1) is { } match
+                && !DialectSupportResolver.Evaluate(match, dbms, targetVersion: null).IsSupported)
+            {
+                unreachable.Add($"{member} on {TargetDbmsNames.Display(dbms)}");
+            }
+        }
+
         Assert.True(
             unreachable.Count == 0,
-            "row-count cells SQLA0104 can never report, because the construct itself is "
-                + "unsupported there: " + string.Join(", ", unreachable));
+            "row-count and precision cells SQLA0104 can never report, because the construct "
+                + "itself is unsupported there: " + string.Join(", ", unreachable));
     }
 
     private static IEnumerable<MethodInfo> RowCountMethods() =>

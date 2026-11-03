@@ -26,6 +26,8 @@ internal static class ArgumentValueValidityRule
     private const string GroupKeyNoun = "group key";
     private const string ScaleNoun = "scale";
     private const string OperandNoun = "operand";
+    private const string PrecisionNoun = "precision";
+    private const string IntervalValueNoun = "interval value";
 
     public static void Check(
         OperationAnalysisContext context,
@@ -55,7 +57,115 @@ internal static class ArgumentValueValidityRule
         {
             CheckRoundScale(context, invocation, targets, memberName);
         }
+
+        if (memberName is "CurrentTime" or "CurrentTimestamp")
+        {
+            CheckPrecision(context, invocation, targets, memberName);
+        }
+
+        if (memberName == "IntervalLiteral")
+        {
+            CheckIntervalLeadingValue(context, invocation, targets, memberName);
+        }
     }
+
+    // Only a value above a ceiling: one below 0 is rejected at the call on every dialect.
+    private static void CheckPrecision(
+        OperationAnalysisContext context,
+        IInvocationOperation invocation,
+        DialectTargetSet targets,
+        string memberName)
+    {
+        if (FindArgument(invocation.Arguments, ArgumentValueValidity.PrecisionParameterName)
+                is not { } argument
+            || argument.Value.ConstantValue is not { HasValue: true, Value: int precision }
+            || ValueDomainScope.For(context, invocation) is not { } scope)
+        {
+            return;
+        }
+
+        List<string>? invalidOn = null;
+
+        foreach (TargetDbms dbms in targets.Members)
+        {
+            if (ArgumentValueValidity.PrecisionCeilingFor(memberName, dbms) is { } ceiling
+                && precision > ceiling
+                && scope.Covers(dbms, targets))
+            {
+                (invalidOn ??= []).Add(TargetDbmsNames.Display(dbms));
+            }
+        }
+
+        Report(
+            context,
+            argument,
+            memberName,
+            precision.ToString(CultureInfo.InvariantCulture),
+            PrecisionNoun,
+            invalidOn);
+    }
+
+    // The fields must be the factory calls themselves, the lead written with no precision: a
+    // field held in a variable could carry one, or form a range the call rejects.
+    private static void CheckIntervalLeadingValue(
+        OperationAnalysisContext context,
+        IInvocationOperation invocation,
+        DialectTargetSet targets,
+        string memberName)
+    {
+        if (!ArgumentValueValidity.IntervalLeadingFieldParameterName.TryGetValue(
+                invocation.TargetMethod.Parameters.Length, out string? fieldParameter)
+            || FindArgument(invocation.Arguments, ArgumentValueValidity.IntervalValueParameterName)
+                is not { } argument
+            || argument.Value.ConstantValue is not { HasValue: true, Value: string text }
+            || !HasThreeLeadingDigits(text)
+            || FindArgument(invocation.Arguments, fieldParameter)?.Value
+                is not IInvocationOperation { TargetMethod: { Parameters.Length: 0 } field }
+            || field.ContainingType?.ToDisplayString() != "SqlArtisan.Sql"
+            || !DialectUsageAnalyzer.IsFromSqlArtisan(field.ContainingAssembly)
+            || fieldParameter == "leadingField" && !FormsAdmittedRange(field, invocation)
+            || ValueDomainScope.For(context, invocation) is not { } scope)
+        {
+            return;
+        }
+
+        List<string>? invalidOn = null;
+
+        foreach (TargetDbms dbms in targets.Members)
+        {
+            if (ArgumentValueValidity.RejectsThreeDigitLeadingValue(field.Name, dbms)
+                && scope.Covers(dbms, targets))
+            {
+                (invalidOn ??= []).Add(TargetDbmsNames.Display(dbms));
+            }
+        }
+
+        Report(context, argument, memberName, text, IntervalValueNoun, invalidOn);
+    }
+
+    private static bool FormsAdmittedRange(IMethodSymbol leading, IInvocationOperation invocation)
+    {
+        IOperation? trailing = FindArgument(
+            invocation.Arguments,
+            ArgumentValueValidity.IntervalTrailingFieldParameterName)?.Value;
+        (ISymbol? factory, int arity) = trailing switch
+        {
+            IPropertyReferenceOperation { Property: { } property } => (property, 0),
+            IInvocationOperation { TargetMethod: { } method } => (method, method.Parameters.Length),
+            _ => ((ISymbol?)null, 0),
+        };
+
+        return factory?.ContainingType?.ToDisplayString() == "SqlArtisan.Sql"
+            && DialectUsageAnalyzer.IsFromSqlArtisan(factory.ContainingAssembly)
+            && ArgumentValueValidity.AdmitsRange(leading.Name, factory.Name, arity);
+    }
+
+    // A sign, a space or a leading zero is a reading nobody has measured, so it stays silent.
+    private static bool HasThreeLeadingDigits(string text) =>
+        text.Length >= 3
+        && text[0] is >= '1' and <= '9'
+        && text[1] is >= '0' and <= '9'
+        && text[2] is >= '0' and <= '9';
 
     /// <summary>
     /// Reports a string or char constant among <paramref name="operands"/>, the operands of a

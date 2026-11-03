@@ -608,7 +608,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         var invocation = (IInvocationOperation)context.Operation;
         if (invocation.TargetMethod.Name is not ("RegexpCount" or "RegexpInstr" or "RegexpLike"
                 or "RegexpReplace" or "RegexpSubstr" or "FetchFirst" or "FetchNext" or "Limit"
-                or "Top" or "GroupBy" or "Round")
+                or "Top" or "GroupBy" or "Round" or "CurrentTime" or "CurrentTimestamp"
+                or "IntervalLiteral")
             || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
         {
             return;

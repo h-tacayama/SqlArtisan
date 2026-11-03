@@ -571,6 +571,155 @@ public class ArgumentValueValidityAnalyzerTests
             """var q = Select(t.Id).From(t).GroupBy(2.5);""",
             AnalyzerVerifier.EditorConfig("oracle"));
 
+    // --- CURRENT_TIMESTAMP / CURRENT_TIME precisions (#742) ---
+
+    [Fact]
+    public Task CurrentTimestamp_MySql_PrecisionAboveSix_ReportsSqla0104() =>
+        RunReporting(
+            """var e = CurrentTimestamp({|#0:7|});""",
+            AnalyzerVerifier.EditorConfig("mysql"),
+            "CurrentTimestamp", "7", "precision", "MySQL");
+
+    [Fact]
+    public Task CurrentTime_MySql_PrecisionAboveSix_ReportsSqla0104() =>
+        RunReporting(
+            """var e = CurrentTime({|#0:7|});""",
+            AnalyzerVerifier.EditorConfig("mysql"),
+            "CurrentTime", "7", "precision", "MySQL");
+
+    [Fact]
+    public Task CurrentTimestamp_MySql_PrecisionSix_StaysSilent() =>
+        RunSilent(
+            """var e = Select(CurrentTimestamp(6), CurrentTime(6));""",
+            AnalyzerVerifier.EditorConfig("mysql"));
+
+    [Fact]
+    public Task CurrentTimestamp_Oracle_PrecisionAboveNine_ReportsSqla0104() =>
+        RunReporting(
+            """var e = CurrentTimestamp({|#0:10|});""",
+            AnalyzerVerifier.EditorConfig("oracle"),
+            "CurrentTimestamp", "10", "precision", "Oracle");
+
+    [Fact]
+    public Task CurrentTimestamp_Oracle_PrecisionNine_StaysSilent() =>
+        RunSilent(
+            """var e = CurrentTimestamp(9);""",
+            AnalyzerVerifier.EditorConfig("oracle"));
+
+    // PostgreSQL runs a precision above 6.
+    [Fact]
+    public Task CurrentTimestamp_PostgreSql_PrecisionAboveNine_StaysSilent() =>
+        RunSilent(
+            """var e = Select(CurrentTimestamp(10), CurrentTime(10));""",
+            AnalyzerVerifier.EditorConfig("postgresql"));
+
+    [Fact]
+    public Task CurrentTimestamp_MultipleDialects_JoinsTheFailingOnes() =>
+        RunReporting(
+            """var e = CurrentTimestamp({|#0:10|});""",
+            """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_mysql = any
+            sqlartisan_syntax_oracle = any
+            sqlartisan_syntax_postgresql = any
+            """,
+            "CurrentTimestamp", "10", "precision", "MySQL and Oracle");
+
+    // Oracle has no CURRENT_TIME, the matrix's verdict.
+    [Fact]
+    public Task CurrentTime_Oracle_PrecisionAboveNine_IsOwnedBySqla0100() =>
+        RunOwnedBySqla0100(
+            """var e = {|#0:CurrentTime(10)|};""",
+            AnalyzerVerifier.EditorConfig("oracle"));
+
+    [Fact]
+    public Task CurrentTimestamp_MySql_NonConstantPrecision_StaysSilent() =>
+        RunSilent(
+            """
+            int p = System.DateTime.Now.Second + 7;
+            var e = CurrentTimestamp(p);
+            """,
+            AnalyzerVerifier.EditorConfig("mysql"));
+
+    // --- Interval literals past Oracle's default leading precision (#742) ---
+
+    [Theory]
+    [InlineData("""IntervalLiteral({|#0:"365"|}, Day())""", "365")]
+    [InlineData("""IntervalLiteral({|#0:"100"|}, Year())""", "100")]
+    [InlineData("""IntervalLiteral({|#0:"100-1"|}, Year(), ToMonth)""", "100-1")]
+    [InlineData("""IntervalLiteral({|#0:"100 1"|}, Day(), ToHour)""", "100 1")]
+    [InlineData("""IntervalLiteral({|#0:"1000 1:2:3"|}, Day(), ToSecond())""", "1000 1:2:3")]
+    [InlineData("""IntervalLiteral({|#0:"100 1:2:3"|}, Day(), ToSecond(3))""", "100 1:2:3")]
+    [InlineData("""IntervalLiteral({|#0:"100 1"|}, Day(), Hour())""", "100 1")]
+    public Task IntervalLiteral_Oracle_ThreeDigitLeadingValue_ReportsSqla0104(
+        string literal, string value) =>
+        RunReporting(
+            $"var e = {literal};",
+            AnalyzerVerifier.EditorConfig("oracle"),
+            "IntervalLiteral", value, "interval value", "Oracle");
+
+    [Theory]
+    [InlineData("""IntervalLiteral("99", Day())""")]
+    [InlineData("""IntervalLiteral("365", Day(3))""")]
+    [InlineData("""IntervalLiteral("100-1", Year(3), ToMonth)""")]
+    [InlineData("""IntervalLiteral("100", Month())""")]
+    [InlineData("""IntervalLiteral("100", Hour())""")]
+    [InlineData("""IntervalLiteral("100", Minute())""")]
+    [InlineData("""IntervalLiteral("100", Second())""")]
+    [InlineData("""IntervalLiteral("100:1", Hour(), ToMinute)""")]
+    [InlineData("""IntervalLiteral("0100", Day())""")]
+    [InlineData("""IntervalLiteral(" 100", Day())""")]
+    [InlineData("""IntervalLiteral("-100", Day())""")]
+    public Task IntervalLiteral_Oracle_ValueTheDefaultPrecisionTakes_StaysSilent(
+        string literal) =>
+        RunSilent($"var e = {literal};", AnalyzerVerifier.EditorConfig("oracle"));
+
+    [Theory]
+    [InlineData("mysql")]
+    [InlineData("postgresql")]
+    public Task IntervalLiteral_ThreeDigitDayOffOracle_StaysSilent(string dbms) =>
+        RunSilent(
+            """var e = IntervalLiteral("365", Day());""",
+            AnalyzerVerifier.EditorConfig(dbms));
+
+    // The call rejects the range, so the value is not the problem to name.
+    [Theory]
+    [InlineData("""IntervalLiteral("100", Day(), ToMonth)""")]
+    [InlineData("""IntervalLiteral("100-1", Year(), ToHour)""")]
+    [InlineData("""IntervalLiteral("100 1", Day(), Hour(2))""")]
+    public Task IntervalLiteral_Oracle_RangeTheCallRejects_StaysSilent(string literal) =>
+        RunSilent($"var e = {literal};", AnalyzerVerifier.EditorConfig("oracle"));
+
+    [Fact]
+    public Task IntervalLiteral_Oracle_TrailingFieldInVariable_StaysSilent() =>
+        RunSilent(
+            """
+            IntervalField f = ToHour;
+            var e = IntervalLiteral("100 1", Day(), f);
+            """,
+            AnalyzerVerifier.EditorConfig("oracle"));
+
+    // A field held in a variable could carry a precision.
+    [Fact]
+    public Task IntervalLiteral_Oracle_FieldInVariable_StaysSilent() =>
+        RunSilent(
+            """
+            IntervalField f = Day();
+            var e = IntervalLiteral("365", f);
+            """,
+            AnalyzerVerifier.EditorConfig("oracle"));
+
+    [Fact]
+    public Task IntervalLiteral_Oracle_NonConstantValue_StaysSilent() =>
+        RunSilent(
+            """
+            string v = System.DateTime.Now.Year.ToString();
+            var e = IntervalLiteral(v, Day());
+            """,
+            AnalyzerVerifier.EditorConfig("oracle"));
+
     [Fact]
     public Task Limit_NoTargetConfigured_StaysSilent() =>
         RunSilent(

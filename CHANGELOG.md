@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- `SQLA0104` reports a constant `CurrentTimestamp` / `CurrentTime` precision
+  above an engine's ceiling: above 6 on MySQL, and above 9 for
+  `CurrentTimestamp` on Oracle. PostgreSQL, which runs one above 6, is not
+  reported. (#742)
+- `SQLA0104` reports an `IntervalLiteral` value of three or more leading digits
+  under a `Day()` or `Year()` with no precision on Oracle, which rejects it
+  (`IntervalLiteral("365", Day())`; `Day(3)` runs). (#742)
 - `SQLA0304` reports a `nameof` alias in a query's root select list that names no
   member of the model a typed `SqlArtisan.Dapper` verb (`Query<T>`,
   `QuerySingle<T>`, …) reads the row into. Dapper cannot map such a column: a

@@ -139,6 +139,55 @@ internal static class ArgumentValueValidity
     private static readonly HashSet<TargetDbms> FractionalGroupKeyRejected =
         [TargetDbms.PostgreSql, TargetDbms.SqlServer];
 
+    // --- CURRENT_TIMESTAMP / CURRENT_TIME precisions: each engine's ceiling (#742) ---
+
+    // The parameter SQLA0104 reads the precision out of.
+    internal const string PrecisionParameterName = "precision";
+
+    // MySQL 8.0 rejects 7 on both (error 1426), and Oracle XE 21.3.0 and 23.26.3 reject
+    // CURRENT_TIMESTAMP(10) (ORA-30088); PostgreSQL 16.15 runs CURRENT_TIMESTAMP(10).
+    private static readonly Dictionary<(string Member, TargetDbms Dbms), int> PrecisionCeiling =
+        new()
+        {
+            [("CurrentTime", TargetDbms.MySql)] = 6,
+            [("CurrentTimestamp", TargetDbms.MySql)] = 6,
+            [("CurrentTimestamp", TargetDbms.Oracle)] = 9,
+        };
+
+    // --- Interval literals: a leading value past Oracle's default precision (#742) ---
+
+    // The parameters SQLA0104 reads the value and the leading field out of, per arity.
+    internal const string IntervalValueParameterName = "value";
+
+    internal const string IntervalTrailingFieldParameterName = "trailingField";
+
+    internal static readonly Dictionary<int, string> IntervalLeadingFieldParameterName = new()
+    {
+        [2] = "field",
+        [3] = "leadingField",
+    };
+
+    // Oracle XE 21.3.0 and 23.26.3 reject a DAY or YEAR value of three or more digits under no
+    // precision (ORA-01873) and run it under one that covers it; '100' MONTH, HOUR, MINUTE
+    // and SECOND run under none.
+    private static readonly HashSet<string> DefaultPrecisionLeadingFields =
+        new(StringComparer.Ordinal) { "Day", "Year" };
+
+    // The trailing fields (factory, declared arity) the core admits after each such lead; any
+    // other range throws at the call, so the value is not the problem to name there.
+    private static readonly HashSet<(string Leading, string Trailing, int Arity)> AdmittedRanges =
+    [
+        ("Day", "Hour", 0),
+        ("Day", "Minute", 0),
+        ("Day", "Second", 0),
+        ("Day", "ToHour", 0),
+        ("Day", "ToMinute", 0),
+        ("Day", "ToSecond", 0),
+        ("Day", "ToSecond", 1),
+        ("Year", "Month", 0),
+        ("Year", "ToMonth", 0),
+    ];
+
     /// <summary>
     /// Whether <paramref name="dbms"/> is measured not to read a <c>GROUP BY</c>
     /// constant as a select-list position.
@@ -166,6 +215,36 @@ internal static class ArgumentValueValidity
     /// </summary>
     public static bool RejectsFractionalGroupKey(TargetDbms dbms) =>
         FractionalGroupKeyRejected.Contains(dbms);
+
+    /// <summary>
+    /// The highest <paramref name="memberName"/> precision <paramref name="dbms"/> is
+    /// measured to accept, or <see langword="null"/> when this rule has none for the pair.
+    /// </summary>
+    public static int? PrecisionCeilingFor(string memberName, TargetDbms dbms) =>
+        PrecisionCeiling.TryGetValue((memberName, dbms), out int ceiling) ? ceiling : null;
+
+    /// <summary>
+    /// Whether <paramref name="dbms"/> is measured to reject a value of three or more digits
+    /// under the no-precision <paramref name="fieldFactory"/> leading an interval literal.
+    /// </summary>
+    public static bool RejectsThreeDigitLeadingValue(string fieldFactory, TargetDbms dbms) =>
+        dbms == TargetDbms.Oracle && DefaultPrecisionLeadingFields.Contains(fieldFactory);
+
+    /// <summary>
+    /// Whether the core admits the trailing field <paramref name="trailingFactory"/>, a factory
+    /// of <paramref name="arity"/> declared parameters, after <paramref name="leadingFactory"/>.
+    /// </summary>
+    public static bool AdmitsRange(string leadingFactory, string trailingFactory, int arity) =>
+        AdmittedRanges.Contains((leadingFactory, trailingFactory, arity));
+
+    /// <summary>Every range the interval cell reports on — the parity gate's check.</summary>
+    internal static IEnumerable<(string Leading, string Trailing, int Arity)> AllAdmittedRanges =>
+        AdmittedRanges;
+
+    /// <summary>Every (member, dialect) cell the precision table holds — the parity
+    /// gate's coverage check.</summary>
+    internal static IEnumerable<(string Member, TargetDbms Dbms)> AllPrecisionCells =>
+        PrecisionCeiling.Keys;
 
     /// <summary>
     /// The valid <c>RegexpOptions</c> member-name set for <paramref name="dbms"/>,

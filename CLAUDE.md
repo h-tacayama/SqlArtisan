@@ -120,15 +120,18 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships eighteen diagnostics:
 - **SQLA0103** — Identifier too long for the target dialect's limit.
 - **SQLA0104** — A literal argument value the target dialect rejects (or runs
   with another meaning), where the construct itself runs there — a finer grain than SQLA0100's whole-construct
-  verdict. Six value domains report under the one ID (**ADR 0022**): a
+  verdict. Eight value domains report under the one ID (**ADR 0022**): a
   `DateTimePart` outside what a function accepts (`Extract`, `Datepart`,
   `Dateadd`, `Datediff`, `DateTrunc`, `Datetrunc`, `Interval`, `Timestampadd`,
   `Timestampdiff`); a `RegexpOptions` member outside an engine's
   match-parameter alphabet; a negative constant
   `Top`/`FetchFirst`/`FetchNext`/`Limit` count; a `GroupBy` column ordinal
   on an engine with no `GROUP BY` positions; a negative integer-typed
-  constant `Round` scale, which SQLite reads as 0; and a string or `char`
-  constant beside `+`, which only SQL Server concatenates. The silence cells are
+  constant `Round` scale, which SQLite reads as 0; a string or `char`
+  constant beside `+`, which only SQL Server concatenates; a constant
+  `CurrentTimestamp` / `CurrentTime` precision above an engine's ceiling; and an
+  Oracle `IntervalLiteral` value of three or more leading digits under a no-precision
+  `Day()` or `Year()`. The silence cells are
   load-bearing — Oracle executes a negative `FETCH` and SQLite reads `LIMIT -1`
   as "no limit". Enum values resolve by matching the argument's constant
   against the enum's own members (never the underlying integer), the same
