@@ -190,6 +190,27 @@ internal static class ContextRules
     }
 
     /// <summary>
+    /// PostgreSQL 16 runs the percentiles only as ordered-set aggregates and rejects an
+    /// <c>OVER</c> clause on one (SQLSTATE 0A000), where Oracle XE 21.3.0 runs it. Live
+    /// twins on both lanes.
+    /// </summary>
+    public static void CheckPercentileWindow(
+        OperationAnalysisContext context, IInvocationOperation over, string dialectName)
+    {
+        if (over.TargetMethod.ContainingType.Name != "PercentileFunction")
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            over.Syntax.GetLocation(),
+            over.TargetMethod.Name,
+            "over an ordered-set aggregate",
+            dialectName));
+    }
+
+    /// <summary>
     /// The <c>INSERTED</c>/<c>DELETED</c> pseudo-tables name the row images an
     /// <c>OUTPUT</c> clause reads; elsewhere the reference binds to no table.
     /// </summary>
@@ -342,6 +363,173 @@ internal static class ContextRules
             "ForUpdate",
             "after a set operator",
             dialectNames));
+    }
+
+    /// <summary>
+    /// A lock over rows DISTINCT, an aggregate or a window function derives: Oracle XE
+    /// 21.3.0 (ORA-01786) rejects the first two and runs the third, PostgreSQL 16 (SQLSTATE
+    /// 0A000) all three. Live twins on both lanes.
+    /// </summary>
+    public static void CheckForUpdateOverDerivedRows(
+        OperationAnalysisContext context, IInvocationOperation forUpdate, DialectTargetSet targets)
+    {
+        DerivedRows derived = DerivedRows.None;
+        IInvocationOperation? select = null;
+        for (IInvocationOperation? cursor = ChainChild(forUpdate);
+            cursor is not null;
+            cursor = ChainChild(cursor))
+        {
+            string name = cursor.TargetMethod.Name;
+            // The GROUP BY and set-operator rules already report these chains.
+            if (name == "GroupBy")
+            {
+                return;
+            }
+
+            if (name == "OrderBy")
+            {
+                derived |= ScanArguments(cursor) & DerivedRows.Window;
+            }
+            else if (name == "Select")
+            {
+                select = cursor;
+                break;
+            }
+        }
+
+        if (select is null || FollowsSetOperator(select))
+        {
+            return;
+        }
+
+        foreach (IArgumentOperation argument in select.Arguments)
+        {
+            derived |= argument.Parameter?.Type.Name switch
+            {
+                "DistinctKeyword" => DerivedRows.Distinct,
+                "DistinctOnKeyword" => DerivedRows.DistinctOn,
+                _ => ScanDerivedRows(argument.Value),
+            };
+        }
+
+        // One report per lock, for the reason the most engines reject. DistinctOn is
+        // oracle:false in the matrix, so SQLA0100 already reports it there.
+        string? names;
+        string position;
+        if ((derived & DerivedRows.Distinct) != 0
+            && (names = RejectingTargets(targets, s_derivedLockUnsupported)) is not null)
+        {
+            position = "with a DISTINCT clause";
+        }
+        else if ((derived & DerivedRows.Aggregate) != 0
+            && (names = RejectingTargets(targets, s_derivedLockUnsupported)) is not null)
+        {
+            position = "with an aggregate function";
+        }
+        else if ((derived & (DerivedRows.DistinctOn | DerivedRows.Window)) != 0
+            && (names = RejectingTargets(targets, s_windowedLockUnsupported)) is not null)
+        {
+            position = (derived & DerivedRows.DistinctOn) != 0
+                ? "with a DISTINCT clause"
+                : "with a window function";
+        }
+        else
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            forUpdate.Syntax.GetLocation(),
+            "ForUpdate",
+            position,
+            names));
+    }
+
+    [System.Flags]
+    private enum DerivedRows
+    {
+        None = 0,
+        Distinct = 1,
+        DistinctOn = 2,
+        Aggregate = 4,
+        Window = 8,
+    }
+
+    private static readonly TargetDbms[] s_derivedLockUnsupported =
+        [TargetDbms.Oracle, TargetDbms.PostgreSql];
+
+    private static readonly TargetDbms[] s_windowedLockUnsupported = [TargetDbms.PostgreSql];
+
+    // Internal for the parity gate: a static Sql factory building an aggregate node.
+    internal static readonly HashSet<string> AggregateFactories =
+    [
+        "Avg", "Count", "GroupConcat", "Listagg", "Max", "Min", "PercentileCont",
+        "PercentileDisc", "Stddev", "StddevPop", "StddevSamp", "Stdev", "Stdevp", "StringAgg",
+        "Sum", "Var", "VarPop", "VarSamp", "Variance", "Varp"
+    ];
+
+    private static DerivedRows ScanArguments(IInvocationOperation invocation)
+    {
+        DerivedRows found = DerivedRows.None;
+        foreach (IArgumentOperation argument in invocation.Arguments)
+        {
+            found |= ScanDerivedRows(argument.Value);
+        }
+
+        return found;
+    }
+
+    // Descends only through SqlArtisan operators and calls: a helper, a local or a lambda
+    // may place its value anywhere, and a statement chain is a query block of its own.
+    private static DerivedRows ScanDerivedRows(IOperation? operation)
+    {
+        switch (operation)
+        {
+            case IConversionOperation conversion:
+                return ScanDerivedRows(conversion.Operand);
+            case IArrayCreationOperation array:
+                return ScanDerivedRows(array.Initializer);
+            case IArrayInitializerOperation initializer:
+                DerivedRows elements = DerivedRows.None;
+                foreach (IOperation element in initializer.ElementValues)
+                {
+                    elements |= ScanDerivedRows(element);
+                }
+
+                return elements;
+            case IBinaryOperation { OperatorMethod: { } method } binary
+                when DialectUsageAnalyzer.IsFromSqlArtisan(method.ContainingAssembly):
+                return ScanDerivedRows(binary.LeftOperand) | ScanDerivedRows(binary.RightOperand);
+            case IUnaryOperation { OperatorMethod: { } method } unary
+                when DialectUsageAnalyzer.IsFromSqlArtisan(method.ContainingAssembly):
+                return ScanDerivedRows(unary.Operand);
+            case IPropertyReferenceOperation { Instance: { } instance } property
+                when DialectUsageAnalyzer.IsFromSqlArtisan(property.Property.ContainingAssembly):
+                return ScanDerivedRows(instance);
+            case IInvocationOperation invocation
+                when DialectUsageAnalyzer.IsFromSqlArtisan(
+                    invocation.TargetMethod.ContainingAssembly):
+                if (invocation.TargetMethod.ReturnType.TypeKind == TypeKind.Interface)
+                {
+                    return DerivedRows.None;
+                }
+
+                if (invocation.TargetMethod.Name == "Over")
+                {
+                    return DerivedRows.Window;
+                }
+
+                if (invocation.Instance is null
+                    && AggregateFactories.Contains(invocation.TargetMethod.Name))
+                {
+                    return DerivedRows.Aggregate;
+                }
+
+                return ScanDerivedRows(invocation.Instance) | ScanArguments(invocation);
+            default:
+                return DerivedRows.None;
+        }
     }
 
     /// <summary>

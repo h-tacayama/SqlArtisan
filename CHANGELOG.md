@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `QuerySingle<T>`, …) reads the row into. Dapper cannot map such a column: a
   model it fills through a parameterless constructor keeps that member at its
   default with no error. On by default; a string alias is not read. (#716)
+- `SQLA0102` reports `.Over(...)` on `PercentileCont` / `PercentileDisc` on
+  PostgreSQL, which takes the percentiles only as ordered-set aggregates
+  (PostgreSQL 16, SQLSTATE 0A000). (#742)
+- `SQLA0102` reports `ForUpdate()` on a query whose select list carries
+  `Distinct` or an aggregate function, on Oracle (ORA-01786) and PostgreSQL
+  (SQLSTATE 0A000), and on PostgreSQL also beside `DistinctOn(...)` or a window
+  function in the select list or `ORDER BY`, which Oracle runs; observed on
+  Oracle XE 21.3.0 and PostgreSQL 16. (#742)
 
 ### Changed
 - The analyzer knows Oracle 23ai's `LEFT JOIN LATERAL ... ON TRUE` and `VALUES`

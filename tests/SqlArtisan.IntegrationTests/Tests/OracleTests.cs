@@ -1220,6 +1220,46 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     }
 
     [Theory] // ORA-01786. Each query runs unlocked, so the lock is the only difference.
+    [InlineData("Distinct")]
+    [InlineData("Aggregate")]
+    [InlineData("AggregateInExpression")]
+    public void ContextRule_ForUpdateOverDerivedRows_Rejected(string shape)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query(DerivedRowsQuery(shape, locked: false)).ToList();
+        Assert.ThrowsAny<DbException>(() => connection.Query(
+            DerivedRowsQuery(shape, locked: true)).ToList());
+    }
+
+    // Why Oracle is absent from the window-function half of that context rule.
+    [Theory]
+    [InlineData("WindowFunction")]
+    [InlineData("WindowFunctionInOrderBy")]
+    public void ForUpdateWithWindowFunction_IsAcceptedByTheEngine(string shape)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.NotEmpty(connection.Query(DerivedRowsQuery(shape, locked: true), transaction));
+        transaction.Rollback();
+    }
+
+    // Why Oracle is absent from the percentile OVER context rule: it runs both windows.
+    [Fact]
+    public void PercentileOver_IsAcceptedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.NotEmpty(connection.Query<decimal?>(
+            Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age)).Over()).From(u)));
+        Assert.NotEmpty(connection.Query<decimal?>(
+            Select(PercentileDisc(0.5).WithinGroup(OrderBy(u.Age))
+                .Over(PartitionBy(u.DepartmentId))).From(u)));
+    }
+
+    [Theory] // ORA-01786. Each query runs unlocked, so the lock is the only difference.
     [InlineData("Union")]
     [InlineData("UnionAll")]
     [InlineData("Intersect")]

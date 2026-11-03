@@ -164,6 +164,27 @@ public abstract class IntegrationTestBase
             .From(c);
     }
 
+    // The query a Theory row names, locked or not, so the lock is the only difference.
+    protected static ISqlBuilder DerivedRowsQuery(string shape, bool locked)
+    {
+        UsersTable u = new();
+        return shape switch
+        {
+            "Distinct" => Lock(Select(Distinct, u.Age).From(u), locked),
+            "DistinctOn" => Lock(Select(DistinctOn(u.Age), u.Age).From(u).OrderBy(u.Age), locked),
+            "Aggregate" => Lock(Select(Count(u.Id)).From(u), locked),
+            "AggregateInExpression" => Lock(Select(Coalesce(Max(u.Age), 0)).From(u), locked),
+            "WindowFunction" => Lock(Select(u.Id, RowNumber().Over(OrderBy(u.Id))).From(u), locked),
+            "WindowFunctionInOrderBy" => Lock(
+                Select(u.Id).From(u).OrderBy(RowNumber().Over(OrderBy(u.Id))), locked),
+            _ => throw new ArgumentOutOfRangeException(nameof(shape), shape, null),
+        };
+
+        static ISqlBuilder Lock<T>(T query, bool locked)
+            where T : ISqlBuilder, IForUpdate =>
+            locked ? query.ForUpdate() : query;
+    }
+
     // Branches reading user 1 and order 1, joined by the set operator a Theory row names.
     protected static ISelectBuilderWhere UserThenOrder(string setOperator)
     {

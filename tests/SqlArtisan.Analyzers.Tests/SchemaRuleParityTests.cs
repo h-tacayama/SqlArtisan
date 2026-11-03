@@ -415,6 +415,32 @@ public class SchemaRuleParityTests
         Assert.Equal(classified, groupings);
     }
 
+    // The aggregate categories are folders (CLAUDE.md, "How to add a new SQL function"),
+    // so a node a new aggregate factory builds lands in one and its factory must be listed.
+    [Fact]
+    public void EveryCoreAggregateFactory_IsClassified()
+    {
+        string root = FindRepoRoot();
+        string core = Path.Combine(root, "src", "SqlArtisan");
+        HashSet<string> nodeNames = [.. Directory
+            .EnumerateFiles(core, "*.cs", SearchOption.AllDirectories)
+            .Where(f => Path.GetFileName(Path.GetDirectoryName(f)) is "AggregateFunction"
+                or "OrderedSetAggregateFunction" or "StringAggregateFunction")
+            .Select(f => Path.GetFileNameWithoutExtension(f))];
+        System.Type[] nodes = [.. Core.GetTypes().Where(t => nodeNames.Contains(t.Name))];
+        string[] factories = [.. typeof(Sql)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Where(m => nodes.Any(node => ConstructsAny(m, node)))
+            .Select(m => m.Name)
+            .Distinct()
+            .OrderBy(name => name, System.StringComparer.Ordinal)];
+
+        string[] classified = [.. ContextRules.AggregateFactories
+            .OrderBy(name => name, System.StringComparer.Ordinal)];
+
+        Assert.Equal(classified, factories);
+    }
+
     [Fact]
     public void EveryCoreSetOperator_IsClassified()
     {
