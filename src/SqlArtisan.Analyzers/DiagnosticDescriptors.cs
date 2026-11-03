@@ -16,9 +16,8 @@ internal static class DiagnosticDescriptors
     private const string DialectCategory = "SqlArtisan.Dialect";
     private const string SchemaCategory = "SqlArtisan.Schema";
 
-    // Statements that cannot mean what they say: one Build() rejects (SQLA0300), one C#
-    // resolves without SqlArtisan so it binds a C# value (SQLA0301-0302), or a
-    // comparison with NULL that is never true (SQLA0303).
+    // Code that cannot mean what it says, on any dialect: ADR 0023 widened the band's
+    // question from ADR 0018's "would Build() reject this?".
     private const string ValidityCategory = "SqlArtisan.Validity";
 
     // Shared so the two SQLA0104 descriptors cannot drift apart in an IDE's rule
@@ -282,6 +281,16 @@ internal static class DiagnosticDescriptors
         id: "SQLA0303",
         title: "A comparison with NULL is never true",
         messageFormat: "'{0}' compares with NULL and is never true; {1}",
+        category: ValidityCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
+
+    public static readonly DiagnosticDescriptor DapperAliasNamesNoMember = new(
+        id: "SQLA0304",
+        title: "A nameof alias names no member of the model Dapper reads the row into",
+        messageFormat: "Alias '{0}' names no member of '{1}', so Dapper cannot map the column to "
+            + "the member it was meant for",
         category: ValidityCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,

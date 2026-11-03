@@ -24,6 +24,7 @@ your code until you configure a target; only a problem in that configuration
 - [Correlated DML target (SQLA0300)](#correlated-dml-target-sqla0300)
 - [C# fallbacks (SQLA0301, SQLA0302)](#c-fallbacks-sqla0301-sqla0302)
 - [Comparisons with NULL (SQLA0303)](#comparisons-with-null-sqla0303)
+- [Dapper model aliases (SQLA0304)](#dapper-model-aliases-sqla0304)
 - [Schema-aware warnings (SQLA0200)](#schema-aware-warnings-sqla0200)
 - [Mixed-dialect projects](#mixed-dialect-projects)
 - [CI gates and stricter enforcement](#ci-gates-and-stricter-enforcement)
@@ -117,6 +118,7 @@ still needs naming by ID.
 | `SQLA0301` | Warning | `==` or `!=` that C# resolves as reference equality, because the left operand is not a SqlArtisan expression, passed to a SqlArtisan member or operator — it binds a `bool` instead of comparing in SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
 | `SQLA0302` | Warning | A SqlArtisan object interpolated or concatenated into a string passed to a SqlArtisan member or operator — it binds the object's type name instead of SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
 | `SQLA0303` | Warning | A comparison (`==`, `!=`, `<`, `<=`, `>`, `>=`), a `NotIn(...)` list, an `In(...)` list of NULLs alone, a `Between(...)` bound or a `Like(...)` / `NotLike(...)` pattern that is `Sql.Null` or `BindNull()`, or a simple CASE `When(Null)`, which is never true, so the predicate matches no row; see [Comparisons with NULL](#comparisons-with-null-sqla0303). |
+| `SQLA0304` | Warning | A `nameof` alias in the root select list of a query read by a typed `SqlArtisan.Dapper` verb (`Query<T>`, `QuerySingle<T>`, …) names no member of `T`, so Dapper cannot map the column to the member it was meant for; see [Dapper model aliases](#dapper-model-aliases-sqla0304). |
 
 `SQLA0001` is a compilation-end diagnostic with no file location: it appears in **build** output (CLI and CI, and an IDE's Error
 List after an explicit build — check that the list's source filter includes
@@ -1359,6 +1361,72 @@ or `dotnet_diagnostic.SQLA0303.severity`).
 
 ---
 
+## Dapper model aliases (SQLA0304)
+
+A `nameof` alias ties a column to the member of the model Dapper reads it into,
+so renaming the member renames the alias. It compiles just as well when it names
+a member of another type, and Dapper then cannot map the column: a model it
+fills through a parameterless constructor keeps that member at its default, with
+no error, and one it builds through a constructor throws (Dapper 2.1.66 on
+SQLite, live: `SqliteTests.QueryNameOfAlias_*`).
+`SQLA0304` reports such an alias.
+
+```csharp
+// sqlartisan_syntax_postgresql = any
+IEnumerable<OrderSummary> rows = cnn.Query<OrderSummary>(
+    Select(o.OrderCode.As(nameof(CustomerSummary.Name)), Sum(o.Amount).As(nameof(OrderSummary.Total)))
+    .From(o)
+    .GroupBy(o.OrderCode));
+// warning SQLA0304: Alias 'Name' names no member of 'OrderSummary', so Dapper cannot map the column ...
+```
+
+The rule reads the query passed to `SqlArtisan.Dapper`'s typed `Query`,
+`QueryFirst`, `QueryFirstOrDefault`, `QuerySingle` or `QuerySingleOrDefault`, or
+its `Async` form: written at the call, or held in a local that is assigned once,
+where it is declared. In that query it reads the root `Select(...)` — or the
+`Select(...)` right after `With(...)` / `WithRecursive(...)` — and each item there
+aliased with a `nameof` of a member, such as `.As(nameof(Model.Member))`,
+`.As(nameof(instance.Member))` or `.As(nameof(Member))`; a `nameof` of a local, a
+parameter or a type is not read. The alias
+matches when it names a property or field of the model or of a base type,
+whatever its access, or a parameter of one of its constructors, ignoring case and
+underscores; Dapper ignores underscores only when
+`DefaultTypeMap.MatchNamesWithUnderscores` is set, so any name it could match
+stays silent.
+
+It stays silent where the alias does not decide the mapping, or where the rule
+cannot see what does:
+
+- The model is a type parameter, `dynamic`, abstract, an interface, an enum or
+  an array, or it or a base type is declared in another assembly. That covers
+  the types Dapper reads by position, such as `int`, `string` or a tuple, and a
+  model kept in another project: `dotnet build` reads such a type without its
+  private members, which Dapper fills, so the build and the IDE would disagree.
+- The project references Dapper.FluentMap, or the model, a base type or one of
+  their members carries an attribute named `ColumnAttribute`: a mapping set up
+  at run time.
+- The query is not one the rule can see whole: a local assigned again, a query
+  picked by `?:`, `??` or a `switch` expression, or one taken from a field, a
+  property, a parameter or a method of your own. A query with a set operation
+  (`UnionAll`, …) is not read either, nor an alias inside a subquery, a
+  `Returning(...)` or an `Output(...)`.
+
+Only a `nameof` alias is read. A string alias may be meant for a type map or a
+handler registered at run time, or for an extra column Dapper ignores on
+purpose; a `nameof` of a member says the alias is a member name, which is
+what lets the rule be on by default.
+
+Two shapes report on code that works. A handler registered for the model with
+`SqlMapper.AddTypeHandler` reads the first column whatever the alias (Dapper
+2.1.66 on SQLite, live:
+`SqliteTests.QueryNameOfAlias_RegisteredHandler_ReadsTheFirstColumn`), and a type
+map keyed on an attribute of another name can map the column to a member the
+alias does not name. Suppress the rule there the standard Roslyn way
+(`#pragma warning disable SQLA0304`, a `[SuppressMessage]` attribute, or
+`dotnet_diagnostic.SQLA0304.severity`).
+
+---
+
 ## Schema-aware warnings (SQLA0200)
 
 `SqlArtisan.TableClassGen` records what the catalog says about each column on
@@ -1825,7 +1893,7 @@ for, not a bug in the matrix.
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)
   for what's entered.
 - **The dialect-independent rules need a configured target too.**
-  `SQLA0300`–`SQLA0303` and the schema-aware `SQLA0200`–`SQLA0205` report
+  `SQLA0300`–`SQLA0304` and the schema-aware `SQLA0200`–`SQLA0206` report
   facts that hold on every engine, but every rule from `SQLA0100` on stays
   silent until a dialect is configured — without one, `SQLA0300`'s `Build()`
   guard is the only report and the schema rules have none.

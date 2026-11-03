@@ -43,3 +43,11 @@ paths:
   its table with every chain in between visible. A member on an operand
   (`col.In(...)`, `cte.As(...)`) or a static factory only wraps, and is
   climbed through rather than read as a chain.
+- **`SQLA0304` follows a local to the root `Select(...)` that fixes its select
+  list.** No later step changes the select list, so the rule follows a local
+  declared with an initializer and written nowhere else in its member (lambdas
+  and local functions included; a `ref`, `out` or `in` argument, and a write
+  through a `ref` alias or a `ref` conditional, count as writes). This is a
+  downward walk to a fact already fixed, not the climb above (ADR 0029).
+  `SQLA0300` follows a DML target's local to the table its initializer
+  constructs (ADR 0014).

@@ -1456,4 +1456,97 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.Equal(0, connection.ExecuteScalar<int>(
             Select(u.Name + u.Name).From(u).Where(u.Id == 1)));
     }
+
+    // #716: SQLA0304's premise. A model Dapper fills through its parameterless constructor
+    // takes either nameof form docs/guides/dapper-quickstart.md shows, and leaves the member
+    // at its default, with no error, when the alias names no member.
+    [Fact]
+    public void QueryNameOfAlias_ParameterlessModel_MapsByMemberName()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        string? name = connection.ExecuteScalar<string>(Select(u.Name).From(u).Where(u.Id == 1));
+        UserSummary s;
+
+        UserSummary byType = connection.QuerySingle<UserSummary>(
+            Select(u.Id.As(nameof(UserSummary.UserId)), u.Name.As(nameof(UserSummary.Label)))
+            .From(u)
+            .Where(u.Id == 1));
+        UserSummary byLocal = connection.QuerySingle<UserSummary>(
+            Select(u.Id.As(nameof(s.UserId)), u.Name.As(nameof(s.Label)))
+            .From(u)
+            .Where(u.Id == 1));
+        UserSummary missed = connection.QuerySingle<UserSummary>(
+            Select(u.Id.As(nameof(UserSummary.UserId)), u.Name.As(nameof(UserTitle.Title)))
+            .From(u)
+            .Where(u.Id == 1));
+
+        Assert.NotNull(name);
+        Assert.Equal((1L, name), (byType.UserId, byType.Label));
+        Assert.Equal((1L, name), (byLocal.UserId, byLocal.Label));
+        Assert.Equal((1L, (string?)null), (missed.UserId, missed.Label));
+    }
+
+    // #716: a model Dapper builds through its constructor fails loudly instead.
+    [Fact]
+    public void QueryNameOfAlias_ConstructorModel_ThrowsOnANameNoParameterTakes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        UserRecord mapped = connection.QuerySingle<UserRecord>(
+            Select(u.Id.As(nameof(UserRecord.UserId)), u.Name.As(nameof(UserRecord.Label)))
+            .From(u)
+            .Where(u.Id == 1));
+
+        Assert.Equal(1L, mapped.UserId);
+        Assert.Throws<InvalidOperationException>(() => connection.QuerySingle<UserRecord>(
+            Select(u.Id.As(nameof(UserRecord.UserId)), u.Name.As(nameof(UserTitle.Title)))
+            .From(u)
+            .Where(u.Id == 1)));
+    }
+
+    // #716: SQLA0304's known false positive. A type with a registered handler is read from
+    // the first column through it, whatever the alias names.
+    [Fact]
+    public void QueryNameOfAlias_RegisteredHandler_ReadsTheFirstColumn()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        string? name = connection.ExecuteScalar<string>(Select(u.Name).From(u).Where(u.Id == 1));
+        global::Dapper.SqlMapper.AddTypeHandler(new HandledLabelHandler());
+
+        HandledLabel label = connection.QuerySingle<HandledLabel>(
+            Select(u.Name.As(nameof(UserTitle.Title))).From(u).Where(u.Id == 1));
+
+        Assert.NotNull(name);
+        Assert.Equal(name, label.Value);
+    }
+
+    private sealed class UserSummary
+    {
+        public long UserId { get; set; }
+
+        public string? Label { get; set; }
+    }
+
+    private sealed class UserTitle
+    {
+        public string? Title { get; set; }
+    }
+
+    private sealed record UserRecord(long UserId, string Label);
+
+    private sealed class HandledLabel
+    {
+        public string? Value { get; set; }
+    }
+
+    private sealed class HandledLabelHandler : global::Dapper.SqlMapper.TypeHandler<HandledLabel>
+    {
+        public override HandledLabel Parse(object value) => new() { Value = (string)value };
+
+        public override void SetValue(IDbDataParameter parameter, HandledLabel? value) =>
+            parameter.Value = value?.Value;
+    }
 }

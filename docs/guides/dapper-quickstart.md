@@ -114,6 +114,35 @@ IEnumerable<UserDto> recent = await connection.QueryAsync<UserDto>(
     cancellationToken: HttpContext.RequestAborted);
 ```
 
+A member whose name differs from its column takes an alias, and `nameof` keeps
+the alias tied to the member through a rename:
+
+```csharp
+IEnumerable<UserSummary> summaries = await connection.QueryAsync<UserSummary>(
+    Select(u.Id.As(nameof(UserSummary.UserId)), u.Name.As(nameof(UserSummary.Label)))
+    .From(u));
+```
+
+With many columns, a local of the model type that is never assigned shortens each
+alias; `nameof` reads only its type:
+
+```csharp
+UserSummary s;
+
+IEnumerable<UserSummary> summaries = await connection.QueryAsync<UserSummary>(
+    Select(u.Id.As(nameof(s.UserId)), u.Name.As(nameof(s.Label)))
+    .From(u));
+```
+
+> [!NOTE]
+> **`nameof` compiles just as well when it names a member of another type**, and
+> Dapper then cannot map the column: a model it fills through a parameterless
+> constructor keeps that member at its default, with no error. Once a dialect is
+> configured, the analyzer reports such an alias where it can read the query.
+
+See [Dapper model aliases](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#dapper-model-aliases-sqla0304)
+for what `SQLA0304` reads.
+
 As in Dapper, `ExecuteReaderAsync` on a connection typed as `DbConnection`
 (not `IDbConnection`) returns a `DbDataReader`, so its rows can be read with
 `ReadAsync` too.

@@ -29,7 +29,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/SqlBuilder/` | Public surface: `Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`, `ISqlBuilder`, `ISubquery`, `OutputParameter`, and the builder-stage interfaces (`I<Statement>Builder*`, one folder per statement). |
 | `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`, including the capability types the factories return (`AggregateFunction`, `OrderByClause`, …). Everything here renders SQL or is consumed while rendering it. |
 | `src/SqlArtisan/Metadata/` | Schema-metadata attributes on generated table classes (`DbColumnMetadataAttribute`, `DbTypeCategory`). Compile-time data, never rendered and never read at run time. |
-| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0303). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
+| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0304). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
 | `src/SqlArtisan.ArrayBind/` | Oracle array-bind execution (one round trip per batch, not per row). |
 | `src/SqlArtisan.Dapper/` | Dapper integration (sync/async SqlMapper extensions). |
 | `src/SqlArtisan.TableClassGen/` | Argument-driven tool that generates table classes from a live DB (all five DBMS), and reports drift between them and the schema (`--check` / `--fix`). |
@@ -102,7 +102,7 @@ categories under `src/SqlArtisan/SqlPart/Expression/Function/`.
 
 ## Analyzer
 
-The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships seventeen diagnostics:
+The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships eighteen diagnostics:
 
 - **SQLA0001** — Analyzer configuration problem: an unrecognized key name or
   value (a `sqlartisan_construct_*` key naming no member or arity, a blank
@@ -170,6 +170,11 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships seventeen diagnostics:
   never true, so it matches no row.
   Since `==` also writes a `SET` assignment, an `==` is reported only where it is
   read as a `SqlCondition` (`docs/analyzer.md` names the silent cases).
+- **SQLA0304** — A `nameof` alias in the root select list of a query read by a
+  typed `SqlArtisan.Dapper` verb (`Query<T>`, …) that names no member of `T`, so
+  Dapper cannot map the column to the member. Follows a local
+  assigned once at its declaration; silent for a model declared in another
+  assembly (**ADR 0029**).
 
 Each ID sits in a numbered band that **is** its category, so a family gains a
 rule without renumbering and a bulk-severity setting reaches one family only
