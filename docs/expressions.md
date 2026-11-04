@@ -476,7 +476,7 @@ SqlStatement sql =
 // FROM users
 ```
 
-`JsonArrow` (`->`) returns the JSON type; `JsonArrowText` (`->>`) returns text. Both work on MySQL, PostgreSQL, and SQLite. On MySQL the key is a JSON path (`"$.address"`, `"$[0]"`): MySQL rejects a bare key and an integer index (observed on MySQL 8.0.46).
+`JsonArrow` (`->`) returns the JSON type; `JsonArrowText` (`->>`) returns text. Both work on MySQL, PostgreSQL, and SQLite. On MySQL the key is a JSON path (`"$.address"`, `"$[0]"`): MySQL rejects a bare key and an integer index (observed on MySQL 8.0.46), and MySQL 8.0 a column or a function as the key.
 
 > [!NOTE]
 > A path-shaped key such as `"$.name"` reads a path on MySQL and SQLite but is a
@@ -492,6 +492,10 @@ JsonArrowText(JsonArrow(u.Data, "address"), "city")
 // Array element: (data -> 0)
 JsonArrow(u.Data, 0)
 ```
+
+On MySQL neither form runs: MySQL 8.0 rejects a `JsonArrow` or `JsonArrowText` whose
+left operand is another one, so read the nested value with one path instead
+(`JsonArrowText(u.Data, "$.address.city")`), and an array element with `"$[0]"`.
 
 ### Path Access (`#>` / `#>>`)
 

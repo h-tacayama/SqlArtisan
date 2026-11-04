@@ -96,6 +96,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   chain used as a subquery, a derived table or a CTE body. (#742)
 - `docs/query-statements.md` notes that Oracle XE 21.3.0 rejects a `SELECT` with
   no `FROM`, and names `.From(Dual)` for it. (#742)
+- `docs/query-statements.md` notes that MySQL 8.0 rejects a bare `*` after another
+  select item, and `docs/expressions.md` that MySQL 8.0 rejects a `JsonArrow` /
+  `JsonArrowText` over another one and a column or function key, naming one JSON
+  path for a nested value. (#742)
 
 ## [0.13.0-beta.1] - 2026-11-01
 ### Added
