@@ -807,8 +807,12 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
     // reads; with TOP or OFFSET ROWS beside it, the same query runs in the same spot.
     [Theory]
     [InlineData("in")]
+    [InlineData("notin")]
     [InlineData("exists")]
+    [InlineData("notexists")]
     [InlineData("any")]
+    [InlineData("all")]
+    [InlineData("some")]
     [InlineData("derived")]
     [InlineData("cte")]
     [InlineData("scalar")]
@@ -871,8 +875,12 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         return position switch
         {
             "in" => Select(Count(Asterisk)).From(u).Where(u.Id.In(query)),
+            "notin" => Select(Count(Asterisk)).From(u).Where(u.Id.NotIn(query)),
             "exists" => Select(Count(Asterisk)).From(u).Where(Exists(query)),
+            "notexists" => Select(Count(Asterisk)).From(u).Where(NotExists(query)),
             "any" => Select(Count(Asterisk)).From(u).Where(u.Id > Any(query)),
+            "all" => Select(Count(Asterisk)).From(u).Where(u.Id > All(query)),
+            "some" => Select(Count(Asterisk)).From(u).Where(u.Id > Some(query)),
             "derived" => Select(Count(Asterisk)).From(query.AsTable("d")),
             "cte" => With(q.As(query)).Select(Count(Asterisk)).From(q),
             "crossapply" =>
