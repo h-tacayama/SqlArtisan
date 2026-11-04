@@ -530,4 +530,15 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             Select(CurrentTimestamp(10)).From(Dual)));
     }
+
+    // #742: 23ai runs the FROM-less SELECT that OracleTests.FromlessSelect_IsRejectedByTheEngine
+    // sees 21c reject.
+    [Fact]
+    public void FromlessSelect_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(Select(CurrentTimestamp()).From(Dual));
+        connection.ExecuteScalar(Select(CurrentTimestamp()));
+    }
 }

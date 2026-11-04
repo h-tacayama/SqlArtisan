@@ -606,6 +606,9 @@ SqlStatement sql =
 // SELECT CURRENT_TIMESTAMP
 ```
 
+**Dialect note:** on Oracle, add `.From(Dual)` (below). Oracle XE 21.3.0 rejects a
+`SELECT` with no `FROM` (ORA-00923); Free 23ai runs both forms.
+
 #### Using DUAL (Oracle)
 ```csharp
 SqlStatement sql =

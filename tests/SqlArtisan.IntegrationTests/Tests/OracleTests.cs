@@ -569,6 +569,18 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Equal(byDefault, byNull);
     }
 
+    // #742: the docs' FROM-less note; Oracle23aiTests runs both forms.
+    [Fact]
+    public void FromlessSelect_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(Select(CurrentTimestamp()).From(Dual));
+
+        Assert.ThrowsAny<DbException>(
+            () => connection.ExecuteScalar(Select(CurrentTimestamp())));
+    }
+
     [Fact] // ADR 0012 (#661): anchors the non-negative CURRENT_TIMESTAMP precision guard.
     public void CurrentTimestamp_NegativePrecision_IsRejectedByTheEngine()
     {
