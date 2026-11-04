@@ -1524,8 +1524,10 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             Select(JsonArrowText(JsonArrow(u.Data, "$.address"), "$.zip"))
             .From(u)
             .Where(u.Id == 1)));
-        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+        // name holds no JSON path, so only the parse error tells the key's rejection apart.
+        MySqlException columnKey = Assert.Throws<MySqlException>(() => connection.ExecuteScalar(
             Select(JsonArrow(u.Data, u.Name)).From(u).Where(u.Id == 1)));
+        Assert.Equal(MySqlErrorCode.ParseError, columnKey.ErrorCode);
         Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
             Select(JsonArrowText(u.Data, Concat("$.", "name"))).From(u).Where(u.Id == 1)));
     }
