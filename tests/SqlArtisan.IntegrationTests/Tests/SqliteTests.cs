@@ -308,8 +308,8 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
-    // An unaliased FROM relation's column renders bare, and SQLite reads a bare
-    // RETURNING name from the target: user 2's id comes back, not its order's.
+    // An unaliased FROM relation's column renders bare, and SQLite reads a bare RETURNING
+    // name the target has from the target: user 2's id comes back, not its order's.
     [Fact]
     public void Returning_Sqlite_UnaliasedJoinedRelationColumn_ReadsTheTarget()
     {
@@ -329,16 +329,19 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
-    // An alias spelling the target's table name qualifies the column as the target.
-    [Fact]
-    public void Returning_Sqlite_JoinedRelationAliasedAsTargetTable_ReadsTheTarget()
+    // An alias spelling the target's table name qualifies the column as the target, in
+    // the list and in a subquery that binds no relation under that name.
+    [Theory]
+    [InlineData("\"users\".id")]
+    [InlineData("(SELECT \"users\".id)")]
+    public void Returning_Sqlite_JoinedRelationAliasedAsTargetTable_ReadsTheTarget(string item)
     {
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
         Assert.Equal(2, connection.Query<int>(
             "UPDATE users AS \"u\" SET age = 42 FROM orders \"users\" "
-                + "WHERE \"users\".user_id = \"u\".id AND \"u\".id = 2 RETURNING \"users\".id",
+                + "WHERE \"users\".user_id = \"u\".id AND \"u\".id = 2 RETURNING " + item,
             transaction: transaction).Single());
         transaction.Rollback();
     }

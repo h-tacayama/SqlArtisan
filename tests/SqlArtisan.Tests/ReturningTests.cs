@@ -564,7 +564,7 @@ public class ReturningTests
         Assert.Equal(ReturningReadsAnotherTableMessage, ex.Message);
     }
 
-    // Rendered bare, SQLite 3.50.4 reads the name from the target instead of failing.
+    // Rendered bare, `name` is the target's too, so SQLite 3.50.4 reads the target's.
     [Fact]
     public void Returning_Sqlite_UnaliasedJoinedTableColumnInAFunction_ThrowsArgumentException()
     {
@@ -631,7 +631,7 @@ public class ReturningTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
-    // A subquery reads its own relation; only the list's own level is the target's.
+    // A subquery's own relation, named other than the target, is outside the check.
     [Fact]
     public void Returning_Sqlite_SubqueryReadingAnotherTable_CorrectSql()
     {
@@ -649,6 +649,50 @@ public class ReturningTests
         expected.Append("SET name = :0 ");
         expected.Append("WHERE \"t\".code = :1 ");
         expected.Append("RETURNING (SELECT MAX(\"a\".code) FROM archive_table \"a\") \"m\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("x", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(1, sql.Parameters.Get<int>(":1"));
+    }
+
+    // SQLite 3.50.4 reads "a".code in the subquery from the target, whose table "a" names.
+    [Theory]
+    [InlineData("test_table")]
+    [InlineData("TEST_TABLE")]
+    public void Returning_Sqlite_SubqueryReadingTargetNamedTable_ThrowsArgumentException(
+        string alias)
+    {
+        TestTable t = new("t");
+        ArchiveTable a = new(alias);
+        IReturningBuilder returning =
+            Update(t).Set(t.Name == a.Name).From(a).Where(a.Code == t.Code)
+            .Returning(Select(a.Code).As("x"));
+
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => returning.Build(Dbms.Sqlite));
+
+        Assert.Equal(ReturningReadsAnotherTableMessage, ex.Message);
+    }
+
+    // The subquery binds the name itself, so "test_table".code reads its own relation.
+    [Fact]
+    public void Returning_Sqlite_SubqueryBindingTheTargetsName_CorrectSql()
+    {
+        TestTable t = new("t");
+        ArchiveTable named = new("test_table");
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == "x")
+            .Where(t.Code == 1)
+            .Returning(Select(Max(named.Code)).From(named).As("m"))
+            .Build(Dbms.Sqlite);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE test_table AS \"t\" ");
+        expected.Append("SET name = :0 ");
+        expected.Append("WHERE \"t\".code = :1 ");
+        expected.Append("RETURNING (SELECT MAX(\"test_table\".code) ");
+        expected.Append("FROM archive_table \"test_table\") \"m\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal("x", sql.Parameters.Get<string>(":0"));

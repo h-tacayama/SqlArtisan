@@ -392,16 +392,19 @@ a new one the analyzer can see.
 
 SQLite's `RETURNING` reads the target alone. A column of another table, a table
 an `UPDATE`'s `From(...)` joins included, renders under its alias or, unaliased,
-bare. SQLite 3.50.4 rejects the alias (`no such column`), and reads a bare name, or
-an alias spelling the target's table name, from the target, returning the
-target's value with no error. So `Build(Dbms.Sqlite)` throws when the `RETURNING`
-list's own level renders a column whose table is not the target:
+bare. SQLite 3.50.4 rejects it (`no such column`), or reads the target's
+same-named column instead with no error: a bare name the target also has, or an
+alias spelling the target's table name, is read from the target. A subquery in
+the list reads such an alias from the target too, unless the subquery binds that
+name itself. So `Build(Dbms.Sqlite)` throws when the `RETURNING` list's own level
+renders a column whose table is not the target, or a subquery in the list renders
+one under a name the target's table or alias spells that no block in between
+binds:
 
 > `SQLite's RETURNING reads only the target table; read another table's column in a statement of its own.`
 
-A subquery in the list reads its own relations and stays outside the check.
-PostgreSQL's `RETURNING` reads an `UPDATE ... FROM` table, so the statement emits
-as written there.
+A subquery's own relations stay outside the check. PostgreSQL's `RETURNING` reads
+an `UPDATE ... FROM` table, so the statement emits as written there.
 
 The case is admitted outside the bar. Its first condition does not hold in full:
 `SQLA0102` reports the read where it can identify the joined table on the chain.
@@ -415,4 +418,5 @@ already holds for SQLite's target rewrite (#595), so a build allocates nothing
 more (ADR 0006). Live twins on the SQLite lane, run as hand-written text since
 the guard: `Returning_Sqlite_JoinedRelationColumn_IsRejectedByTheEngine`,
 `Returning_Sqlite_UnaliasedJoinedRelationColumn_ReadsTheTarget` and
-`Returning_Sqlite_JoinedRelationAliasedAsTargetTable_ReadsTheTarget`.
+`Returning_Sqlite_JoinedRelationAliasedAsTargetTable_ReadsTheTarget`, the last in
+the list and in a subquery.

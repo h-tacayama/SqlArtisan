@@ -228,8 +228,9 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   `DELETE ... USING` at all, and the message names the `From(...)` remedy
   the joined-target guard's own message could not reach from that chain
   (ADR 0011, "Later instances" section); a column of a table other than the
-  target at SQLite's `RETURNING` list's own level, which SQLite 3.50.4 rejects
-  under its alias and reads from the target when bare, with no error (ADR 0011
+  target at SQLite's `RETURNING` list's own level, or in a subquery there under a
+  name the target spells that no block in between binds, which SQLite 3.50.4
+  rejects or reads from the target's same-named column with no error (ADR 0011
   admits it outside its bar, #742).
 
 **Joined-target alias requirement (decided — do not re-file):**
