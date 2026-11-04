@@ -807,11 +807,17 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
     // reads; with TOP or OFFSET ROWS beside it, the same query runs in the same spot.
     [Theory]
     [InlineData("in")]
+    [InlineData("notin")]
     [InlineData("exists")]
+    [InlineData("notexists")]
     [InlineData("any")]
+    [InlineData("all")]
+    [InlineData("some")]
     [InlineData("derived")]
     [InlineData("cte")]
     [InlineData("scalar")]
+    [InlineData("crossapply")]
+    [InlineData("outerapply")]
     public void ContextRule_OrderByInSubquery_Rejected(string position)
     {
         UsersTable u = new();
@@ -826,8 +832,10 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         connection.ExecuteScalar(InPosition(position, u, top));
         connection.ExecuteScalar(InPosition(position, u, offset));
 
-        Assert.ThrowsAny<DbException>(
-            () => connection.ExecuteScalar(InPosition(position, u, bare)));
+        Microsoft.Data.SqlClient.SqlException ex =
+            Assert.Throws<Microsoft.Data.SqlClient.SqlException>(
+                () => connection.ExecuteScalar(InPosition(position, u, bare)));
+        Assert.Equal(1033, ex.Number);
     }
 
     // #742: a WITH chain used as a subquery, a derived table or a CTE body is rejected;
@@ -867,10 +875,18 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         return position switch
         {
             "in" => Select(Count(Asterisk)).From(u).Where(u.Id.In(query)),
+            "notin" => Select(Count(Asterisk)).From(u).Where(u.Id.NotIn(query)),
             "exists" => Select(Count(Asterisk)).From(u).Where(Exists(query)),
+            "notexists" => Select(Count(Asterisk)).From(u).Where(NotExists(query)),
             "any" => Select(Count(Asterisk)).From(u).Where(u.Id > Any(query)),
+            "all" => Select(Count(Asterisk)).From(u).Where(u.Id > All(query)),
+            "some" => Select(Count(Asterisk)).From(u).Where(u.Id > Some(query)),
             "derived" => Select(Count(Asterisk)).From(query.AsTable("d")),
             "cte" => With(q.As(query)).Select(Count(Asterisk)).From(q),
+            "crossapply" =>
+                Select(Count(Asterisk)).From(u).CrossApply(query, new DerivedTable("x")),
+            "outerapply" =>
+                Select(Count(Asterisk)).From(u).OuterApply(query, new DerivedTable("x")),
             _ => Select(query).From(u).Where(u.Id == 1),
         };
     }

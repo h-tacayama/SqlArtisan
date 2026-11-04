@@ -394,6 +394,28 @@ public class ContextRuleContractTests
         Assert.Equal(["As", "AsTable"], members);
     }
 
+    // The ORDER BY rule reports Oracle only at a named predicate host, so every other
+    // ISubquery parameter must be a table source, where Oracle runs it or is unmeasured.
+    [Fact]
+    public void SubqueryParameterHosts_AreEachClassifiedByTheOrderedSubqueryRule()
+    {
+        string[] hosts = [.. Core.GetExportedTypes()
+            .SelectMany(t => t.GetMethods(
+                BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static
+                | BindingFlags.DeclaredOnly))
+            .Where(m => m.GetParameters().Any(p => p.ParameterType == typeof(ISubquery)))
+            .Select(m => m.Name)
+            .Distinct()
+            .Order()];
+        string[] tableSources =
+        [
+            "As", "CrossApply", "CrossJoinLateral", "JoinLateral", "LeftJoinLateral", "OuterApply",
+        ];
+
+        Assert.Equal(
+            [.. ContextRules.OrderedSubqueryPredicateHosts.Concat(tableSources).Order()], hosts);
+    }
+
     // The locked-subquery rule reads a boxed ForUpdate result only at these hosts;
     // each must embed the query, not bind or reject it.
     [Fact]

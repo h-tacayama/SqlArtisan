@@ -581,6 +581,103 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             () => connection.ExecuteScalar(Select(CurrentTimestamp())));
     }
 
+    // #742, SQLA0102: a bare ORDER BY in a predicate or scalar subquery is rejected
+    // (ORA-00907), and one with FETCH FIRST or OFFSET beside it runs.
+    [Theory]
+    [InlineData("in")]
+    [InlineData("notin")]
+    [InlineData("exists")]
+    [InlineData("notexists")]
+    [InlineData("any")]
+    [InlineData("all")]
+    [InlineData("some")]
+    [InlineData("scalar")]
+    [InlineData("alias")]
+    [InlineData("compare")]
+    public void ContextRule_OrderByInSubquery_Rejected(string position)
+    {
+        UsersTable u = new();
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        ISubquery fetch =
+            Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId)).FetchFirst(1);
+        ISubquery offset =
+            Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId)).OffsetRows(0);
+        ISubquery bare = Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId));
+
+        connection.ExecuteScalar(OrderedSubqueryIn(position, u, fetch));
+        connection.ExecuteScalar(OrderedSubqueryIn(position, u, offset));
+
+        OracleException ex = Assert.Throws<OracleException>(
+            () => connection.ExecuteScalar(OrderedSubqueryIn(position, u, bare)));
+        Assert.Equal(907, ex.Number);
+    }
+
+    // #742, docs/query-statements.md: a derived table and a CTE body take the bare ORDER BY.
+    [Fact]
+    public void OrderByInDerivedTableOrCte_IsAcceptedByTheEngine()
+    {
+        OrdersTable o = new("o");
+        Cte q = new("q");
+        using IDbConnection connection = _fixture.OpenConnection();
+        ISubquery bare = Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId));
+
+        Assert.Equal(1, connection.ExecuteScalar<int>(
+            Select(Count(Asterisk)).From(bare.AsTable("d"))));
+        Assert.Equal(1, connection.ExecuteScalar<int>(
+            With(q.As(bare)).Select(Count(Asterisk)).From(q)));
+    }
+
+    // #742, SQLA0102: the same rejection where the subquery sets a column, in an UPDATE and
+    // in a MERGE's update branch.
+    [Theory]
+    [InlineData("update")]
+    [InlineData("merge")]
+    public void ContextRule_OrderByInSetSubquery_Rejected(string statement)
+    {
+        UsersTable t = new("t");
+        UsersTable s = new("s");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        ISubquery fetch =
+            Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId)).FetchFirst(1);
+        ISubquery offset =
+            Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId)).OffsetRows(0);
+        ISubquery bare = Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId));
+
+        connection.Execute(OrderedSet(statement, t, s, fetch), transaction);
+        connection.Execute(OrderedSet(statement, t, s, offset), transaction);
+
+        OracleException ex = Assert.Throws<OracleException>(
+            () => connection.Execute(OrderedSet(statement, t, s, bare), transaction));
+        Assert.Equal(907, ex.Number);
+        transaction.Rollback();
+    }
+
+    private static ISqlBuilder OrderedSet(
+        string statement, UsersTable t, UsersTable s, ISubquery query) =>
+        statement == "update"
+            ? Update(t).Set(t.Age == query).Where(t.Id == 1)
+            : MergeInto(t).Using(s).On(t.Id == s.Id).WhenMatched().ThenUpdateSet(t.Age == query);
+
+    private static ISqlBuilder OrderedSubqueryIn(string position, UsersTable u, ISubquery query) =>
+        position switch
+        {
+            "in" => Select(Count(Asterisk)).From(u).Where(u.Id.In(query)),
+            "notin" => Select(Count(Asterisk)).From(u).Where(u.Id.NotIn(query)),
+            "exists" => Select(Count(Asterisk)).From(u).Where(Exists(query)),
+            "notexists" => Select(Count(Asterisk)).From(u).Where(NotExists(query)),
+            "any" => Select(Count(Asterisk)).From(u).Where(u.Id > Any(query)),
+            "all" => Select(Count(Asterisk)).From(u).Where(u.Id > All(query)),
+            "some" => Select(Count(Asterisk)).From(u).Where(u.Id > Some(query)),
+            "alias" => Select(query.As("m")).From(u).Where(u.Id == 1),
+            "compare" => Select(Count(Asterisk)).From(u).Where(u.Id == query),
+            _ => Select(query).From(u).Where(u.Id == 1),
+        };
+
     [Fact] // ADR 0012 (#661): anchors the non-negative CURRENT_TIMESTAMP precision guard.
     public void CurrentTimestamp_NegativePrecision_IsRejectedByTheEngine()
     {

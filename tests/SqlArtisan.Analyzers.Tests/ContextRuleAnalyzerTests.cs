@@ -1564,6 +1564,14 @@ public class ContextRuleAnalyzerTests
         var q = Select(t.Id).From(t)
             .Where(t.Id.In({|#0:Select(Distinct, s.Dep).From(s).Where(s.Id > 1).OrderBy(s.Dep)|}));
         """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t)
+            .CrossApply({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}, new DerivedTable("x"));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t)
+            .OuterApply({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}, new DerivedTable("x"));
+        """)]
     public Task OrderByInSubquery_SqlServer_ReportsSqla0102(string statements) =>
         RunReporting(statements, "sqlserver");
 
@@ -1605,4 +1613,75 @@ public class ContextRuleAnalyzerTests
         RunSilent("""
             var q = Select(t.Id).From(t).Where(t.Id.In(Select(s.Dep).From(s).OrderBy(s.Dep)));
             """, "postgresql");
+
+    [Theory]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.In({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.NotIn({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(Exists({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(NotExists({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id > Any({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id > All({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id > Some({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}));
+        """)]
+    [InlineData("""
+        var q = Select({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}).From(t);
+        """)]
+    [InlineData("""
+        var q = Select({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}.As("m")).From(t);
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id == {|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|});
+        """)]
+    [InlineData("""
+        var q = Update(t).Set(t.Dep == {|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}).Where(t.Id == 1);
+        """)]
+    public Task OrderByInSubquery_Oracle_ReportsSqla0102(string statements) =>
+        RunReporting(statements, "oracle");
+
+    // Oracle XE 21.3.0 and Free 23ai run it in a derived table and a CTE body; a lateral
+    // source is unmeasured there.
+    [Theory]
+    [InlineData("""
+        var d = Select(s.Dep).From(s).OrderBy(s.Dep).AsTable("d");
+        """)]
+    [InlineData("""
+        Cte c = new("c");
+        var q = With(c.As(Select(s.Dep).From(s).OrderBy(s.Dep))).Select(c.Column("dep")).From(c);
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t)
+            .CrossApply(Select(s.Dep).From(s).OrderBy(s.Dep), new DerivedTable("x"));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t)
+            .Where(t.Id.In(Select(s.Dep).From(s).OrderBy(s.Dep).FetchFirst(2)));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t)
+            .Where(t.Id.In(Select(s.Dep).From(s).OrderBy(s.Dep).OffsetRows(0)));
+        """)]
+    [InlineData("""
+        var sorted = Select(s.Dep).From(s).OrderBy(s.Dep);
+        var q = Select(t.Id).From(t).Where(t.Id.In(sorted));
+        """)]
+    // A helper sharing a predicate host's name may embed the query anywhere.
+    [InlineData("""
+        ISqlBuilder In(ISubquery sub) => Select(Asterisk).From(sub.AsTable("d"));
+        var q = In(Select(s.Dep).From(s).OrderBy(s.Dep));
+        """)]
+    public Task OrderByInSubquery_Oracle_StaysSilent(string statements) =>
+        RunSilent(statements, "oracle");
 }

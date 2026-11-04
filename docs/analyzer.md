@@ -824,18 +824,23 @@ var q = DeleteFrom(u).Where(u.Id.In(Select(o.UserId).From(o).ForUpdate(SkipLocke
 // warning SQLA0102: 'ForUpdate' is not supported in a subquery on Oracle
 ```
 
-**`ORDER BY` in a subquery without `TOP` or `OFFSET`.** SQL Server rejects a
-query's own `ORDER BY` in an `IN`, `EXISTS` or `ANY` / `ALL` / `SOME` operand, a
-scalar subquery, a CTE body or a derived table unless `Top(n)` or
-`OffsetRows(...)` rides with it. Add one where the order picks the rows, or order
-the outer query instead. The rule warns where the ordered query, its `Select(...)`
-head included, is written in the position, as the `FOR UPDATE` rule does; a query
-held first in a `var`, or led by `With(...)` or a set operator, stays silent.
+**`ORDER BY` in a subquery without a row limit.** Oracle and SQL Server reject a
+query's own `ORDER BY` in an `IN` / `NOT IN`, `EXISTS` / `NOT EXISTS` or
+`ANY` / `ALL` / `SOME` operand and a scalar subquery, and SQL Server also in a
+CTE body, a derived table and an `APPLY` source, unless a row limit rides with
+it: `FetchFirst(n)` or `OffsetRows(...)` on Oracle, `Top(n)` or
+`OffsetRows(...)` on SQL Server. Add one where the order picks the rows, or
+order the outer query instead. Oracle runs it in a CTE body and a derived table,
+and the rule is silent on Oracle there and in a lateral or `APPLY` source, where
+no Oracle lane has run one. The rule warns where the ordered query, its
+`Select(...)` head included, is written in the position, as the `FOR UPDATE`
+rule does; a query held first in a `var`, or led by `With(...)` or a set
+operator, stays silent.
 
 ```csharp
 // sqlartisan_syntax_sqlserver = any
 var q = Select(u.Id).From(u).Where(u.Id.In(Select(o.UserId).From(o).OrderBy(o.UserId)));
-// warning SQLA0102: 'OrderBy' is not supported in a subquery without TOP or OFFSET on SQL Server
+// warning SQLA0102: 'OrderBy' is not supported in a subquery without a row limit on SQL Server
 ```
 
 **`RETURNING` without `INTO`.** Oracle takes `RETURNING` only as
