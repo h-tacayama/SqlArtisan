@@ -638,7 +638,7 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. In all, 24 rules ship today — seventeen reading
+expression where the construct is used. In all, 25 rules ship today — eighteen reading
 the construct's surroundings, seven reading the DML statement a clause sits in.
 Every rejection below is live-verified on the pinned lanes — MySQL 8.0, Oracle
 XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022, the Oracle floors on
@@ -822,6 +822,20 @@ held first in a `var`, which takes the `ForUpdate` stage's type, stays silent.
 // sqlartisan_syntax_oracle = any
 var q = DeleteFrom(u).Where(u.Id.In(Select(o.UserId).From(o).ForUpdate(SkipLocked)));
 // warning SQLA0102: 'ForUpdate' is not supported in a subquery on Oracle
+```
+
+**`ORDER BY` in a subquery without `TOP` or `OFFSET`.** SQL Server rejects a
+query's own `ORDER BY` in an `IN`, `EXISTS` or `ANY` / `ALL` / `SOME` operand, a
+scalar subquery, a CTE body or a derived table unless `Top(n)` or
+`OffsetRows(...)` rides with it. Add one where the order picks the rows, or order
+the outer query instead. The rule warns where the ordered query, its `Select(...)`
+head included, is written in the position, as the `FOR UPDATE` rule does; a query
+held first in a `var`, or led by `With(...)` or a set operator, stays silent.
+
+```csharp
+// sqlartisan_syntax_sqlserver = any
+var q = Select(u.Id).From(u).Where(u.Id.In(Select(o.UserId).From(o).OrderBy(o.UserId)));
+// warning SQLA0102: 'OrderBy' is not supported in a subquery without TOP or OFFSET on SQL Server
 ```
 
 **`RETURNING` without `INTO`.** Oracle takes `RETURNING` only as
@@ -1008,7 +1022,7 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the seventeen that read the construct's surroundings, any shape the
+itself. For the eighteen that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the

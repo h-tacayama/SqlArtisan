@@ -344,6 +344,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 or "Inserted" or "Deleted" or "Interval" or "IntervalLiteral"
                 or "From" or "Using" or "InnerJoin" or "LeftJoin" or "RightJoin"
                 or "ForUpdate" or "Over" or "With" or "Returning" or "Where" or "Values"
+                or "OrderBy"
                 or "WhenMatched" or "WhenNotMatched" or "WhenNotMatchedBySource")
             || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
         {
@@ -404,6 +405,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                         context, invocation, TargetDbmsNames.Display(TargetDbms.PostgreSql));
                 }
 
+                break;
+            case "OrderBy" when targets.Contains(TargetDbms.SqlServer):
+                ContextRules.CheckOrderByInSubquery(
+                    context, invocation, TargetDbmsNames.Display(TargetDbms.SqlServer));
                 break;
             case "Inserted" or "Deleted" when targets.Contains(TargetDbms.SqlServer):
                 ContextRules.CheckPseudoTableRequiresOutput(
