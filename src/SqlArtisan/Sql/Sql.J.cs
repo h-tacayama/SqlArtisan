@@ -59,9 +59,9 @@ public static partial class Sql
     /// <param name="jsonExpr">The JSON expression.</param>
     /// <param name="key">The key expression, emitted as written.</param>
     /// <returns>A <c>-&gt;</c> operator expression.</returns>
-    /// <remarks>MySQL, PostgreSQL, and SQLite syntax. MySQL rejects a column or a function as
-    /// the key; pass it there as a JSON path string to <see cref="JsonArrow(object, string)"/>.
-    /// </remarks>
+    /// <remarks>MySQL, PostgreSQL, and SQLite syntax. MySQL 8.0 rejects a column or a function
+    /// as the key; a key known in C# goes there as a JSON path string to
+    /// <see cref="JsonArrow(object, string)"/>.</remarks>
     public static SqlExpression JsonArrow(object jsonExpr, SqlExpression key) =>
         new JsonArrowOperator(Resolve(jsonExpr, nameof(jsonExpr)), Resolve(key, nameof(key)));
 
@@ -107,9 +107,9 @@ public static partial class Sql
     /// <param name="jsonExpr">The JSON expression.</param>
     /// <param name="key">The key expression, emitted as written.</param>
     /// <returns>A <c>-&gt;&gt;</c> operator expression.</returns>
-    /// <remarks>MySQL, PostgreSQL, and SQLite syntax. MySQL rejects a column or a function as
-    /// the key; pass it there as a JSON path string to <see cref="JsonArrowText(object, string)"/>.
-    /// </remarks>
+    /// <remarks>MySQL, PostgreSQL, and SQLite syntax. MySQL 8.0 rejects a column or a function
+    /// as the key; a key known in C# goes there as a JSON path string to
+    /// <see cref="JsonArrowText(object, string)"/>.</remarks>
     public static SqlExpression JsonArrowText(object jsonExpr, SqlExpression key) =>
         new JsonArrowTextOperator(Resolve(jsonExpr, nameof(jsonExpr)), Resolve(key, nameof(key)));
 
