@@ -453,6 +453,24 @@ internal sealed class SqlBuildingBuffer : IDisposable
             && _pseudoRowTarget is { HasAlias: false } target
             && TableReference.NamesSameTable(owner, target));
 
+    // SQLite 3.50.4 reads RETURNING against the target alone: another table's aliased
+    // column is rejected, and an unaliased one can read the target's same-named column
+    // with no error, so the list's own level takes the target's columns only (#742).
+    internal void ThrowIfReturningReadsAnotherTable(TableReference owner)
+    {
+        if (_qualifyReturningByTableName
+            && _block is null
+            && _pseudoRowTarget is { } target
+            && !ReferenceEquals(owner, target)
+            && !(owner.CorrelationName == target.CorrelationName
+                && TableReference.NamesSameTable(owner, target)))
+        {
+            throw new ArgumentException(
+                "SQLite's RETURNING reads only the target table; "
+                    + "read another table's column in a statement of its own.");
+        }
+    }
+
     // Matched by spelling, not instance: another handle under the target's table and
     // alias renders as the target does, while a self-join's handle has its own alias.
     private bool SpellsReturningTarget(TableReference owner) =>

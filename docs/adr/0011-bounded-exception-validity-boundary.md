@@ -387,3 +387,32 @@ a new one the analyzer can see.
   `DeleteFromNotRelisted_IsRejectedByTheEngine` on the MySQL, PostgreSQL, SQLite
   and SQL Server lanes, `ContextRule_JoinedDeleteFromNotRelisted_Rejected` on
   the Oracle lane, and `DeleteFromNotRelisted_Executes` on the Oracle23ai lane.
+
+## A `RETURNING` column of another table on SQLite (#742)
+
+SQLite's `RETURNING` reads the target alone. A column of another table, a table
+an `UPDATE`'s `From(...)` joins included, renders under its alias or, unaliased,
+bare. SQLite 3.50.4 rejects the alias (`no such column`), and reads a bare name, or
+an alias spelling the target's table name, from the target, returning the
+target's value with no error. So `Build(Dbms.Sqlite)` throws when the `RETURNING`
+list's own level renders a column whose table is not the target:
+
+> `SQLite's RETURNING reads only the target table; read another table's column in a statement of its own.`
+
+A subquery in the list reads its own relations and stays outside the check.
+PostgreSQL's `RETURNING` reads an `UPDATE ... FROM` table, so the statement emits
+as written there.
+
+The case is admitted outside the bar. Its first condition does not hold in full:
+`SQLA0102` reports the read where it can identify the joined table on the chain.
+It is admitted on the ground #669's class was: the text runs with a wrong value
+and no error, and the analyzer reports nothing until a dialect is configured, nor
+on a chain held in a variable or a table passed as a parameter. The second
+condition holds, since SQLite has no spelling that reads another table in
+`RETURNING`. `SQLA0102` stays as the advisory early report, as `SQLA0300` does
+beside the correlated-DML guard (ADR 0014). The check reads state the buffer
+already holds for SQLite's target rewrite (#595), so a build allocates nothing
+more (ADR 0006). Live twins on the SQLite lane, run as hand-written text since
+the guard: `Returning_Sqlite_JoinedRelationColumn_IsRejectedByTheEngine`,
+`Returning_Sqlite_UnaliasedJoinedRelationColumn_ReadsTheTarget` and
+`Returning_Sqlite_JoinedRelationAliasedAsTargetTable_ReadsTheTarget`.

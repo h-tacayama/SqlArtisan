@@ -292,19 +292,19 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
-    // "o".id names no column of the target, so SQLite's RETURNING cannot read the FROM
-    // relation and the statement fails.
+    // #742: Build(Dbms.Sqlite) rejects a RETURNING column of another table, so these
+    // twins pin the engine with hand-written text. "o".id names no column of the target,
+    // so SQLite's RETURNING cannot read the FROM relation and the statement fails.
     [Fact]
     public void Returning_Sqlite_JoinedRelationColumn_IsRejectedByTheEngine()
     {
-        UsersTable u = new("u");
-        OrdersTable o = new("o");
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
-            Update(u).Set(u.Age == 41).From(o).Where(o.UserId == u.Id).Returning(o.Id),
-            transaction));
+            "UPDATE users AS \"u\" SET age = 41 FROM orders \"o\" "
+                + "WHERE \"o\".user_id = \"u\".id RETURNING \"o\".id",
+            transaction: transaction));
         transaction.Rollback();
     }
 
@@ -313,7 +313,6 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
     [Fact]
     public void Returning_Sqlite_UnaliasedJoinedRelationColumn_ReadsTheTarget()
     {
-        UsersTable u = new("u");
         OrdersTable o = new();
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
@@ -321,9 +320,9 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         int orderId = connection.Query<int>(
             Select(o.Id).From(o).Where(o.UserId == 2), transaction).First();
         int returned = connection.Query<int>(
-            Update(u).Set(u.Age == 41).From(o).Where((o.UserId == u.Id) & (u.Id == 2))
-                .Returning(o.Id),
-            transaction).Single();
+            "UPDATE users AS \"u\" SET age = 41 FROM orders "
+                + "WHERE user_id = \"u\".id AND \"u\".id = 2 RETURNING id",
+            transaction: transaction).Single();
 
         Assert.NotEqual(2, orderId);
         Assert.Equal(2, returned);
@@ -334,15 +333,13 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
     [Fact]
     public void Returning_Sqlite_JoinedRelationAliasedAsTargetTable_ReadsTheTarget()
     {
-        UsersTable u = new("u");
-        OrdersTable named = new("users");
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
         Assert.Equal(2, connection.Query<int>(
-            Update(u).Set(u.Age == 42).From(named).Where((named.UserId == u.Id) & (u.Id == 2))
-                .Returning(named.Id),
-            transaction).Single());
+            "UPDATE users AS \"u\" SET age = 42 FROM orders \"users\" "
+                + "WHERE \"users\".user_id = \"u\".id AND \"u\".id = 2 RETURNING \"users\".id",
+            transaction: transaction).Single());
         transaction.Rollback();
     }
 
