@@ -585,6 +585,63 @@ internal static class ContextRules
     }
 
     /// <summary>
+    /// SQL Server 2022 rejects a statement <c>ORDER BY</c> in a subquery, a derived table and
+    /// a CTE body (Msg 1033) unless <c>Top(n)</c> or <c>OffsetRows(...)</c> rides with it.
+    /// Reported only on a chain whose own <c>Select</c> head and embedding are both visible.
+    /// </summary>
+    public static void CheckOrderByInSubquery(
+        OperationAnalysisContext context, IInvocationOperation orderBy, string dialectName)
+    {
+        // A static Sql.OrderBy is a window's or an aggregate's ordering, not the statement's.
+        if (orderBy.Instance is null)
+        {
+            return;
+        }
+
+        IInvocationOperation end = orderBy;
+        bool embedded = false;
+        while (FluentChain.Parent(end) is { } next)
+        {
+            if (next.TargetMethod.Name is "Offset" or "OffsetRows" or "FetchFirst"
+                or "FetchNext" or "Limit")
+            {
+                return;
+            }
+
+            // As(...) and AsTable(...) are ISubquery's own members, so reaching one embeds it.
+            if (next.TargetMethod.ContainingType.Name == "ISubquery")
+            {
+                embedded = true;
+                break;
+            }
+
+            end = next;
+        }
+
+        IInvocationOperation? select = ChainChild(orderBy);
+        while (select is not null && select.TargetMethod.Name != "Select")
+        {
+            select = ChainChild(select);
+        }
+
+        // A With(...) head or a set operator's branch is not this rule's to read.
+        if (select is not { Instance: null }
+            || !DialectUsageAnalyzer.IsFromSqlArtisan(select.TargetMethod.ContainingAssembly)
+            || HasTopArgument(select)
+            || !embedded && !ConsumedAsSubquery(end))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            orderBy.Syntax.GetLocation(),
+            "OrderBy",
+            "in a subquery without TOP or OFFSET",
+            dialectName));
+    }
+
+    /// <summary>
     /// Oracle takes <c>RETURNING</c> only as <c>RETURNING ... INTO</c>; XE 21.3.0 rejects
     /// it bare. <c>Into(...)</c> is the one step the stage <c>Returning(...)</c> returns
     /// declares, so a result consumed any other way can never acquire it.
@@ -1147,6 +1204,19 @@ internal static class ContextRules
             Property: { Type.Name: "ISelectBuilderSetOperator" } property,
         }
             && DialectUsageAnalyzer.IsFromSqlArtisan(property.ContainingAssembly);
+    }
+
+    private static bool HasTopArgument(IInvocationOperation select)
+    {
+        foreach (IArgumentOperation argument in select.Arguments)
+        {
+            if (argument.Parameter?.Type.Name == "TopClause")
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // Parameter.Type identifies the overload that actually bound — the ISubquery

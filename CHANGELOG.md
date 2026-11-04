@@ -30,6 +30,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   SQLite takes only the bare `*`, and a `Returning(...)` reading a column of a
   table an `UPDATE`'s `From(...)` joins, which SQLite rejects or can read from the
   target instead; observed on SQLite 3.50.4. (#742)
+- `SQLA0102` reports, on SQL Server, a query's own `OrderBy(...)` in a subquery,
+  derived table or CTE body with no `Top(n)` or `OffsetRows(...)`, which SQL
+  Server 2022 rejects (Msg 1033). (#742)
 
 ### Changed
 - The analyzer knows Oracle 23ai's `LEFT JOIN LATERAL ... ON TRUE` and `VALUES`
@@ -89,6 +92,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `docs/expressions.md` notes that `ArrayOverlaps` is logical AND on MySQL, and
   `docs/analyzer.md` lists `&&` among the spellings a dialect reads as something
   else. (#767)
+- `docs/query-statements.md` notes that SQL Server 2022 rejects a `With(...)`
+  chain used as a subquery, a derived table or a CTE body. (#742)
 
 ## [0.13.0-beta.1] - 2026-11-01
 ### Added

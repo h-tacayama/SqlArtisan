@@ -803,6 +803,76 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         transaction.Rollback();
     }
 
+    // SQLA0102 (#742): Msg 1033, the ORDER BY of a query in each position the rule reads;
+    // with TOP or OFFSET ROWS beside it, the same query runs in the same spot.
+    [Theory]
+    [InlineData("in")]
+    [InlineData("exists")]
+    [InlineData("derived")]
+    [InlineData("cte")]
+    [InlineData("scalar")]
+    public void ContextRule_OrderByInSubquery_Rejected(string position)
+    {
+        UsersTable u = new();
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        ISubquery top = Select(Top(1), Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId));
+        ISubquery offset =
+            Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId)).OffsetRows(0);
+        ISubquery bare = Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId));
+
+        connection.ExecuteScalar(InPosition(position, u, top));
+        connection.ExecuteScalar(InPosition(position, u, offset));
+
+        Assert.ThrowsAny<DbException>(
+            () => connection.ExecuteScalar(InPosition(position, u, bare)));
+    }
+
+    // #742: a WITH chain used as a subquery, a derived table or a CTE body is rejected;
+    // the same CTE declared in the statement's own WITH and read there runs.
+    [Theory]
+    [InlineData("in")]
+    [InlineData("derived")]
+    [InlineData("cte")]
+    public void WithInSubquery_IsRejectedByTheEngine(string position)
+    {
+        UsersTable u = new();
+        OrdersTable o = new("o");
+        Cte c = new("c");
+        Cte e = new("e");
+        using IDbConnection connection = _fixture.OpenConnection();
+        ISubquery body = Select(o.UserId).From(o);
+
+        connection.ExecuteScalar(position switch
+        {
+            "in" => With(c.As(body))
+                .Select(Count(Asterisk))
+                .From(u)
+                .Where(u.Id.In(Select(c.Column("user_id")).From(c))),
+            "derived" => With(c.As(body))
+                .Select(Count(Asterisk)).From(Select(c.Column("user_id")).From(c).AsTable("d")),
+            _ => With(c.As(body), e.As(Select(c.Column("user_id")).From(c)))
+                .Select(Count(Asterisk)).From(e),
+        });
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(InPosition(
+            position, u, With(c.As(body)).Select(c.Column("user_id")).From(c))));
+    }
+
+    private static ISqlBuilder InPosition(string position, UsersTable u, ISubquery query)
+    {
+        Cte q = new("q");
+        return position switch
+        {
+            "in" => Select(Count(Asterisk)).From(u).Where(u.Id.In(query)),
+            "exists" => Select(Count(Asterisk)).From(u).Where(Exists(query)),
+            "derived" => Select(Count(Asterisk)).From(query.AsTable("d")),
+            "cte" => With(q.As(query)).Select(Count(Asterisk)).From(q),
+            _ => Select(query).From(u).Where(u.Id == 1),
+        };
+    }
+
     // #679: the pairing OutputClauseGuard rejects on every dialect. With OUTPUT the
     // WITH is still taken only ahead of INSERT INTO, so no engine runs both halves.
     [Fact]

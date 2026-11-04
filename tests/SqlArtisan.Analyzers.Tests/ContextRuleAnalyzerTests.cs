@@ -1537,4 +1537,72 @@ public class ContextRuleAnalyzerTests
             var locked = Select(s.Dep).From(s).ForUpdate();
             var q = Select(t.Id).From(t).Where(t.Id.In(locked));
             """, "oracle");
+
+    // --- ORDER BY in a subquery on SQL Server (#742) ---
+
+    [Theory]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.In({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(Exists({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}));
+        """)]
+    [InlineData("""
+        var d = {|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}.AsTable("d");
+        """)]
+    [InlineData("""
+        Cte c = new("c");
+        var q = With(c.As({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|})).Select(c.Column("dep")).From(c);
+        """)]
+    [InlineData("""
+        var q = Select({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}).From(t);
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id == {|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|});
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t)
+            .Where(t.Id.In({|#0:Select(Distinct, s.Dep).From(s).Where(s.Id > 1).OrderBy(s.Dep)|}));
+        """)]
+    public Task OrderByInSubquery_SqlServer_ReportsSqla0102(string statements) =>
+        RunReporting(statements, "sqlserver");
+
+    [Theory]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.In(Select(Top(2), s.Dep).From(s).OrderBy(s.Dep)));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t)
+            .Where(t.Id.In(Select(Distinct, Top(2), s.Dep).From(s).OrderBy(s.Dep)));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t)
+            .Where(t.Id.In(Select(s.Dep).From(s).OrderBy(s.Dep).OffsetRows(0)));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t)
+            .Where(t.Id.In(Select(s.Dep).From(s).OrderBy(s.Dep).OffsetRows(0).FetchNext(2)));
+        """)]
+    // The statement's own ORDER BY, and a window's.
+    [InlineData("""
+        var q = Select(t.Id).From(t).OrderBy(t.Id);
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t)
+            .Where(t.Id.In(Select(RowNumber().Over(OrderBy(s.Dep))).From(s)));
+        """)]
+    // Held in a variable, the chain's embedding is out of the rule's sight.
+    [InlineData("""
+        var sorted = Select(s.Dep).From(s).OrderBy(s.Dep);
+        var q = Select(t.Id).From(t).Where(t.Id.In(sorted));
+        """)]
+    public Task OrderByInSubquery_SqlServer_StaysSilent(string statements) =>
+        RunSilent(statements, "sqlserver");
+
+    // PostgreSQL 16 runs an ORDER BY in a subquery.
+    [Fact]
+    public Task OrderByInSubquery_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Id).From(t).Where(t.Id.In(Select(s.Dep).From(s).OrderBy(s.Dep)));
+            """, "postgresql");
 }

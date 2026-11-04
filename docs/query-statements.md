@@ -388,7 +388,7 @@ SqlStatement sql =
 // id DESC NULLS LAST
 ```
 
-**Dialect note:** `NullsFirst` / `NullsLast` emit `NULLS FIRST` / `NULLS LAST`, which MySQL and SQL Server reject — neither engine has the clause.
+**Dialect note:** `NullsFirst` / `NullsLast` emit `NULLS FIRST` / `NULLS LAST`, which MySQL and SQL Server reject — neither engine has the clause. On SQL Server, an `OrderBy(...)` in a subquery, derived table or CTE body needs `Top(n)` or `OffsetRows(...)` beside it, which SQL Server 2022 requires; order the outer query instead where the order picks no rows. `SQLA0102` reports that position.
 
 A `string`, `char`, `bool`, date/time, GUID or enum sort key throws `Invalid type for
 OrderByItem: ...` at the call: bound, it would be a constant that sorts
@@ -1645,6 +1645,10 @@ SqlArtisan also supports more advanced WITH clause scenarios:
   subquery). It is emitted as written, which PostgreSQL runs as a data-modifying
   CTE; with no `RETURNING` offered there, the body is write-only, and
   PostgreSQL rejects a `.WithColumnList()` on it or a read of it.
+
+**Dialect note:** SQL Server 2022 takes `With(...)` only ahead of a statement, so
+it rejects a `With(...)` chain used as a subquery, a derived table or a CTE body;
+declare the CTE in the statement's own `With(...)` and read it there.
 
 ---
 
