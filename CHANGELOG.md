@@ -99,7 +99,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `docs/query-statements.md` notes that MySQL 8.0 rejects a bare `*` after another
   select item, and `docs/expressions.md` that MySQL 8.0 rejects a `JsonArrow` /
   `JsonArrowText` over another one and a column or function key, naming one JSON
-  path for a nested value. (#742)
+  path for a nested value; the `SqlExpression`-key overloads' XML docs say so too. (#742)
 
 ## [0.13.0-beta.1] - 2026-11-01
 ### Added
