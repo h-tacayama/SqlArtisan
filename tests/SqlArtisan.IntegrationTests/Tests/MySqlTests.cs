@@ -1520,16 +1520,33 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         Assert.Equal("10001", connection.ExecuteScalar<string>(
             Select(JsonArrowText(u.Data, "$.address.zip")).From(u).Where(u.Id == 1)));
-        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
-            Select(JsonArrowText(JsonArrow(u.Data, "$.address"), "$.zip"))
-            .From(u)
-            .Where(u.Id == 1)));
+
+        // Each would return a value if MySQL took it, so any error is the rejection.
+        SqlExpression[] rejected =
+        [
+            JsonArrow(JsonArrow(u.Data, "$.address"), "$.zip"),
+            JsonArrow(JsonArrowText(u.Data, "$.address"), "$.zip"),
+            JsonArrowText(JsonArrow(u.Data, "$.address"), "$.zip"),
+            JsonArrowText(JsonArrowText(u.Data, "$.address"), "$.zip"),
+            JsonArrow(u.Data, Concat("$.", "name")),
+            JsonArrowText(u.Data, Concat("$.", "name")),
+        ];
+
+        foreach (SqlExpression expression in rejected)
+        {
+            Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+                Select(expression).From(u).Where(u.Id == 1)));
+        }
+
         // name holds no JSON path, so only the parse error tells the key's rejection apart.
-        MySqlException columnKey = Assert.Throws<MySqlException>(() => connection.ExecuteScalar(
-            Select(JsonArrow(u.Data, u.Name)).From(u).Where(u.Id == 1)));
-        Assert.Equal(MySqlErrorCode.ParseError, columnKey.ErrorCode);
-        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
-            Select(JsonArrowText(u.Data, Concat("$.", "name"))).From(u).Where(u.Id == 1)));
+        SqlExpression[] columnKeys = [JsonArrow(u.Data, u.Name), JsonArrowText(u.Data, u.Name)];
+
+        foreach (SqlExpression columnKey in columnKeys)
+        {
+            MySqlException ex = Assert.Throws<MySqlException>(() => connection.ExecuteScalar(
+                Select(columnKey).From(u).Where(u.Id == 1)));
+            Assert.Equal(MySqlErrorCode.ParseError, ex.ErrorCode);
+        }
     }
 
     // #742, docs/query-statements.md: a bare * after another select item is rejected;
