@@ -570,8 +570,10 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         connection.ExecuteScalar(OrderedSubqueryIn(position, u, fetch));
         connection.ExecuteScalar(OrderedSubqueryIn(position, u, offset));
 
-        Assert.ThrowsAny<DbException>(
-            () => connection.ExecuteScalar(OrderedSubqueryIn(position, u, bare)));
+        Oracle.ManagedDataAccess.Client.OracleException ex =
+            Assert.Throws<Oracle.ManagedDataAccess.Client.OracleException>(
+                () => connection.ExecuteScalar(OrderedSubqueryIn(position, u, bare)));
+        Assert.Equal(907, ex.Number);
     }
 
     // #742, docs/query-statements.md: a derived table and a CTE body take the bare ORDER BY.
@@ -588,6 +590,41 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         Assert.Equal(1, connection.ExecuteScalar<int>(
             With(q.As(bare)).Select(Count(Asterisk)).From(q)));
     }
+
+    // #742, SQLA0102: the same rejection where the subquery sets a column, in an UPDATE and
+    // in a MERGE's update branch.
+    [Theory]
+    [InlineData("update")]
+    [InlineData("merge")]
+    public void ContextRule_OrderByInSetSubquery_Rejected(string statement)
+    {
+        UsersTable t = new("t");
+        UsersTable s = new("s");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        ISubquery fetch =
+            Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId)).FetchFirst(1);
+        ISubquery offset =
+            Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId)).OffsetRows(0);
+        ISubquery bare = Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId));
+
+        connection.Execute(OrderedSet(statement, t, s, fetch), transaction);
+        connection.Execute(OrderedSet(statement, t, s, offset), transaction);
+
+        Oracle.ManagedDataAccess.Client.OracleException ex =
+            Assert.Throws<Oracle.ManagedDataAccess.Client.OracleException>(
+                () => connection.Execute(OrderedSet(statement, t, s, bare), transaction));
+        Assert.Equal(907, ex.Number);
+        transaction.Rollback();
+    }
+
+    private static ISqlBuilder OrderedSet(
+        string statement, UsersTable t, UsersTable s, ISubquery query) =>
+        statement == "update"
+            ? Update(t).Set(t.Age == query).Where(t.Id == 1)
+            : MergeInto(t).Using(s).On(t.Id == s.Id).WhenMatched().ThenUpdateSet(t.Age == query);
 
     private static ISqlBuilder OrderedSubqueryIn(string position, UsersTable u, ISubquery query) =>
         position switch

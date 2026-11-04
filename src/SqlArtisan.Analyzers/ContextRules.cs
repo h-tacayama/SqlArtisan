@@ -654,6 +654,7 @@ internal static class ContextRules
     {
         IConversionOperation { Type.Name: "ISubquery", Parent: IArgumentOperation argument } =>
             argument.Parent is IInvocationOperation host
+                && DialectUsageAnalyzer.IsFromSqlArtisan(host.TargetMethod.ContainingAssembly)
                 && OrderedSubqueryPredicateHosts.Contains(host.TargetMethod.Name),
         IConversionOperation { Type.SpecialType: SpecialType.System_Object } => true,
         _ => false,

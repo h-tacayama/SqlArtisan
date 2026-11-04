@@ -827,11 +827,11 @@ var q = DeleteFrom(u).Where(u.Id.In(Select(o.UserId).From(o).ForUpdate(SkipLocke
 **`ORDER BY` in a subquery without a row limit.** Oracle and SQL Server reject a
 query's own `ORDER BY` in an `IN` / `NOT IN`, `EXISTS` / `NOT EXISTS` or
 `ANY` / `ALL` / `SOME` operand and a scalar subquery, and SQL Server also in a
-CTE body and a derived table, unless a row limit rides with it: `FetchFirst(n)`
+CTE body, a derived table and an `APPLY` source, unless a row limit rides with it: `FetchFirst(n)`
 or `OffsetRows(...)` on Oracle, `Top(n)` or `OffsetRows(...)` on SQL Server.
 Add one where the order picks the rows, or order the outer query instead. Oracle
 runs it in a CTE body and a derived table, and the rule is silent on Oracle there
-and in a lateral or `APPLY` source, which no lane runs. The rule warns where the ordered query, its
+and in a lateral or `APPLY` source, where no lane has run an ordered query. The rule warns where the ordered query, its
 `Select(...)` head included, is written in the position, as the `FOR UPDATE`
 rule does; a query held first in a `var`, or led by `With(...)` or a set
 operator, stays silent.

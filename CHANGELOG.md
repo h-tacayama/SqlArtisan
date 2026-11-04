@@ -31,10 +31,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   table an `UPDATE`'s `From(...)` joins, which SQLite rejects or can read from the
   target instead; observed on SQLite 3.50.4. (#742)
 - `SQLA0102` reports a query's own `OrderBy(...)` with no row limit beside it in a
-  predicate or scalar subquery on Oracle and SQL Server, and in a derived table or
-  CTE body on SQL Server; a row limit is `FetchFirst(n)` or `OffsetRows(...)` on
-  Oracle, `Top(n)` or `OffsetRows(...)` on SQL Server. Oracle XE 21.3.0 and Free
-  23ai (ORA-00907) and SQL Server 2022 (Msg 1033) reject it. (#742)
+  predicate or scalar subquery on Oracle and SQL Server, and in a derived table,
+  CTE body or `APPLY` source on SQL Server; a row limit is `FetchFirst(n)` or
+  `OffsetRows(...)` on Oracle, `Top(n)` or `OffsetRows(...)` on SQL Server.
+  Oracle XE 21.3.0 and Free 23ai (ORA-00907) and SQL Server 2022 (Msg 1033)
+  reject it. (#742)
 
 ### Changed
 - The analyzer knows Oracle 23ai's `LEFT JOIN LATERAL ... ON TRUE` and `VALUES`

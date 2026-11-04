@@ -1564,6 +1564,14 @@ public class ContextRuleAnalyzerTests
         var q = Select(t.Id).From(t)
             .Where(t.Id.In({|#0:Select(Distinct, s.Dep).From(s).Where(s.Id > 1).OrderBy(s.Dep)|}));
         """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t)
+            .CrossApply({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}, new DerivedTable("x"));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t)
+            .OuterApply({|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}, new DerivedTable("x"));
+        """)]
     public Task OrderByInSubquery_SqlServer_ReportsSqla0102(string statements) =>
         RunReporting(statements, "sqlserver");
 
@@ -1637,6 +1645,9 @@ public class ContextRuleAnalyzerTests
     [InlineData("""
         var q = Select(t.Id).From(t).Where(t.Id == {|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|});
         """)]
+    [InlineData("""
+        var q = Update(t).Set(t.Dep == {|#0:Select(s.Dep).From(s).OrderBy(s.Dep)|}).Where(t.Id == 1);
+        """)]
     public Task OrderByInSubquery_Oracle_ReportsSqla0102(string statements) =>
         RunReporting(statements, "oracle");
 
@@ -1665,6 +1676,11 @@ public class ContextRuleAnalyzerTests
     [InlineData("""
         var sorted = Select(s.Dep).From(s).OrderBy(s.Dep);
         var q = Select(t.Id).From(t).Where(t.Id.In(sorted));
+        """)]
+    // A helper sharing a predicate host's name may embed the query anywhere.
+    [InlineData("""
+        ISqlBuilder In(ISubquery sub) => Select(Asterisk).From(sub.AsTable("d"));
+        var q = In(Select(s.Dep).From(s).OrderBy(s.Dep));
         """)]
     public Task OrderByInSubquery_Oracle_StaysSilent(string statements) =>
         RunSilent(statements, "oracle");
