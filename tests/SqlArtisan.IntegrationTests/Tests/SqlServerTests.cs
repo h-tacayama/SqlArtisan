@@ -803,11 +803,12 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         transaction.Rollback();
     }
 
-    // SQLA0102 (#742): Msg 1033, the ORDER BY of a query in each position the rule reads;
-    // with TOP or OFFSET ROWS beside it, the same query runs in the same spot.
+    // SQLA0102 (#742): Msg 1033, the ORDER BY of a query in each kind of position the rule
+    // reads; with TOP or OFFSET ROWS beside it, the same query runs in the same spot.
     [Theory]
     [InlineData("in")]
     [InlineData("exists")]
+    [InlineData("any")]
     [InlineData("derived")]
     [InlineData("cte")]
     [InlineData("scalar")]
@@ -867,6 +868,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         {
             "in" => Select(Count(Asterisk)).From(u).Where(u.Id.In(query)),
             "exists" => Select(Count(Asterisk)).From(u).Where(Exists(query)),
+            "any" => Select(Count(Asterisk)).From(u).Where(u.Id > Any(query)),
             "derived" => Select(Count(Asterisk)).From(query.AsTable("d")),
             "cte" => With(q.As(query)).Select(Count(Asterisk)).From(q),
             _ => Select(query).From(u).Where(u.Id == 1),
