@@ -541,4 +541,66 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         connection.ExecuteScalar(Select(CurrentTimestamp()).From(Dual));
         connection.ExecuteScalar(Select(CurrentTimestamp()));
     }
+
+    // #742, SQLA0102: a bare ORDER BY in a predicate or scalar subquery is rejected
+    // (ORA-00907), and one with FETCH FIRST or OFFSET beside it runs.
+    [Theory]
+    [InlineData("in")]
+    [InlineData("notin")]
+    [InlineData("exists")]
+    [InlineData("notexists")]
+    [InlineData("any")]
+    [InlineData("all")]
+    [InlineData("some")]
+    [InlineData("scalar")]
+    [InlineData("alias")]
+    [InlineData("compare")]
+    public void ContextRule_OrderByInSubquery_Rejected(string position)
+    {
+        UsersTable u = new();
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        ISubquery fetch =
+            Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId)).FetchFirst(1);
+        ISubquery offset =
+            Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId)).OffsetRows(0);
+        ISubquery bare = Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId));
+
+        connection.ExecuteScalar(OrderedSubqueryIn(position, u, fetch));
+        connection.ExecuteScalar(OrderedSubqueryIn(position, u, offset));
+
+        Assert.ThrowsAny<DbException>(
+            () => connection.ExecuteScalar(OrderedSubqueryIn(position, u, bare)));
+    }
+
+    // #742, docs/query-statements.md: a derived table and a CTE body take the bare ORDER BY.
+    [Fact]
+    public void OrderByInDerivedTableOrCte_IsAcceptedByTheEngine()
+    {
+        OrdersTable o = new("o");
+        Cte q = new("q");
+        using IDbConnection connection = _fixture.OpenConnection();
+        ISubquery bare = Select(Max(o.UserId).As("m")).From(o).OrderBy(Max(o.UserId));
+
+        Assert.Equal(1, connection.ExecuteScalar<int>(
+            Select(Count(Asterisk)).From(bare.AsTable("d"))));
+        Assert.Equal(1, connection.ExecuteScalar<int>(
+            With(q.As(bare)).Select(Count(Asterisk)).From(q)));
+    }
+
+    private static ISqlBuilder OrderedSubqueryIn(string position, UsersTable u, ISubquery query) =>
+        position switch
+        {
+            "in" => Select(Count(Asterisk)).From(u).Where(u.Id.In(query)),
+            "notin" => Select(Count(Asterisk)).From(u).Where(u.Id.NotIn(query)),
+            "exists" => Select(Count(Asterisk)).From(u).Where(Exists(query)),
+            "notexists" => Select(Count(Asterisk)).From(u).Where(NotExists(query)),
+            "any" => Select(Count(Asterisk)).From(u).Where(u.Id > Any(query)),
+            "all" => Select(Count(Asterisk)).From(u).Where(u.Id > All(query)),
+            "some" => Select(Count(Asterisk)).From(u).Where(u.Id > Some(query)),
+            "alias" => Select(query.As("m")).From(u).Where(u.Id == 1),
+            "compare" => Select(Count(Asterisk)).From(u).Where(u.Id == query),
+            _ => Select(query).From(u).Where(u.Id == 1),
+        };
 }

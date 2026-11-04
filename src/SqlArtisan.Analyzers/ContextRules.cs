@@ -585,12 +585,12 @@ internal static class ContextRules
     }
 
     /// <summary>
-    /// SQL Server 2022 rejects a statement <c>ORDER BY</c> in a subquery, a derived table and
-    /// a CTE body (Msg 1033) unless <c>Top(n)</c> or <c>OffsetRows(...)</c> rides with it.
-    /// Reported only on a chain whose own <c>Select</c> head and embedding are both visible.
+    /// Unless a row limit rides with it, SQL Server 2022 rejects a statement <c>ORDER BY</c> in
+    /// a subquery, derived table or CTE body (Msg 1033), Oracle XE 21.3.0 and Free 23ai in a
+    /// predicate or scalar subquery (ORA-00907); reported where its head and embedding show.
     /// </summary>
     public static void CheckOrderByInSubquery(
-        OperationAnalysisContext context, IInvocationOperation orderBy, string dialectName)
+        OperationAnalysisContext context, IInvocationOperation orderBy, DialectTargetSet targets)
     {
         // A static Sql.OrderBy is a window's or an aggregate's ordering, not the statement's.
         if (orderBy.Instance is null)
@@ -599,7 +599,7 @@ internal static class ContextRules
         }
 
         IInvocationOperation end = orderBy;
-        bool embedded = false;
+        string? member = null;
         while (FluentChain.Parent(end) is { } next)
         {
             if (next.TargetMethod.Name is "Offset" or "OffsetRows" or "FetchFirst"
@@ -611,7 +611,7 @@ internal static class ContextRules
             // As(...) and AsTable(...) are ISubquery's own members, so reaching one embeds it.
             if (next.TargetMethod.ContainingType.Name == "ISubquery")
             {
-                embedded = true;
+                member = next.TargetMethod.Name;
                 break;
             }
 
@@ -628,7 +628,14 @@ internal static class ContextRules
         if (select is not { Instance: null }
             || !DialectUsageAnalyzer.IsFromSqlArtisan(select.TargetMethod.ContainingAssembly)
             || HasTopArgument(select)
-            || !embedded && !ConsumedAsSubquery(end))
+            || member is null && !ConsumedAsSubquery(end))
+        {
+            return;
+        }
+
+        bool operand = member == "As" || member is null && IsPredicateOrScalarOperand(end);
+        TargetDbms[] rejecting = operand ? s_orderedOperandUnsupported : s_orderedTableUnsupported;
+        if (RejectingTargets(targets, rejecting) is not { } names)
         {
             return;
         }
@@ -637,9 +644,29 @@ internal static class ContextRules
             DiagnosticDescriptors.ContextRestrictedConstruct,
             orderBy.Syntax.GetLocation(),
             "OrderBy",
-            "in a subquery without TOP or OFFSET",
-            dialectName));
+            "in a subquery without a row limit",
+            names));
     }
+
+    // Oracle runs the ORDER BY in a derived table and a CTE body; a lateral or APPLY source
+    // is unmeasured there, so only a named predicate host or a scalar position reports it.
+    private static bool IsPredicateOrScalarOperand(IInvocationOperation end) => end.Parent switch
+    {
+        IConversionOperation { Type.Name: "ISubquery", Parent: IArgumentOperation argument } =>
+            argument.Parent is IInvocationOperation host
+                && OrderedSubqueryPredicateHosts.Contains(host.TargetMethod.Name),
+        IConversionOperation { Type.SpecialType: SpecialType.System_Object } => true,
+        _ => false,
+    };
+
+    // Internal for the contract gate, which classifies every ISubquery parameter's host.
+    internal static readonly HashSet<string> OrderedSubqueryPredicateHosts =
+        ["All", "Any", "Exists", "In", "NotExists", "NotIn", "Some"];
+
+    private static readonly TargetDbms[] s_orderedOperandUnsupported =
+        [TargetDbms.Oracle, TargetDbms.SqlServer];
+
+    private static readonly TargetDbms[] s_orderedTableUnsupported = [TargetDbms.SqlServer];
 
     /// <summary>
     /// Oracle takes <c>RETURNING</c> only as <c>RETURNING ... INTO</c>; XE 21.3.0 rejects

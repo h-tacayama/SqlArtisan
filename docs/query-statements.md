@@ -391,7 +391,7 @@ SqlStatement sql =
 // id DESC NULLS LAST
 ```
 
-**Dialect note:** `NullsFirst` / `NullsLast` emit `NULLS FIRST` / `NULLS LAST`, which MySQL and SQL Server reject — neither engine has the clause. On SQL Server, an `OrderBy(...)` in a subquery, derived table or CTE body needs `Top(n)` or `OffsetRows(...)` beside it, which SQL Server 2022 requires; order the outer query instead where the order picks no rows. `SQLA0102` reports that position.
+**Dialect note:** `NullsFirst` / `NullsLast` emit `NULLS FIRST` / `NULLS LAST`, which MySQL and SQL Server reject — neither engine has the clause. On Oracle and SQL Server, an `OrderBy(...)` in an `IN` / `NOT IN`, `EXISTS` / `NOT EXISTS`, `ANY` / `ALL` / `SOME` or scalar subquery needs a row limit beside it — `FetchFirst(n)` or `OffsetRows(...)` on Oracle, `Top(n)` or `OffsetRows(...)` on SQL Server — and on SQL Server in a derived table or CTE body too, which Oracle XE 21.3.0, Free 23ai and SQL Server 2022 require; order the outer query instead where the order picks no rows. `SQLA0102` reports those positions.
 
 A `string`, `char`, `bool`, date/time, GUID or enum sort key throws `Invalid type for
 OrderByItem: ...` at the call: bound, it would be a constant that sorts

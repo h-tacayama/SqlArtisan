@@ -406,9 +406,9 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 }
 
                 break;
-            case "OrderBy" when targets.Contains(TargetDbms.SqlServer):
-                ContextRules.CheckOrderByInSubquery(
-                    context, invocation, TargetDbmsNames.Display(TargetDbms.SqlServer));
+            case "OrderBy"
+                when targets.Contains(TargetDbms.Oracle) || targets.Contains(TargetDbms.SqlServer):
+                ContextRules.CheckOrderByInSubquery(context, invocation, targets);
                 break;
             case "Inserted" or "Deleted" when targets.Contains(TargetDbms.SqlServer):
                 ContextRules.CheckPseudoTableRequiresOutput(
