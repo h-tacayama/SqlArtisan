@@ -1510,6 +1510,60 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             Select(JsonArrow(u.Data, 0)).From(u).Where(u.Id == 1)));
     }
 
+    // #742, docs/expressions.md: a chained operand, and a column or a function as the key,
+    // are rejected; one path reads the same nested value.
+    [Fact]
+    public void JsonArrow_ChainedOperandOrExpressionKey_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal("10001", connection.ExecuteScalar<string>(
+            Select(JsonArrowText(u.Data, "$.address.zip")).From(u).Where(u.Id == 1)));
+
+        // Each would return a value if MySQL took it, so any error is the rejection.
+        SqlExpression[] rejected =
+        [
+            JsonArrow(JsonArrow(u.Data, "$.address"), "$.zip"),
+            JsonArrow(JsonArrowText(u.Data, "$.address"), "$.zip"),
+            JsonArrowText(JsonArrow(u.Data, "$.address"), "$.zip"),
+            JsonArrowText(JsonArrowText(u.Data, "$.address"), "$.zip"),
+            JsonArrow(u.Data, Concat("$.", "name")),
+            JsonArrowText(u.Data, Concat("$.", "name")),
+        ];
+
+        foreach (SqlExpression expression in rejected)
+        {
+            Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
+                Select(expression).From(u).Where(u.Id == 1)));
+        }
+
+        // name holds no JSON path, so only the parse error tells the key's rejection apart.
+        SqlExpression[] columnKeys = [JsonArrow(u.Data, u.Name), JsonArrowText(u.Data, u.Name)];
+
+        foreach (SqlExpression columnKey in columnKeys)
+        {
+            MySqlException ex = Assert.Throws<MySqlException>(() => connection.ExecuteScalar(
+                Select(columnKey).From(u).Where(u.Id == 1)));
+            Assert.Equal(MySqlErrorCode.ParseError, ex.ErrorCode);
+        }
+    }
+
+    // #742, docs/query-statements.md: a bare * after another select item is rejected;
+    // first, or as the table's qualified star, it runs.
+    [Fact]
+    public void BareAsteriskAfterAnotherItem_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query(Select(Asterisk, u.Id).From(u).Where(u.Id == 1));
+        connection.Query(Select(u.Id, u.Asterisk).From(u).Where(u.Id == 1));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query(
+            Select(u.Id, Asterisk).From(u).Where(u.Id == 1)));
+    }
+
     // docs/functions.md: under NO_BACKSLASH_ESCAPES the backslash SqlArtisan doubles
     // in a forced literal stays doubled, and an ESCAPE character fails.
     [Fact]

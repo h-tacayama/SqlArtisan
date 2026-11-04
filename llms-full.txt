@@ -483,7 +483,7 @@ value instead of building SQL, a comparison with NULL that is never true, or a
 ### SELECT Clause
 
 #### SELECT * and Qualified Star
-`Asterisk` is the bare `*` select item; a table's `.Asterisk` is the qualified star (`alias.*`, or `table.*` when the table has no alias) — every column of that one relation, handy beside other select items in a join. It works the same way on a CTE or derived table (`cte.Asterisk` → `"cte".*`), which are always quoted like an alias. Both stars are universal syntax, with two exceptions. On Oracle a bare `*` must be the only select item — beside other items, use the table's `.Asterisk` (`t.*, id`) as in the join example below. On SQLite, give a schema-qualified table an alias before using its `.Asterisk`: SQLite has no schema-qualified star and rejects `main.t.*` (observed on SQLite 3.50.4).
+`Asterisk` is the bare `*` select item; a table's `.Asterisk` is the qualified star (`alias.*`, or `table.*` when the table has no alias) — every column of that one relation, handy beside other select items in a join. It works the same way on a CTE or derived table (`cte.Asterisk` → `"cte".*`), which are always quoted like an alias. Both stars are universal syntax, with three exceptions. On MySQL a bare `*` must come first: MySQL 8.0 rejects `id, *` and runs `*, id` and `id, t.*`. On Oracle a bare `*` must be the only select item — beside other items, use the table's `.Asterisk` (`t.*, id`) as in the join example below. On SQLite, give a schema-qualified table an alias before using its `.Asterisk`: SQLite has no schema-qualified star and rejects `main.t.*` (observed on SQLite 3.50.4).
 ```csharp
 UsersTable u = new();
 SqlStatement sql =
@@ -2722,7 +2722,7 @@ SqlStatement sql =
 // FROM users
 ```
 
-`JsonArrow` (`->`) returns the JSON type; `JsonArrowText` (`->>`) returns text. Both work on MySQL, PostgreSQL, and SQLite. On MySQL the key is a JSON path (`"$.address"`, `"$[0]"`): MySQL rejects a bare key and an integer index (observed on MySQL 8.0.46).
+`JsonArrow` (`->`) returns the JSON type; `JsonArrowText` (`->>`) returns text. Both work on MySQL, PostgreSQL, and SQLite. On MySQL the key is a JSON path (`"$.address"`, `"$[0]"`): MySQL rejects a bare key and an integer index (observed on MySQL 8.0.46), and MySQL 8.0 a column or a function as the key.
 
 > [!NOTE]
 > A path-shaped key such as `"$.name"` reads a path on MySQL and SQLite but is a
@@ -2738,6 +2738,10 @@ JsonArrowText(JsonArrow(u.Data, "address"), "city")
 // Array element: (data -> 0)
 JsonArrow(u.Data, 0)
 ```
+
+On MySQL neither form runs: MySQL 8.0 rejects a `JsonArrow` or `JsonArrowText` whose
+left operand is another one, so read the nested value with one path instead
+(`JsonArrowText(u.Data, "$.address.city")`).
 
 ### Path Access (`#>` / `#>>`)
 
