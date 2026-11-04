@@ -94,6 +94,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   else. (#767)
 - `docs/query-statements.md` notes that SQL Server 2022 rejects a `With(...)`
   chain used as a subquery, a derived table or a CTE body. (#742)
+- `docs/query-statements.md` notes that Oracle XE 21.3.0 rejects a `SELECT` with
+  no `FROM`, and names `.From(Dual)` for it. (#742)
 
 ## [0.13.0-beta.1] - 2026-11-01
 ### Added
