@@ -1254,4 +1254,53 @@ public abstract class IntegrationTestBase
         Assert.Equal(_fixture.Dbms == Dbms.Sqlite ? 75m : 80m, rounded);
         Assert.Equal(_fixture.Dbms == Dbms.Sqlite ? 76m : 80m, fractional);
     }
+
+    // Discovery probe for #792; replaced by twins once the lanes report.
+    [Fact]
+    public void Probe792_CompoundOrderByKeys()
+    {
+        UsersTable u = new("u");
+        UsersTable bare = new();
+        ExpressionAlias n = u.Name.As("n");
+        string lane = _fixture.Dbms.ToString();
+        (string Case, Func<ISqlBuilder> Build)[] cases =
+        [
+            ("qualified-selected", () => Select(u.Id, u.Name).From(u).Where(u.Id == 1)
+                .UnionAll.Select(u.Id, u.Name).From(u).Where(u.Id == 2)
+                .OrderBy(u.Name.Desc)),
+            ("qualified-not-selected", () => Select(u.Id, u.Name).From(u).Where(u.Id == 1)
+                .UnionAll.Select(u.Id, u.Name).From(u).Where(u.Id == 2)
+                .OrderBy(u.Age)),
+            ("position", () => Select(u.Id, u.Name).From(u).Where(u.Id == 1)
+                .UnionAll.Select(u.Id, u.Name).From(u).Where(u.Id == 2)
+                .OrderBy(2)),
+            ("alias-first-branch", () => Select(u.Id, n).From(u).Where(u.Id == 1)
+                .UnionAll.Select(u.Id, u.Name).From(u).Where(u.Id == 2)
+                .OrderBy(n.Desc)),
+            ("unaliased-table", () => Select(u.Id, u.Name).From(u).Where(u.Id == 1)
+                .UnionAll.Select(u.Id, u.Name).From(u).Where(u.Id == 2)
+                .OrderBy(bare.Name.Desc)),
+            ("qualified-union", () => Select(u.Id, u.Name).From(u).Where(u.Id == 1)
+                .Union.Select(u.Id, u.Name).From(u).Where(u.Id == 2)
+                .OrderBy(u.Name.Desc)),
+        ];
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        foreach ((string name, Func<ISqlBuilder> build) in cases)
+        {
+            SqlStatement sql = build().Build(_fixture.Dbms);
+            string result;
+            try
+            {
+                result = "OK " + string.Join(",", global::Dapper.SqlMapper.Query<int>(
+                    connection, sql.Text, sql.Parameters.ToDynamicParameters()));
+            }
+            catch (DbException ex)
+            {
+                result = "ERR " + ex.Message.Replace('\n', ' ');
+            }
+
+            Console.Out.WriteLine($"PROBE {lane} | {name} | {sql.Text} | {result}");
+        }
+    }
 }
