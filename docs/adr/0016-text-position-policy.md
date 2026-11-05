@@ -140,6 +140,14 @@ alongside the bind-parameter types.
   positions requires the application to derive an alias, type, or table name
   from request data, which is both unusual and the application's decision to
   make. An allowlist at that boundary is the fix, not a rewrite here.
+- **No analyzer rule reports a non-constant value in an identifier position
+  (#738).** A report cannot tell an allowlisted value from request input, so it
+  would flag correct code — a name picked by a `switch`, a `static readonly`
+  name — and prove nothing where it fires; off by default it would reach only
+  the projects that enable it. `SECURITY.md`'s list of verbatim positions and
+  the cookbook's `switch` onto table-class columns carry the mitigation
+  instead. A user's request, or an injection reported against an application,
+  reopens #738.
 - **`Nextval` / `Currval` stay as they are.** They are not an outlier to remove;
   removing their escaping would emit a broken PostgreSQL string literal.
 - **New API surface is classified before it is written.** A new function that
