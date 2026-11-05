@@ -546,8 +546,8 @@ public class ReturningTests
     // ── SQLite: RETURNING reads the target alone (#742) ──────────────────
 
     private const string ReturningReadsAnotherTableMessage =
-        "SQLite's RETURNING reads only the target; name the column through the target, "
-            + "or read another table's in a statement of its own.";
+        "SQLite's RETURNING reads only the target; name its columns through the target, "
+            + "and read another table's through a subquery with its own FROM.";
 
     [Fact]
     public void Returning_Sqlite_JoinedTableColumn_ThrowsArgumentException()

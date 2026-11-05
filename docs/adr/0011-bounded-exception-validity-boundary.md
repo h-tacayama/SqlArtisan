@@ -390,46 +390,43 @@ a new one the analyzer can see.
 
 ## A `RETURNING` column of another table on SQLite (#742)
 
-SQLite's `RETURNING` reads the target alone. A column of another handle, a table
-an `UPDATE`'s `From(...)` joins included, renders under its alias or, unaliased,
-bare. SQLite 3.50.4 rejects it (`no such column`), or reads the target's
-same-named column instead with no error: a bare name the target also has, or an
-alias spelling the target's table name, is read from the target. A subquery in
-the list reads such an alias from the target too, unless a relation in between
-binds that name. So `Build(Dbms.Sqlite)` throws when the `RETURNING` list's own
-level renders a column of any handle but the target (another table, or the
-target's table under another alias or none), or a subquery in the list renders
-one under an aliased target's table name or alias while no subquery around the
-read, any branch of its compound included, binds either name:
+SQLite's `RETURNING` reads the target alone. SQLite 3.50.4 rejects another
+table's column there (`no such column`) or reads the target's same-named column
+instead, with no error: a bare name the target also has, or an alias spelling
+the target's table name, is read from the target. A subquery with its own `FROM`
+reads another table as written.
 
-> `SQLite's RETURNING reads only the target; name the column through the target, or read another table's in a statement of its own.`
+`Build(Dbms.Sqlite)` therefore throws when the `RETURNING` list's own level
+renders a column of a handle other than the target, that is, of another table or
+of the target's table under another correlation name:
 
-A subquery's own relations stay outside the check. PostgreSQL's `RETURNING` reads
-an `UPDATE ... FROM` table, so the statement emits as written there.
+> `SQLite's RETURNING reads only the target; name its columns through the target, and read another table's through a subquery with its own FROM.`
 
-A subquery read outside that condition stays unguarded, and so does every
-subquery read under an unaliased target. The check holds one slot, the aliased
-target that #595 already carries. A subquery binding either name clears it for
-all its branches, while SQLite resolves each branch on its own, so a read under
-the target's table name is not checked under a subquery binding the alias, nor in
-a branch beside one binding either name. SQLite 3.50.4 reads such a column from
-the target with no error. Telling the names and branches apart costs state
-beyond the slot, and each read takes a deliberate name collision, so
-`docs/query-statements.md` carries the `[!WARNING]` instead. Twins on the SQLite
-lane: `Returning_Sqlite_SubqueryUnderABlockBindingTheAlias_ReadsTheTarget` and
-`Returning_Sqlite_CompoundBranchBesideOneBindingTheName_ReadsTheTarget`.
+Inside a subquery in the list the check covers less. It holds the one slot #595
+already carries for an aliased target, and rejects a column under the target's
+table name or alias only while that slot is held. A subquery binding either name
+clears the slot for every branch of its compound, while SQLite resolves each
+branch on its own, and an unaliased target never fills it. A read the check does
+not reach stays unguarded: telling names and branches apart costs state beyond
+the slot, and each such read takes a deliberate name collision, so
+`docs/query-statements.md` carries a `[!WARNING]` instead.
 
-The case is admitted outside the bar. Its first condition does not hold in full:
-`SQLA0102` reports the read where it can identify the joined table on the chain.
-It is admitted on the ground #669's class was: the text runs with a wrong value
-and no error, and the analyzer reports nothing until a dialect is configured, nor
-on a chain held in a variable or a table passed as a parameter. The second
-condition holds, since SQLite has no spelling that reads another table in
-`RETURNING`. `SQLA0102` stays as the advisory early report, as `SQLA0300` does
+The case is admitted outside the bar, a ninth class beside the eight the Status
+line and ADR 0007 count. Neither condition holds in full: `SQLA0102` reports the
+read where it identifies the joined table on the chain, and a subquery with its
+own `FROM` is a valid spelling. It is admitted on #669's ground: the text runs
+with a wrong value and no error, and the analyzer reports nothing until a dialect
+is configured, nor on a chain held in a variable or a table passed as a
+parameter. `SQLA0102` stays as the advisory early report, as `SQLA0300` does
 beside the correlated-DML guard (ADR 0014). The check reads state the buffer
-already holds for SQLite's target rewrite (#595), so a build allocates nothing
-more (ADR 0006). Live twins on the SQLite lane, run as hand-written text since
-the guard: `Returning_Sqlite_JoinedRelationColumn_IsRejectedByTheEngine`,
+already holds, so a build allocates nothing more (ADR 0006). PostgreSQL's
+`RETURNING` reads an `UPDATE ... FROM` table, so the statement emits as written
+there.
+
+Twins on the SQLite lane: `Returning_Sqlite_JoinedRelationColumn_IsRejectedByTheEngine`,
 `Returning_Sqlite_UnaliasedJoinedRelationColumn_ReadsTheTarget` and
-`Returning_Sqlite_JoinedRelationAliasedAsTargetTable_ReadsTheTarget`, the last in
-the list and in a subquery.
+`Returning_Sqlite_JoinedRelationAliasedAsTargetTable_ReadsTheTarget`, run as
+hand-written text; `Returning_Sqlite_SubqueryWithItsOwnFrom_ReadsAnotherTable`
+for the remedy; and `Returning_Sqlite_SubqueryUnderABlockBindingTheAlias_ReadsTheTarget`
+and `Returning_Sqlite_CompoundBranchBesideOneBindingTheName_ReadsTheTarget` for
+reads the check does not reach.

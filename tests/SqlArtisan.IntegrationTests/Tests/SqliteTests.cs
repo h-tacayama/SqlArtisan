@@ -396,6 +396,28 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
+    // #742: the guard's remedy, a subquery with its own FROM, reads the other table.
+    [Fact]
+    public void Returning_Sqlite_SubqueryWithItsOwnFrom_ReadsAnotherTable()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        OrdersTable own = new("o2");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int lastOrderId = connection.Query<int>(
+            Select(Max(o.Id)).From(o).Where(o.UserId == 2), transaction).Single();
+        int returned = connection.Query<int>(
+            Update(u).Set(u.Age == 45).From(o).Where((o.UserId == u.Id) & (u.Id == 2))
+                .Returning(Select(Max(own.Id)).From(own).Where(own.UserId == u.Id).As("oid")),
+            transaction).First();
+
+        Assert.NotEqual(2, lastOrderId);
+        Assert.Equal(lastOrderId, returned);
+        transaction.Rollback();
+    }
+
     [Fact]
     public void Returning_Sqlite_SelfJoinedUpdate_ReturnsTheTarget()
     {

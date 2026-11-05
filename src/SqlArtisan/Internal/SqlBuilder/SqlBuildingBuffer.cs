@@ -466,8 +466,8 @@ internal sealed class SqlBuildingBuffer : IDisposable
             && (_block is null || (HoldsReturningTarget && BindsName(owner, target))))
         {
             throw new ArgumentException(
-                "SQLite's RETURNING reads only the target; name the column through the target, "
-                    + "or read another table's in a statement of its own.");
+                "SQLite's RETURNING reads only the target; name its columns through the target, "
+                    + "and read another table's through a subquery with its own FROM.");
         }
     }
 
