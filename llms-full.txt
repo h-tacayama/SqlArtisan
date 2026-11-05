@@ -4316,6 +4316,15 @@ verdict exactly; where the bound sits above the dialect's verified baseline
 (the Oracle 23, PostgreSQL 17 and SQL Server 2025 rows below), the plain verdict is
 `not supported`, and declaring the version is what lifts it.
 
+The register lists only the bounds it has a source for, and leaves out ones
+whose older engines are no longer in vendor support or wide use, so a construct
+missing from it may still need a newer engine than yours. A declared version is
+checked against this section's rows alone: a construct the matrix marks
+supported on your dialect, with no row here, is not reported however old the
+declared version. If your engine lacks one, set its
+[override key](#correcting-a-warning-the-override-keys) to `unsupported`, which
+reports it as `SQLA0100`.
+
 | Construct | Dialect | Minimum version | Why |
 |---|---|---|---|
 | `WithRecursive` | MySQL | 8.0 | `WITH RECURSIVE` needs MySQL's CTE support, added in 8.0. |
