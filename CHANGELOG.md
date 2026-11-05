@@ -1132,7 +1132,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   rejects a qualified `SET` target on `UPDATE ... FROM` and runs two `ON`
   clauses after two joins re-nested, Oracle XE 21.3.0 and 23ai reject `AS`
   before a DML target's alias, and MySQL 8.0 reads a cast `INSERT ... SELECT`
-  upsert's `AS new` as the source table. (#679)
+  UPSERT's `AS new` as the source table. (#679)
 - Contract tests pin the interfaces inheriting each stage a DML-shape rule keys
   on, and the members that take an `IntervalExpression`; the schema parity
   catalog takes thirteen silent shapes from the per-rule suites. SQLite twins
