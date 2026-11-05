@@ -6,10 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Docs
-- `docs/analyzer.md`'s version-bound register states that it records a bound
-  only where older engines are still in support or wide use, so a construct
-  older than that window is not reported for an older declared version, and
-  that an `unsupported` override key reports it. (#791)
+- `docs/analyzer.md`'s version-bound register states that it lists only the
+  bounds it has a source for, so a construct the matrix marks supported and
+  the register has no row for is not reported whatever version is declared,
+  and that an `unsupported` override key reports it. (#791)
 
 ## [0.14.0-beta.1] - 2026-11-05
 ### Added
