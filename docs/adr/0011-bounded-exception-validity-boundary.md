@@ -2,7 +2,7 @@
 
 **Status:** Accepted — #672 adds a fourth class decided outside the bar (an alias sort
 key where no select alias is in scope), #677 a fifth (the correlated guards, the
-DML-target one included), #678, #673 and #693 a sixth (a bound value as a sort, group, partition or `DISTINCT ON` key, and a number as an expression-position sort key), #667 a seventh (a function-argument enum in a value position), #669 an eighth (a value computed empty that an engine runs without an error).
+DML-target one included), #678, #673 and #693 a sixth (a bound value as a sort, group, partition or `DISTINCT ON` key, and a number as an expression-position sort key), #667 a seventh (a function-argument enum in a value position), #669 an eighth (a value computed empty that an engine runs without an error), #742 a ninth (a SQLite `RETURNING` column of a handle other than the target).
 
 ## Context
 
@@ -87,7 +87,7 @@ override — so every build path (including `Returning()`, which funnels through
   structurally can't see it, *and* the resolved target has no valid spelling.
   Absent both, the answer stays ADR 0007's default — emit faithfully. Some
   rejections of valid-somewhere text do not follow that today: ADR 0017 is its
-  own exception, and eight classes are decided outside the bar here. The
+  own exception, and nine classes are decided outside the bar here. The
   call-site-defect guards, enumerated in `guards-and-empty-states.md` — a
   fixed list that repeats a name, an `OUTPUT ... INTO` list whose width
   differs from its `OUTPUT` list, a bare `SET` target or column list entry
@@ -411,8 +411,8 @@ not reach stays unguarded: telling names and branches apart costs state beyond
 the slot, and each such read takes a deliberate name collision, so
 `docs/query-statements.md` carries a `[!WARNING]` instead.
 
-The case is admitted outside the bar, a ninth class beside the eight the Status
-line and ADR 0007 count. Neither condition holds in full: `SQLA0102` reports the
+The case is admitted outside the bar, its ninth class. Neither condition holds
+in full: `SQLA0102` reports the
 read where it identifies the joined table on the chain, and a subquery with its
 own `FROM` is a valid spelling. It is admitted on #669's ground: the text runs
 with a wrong value and no error, and the analyzer reports nothing until a dialect
