@@ -75,8 +75,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Twins run shapes `Build()` leaves to the engine (#675) where #675 did not,
   and each engine rejects them: a `RANGE` offset over two keys on MySQL 8.0,
   Oracle XE 21.3.0 and Free 23ai; a percentile over two keys on Oracle XE
-  21.3.0, Free 23ai and SQL Server 2022; and a lateral join given a
-  source-carrying derived table on MySQL 8.0 and Oracle XE 21.3.0. (#767)
+  21.3.0, Free 23ai and SQL Server 2022; a lateral join given a
+  source-carrying derived table on MySQL 8.0, Oracle XE 21.3.0 and Free 23ai;
+  and an apply join given one and an empty grouping set inside `Rollup` /
+  `Cube` on Free 23ai. (#767)
 - Dialect-sweep cases that a `false` engine rejected at another construct the
   statement needs are now rejected there by the construct they test:
   `WithRecursive` carries a column list on Oracle, `Offset` stands alone on
