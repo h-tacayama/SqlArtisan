@@ -227,7 +227,11 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   and accept it; `DeleteFrom(t).Using(...)` on SQL Server — T-SQL has no
   `DELETE ... USING` at all, and the message names the `From(...)` remedy
   the joined-target guard's own message could not reach from that chain
-  (ADR 0011, "Later instances" section).
+  (ADR 0011, "Later instances" section); a column of a handle other than the target in
+  SQLite's `RETURNING`, at the list's own level and in part in a subquery there,
+  which SQLite 3.50.4 rejects or reads from the target's same-named column with
+  no error (ADR 0011 admits it outside its bar and states the subquery scope,
+  #742).
 
 **Joined-target alias requirement (decided — do not re-file):**
 `ThrowIfJoinedTargetUnaliased` fires for every joined `UPDATE`/`DELETE` shape
@@ -600,7 +604,8 @@ schema is not visible, so a reference no inner column could capture is rejected
 too, as for the DML target, which keeps its own message (ADR 0011 decides the
 class outside its bar). A compound's branches count together, which can let a
 branch's capture pass but rejects nothing a per-branch check would accept. A
-top-level column whose table no clause lists stays permissive; an
+top-level column whose table no clause lists stays permissive, outside SQLite's
+`RETURNING` list (the *Bounded exception* list above); an
 `INSERT ... SELECT` CTE body is a block like any other. On MySQL,
 whose `INSERT` target cannot be aliased (ADR 0011), an `ON DUPLICATE KEY UPDATE`
 subquery reaches the inserted row through `Excluded(...)` and has no spelling

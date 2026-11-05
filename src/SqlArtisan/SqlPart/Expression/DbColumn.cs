@@ -45,6 +45,7 @@ public sealed class DbColumn : SqlExpression
     internal override void Format(SqlBuildingBuffer buffer)
     {
         string correlationName = Owner.CorrelationName;
+        buffer.ThrowIfReturningReadsAnotherTable(Owner);
 
         if (buffer.QualifiesByTableName(Owner))
         {

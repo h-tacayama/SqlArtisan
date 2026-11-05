@@ -1708,10 +1708,10 @@ SqlStatement sql =
 
 A subquery or CTE body inside that `RETURNING` must not expose a relation under the target's table name: the table itself unaliased, a CTE named after it, or an alias equal to it. The table name would bind that inner relation instead of the target, so the target keeps its alias there and SQLite rejects the statement (on SQLite 3.50.4). A relation aliased like the target keeps the alias too; there `"u".id` reads that inner relation, as the statement is written.
 
-SQLite's `RETURNING` reads the target alone, so a column of a table an `UPDATE`'s `From(...)` joins is not available there; `SQLA0102` reports such a read where it can identify the joined table.
+SQLite's `RETURNING` reads the target alone, so `Build(Dbms.Sqlite)` throws for a column of any handle but the target at the `RETURNING` list's own level, a table an `UPDATE`'s `From(...)` joins included: SQLite 3.50.4 rejects such a column, or reads the target's same-named column instead with no error, for example when the joined table is unaliased or aliased as the target's table name. Name the target's columns through the target, and read another table's value through a subquery with its own `FROM`; `SQLA0102` reports the read before the build where it can identify the joined table.
 
 > [!WARNING]
-> **On SQLite, `Returning(...)` of a joined table's column can return the target's column instead of failing** (SQLite 3.50.4), for example when the joined table is unaliased. Read the joined table's value in a statement of its own.
+> **On SQLite, a `RETURNING` subquery can read the target's column instead of another table's, with no error, where relations take the target's table name or alias** (SQLite 3.50.4). `Build(Dbms.Sqlite)` checks such a read only in part. Give every other relation a name the target does not use.
 
 ### RETURNING INTO (Oracle)
 

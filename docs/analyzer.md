@@ -870,7 +870,9 @@ var q = DeleteFrom(u).Where(u.Id == 1).Returning(u.Asterisk);
 **A joined table in a SQLite `RETURNING`.** SQLite's `RETURNING` reads the
 target alone, so a column of a table an `UPDATE`'s `From(...)` joins is not
 available there: SQLite 3.50.4 rejects it, or can read the target's column
-instead, for example when the joined table is unaliased. The rule reads a joined
+instead, for example when the joined table is unaliased. `Build(Dbms.Sqlite)`
+throws for such a column at the `RETURNING` list's own level, so the rule
+reports before the build what the build rejects. The rule reads a joined
 table it can identify, a local or a readonly field read through `this` or
 statically, on the `UPDATE ... FROM` chain `Returning(...)` is written on, so it
 stays silent on other shapes, such as a

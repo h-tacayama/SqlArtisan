@@ -2,7 +2,7 @@
 
 **Status:** Accepted — #672 adds a fourth class decided outside the bar (an alias sort
 key where no select alias is in scope), #677 a fifth (the correlated guards, the
-DML-target one included), #678, #673 and #693 a sixth (a bound value as a sort, group, partition or `DISTINCT ON` key, and a number as an expression-position sort key), #667 a seventh (a function-argument enum in a value position), #669 an eighth (a value computed empty that an engine runs without an error).
+DML-target one included), #678, #673 and #693 a sixth (a bound value as a sort, group, partition or `DISTINCT ON` key, and a number as an expression-position sort key), #667 a seventh (a function-argument enum in a value position), #669 an eighth (a value computed empty that an engine runs without an error), #742 a ninth (a SQLite `RETURNING` column of a handle other than the target).
 
 ## Context
 
@@ -87,7 +87,7 @@ override — so every build path (including `Returning()`, which funnels through
   structurally can't see it, *and* the resolved target has no valid spelling.
   Absent both, the answer stays ADR 0007's default — emit faithfully. Some
   rejections of valid-somewhere text do not follow that today: ADR 0017 is its
-  own exception, and eight classes are decided outside the bar here. The
+  own exception, and nine classes are decided outside the bar here. The
   call-site-defect guards, enumerated in `guards-and-empty-states.md` — a
   fixed list that repeats a name, an `OUTPUT ... INTO` list whose width
   differs from its `OUTPUT` list, a bare `SET` target or column list entry
@@ -387,3 +387,46 @@ a new one the analyzer can see.
   `DeleteFromNotRelisted_IsRejectedByTheEngine` on the MySQL, PostgreSQL, SQLite
   and SQL Server lanes, `ContextRule_JoinedDeleteFromNotRelisted_Rejected` on
   the Oracle lane, and `DeleteFromNotRelisted_Executes` on the Oracle23ai lane.
+
+## A `RETURNING` column of another table on SQLite (#742)
+
+SQLite's `RETURNING` reads the target alone. SQLite 3.50.4 rejects another
+table's column there (`no such column`) or reads the target's same-named column
+instead, with no error: a bare name the target also has, or an alias spelling
+the target's table name, is read from the target. A subquery with its own `FROM`
+reads another table as written.
+
+`Build(Dbms.Sqlite)` therefore throws when the `RETURNING` list's own level
+renders a column of a handle other than the target, that is, of another table or
+of the target's table under another correlation name:
+
+> `SQLite's RETURNING reads only the target; name its columns through the target, and read another table's through a subquery with its own FROM.`
+
+Inside a subquery in the list the check covers less. It holds the one slot #595
+already carries for an aliased target, and rejects a column under the target's
+table name or alias only while that slot is held. A subquery binding either name
+clears the slot for every branch of its compound, while SQLite resolves each
+branch on its own, and an unaliased target never fills it. A read the check does
+not reach stays unguarded: telling names and branches apart costs state beyond
+the slot, and each such read takes a deliberate name collision, so
+`docs/query-statements.md` carries a `[!WARNING]` instead.
+
+The case is admitted outside the bar, its ninth class. Neither condition holds
+in full: `SQLA0102` reports the
+read where it identifies the joined table on the chain, and a subquery with its
+own `FROM` is a valid spelling. It is admitted on #669's ground: the text runs
+with a wrong value and no error, and the analyzer reports nothing until a dialect
+is configured, nor on a chain held in a variable or a table passed as a
+parameter. `SQLA0102` stays as the advisory early report, as `SQLA0300` does
+beside the correlated-DML guard (ADR 0014). The check reads state the buffer
+already holds, so a build allocates nothing more (ADR 0006). PostgreSQL's
+`RETURNING` reads an `UPDATE ... FROM` table, so the statement emits as written
+there.
+
+Twins on the SQLite lane: `Returning_Sqlite_JoinedRelationColumn_IsRejectedByTheEngine`,
+`Returning_Sqlite_UnaliasedJoinedRelationColumn_ReadsTheTarget` and
+`Returning_Sqlite_JoinedRelationAliasedAsTargetTable_ReadsTheTarget`, run as
+hand-written text; `Returning_Sqlite_SubqueryWithItsOwnFrom_ReadsAnotherTable`
+for the remedy; and `Returning_Sqlite_SubqueryUnderABlockBindingTheAlias_ReadsTheTarget`
+and `Returning_Sqlite_CompoundBranchBesideOneBindingTheName_ReadsTheTarget` for
+reads the check does not reach.

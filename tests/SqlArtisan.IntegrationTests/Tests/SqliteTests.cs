@@ -292,28 +292,27 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
-    // "o".id names no column of the target, so SQLite's RETURNING cannot read the FROM
-    // relation and the statement fails.
+    // #742: Build(Dbms.Sqlite) rejects a RETURNING column of another table, so these
+    // twins pin the engine with hand-written text. "o".id names no column of the target,
+    // so SQLite's RETURNING cannot read the FROM relation and the statement fails.
     [Fact]
     public void Returning_Sqlite_JoinedRelationColumn_IsRejectedByTheEngine()
     {
-        UsersTable u = new("u");
-        OrdersTable o = new("o");
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
-            Update(u).Set(u.Age == 41).From(o).Where(o.UserId == u.Id).Returning(o.Id),
-            transaction));
+            "UPDATE users AS \"u\" SET age = 41 FROM orders \"o\" "
+                + "WHERE \"o\".user_id = \"u\".id RETURNING \"o\".id",
+            transaction: transaction));
         transaction.Rollback();
     }
 
-    // An unaliased FROM relation's column renders bare, and SQLite reads a bare
-    // RETURNING name from the target: user 2's id comes back, not its order's.
+    // An unaliased FROM relation's column renders bare, and SQLite reads a bare RETURNING
+    // name the target has from the target: user 2's id comes back, not its order's.
     [Fact]
     public void Returning_Sqlite_UnaliasedJoinedRelationColumn_ReadsTheTarget()
     {
-        UsersTable u = new("u");
         OrdersTable o = new();
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
@@ -321,8 +320,48 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         int orderId = connection.Query<int>(
             Select(o.Id).From(o).Where(o.UserId == 2), transaction).First();
         int returned = connection.Query<int>(
-            Update(u).Set(u.Age == 41).From(o).Where((o.UserId == u.Id) & (u.Id == 2))
-                .Returning(o.Id),
+            "UPDATE users AS \"u\" SET age = 41 FROM orders "
+                + "WHERE user_id = \"u\".id AND \"u\".id = 2 RETURNING id",
+            transaction: transaction).Single();
+
+        Assert.NotEqual(2, orderId);
+        Assert.Equal(2, returned);
+        transaction.Rollback();
+    }
+
+    // An alias spelling the target's table name qualifies the column as the target, in
+    // the list and in a subquery that binds no relation under that name.
+    [Theory]
+    [InlineData("\"users\".id")]
+    [InlineData("(SELECT \"users\".id)")]
+    public void Returning_Sqlite_JoinedRelationAliasedAsTargetTable_ReadsTheTarget(string item)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.Equal(2, connection.Query<int>(
+            "UPDATE users AS \"u\" SET age = 42 FROM orders \"users\" "
+                + "WHERE \"users\".user_id = \"u\".id AND \"u\".id = 2 RETURNING " + item,
+            transaction: transaction).Single());
+        transaction.Rollback();
+    }
+
+    // #742, docs/query-statements.md [!WARNING]: a block binding the target's alias clears
+    // Build()'s check, and "users".id in it is read from the target, not the joined order.
+    [Fact]
+    public void Returning_Sqlite_SubqueryUnderABlockBindingTheAlias_ReadsTheTarget()
+    {
+        UsersTable u = new("u");
+        OrdersTable named = new("users");
+        OrdersTable inner = new("u");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int orderId = connection.Query<int>(
+            Select(named.Id).From(named).Where(named.UserId == 2), transaction).First();
+        int returned = connection.Query<int>(
+            Update(u).Set(u.Age == 43).From(named).Where((named.UserId == u.Id) & (u.Id == 2))
+                .Returning(Select(named.Id).From(inner).Where(inner.Id == orderId).As("x")),
             transaction).Single();
 
         Assert.NotEqual(2, orderId);
@@ -330,19 +369,52 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
-    // An alias spelling the target's table name qualifies the column as the target.
+    // #742: a branch binding "users" clears the check for the whole compound, while SQLite
+    // resolves each branch alone, so the other branch's "users".id reads the target.
     [Fact]
-    public void Returning_Sqlite_JoinedRelationAliasedAsTargetTable_ReadsTheTarget()
+    public void Returning_Sqlite_CompoundBranchBesideOneBindingTheName_ReadsTheTarget()
     {
         UsersTable u = new("u");
         OrdersTable named = new("users");
+        OrdersTable sibling = new("users");
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
-        Assert.Equal(2, connection.Query<int>(
-            Update(u).Set(u.Age == 42).From(named).Where((named.UserId == u.Id) & (u.Id == 2))
-                .Returning(named.Id),
-            transaction).Single());
+        int orderId = connection.Query<int>(
+            Select(named.Id).From(named).Where(named.UserId == 2), transaction).First();
+        int returned = connection.Query<int>(
+            Update(u).Set(u.Age == 44).From(named).Where((named.UserId == u.Id) & (u.Id == 2))
+                .Returning(
+                    Select(Max(named.Id))
+                    .UnionAll
+                    .Select(sibling.Id).From(sibling).Where(sibling.Id == -1)
+                    .As("x")),
+            transaction).Single();
+
+        Assert.NotEqual(2, orderId);
+        Assert.Equal(2, returned);
+        transaction.Rollback();
+    }
+
+    // #742: the guard's remedy, a subquery with its own FROM, reads the other table.
+    [Fact]
+    public void Returning_Sqlite_SubqueryWithItsOwnFrom_ReadsAnotherTable()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        OrdersTable own = new("o2");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int lastOrderId = connection.Query<int>(
+            Select(Max(o.Id)).From(o).Where(o.UserId == 2), transaction).Single();
+        int returned = connection.Query<int>(
+            Update(u).Set(u.Age == 45).From(o).Where((o.UserId == u.Id) & (u.Id == 2))
+                .Returning(Select(Max(own.Id)).From(own).Where(own.UserId == u.Id).As("oid")),
+            transaction).First();
+
+        Assert.NotEqual(2, lastOrderId);
+        Assert.Equal(lastOrderId, returned);
         transaction.Rollback();
     }
 

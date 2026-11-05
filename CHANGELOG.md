@@ -38,6 +38,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   reject it. (#742)
 
 ### Changed
+- **Breaking:** `Build(Dbms.Sqlite)` throws `ArgumentException` when a `RETURNING`
+  list reads a column of any handle but the target, such as a table an
+  `UPDATE`'s `From(...)` joins: SQLite 3.50.4 rejects such a column, or reads the
+  target's same-named column instead with no error. Read another table's value
+  through a subquery with its own `FROM`. A subquery in the list is checked only
+  in part, which `docs/query-statements.md` warns of; `SQLA0102` reports the
+  joined table it can identify, but nothing until a dialect is configured. (#742)
 - The analyzer knows Oracle 23ai's `LEFT JOIN LATERAL ... ON TRUE` and `VALUES`
   row source: with `sqlartisan_syntax_oracle` declaring 23 or later,
   `LeftJoinLateral` and `Sql.Values(alias, columnNames, rows)` are no longer

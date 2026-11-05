@@ -543,11 +543,181 @@ public class ReturningTests
         Assert.Equal(1, sql.Parameters.Get<int>(":0"));
     }
 
+    // ── SQLite: RETURNING reads the target alone (#742) ──────────────────
+
+    private const string ReturningReadsAnotherTableMessage =
+        "SQLite's RETURNING reads only the target; name its columns through the target, "
+            + "and read another table's through a subquery with its own FROM.";
+
     [Fact]
-    public void Returning_Sqlite_JoinedUpdate_QualifiesOnlyTheTarget()
+    public void Returning_Sqlite_JoinedTableColumn_ThrowsArgumentException()
     {
-        // A FROM relation stays alias-qualified, and "a" names nothing on the target, so
-        // SQLite 3.50.4's RETURNING cannot read it and the statement fails.
+        TestTable t = new("t");
+        ArchiveTable a = new("a");
+        IReturningBuilder returning =
+            Update(t).Set(t.Name == a.Name).From(a).Where(a.Code == t.Code)
+            .Returning(t.Code, a.Code);
+
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => returning.Build(Dbms.Sqlite));
+
+        Assert.Equal(ReturningReadsAnotherTableMessage, ex.Message);
+    }
+
+    // Rendered bare, `name` is the target's too, so SQLite 3.50.4 reads the target's.
+    [Fact]
+    public void Returning_Sqlite_UnaliasedJoinedTableColumnInAFunction_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        ArchiveTable a = new();
+        IReturningBuilder returning =
+            Update(t).Set(t.Name == a.Name).From(a).Where(a.Code == t.Code)
+            .Returning(Upper(a.Name));
+
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => returning.Build(Dbms.Sqlite));
+
+        Assert.Equal(ReturningReadsAnotherTableMessage, ex.Message);
+    }
+
+    [Fact]
+    public void Returning_Sqlite_SelfJoinedTableColumn_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable t2 = new("t2");
+        IReturningBuilder returning =
+            Update(t).Set(t.Name == t2.Name).From(t2).Where(t2.Code == t.Code)
+            .Returning(t.Code, t2.Code);
+
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => returning.Build(Dbms.Sqlite));
+
+        Assert.Equal(ReturningReadsAnotherTableMessage, ex.Message);
+    }
+
+    // A second, unaliased handle of the target's table renders bare; u.Code spells it.
+    [Fact]
+    public void Returning_Sqlite_UnaliasedSecondHandleOfTheTarget_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable bare = new();
+        IReturningBuilder returning = Update(t).Set(t.Name == "x").Where(t.Code == 1)
+            .Returning(bare.Code);
+
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => returning.Build(Dbms.Sqlite));
+
+        Assert.Equal(ReturningReadsAnotherTableMessage, ex.Message);
+    }
+
+    [Fact]
+    public void Returning_Sqlite_DeleteReadingAnotherTable_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+        IReturningBuilder returning = DeleteFrom(t).Where(t.Code == 1).Returning(a.Code);
+
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => returning.Build(Dbms.Sqlite));
+
+        Assert.Equal(ReturningReadsAnotherTableMessage, ex.Message);
+    }
+
+    [Fact]
+    public void Returning_Sqlite_JoinedUpdateReadingTheTarget_CorrectSql()
+    {
+        TestTable t = new("t");
+        ArchiveTable a = new("a");
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == a.Name)
+            .From(a)
+            .Where(a.Code == t.Code)
+            .Returning(t.Code, t.Name)
+            .Build(Dbms.Sqlite);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE test_table AS \"t\" ");
+        expected.Append("SET name = \"a\".name ");
+        expected.Append("FROM archive_table \"a\" ");
+        expected.Append("WHERE \"a\".code = \"t\".code ");
+        expected.Append("RETURNING test_table.code, test_table.name");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    // A subquery's own relation, named other than the target, is outside the check.
+    [Fact]
+    public void Returning_Sqlite_SubqueryReadingAnotherTable_CorrectSql()
+    {
+        TestTable t = new("t");
+        ArchiveTable a = new("a");
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == "x")
+            .Where(t.Code == 1)
+            .Returning(Select(Max(a.Code)).From(a).As("m"))
+            .Build(Dbms.Sqlite);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE test_table AS \"t\" ");
+        expected.Append("SET name = :0 ");
+        expected.Append("WHERE \"t\".code = :1 ");
+        expected.Append("RETURNING (SELECT MAX(\"a\".code) FROM archive_table \"a\") \"m\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("x", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(1, sql.Parameters.Get<int>(":1"));
+    }
+
+    // SQLite 3.50.4 reads "a".code in the subquery from the target, whose table "a" names.
+    [Theory]
+    [InlineData("test_table")]
+    [InlineData("TEST_TABLE")]
+    public void Returning_Sqlite_SubqueryReadingTargetNamedTable_ThrowsArgumentException(
+        string alias)
+    {
+        TestTable t = new("t");
+        ArchiveTable a = new(alias);
+        IReturningBuilder returning =
+            Update(t).Set(t.Name == a.Name).From(a).Where(a.Code == t.Code)
+            .Returning(Select(a.Code).As("x"));
+
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => returning.Build(Dbms.Sqlite));
+
+        Assert.Equal(ReturningReadsAnotherTableMessage, ex.Message);
+    }
+
+    // The subquery binds the name itself, so "test_table".code reads its own relation.
+    [Fact]
+    public void Returning_Sqlite_SubqueryBindingTheTargetsName_CorrectSql()
+    {
+        TestTable t = new("t");
+        ArchiveTable named = new("test_table");
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == "x")
+            .Where(t.Code == 1)
+            .Returning(Select(Max(named.Code)).From(named).As("m"))
+            .Build(Dbms.Sqlite);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE test_table AS \"t\" ");
+        expected.Append("SET name = :0 ");
+        expected.Append("WHERE \"t\".code = :1 ");
+        expected.Append("RETURNING (SELECT MAX(\"test_table\".code) ");
+        expected.Append("FROM archive_table \"test_table\") \"m\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("x", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(1, sql.Parameters.Get<int>(":1"));
+    }
+
+    // PostgreSQL's RETURNING reads a FROM table, so the same statement builds there.
+    [Fact]
+    public void Returning_JoinedTableColumn_CorrectSql()
+    {
         TestTable t = new("t");
         ArchiveTable a = new("a");
         SqlStatement sql =
@@ -556,37 +726,14 @@ public class ReturningTests
             .From(a)
             .Where(a.Code == t.Code)
             .Returning(t.Code, a.Code)
-            .Build(Dbms.Sqlite);
+            .Build(Dbms.PostgreSql);
 
         StringBuilder expected = new();
         expected.Append("UPDATE test_table AS \"t\" ");
         expected.Append("SET name = \"a\".name ");
         expected.Append("FROM archive_table \"a\" ");
         expected.Append("WHERE \"a\".code = \"t\".code ");
-        expected.Append("RETURNING test_table.code, \"a\".code");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
-    public void Returning_Sqlite_SelfJoinedUpdate_QualifiesOnlyTheTargetsAlias()
-    {
-        TestTable t = new("t");
-        TestTable t2 = new("t2");
-        SqlStatement sql =
-            Update(t)
-            .Set(t.Name == t2.Name)
-            .From(t2)
-            .Where(t2.Code == t.Code)
-            .Returning(t.Code, t2.Code)
-            .Build(Dbms.Sqlite);
-
-        StringBuilder expected = new();
-        expected.Append("UPDATE test_table AS \"t\" ");
-        expected.Append("SET name = \"t2\".name ");
-        expected.Append("FROM test_table \"t2\" ");
-        expected.Append("WHERE \"t2\".code = \"t\".code ");
-        expected.Append("RETURNING test_table.code, \"t2\".code");
+        expected.Append("RETURNING \"t\".code, \"a\".code");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
