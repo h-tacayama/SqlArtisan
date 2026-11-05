@@ -116,6 +116,18 @@ and the run covered the lanes you care about.)
   repeated-parameter GROUP BY? — the GAP-19/#241 pattern), write a dedicated
   test that records accept/reject per engine instead; promote the fact into
   the matrix + a sweep case only after the results are in.
+- **A discovery probe passes, and reports through `Console.Out`.** A probe
+  that records what each engine does has no expected outcome, so it does not
+  end in `Assert.Fail(report)` to get its report printed: the dispatched run
+  then goes red on every lane the probe runs on, and each red lane has to be
+  read to tell a probe report from a real failure. Write the report with
+  `Console.Out.Write(...)` and let the test pass: under the workflow's
+  `console;verbosity=normal` logger, a passing test's `Console.Out` reaches the
+  job log and its `ITestOutputHelper` does not (run 41957426078). The output
+  lands where it is written, not under the test's name, so prefix every line
+  (`PROBE <lane> | …`) to filter it out of `get_job_logs` output. Fail only on
+  what breaks the probe itself (a fixture that never starts), so red still
+  means the report is missing.
 - **The sweep can't hold a spelling variation of an existing construct.** The
   catalog is keyed by `MatrixKey` (member name + optional arity), so there is
   one entry per construct. A *grammar/spelling variation* of a construct that
