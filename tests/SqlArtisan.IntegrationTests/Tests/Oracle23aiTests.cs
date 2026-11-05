@@ -460,8 +460,8 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         Assert.Contains("ORA-22849", ex.Message);
     }
 
-    // #767: two of the shapes guards-and-empty-states.md leaves to the engine (#675), run at
-    // 23ai too; each control runs, so the assertion fails only for the shape it names.
+    // #767: the shapes guards-and-empty-states.md leaves to the engine (#675), run at 23ai
+    // too; each control runs, so the assertion fails only for the shape it names.
     [Fact]
     public void RangeOffset_SeveralOrderByKeys_IsRejectedByTheEngine()
     {
@@ -488,6 +488,52 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
 
         Assert.ThrowsAny<DbException>(() => connection.Query<double?>(
             Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age, u.Id))).From(u)));
+    }
+
+    [Fact]
+    public void CrossJoinLateral_SourceCarryingDerivedTable_IsRejectedByTheEngine()
+    {
+        UsersTable u = new("u");
+        UsersTable s = new("s");
+        using IDbConnection connection = _fixture.OpenConnection();
+        ISubquery sub = Select(s.Id).From(s).Where(s.Id == u.Id);
+
+        connection.Query<int>(
+            Select(u.Id).From(u).CrossJoinLateral(sub, new DerivedTable("z")));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.Id).From(u).CrossJoinLateral(sub, sub.AsTable("z"))));
+    }
+
+    [Fact]
+    public void CrossApply_SourceCarryingDerivedTable_IsRejectedByTheEngine()
+    {
+        UsersTable u = new("u");
+        UsersTable s = new("s");
+        using IDbConnection connection = _fixture.OpenConnection();
+        ISubquery sub = Select(s.Id).From(s).Where(s.Id == u.Id);
+
+        connection.Query<int>(
+            Select(u.Id).From(u).CrossApply(sub, new DerivedTable("z")));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.Id).From(u).CrossApply(sub, sub.AsTable("z"))));
+    }
+
+    [Fact]
+    public void EmptyGroupingSetInRollupOrCube_IsRejectedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<object>(Select(u.DepartmentId)
+            .From(u)
+            .GroupBy(GroupingSets(Group(u.DepartmentId), Group())));
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<object>(
+            Select(u.DepartmentId).From(u).GroupBy(Rollup(u.DepartmentId, Group()))));
+        Assert.ThrowsAny<DbException>(() => connection.Query<object>(
+            Select(u.DepartmentId).From(u).GroupBy(Cube(u.DepartmentId, Group()))));
     }
 
     // #742: 23ai rejects SQLA0104's interval cell as 21c does (OracleTests' twin of this
