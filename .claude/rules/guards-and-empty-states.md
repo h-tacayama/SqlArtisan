@@ -229,10 +229,10 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   the joined-target guard's own message could not reach from that chain
   (ADR 0011, "Later instances" section); a column of any handle but the target at
   SQLite's `RETURNING` list's own level, or in a subquery there under an aliased
-  target's names while no block in between binds either, which SQLite 3.50.4
-  rejects or reads from the target's same-named column with no error (ADR 0011
-  admits it outside its bar and records the two subquery reads left unguarded,
-  #742).
+  target's names while no subquery around the read, any compound branch
+  included, binds either, which SQLite 3.50.4 rejects or reads from the target's
+  same-named column with no error (ADR 0011 admits it outside its bar and records
+  the subquery reads left unguarded, #742).
 
 **Joined-target alias requirement (decided — do not re-file):**
 `ThrowIfJoinedTargetUnaliased` fires for every joined `UPDATE`/`DELETE` shape

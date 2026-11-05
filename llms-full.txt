@@ -2159,7 +2159,7 @@ A subquery or CTE body inside that `RETURNING` must not expose a relation under 
 SQLite's `RETURNING` reads the target alone, so `Build(Dbms.Sqlite)` throws for a column of any handle but the target at the `RETURNING` list's own level, a table an `UPDATE`'s `From(...)` joins included: SQLite 3.50.4 rejects such a column, or reads the target's same-named column instead with no error, for example when the joined table is unaliased or aliased as the target's table name. Name the target's column through the target, and read another table's value in a statement of its own; `SQLA0102` reports the read before the build where it can identify the joined table.
 
 > [!WARNING]
-> **On SQLite, a `RETURNING` subquery can read the target's column instead of another table's, with no error, where relations take the target's table name or alias** (SQLite 3.50.4). `Build(Dbms.Sqlite)` rejects such a read only for an aliased target, and only while no block between the subquery and the list binds either name. Give every other relation a name the target does not use.
+> **On SQLite, a `RETURNING` subquery can read the target's column instead of another table's, with no error, where relations take the target's table name or alias** (SQLite 3.50.4). `Build(Dbms.Sqlite)` rejects such a read only for an aliased target, and only while no subquery around the read, any branch of its compound included, binds either name. Give every other relation a name the target does not use.
 
 ### RETURNING INTO (Oracle)
 

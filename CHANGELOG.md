@@ -41,7 +41,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** `Build(Dbms.Sqlite)` throws `ArgumentException` when a `RETURNING`
   list reads a column of any handle but the target, such as a table an
   `UPDATE`'s `From(...)` joins, or a subquery in it reads one under an aliased
-  target's table name or alias while no block in between binds either name.
+  target's table name or alias while no subquery around the read, any branch of
+  its compound included, binds either name.
   SQLite 3.50.4 rejects such a column, or reads the target's same-named column
   instead with no error, for example when the joined table is unaliased or
   aliased as the target's table name; `SQLA0102` reports the joined table it can

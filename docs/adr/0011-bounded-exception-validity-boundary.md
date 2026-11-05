@@ -399,22 +399,25 @@ the list reads such an alias from the target too, unless a relation in between
 binds that name. So `Build(Dbms.Sqlite)` throws when the `RETURNING` list's own
 level renders a column of any handle but the target (another table, or the
 target's table under another alias or none), or a subquery in the list renders
-one under an aliased target's table name or alias while no block in between
-binds either name:
+one under an aliased target's table name or alias while no subquery around the
+read, any branch of its compound included, binds either name:
 
 > `SQLite's RETURNING reads only the target; name the column through the target, or read another table's in a statement of its own.`
 
 A subquery's own relations stay outside the check. PostgreSQL's `RETURNING` reads
 an `UPDATE ... FROM` table, so the statement emits as written there.
 
-Two subquery reads stay unguarded. One is a subquery under a block that binds
-the target's alias but not its table name, reading a relation named after the
-target's table. The other is any subquery read under an unaliased target. The
-check holds one slot, the aliased target that #595 already carries, and a block
-binding either name clears it; telling the two names apart costs state beyond
-it. Both take two deliberate name collisions, and `docs/query-statements.md`
-carries the `[!WARNING]`. `Returning_Sqlite_SubqueryUnderABlockBindingTheAlias_ReadsTheTarget`
-pins the first on the SQLite lane.
+A subquery read outside that condition stays unguarded, and so does every
+subquery read under an unaliased target. The check holds one slot, the aliased
+target that #595 already carries. A subquery binding either name clears it for
+all its branches, while SQLite resolves each branch on its own, so a read under
+the target's table name is not checked under a subquery binding the alias, nor in
+a branch beside one binding either name. SQLite 3.50.4 reads such a column from
+the target with no error. Telling the names and branches apart costs state
+beyond the slot, and each read takes a deliberate name collision, so
+`docs/query-statements.md` carries the `[!WARNING]` instead. Twins on the SQLite
+lane: `Returning_Sqlite_SubqueryUnderABlockBindingTheAlias_ReadsTheTarget` and
+`Returning_Sqlite_CompoundBranchBesideOneBindingTheName_ReadsTheTarget`.
 
 The case is admitted outside the bar. Its first condition does not hold in full:
 `SQLA0102` reports the read where it can identify the joined table on the chain.

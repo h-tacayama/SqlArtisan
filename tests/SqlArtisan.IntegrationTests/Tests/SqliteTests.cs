@@ -369,6 +369,33 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
+    // #742: a branch binding "users" clears the check for the whole compound, while SQLite
+    // resolves each branch alone, so the other branch's "users".id reads the target.
+    [Fact]
+    public void Returning_Sqlite_CompoundBranchBesideOneBindingTheName_ReadsTheTarget()
+    {
+        UsersTable u = new("u");
+        OrdersTable named = new("users");
+        OrdersTable sibling = new("users");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int orderId = connection.Query<int>(
+            Select(named.Id).From(named).Where(named.UserId == 2), transaction).First();
+        int returned = connection.Query<int>(
+            Update(u).Set(u.Age == 44).From(named).Where((named.UserId == u.Id) & (u.Id == 2))
+                .Returning(
+                    Select(Max(named.Id))
+                    .UnionAll
+                    .Select(sibling.Id).From(sibling).Where(sibling.Id == -1)
+                    .As("x")),
+            transaction).Single();
+
+        Assert.NotEqual(2, orderId);
+        Assert.Equal(2, returned);
+        transaction.Rollback();
+    }
+
     [Fact]
     public void Returning_Sqlite_SelfJoinedUpdate_ReturnsTheTarget()
     {

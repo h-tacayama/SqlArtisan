@@ -453,9 +453,9 @@ internal sealed class SqlBuildingBuffer : IDisposable
             && _pseudoRowTarget is { HasAlias: false } target
             && TableReference.NamesSameTable(owner, target));
 
-    // SQLite 3.50.4 reads RETURNING against the target alone, and can read another handle's
-    // column from the target's same-named one with no error, a subquery's too under an aliased
-    // target's names while no block in between binds either (#742).
+    // SQLite 3.50.4 reads RETURNING against the target alone and can read another handle's
+    // column from the target's with no error. A subquery's is checked only while #595's slot
+    // holds the target; ADR 0011 records the reads left unguarded (#742).
     internal void ThrowIfReturningReadsAnotherTable(TableReference owner)
     {
         if (_qualifyReturningByTableName
