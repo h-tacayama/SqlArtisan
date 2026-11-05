@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.14.0-beta.1] - 2026-11-05
 ### Added
 - `SQLA0104` reports a constant `CurrentTimestamp` / `CurrentTime` precision
   above an engine's ceiling: above 6 on MySQL, and above 9 for
