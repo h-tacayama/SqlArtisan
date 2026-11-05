@@ -546,8 +546,8 @@ public class ReturningTests
     // ── SQLite: RETURNING reads the target alone (#742) ──────────────────
 
     private const string ReturningReadsAnotherTableMessage =
-        "SQLite's RETURNING reads only the target table; "
-            + "read another table's column in a statement of its own.";
+        "SQLite's RETURNING reads only the target; name the column through the target, "
+            + "or read another table's in a statement of its own.";
 
     [Fact]
     public void Returning_Sqlite_JoinedTableColumn_ThrowsArgumentException()
@@ -588,6 +588,21 @@ public class ReturningTests
         IReturningBuilder returning =
             Update(t).Set(t.Name == t2.Name).From(t2).Where(t2.Code == t.Code)
             .Returning(t.Code, t2.Code);
+
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => returning.Build(Dbms.Sqlite));
+
+        Assert.Equal(ReturningReadsAnotherTableMessage, ex.Message);
+    }
+
+    // A second, unaliased handle of the target's table renders bare; u.Code spells it.
+    [Fact]
+    public void Returning_Sqlite_UnaliasedSecondHandleOfTheTarget_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable bare = new();
+        IReturningBuilder returning = Update(t).Set(t.Name == "x").Where(t.Code == 1)
+            .Returning(bare.Code);
 
         ArgumentException ex =
             Assert.Throws<ArgumentException>(() => returning.Build(Dbms.Sqlite));

@@ -390,21 +390,31 @@ a new one the analyzer can see.
 
 ## A `RETURNING` column of another table on SQLite (#742)
 
-SQLite's `RETURNING` reads the target alone. A column of another table, a table
+SQLite's `RETURNING` reads the target alone. A column of another handle, a table
 an `UPDATE`'s `From(...)` joins included, renders under its alias or, unaliased,
 bare. SQLite 3.50.4 rejects it (`no such column`), or reads the target's
 same-named column instead with no error: a bare name the target also has, or an
 alias spelling the target's table name, is read from the target. A subquery in
-the list reads such an alias from the target too, unless the subquery binds that
-name itself. So `Build(Dbms.Sqlite)` throws when the `RETURNING` list's own level
-renders a column whose table is not the target, or a subquery in the list renders
-one under a name the target's table or alias spells that no block in between
-binds:
+the list reads such an alias from the target too, unless a relation in between
+binds that name. So `Build(Dbms.Sqlite)` throws when the `RETURNING` list's own
+level renders a column of any handle but the target (another table, or the
+target's table under another alias or none), or a subquery in the list renders
+one under an aliased target's table name or alias while no block in between
+binds either name:
 
-> `SQLite's RETURNING reads only the target table; read another table's column in a statement of its own.`
+> `SQLite's RETURNING reads only the target; name the column through the target, or read another table's in a statement of its own.`
 
 A subquery's own relations stay outside the check. PostgreSQL's `RETURNING` reads
 an `UPDATE ... FROM` table, so the statement emits as written there.
+
+Two subquery reads stay unguarded. One is a subquery under a block that binds
+the target's alias but not its table name, reading a relation named after the
+target's table. The other is any subquery read under an unaliased target. The
+check holds one slot, the aliased target that #595 already carries, and a block
+binding either name clears it; telling the two names apart costs state beyond
+it. Both take two deliberate name collisions, and `docs/query-statements.md`
+carries the `[!WARNING]`. `Returning_Sqlite_SubqueryUnderABlockBindingTheAlias_ReadsTheTarget`
+pins the first on the SQLite lane.
 
 The case is admitted outside the bar. Its first condition does not hold in full:
 `SQLA0102` reports the read where it can identify the joined table on the chain.

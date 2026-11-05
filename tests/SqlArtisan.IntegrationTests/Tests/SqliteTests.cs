@@ -346,6 +346,29 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
+    // #742, docs/query-statements.md [!WARNING]: a block binding the target's alias clears
+    // Build()'s check, and "users".id in it is read from the target, not the joined order.
+    [Fact]
+    public void Returning_Sqlite_SubqueryUnderABlockBindingTheAlias_ReadsTheTarget()
+    {
+        UsersTable u = new("u");
+        OrdersTable named = new("users");
+        OrdersTable inner = new("u");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int orderId = connection.Query<int>(
+            Select(named.Id).From(named).Where(named.UserId == 2), transaction).First();
+        int returned = connection.Query<int>(
+            Update(u).Set(u.Age == 43).From(named).Where((named.UserId == u.Id) & (u.Id == 2))
+                .Returning(Select(named.Id).From(inner).Where(inner.Id == orderId).As("x")),
+            transaction).Single();
+
+        Assert.NotEqual(2, orderId);
+        Assert.Equal(2, returned);
+        transaction.Rollback();
+    }
+
     [Fact]
     public void Returning_Sqlite_SelfJoinedUpdate_ReturnsTheTarget()
     {
