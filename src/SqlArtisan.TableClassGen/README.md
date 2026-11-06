@@ -117,9 +117,10 @@ These files have no table in the database and are left untouched:
 ```
 
 `--check` writes nothing and exits `1` on drift, so it belongs in a scheduled job
-against a real environment. It compares against the `--output` directory as it
-stands, so a missing one is an error (exit `2`) naming the resolved path, not a
-report that every table was added; a plain run or `--fix` creates it. `--fix` is the remediation step after it: same writes a
+against a real environment. `--check` and `--fix` compare against the `--output`
+directory as it stands, so a missing one is an error (exit `2`) naming the
+resolved path, not a report that every table was added; only a plain run
+creates it. `--fix` is the remediation step after it: same writes a
 plain run would make, but it reports what drifted and exits `1` while an orphan
 file remains, so a script cannot mistake "fixed" for "nothing left to do". A file
 whose table is gone from the database is reported, never deleted. Orphans are
