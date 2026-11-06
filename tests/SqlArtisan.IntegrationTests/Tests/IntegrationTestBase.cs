@@ -219,6 +219,41 @@ public abstract class IntegrationTestBase
         return joined.Select(u.Id, u.Name).From(u).Where(u.Id == 1);
     }
 
+    // The same compound over an aliased table, a CTE or a derived table, whose columns
+    // all render qualified, ordered by a name both branches select or an unselected age.
+    private protected static ISelectBuilderOrderBy QualifiedKeyCompound(
+        string source,
+        bool union,
+        bool selected)
+    {
+        UsersTable u = new("u");
+        Cte c = new("c");
+        SubqueryDerivedTable d = Select(u.Id, u.Name, u.Age).From(u).AsTable("d");
+        TableReference from = source switch
+        {
+            "table" => u,
+            "cte" => c,
+            "derived" => d,
+            _ => throw new ArgumentOutOfRangeException(nameof(source), source, null),
+        };
+        DbColumn id = Col(u.Id, "id");
+        DbColumn name = Col(u.Name, "name");
+        DbColumn age = Col(u.Age, "age");
+        ISelectBuilderSelect head = from is Cte
+            ? With(c.As(Select(u.Id, u.Name, u.Age).From(u))).Select(id, name)
+            : Select(id, name);
+        ISelectBuilderWhere first = head.From(from).Where(id == 2);
+        ISelectBuilderSetOperator joined = union ? first.Union : first.UnionAll;
+        return joined.Select(id, name).From(from).Where(id == 1).OrderBy(selected ? name : age);
+
+        DbColumn Col(DbColumn tableColumn, string column) => from switch
+        {
+            Cte cte => cte.Column(column),
+            SubqueryDerivedTable derived => derived.Column(column),
+            _ => tableColumn,
+        };
+    }
+
     [Fact]
     public void WindowFunction_RowNumber_Executes()
     {

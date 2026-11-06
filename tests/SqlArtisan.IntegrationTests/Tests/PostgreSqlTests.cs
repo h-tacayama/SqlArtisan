@@ -1936,18 +1936,21 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(1, connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1))));
     }
 
-    // docs/query-statements.md: a compound's ORDER BY rejects an aliased table's
-    // column here, though the branches select it (42P01 on PostgreSQL 16).
+    // docs/query-statements.md: a compound's ORDER BY rejects a qualified column
+    // here, though the branches select it (42P01 on PostgreSQL 16).
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void CompoundOrderBy_AliasedTableColumn_IsRejected(bool union)
+    [InlineData("table", false)]
+    [InlineData("table", true)]
+    [InlineData("cte", false)]
+    [InlineData("cte", true)]
+    [InlineData("derived", false)]
+    [InlineData("derived", true)]
+    public void CompoundOrderBy_QualifiedColumn_IsRejected(string source, bool union)
     {
-        UsersTable u = new("u");
         using IDbConnection connection = _fixture.OpenConnection();
 
         DbException ex = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
-            UserTwoThenOne(u, union, u.Name).OrderBy(u.Name)).ToList());
+            QualifiedKeyCompound(source, union, selected: true)).ToList());
 
         Assert.Contains("missing FROM-clause entry", ex.Message);
     }

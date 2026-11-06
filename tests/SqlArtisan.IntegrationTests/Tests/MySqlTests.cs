@@ -1451,18 +1451,21 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.Null(connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1))));
     }
 
-    // docs/query-statements.md: a compound's ORDER BY rejects an aliased table's
-    // column here, though the branches select it (MySQL 8.0 error 1250).
+    // docs/query-statements.md: a compound's ORDER BY rejects a qualified column
+    // here, though the branches select it (MySQL 8.0 error 1250).
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void CompoundOrderBy_AliasedTableColumn_IsRejected(bool union)
+    [InlineData("table", false)]
+    [InlineData("table", true)]
+    [InlineData("cte", false)]
+    [InlineData("cte", true)]
+    [InlineData("derived", false)]
+    [InlineData("derived", true)]
+    public void CompoundOrderBy_QualifiedColumn_IsRejected(string source, bool union)
     {
-        UsersTable u = new("u");
         using IDbConnection connection = _fixture.OpenConnection();
 
         DbException ex = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
-            UserTwoThenOne(u, union, u.Name).OrderBy(u.Name)).ToList());
+            QualifiedKeyCompound(source, union, selected: true)).ToList());
 
         Assert.Contains("cannot be used in global ORDER clause", ex.Message);
     }
