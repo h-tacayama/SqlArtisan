@@ -1936,8 +1936,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(1, connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1))));
     }
 
-    // docs/query-statements.md: a compound's ORDER BY rejects a qualified column
-    // here, though the branches select it (42P01 on PostgreSQL 16).
+    // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified
+    // column here, whether every branch selects it or none does (42P01 on PostgreSQL 16).
     [Theory]
     [InlineData("table", false)]
     [InlineData("table", true)]
@@ -1949,10 +1949,13 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        DbException ex = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+        DbException selected = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
             CompoundOverSource(source, union, "selected")).ToList());
+        DbException unselected = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            CompoundOverSource(source, union, "unselected")).ToList());
 
-        Assert.Contains("missing FROM-clause entry", ex.Message);
+        Assert.Contains("missing FROM-clause entry", selected.Message);
+        Assert.Contains("missing FROM-clause entry", unselected.Message);
     }
 
     // docs/query-statements.md: INTERSECT binds tighter than UNION and EXCEPT here.

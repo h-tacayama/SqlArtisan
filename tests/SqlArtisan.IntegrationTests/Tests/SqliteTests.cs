@@ -1386,8 +1386,8 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.Equal(1, Convert.ToInt32(connection.ExecuteScalar(Select(Length("\u00e9")))));
     }
 
-    // docs/query-statements.md: a compound's ORDER BY sorts by a qualified column every
-    // branch selects here, and rejects one no branch selects.
+    // docs/query-statements.md: an ORDER BY after UNION [ALL] sorts by a qualified column
+    // every branch selects here, and rejects one no branch selects.
     [Theory]
     [InlineData("table", false)]
     [InlineData("table", true)]

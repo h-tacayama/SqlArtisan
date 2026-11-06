@@ -1451,8 +1451,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.Null(connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1))));
     }
 
-    // docs/query-statements.md: a compound's ORDER BY rejects a qualified column
-    // here, though the branches select it (MySQL 8.0 error 1250).
+    // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified
+    // column here, whether every branch selects it or none does (MySQL 8.0 error 1250).
     [Theory]
     [InlineData("table", false)]
     [InlineData("table", true)]
@@ -1464,10 +1464,13 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        DbException ex = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+        DbException selected = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
             CompoundOverSource(source, union, "selected")).ToList());
+        DbException unselected = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            CompoundOverSource(source, union, "unselected")).ToList());
 
-        Assert.Contains("cannot be used in global ORDER clause", ex.Message);
+        Assert.Contains("cannot be used in global ORDER clause", selected.Message);
+        Assert.Contains("cannot be used in global ORDER clause", unselected.Message);
     }
 
     // docs/query-statements.md: INTERSECT binds tighter than UNION and EXCEPT here.

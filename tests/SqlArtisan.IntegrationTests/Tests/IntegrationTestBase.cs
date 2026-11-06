@@ -208,9 +208,9 @@ public abstract class IntegrationTestBase
         return joined.Select(o.Id).From(o).Where(o.Id == 1);
     }
 
-    // Users 1 (age 30) and 4 (age 25) as a compound's branches over an aliased table, a
-    // CTE or a derived table, whose columns all render qualified; an age sort gives [4, 1]
-    // against [1, 4] for branch or id order (#792). Only the ORDER BY key varies by key.
+    // Users 1 (age 30) and 4 (age 25) as UNION [ALL] branches over a qualified source: an
+    // age sort gives [4, 1], branch or id order [1, 4] (#792). "position" differs from the
+    // qualified keys only in its key; "alias" also aliases the first branch's age.
     private protected static ISelectBuilderOrderBy CompoundOverSource(
         string source,
         bool union,
@@ -1301,8 +1301,8 @@ public abstract class IntegrationTestBase
         Assert.Equal(_fixture.Dbms == Dbms.Sqlite ? 76m : 80m, fractional);
     }
 
-    // The compound ORDER BY keys every engine takes, over the same statements the
-    // per-engine classes twin with a qualified key (#792).
+    // The UNION [ALL] ORDER BY keys every engine takes, over the sources the per-engine
+    // classes twin with a qualified key (#792).
     [Theory]
     [InlineData("table", false)]
     [InlineData("table", true)]
