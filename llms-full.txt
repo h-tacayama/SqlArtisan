@@ -861,7 +861,8 @@ pass the column there.
 > `WITHIN GROUP` and the aggregates, `OrderBy(...)` rejects an alias outright.
 
 After a set operator, an aliased table's column is a qualified sort key that some engines
-reject; [Set Operators](#set-operators) names them and the keys to use there.
+reject, as a CTE's or a derived table's is; [Set Operators](#set-operators) names them and
+the keys to use there.
 
 ---
 
@@ -1042,10 +1043,11 @@ arrived in a specific engine release; the
 lists each one, and the analyzer reports it against a declared target version.
 
 An `OrderBy(...)` after the last branch sorts the combined result. A column of an
-aliased table there emits a qualified name (`"u".name`), which MySQL 8.0, Oracle XE
-21.3.0 and PostgreSQL 16 reject — order by a select-list position (`OrderBy(2)`) or
-by an alias the first branch selects (`.As(...)`) instead. SQLite 3.50.4 and SQL
-Server 2022 take the qualified name only for a column the branches select.
+aliased table, a CTE or a derived table there emits a qualified name (`"u".name`),
+which MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16 reject — order by a select-list
+position (`OrderBy(2)`) or by an alias the first branch selects (`.As(...)`) instead.
+SQLite 3.50.4 and SQL Server 2022 take the qualified name only for a column the
+branches select.
 
 > [!NOTE]
 > **`Minus` after an unaliased table on SQL Server subtracts nothing.** SQL Server 2022 runs

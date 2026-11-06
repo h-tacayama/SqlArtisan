@@ -6,22 +6,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Docs
-- `docs/query-statements.md` notes that a compound query's `OrderBy(...)` given
-  an aliased table's column emits a qualified name, which MySQL, Oracle and
-  PostgreSQL reject, and orders by a select-list position or a first-branch
-  alias there instead; SQLite and SQL Server take it only for a selected column.
-  (#792)
-
-### Tests
-- Twins pin each engine's reading of a compound's `ORDER BY`: a position and a
-  first-branch alias sort on all five, and an aliased table's column is
-  rejected on MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16, and taken only when
-  selected on SQLite 3.50.4 and SQL Server 2022. (#792)
-### Docs
 - `docs/analyzer.md`'s version-bound register states that it lists only the
   bounds it has a source for, so a construct the matrix marks supported and
   the register has no row for is not reported whatever version is declared,
   and that an `unsupported` override key reports it. (#791)
+- `docs/query-statements.md` notes that a compound query's `OrderBy(...)` given
+  a qualified column (an aliased table's, a CTE's or a derived table's) is
+  rejected by MySQL, Oracle and PostgreSQL, and names a select-list position or
+  a first-branch alias as the keys that sort on every engine; SQLite and SQL
+  Server take a qualified column only when the branches select it. (#792)
+
+### Tests
+- Twins pin each engine's reading of a compound's `ORDER BY`: a position and a
+  first-branch alias sort on all five, and a qualified column (an aliased
+  table's, a CTE's or a derived table's) is rejected on MySQL 8.0, Oracle XE
+  21.3.0 and PostgreSQL 16, and taken only when selected on SQLite 3.50.4 and
+  SQL Server 2022. (#792)
 
 ## [0.14.0-beta.1] - 2026-11-05
 ### Added
