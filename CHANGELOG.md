@@ -12,9 +12,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   and that an `unsupported` override key reports it. (#791)
 - `docs/query-statements.md` notes that an `OrderBy(...)` after `Union` /
   `UnionAll` given a qualified column (an aliased table's, a CTE's or a derived
-  table's) is rejected by MySQL, Oracle and PostgreSQL even when every branch
-  selects it in the same position, and names a select-list position or a
-  first-branch alias as the keys to use on every engine. (#792)
+  table's) is rejected by MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16 both
+  when every branch selects it in the same position and when no branch selects
+  it, and names a select-list position or a first-branch alias as the keys to
+  use on all five engines it names. (#792)
 
 ### Tests
 - Twins pin each engine's reading of an `ORDER BY` after `UNION` / `UNION ALL`
