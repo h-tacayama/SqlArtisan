@@ -281,6 +281,38 @@ public class TableClassGeneratorTests : IDisposable
         Assert.False(Directory.Exists(_outputDirectory));
     }
 
+    // --check reads the committed classes, so a missing directory reported every
+    // table as added, and the --fix it suggested would write a second set (#796).
+    [Fact]
+    public void Run_Check_MissingOutputDirectory_ThrowsCommandLineException()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => Run(db, RunMode.Check));
+
+        Assert.Equal(
+            $"--output directory not found: {_outputDirectory}; a relative --output or "
+                + "--config \"output\" resolves against the working directory",
+            ex.Message);
+        Assert.False(Directory.Exists(_outputDirectory));
+    }
+
+    // A plain run and --fix write, so they create a missing directory, as a first run
+    // into a new folder must (#796).
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Run_WritingModeIntoMissingOutputDirectory_WritesEveryTable(bool fix)
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+
+        IReadOnlyList<TableResult> results = Run(db, fix ? RunMode.Fix : RunMode.Generate);
+
+        Assert.Equal([TableStatus.Added, TableStatus.Added], results.Select(r => r.Status));
+        Assert.All(results, r => Assert.True(File.Exists(r.Path)));
+    }
+
     // Read as a directory, a file made every table read as added and the first
     // write fail naming the file rather than the flag.
     [Fact]

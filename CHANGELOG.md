@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- **Breaking:** TableClassGen's `--check` fails with exit code `2` when
+  `--output` names no existing directory, naming the resolved path, instead of
+  reporting every table as added and exiting `1`. A relative `--output` resolves
+  against the working directory, so a check run from another folder compared
+  against nothing, and the `--fix` it suggested would have written a second set
+  of classes there. A plain run and `--fix` still create a missing directory.
+  (#796)
+
 ### Docs
 - `docs/analyzer.md`'s version-bound register states that it lists only the
   bounds it has a source for, so a construct the matrix marks supported and

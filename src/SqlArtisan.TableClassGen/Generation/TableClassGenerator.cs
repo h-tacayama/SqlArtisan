@@ -82,6 +82,16 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
             throw new CommandLineException(
                 $"--output names a file, not a directory: {_settings.OutputDirectory}");
         }
+
+        // --check reads what is committed, so a missing directory would report every
+        // table as added; the writing modes create one, as a first run must (#796).
+        if (options.Mode == RunMode.Check && !Directory.Exists(_settings.OutputDirectory))
+        {
+            throw new CommandLineException(
+                $"--output directory not found: {Path.GetFullPath(_settings.OutputDirectory)}; "
+                    + "a relative --output or --config \"output\" resolves against the working "
+                    + "directory");
+        }
     }
 
     // A write can still fail midway (a full disk, a file locked by an editor);
