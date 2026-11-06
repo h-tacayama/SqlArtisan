@@ -1386,6 +1386,28 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.Equal(1, Convert.ToInt32(connection.ExecuteScalar(Select(Length("\u00e9")))));
     }
 
+    // docs/query-statements.md: an ORDER BY after UNION [ALL] runs a qualified column here
+    // when every branch selects it in the same position, and rejects one no branch selects.
+    [Theory]
+    [InlineData("table", false)]
+    [InlineData("table", true)]
+    [InlineData("cte", false)]
+    [InlineData("cte", true)]
+    [InlineData("derived", false)]
+    [InlineData("derived", true)]
+    public void CompoundOrderBy_QualifiedColumn_SortsWhenAligned(string source, bool union)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            CompoundOverSource(source, union, "selected"));
+        DbException ex = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            CompoundOverSource(source, union, "unselected")).ToList());
+
+        Assert.Equal(new[] { 4, 1 }, ids);
+        Assert.Contains("does not match any column in the result set", ex.Message);
+    }
+
     // docs/query-statements.md: set operators apply left to right here, so a
     // derived table is what groups the INTERSECT first.
     [Fact]

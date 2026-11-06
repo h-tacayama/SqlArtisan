@@ -208,6 +208,52 @@ public abstract class IntegrationTestBase
         return joined.Select(o.Id).From(o).Where(o.Id == 1);
     }
 
+    // Users 1 (age 30) and 4 (age 25) as UNION [ALL] branches over a qualified source: an
+    // age sort gives [4, 1], branch or id order [1, 4] (#792). "position" differs from the
+    // qualified keys only in its key; "alias" also aliases the first branch's age.
+    private protected static ISelectBuilderOrderBy CompoundOverSource(
+        string source,
+        bool union,
+        string key)
+    {
+        UsersTable u = new("u");
+        Cte c = new("c");
+        SubqueryDerivedTable d = Select(u.Id, u.Name, u.Age).From(u).AsTable("d");
+        TableReference from = source switch
+        {
+            "table" => u,
+            "cte" => c,
+            "derived" => d,
+            _ => throw new ArgumentOutOfRangeException(nameof(source), source, null),
+        };
+        DbColumn id = Col(u.Id, "id");
+        DbColumn name = Col(u.Name, "name");
+        DbColumn age = Col(u.Age, "age");
+        ExpressionAlias ageAlias = age.As("a");
+        object firstAge = key == "alias" ? ageAlias : age;
+        ISelectBuilderSelect head = from is Cte
+            ? With(c.As(Select(u.Id, u.Name, u.Age).From(u))).Select(id, firstAge)
+            : Select(id, firstAge);
+        ISelectBuilderWhere first = head.From(from).Where(id == 1);
+        ISelectBuilderSetOperator joined = union ? first.Union : first.UnionAll;
+        ISelectBuilderWhere second = joined.Select(id, age).From(from).Where(id == 4);
+        return key switch
+        {
+            "position" => second.OrderBy(2),
+            "alias" => second.OrderBy(ageAlias),
+            "selected" => second.OrderBy(age),
+            "unselected" => second.OrderBy(name),
+            _ => throw new ArgumentOutOfRangeException(nameof(key), key, null),
+        };
+
+        DbColumn Col(DbColumn tableColumn, string column) => from switch
+        {
+            Cte cte => cte.Column(column),
+            SubqueryDerivedTable derived => derived.Column(column),
+            _ => tableColumn,
+        };
+    }
+
     [Fact]
     public void WindowFunction_RowNumber_Executes()
     {
@@ -1253,5 +1299,26 @@ public abstract class IntegrationTestBase
 
         Assert.Equal(_fixture.Dbms == Dbms.Sqlite ? 75m : 80m, rounded);
         Assert.Equal(_fixture.Dbms == Dbms.Sqlite ? 76m : 80m, fractional);
+    }
+
+    // The UNION [ALL] ORDER BY keys every engine takes, over the sources the per-engine
+    // classes twin with a qualified key (#792).
+    [Theory]
+    [InlineData("table", false)]
+    [InlineData("table", true)]
+    [InlineData("cte", false)]
+    [InlineData("cte", true)]
+    [InlineData("derived", false)]
+    [InlineData("derived", true)]
+    public void CompoundOrderBy_PositionOrFirstBranchAlias_Sorts(string source, bool union)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            new[] { 4, 1 },
+            connection.Query<int>(CompoundOverSource(source, union, "position")));
+        Assert.Equal(
+            new[] { 4, 1 },
+            connection.Query<int>(CompoundOverSource(source, union, "alias")));
     }
 }

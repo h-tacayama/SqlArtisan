@@ -860,6 +860,10 @@ pass the column there.
 > Alias the table, and order by an alias only where the same block selects it. Inside `OVER`,
 > `WITHIN GROUP` and the aggregates, `OrderBy(...)` rejects an alias outright.
 
+After `Union` or `UnionAll`, an aliased table's column is a qualified sort key that some
+engines reject, as a CTE's or a derived table's is; [Set Operators](#set-operators) names
+them and the keys to use there.
+
 ---
 
 ### GROUP BY and HAVING Clause
@@ -1037,6 +1041,14 @@ take `ALL` on `UNION` alone. Several of these
 arrived in a specific engine release; the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)
 lists each one, and the analyzer reports it against a declared target version.
+
+An `OrderBy(...)` after a `Union` or `UnionAll` branch sorts the combined result. A
+column of an aliased table, a CTE or a derived table there emits a qualified name
+(`"u".name`). MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16 reject it both when every
+branch selects the column in the same position and when no branch selects it, and SQLite
+3.50.4 and SQL Server 2022 run some such keys. On every one of them, order by a
+select-list position (`OrderBy(2)`) or by an alias the first branch selects (`.As(...)`)
+instead.
 
 > [!NOTE]
 > **`Minus` after an unaliased table on SQL Server subtracts nothing.** SQL Server 2022 runs

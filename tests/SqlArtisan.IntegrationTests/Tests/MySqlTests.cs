@@ -1451,6 +1451,29 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.Null(connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1))));
     }
 
+    // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified
+    // column here, both when every branch selects it in the same position and when none
+    // does (MySQL 8.0).
+    [Theory]
+    [InlineData("table", false)]
+    [InlineData("table", true)]
+    [InlineData("cte", false)]
+    [InlineData("cte", true)]
+    [InlineData("derived", false)]
+    [InlineData("derived", true)]
+    public void CompoundOrderBy_QualifiedColumn_IsRejected(string source, bool union)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        DbException selected = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            CompoundOverSource(source, union, "selected")).ToList());
+        DbException unselected = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            CompoundOverSource(source, union, "unselected")).ToList());
+
+        Assert.Contains("cannot be used in global ORDER clause", selected.Message);
+        Assert.Contains("cannot be used in global ORDER clause", unselected.Message);
+    }
+
     // docs/query-statements.md: INTERSECT binds tighter than UNION and EXCEPT here.
     [Fact]
     public void SetOperators_IntersectAfterUnionOrExcept_BindsFirst()

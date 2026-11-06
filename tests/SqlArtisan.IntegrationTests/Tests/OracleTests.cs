@@ -1739,6 +1739,29 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Null(connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1)).From(Dual)));
     }
 
+    // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified
+    // column here, both when every branch selects it in the same position and when none
+    // does (ORA-00904 on XE 21.3.0).
+    [Theory]
+    [InlineData("table", false)]
+    [InlineData("table", true)]
+    [InlineData("cte", false)]
+    [InlineData("cte", true)]
+    [InlineData("derived", false)]
+    [InlineData("derived", true)]
+    public void CompoundOrderBy_QualifiedColumn_IsRejected(string source, bool union)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        DbException selected = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            CompoundOverSource(source, union, "selected")).ToList());
+        DbException unselected = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            CompoundOverSource(source, union, "unselected")).ToList());
+
+        Assert.Contains("ORA-00904", selected.Message);
+        Assert.Contains("ORA-00904", unselected.Message);
+    }
+
     // docs/query-statements.md: set operators apply left to right here, so a
     // derived table is what groups the INTERSECT first.
     [Fact]

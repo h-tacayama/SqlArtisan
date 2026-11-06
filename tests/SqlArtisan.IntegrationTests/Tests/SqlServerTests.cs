@@ -1640,6 +1640,28 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Equal(1, connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1))));
     }
 
+    // docs/query-statements.md: an ORDER BY after UNION [ALL] runs a qualified column here
+    // when every branch selects it in the same position, and rejects one no branch selects.
+    [Theory]
+    [InlineData("table", false)]
+    [InlineData("table", true)]
+    [InlineData("cte", false)]
+    [InlineData("cte", true)]
+    [InlineData("derived", false)]
+    [InlineData("derived", true)]
+    public void CompoundOrderBy_QualifiedColumn_SortsWhenAligned(string source, bool union)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            CompoundOverSource(source, union, "selected"));
+        DbException ex = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            CompoundOverSource(source, union, "unselected")).ToList());
+
+        Assert.Equal(new[] { 4, 1 }, ids);
+        Assert.Contains("ORDER BY items must appear in the select list", ex.Message);
+    }
+
     // docs/query-statements.md: INTERSECT binds tighter than UNION and EXCEPT here.
     [Fact]
     public void SetOperators_IntersectAfterUnionOrExcept_BindsFirst()
