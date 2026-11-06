@@ -1640,8 +1640,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Equal(1, connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1))));
     }
 
-    // docs/query-statements.md: an ORDER BY after UNION [ALL] sorts by a qualified column
-    // every branch selects here, and rejects one no branch selects.
+    // docs/query-statements.md: an ORDER BY after UNION [ALL] runs a qualified column here
+    // when every branch selects it in the same position, and rejects one no branch selects.
     [Theory]
     [InlineData("table", false)]
     [InlineData("table", true)]
@@ -1649,7 +1649,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
     [InlineData("cte", true)]
     [InlineData("derived", false)]
     [InlineData("derived", true)]
-    public void CompoundOrderBy_QualifiedColumn_SortsIfEveryBranchSelects(string source, bool union)
+    public void CompoundOrderBy_QualifiedColumn_SortsWhenAligned(string source, bool union)
     {
         using IDbConnection connection = _fixture.OpenConnection();
 

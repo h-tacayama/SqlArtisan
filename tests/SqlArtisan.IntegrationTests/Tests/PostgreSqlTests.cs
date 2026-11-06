@@ -1937,7 +1937,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     }
 
     // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified
-    // column here, whether every branch selects it or none does (42P01 on PostgreSQL 16).
+    // column here, both when every branch selects it in the same position and when none
+    // does (PostgreSQL 16).
     [Theory]
     [InlineData("table", false)]
     [InlineData("table", true)]

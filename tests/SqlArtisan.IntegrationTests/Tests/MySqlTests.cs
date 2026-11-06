@@ -1452,7 +1452,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     }
 
     // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified
-    // column here, whether every branch selects it or none does (MySQL 8.0 error 1250).
+    // column here, both when every branch selects it in the same position and when none
+    // does (MySQL 8.0).
     [Theory]
     [InlineData("table", false)]
     [InlineData("table", true)]

@@ -12,18 +12,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   and that an `unsupported` override key reports it. (#791)
 - `docs/query-statements.md` notes that an `OrderBy(...)` after `Union` /
   `UnionAll` given a qualified column (an aliased table's, a CTE's or a derived
-  table's) is rejected by MySQL, Oracle and PostgreSQL, and names a select-list
-  position or a first-branch alias as the keys that sort on every engine;
-  SQLite and SQL Server sort by a qualified column every branch selects and
-  reject one no branch selects. (#792)
+  table's) is rejected by MySQL, Oracle and PostgreSQL even when every branch
+  selects it in the same position, and names a select-list position or a
+  first-branch alias as the keys to use on every engine. (#792)
 
 ### Tests
 - Twins pin each engine's reading of an `ORDER BY` after `UNION` / `UNION ALL`
   over an aliased table, a CTE and a derived table: a position and a
   first-branch alias sort on all five, and a qualified column is rejected on
-  MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16 whether every branch selects it
-  or none does, sorts when every branch selects it on SQLite 3.50.4 and SQL
-  Server 2022, and is rejected there when no branch does. (#792)
+  MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16 both when every branch selects
+  it in the same position and when none does, sorts on SQLite 3.50.4 and SQL
+  Server 2022 in the first case, and is rejected there in the second.
+  (#792)
 
 ## [0.14.0-beta.1] - 2026-11-05
 ### Added

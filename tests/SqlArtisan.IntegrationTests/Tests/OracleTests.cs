@@ -1740,7 +1740,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     }
 
     // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified
-    // column here, whether every branch selects it or none does (ORA-00904 on XE 21.3.0).
+    // column here, both when every branch selects it in the same position and when none
+    // does (ORA-00904 on XE 21.3.0).
     [Theory]
     [InlineData("table", false)]
     [InlineData("table", true)]
