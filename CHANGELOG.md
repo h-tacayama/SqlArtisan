@@ -14,14 +14,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   a qualified column (an aliased table's, a CTE's or a derived table's) is
   rejected by MySQL, Oracle and PostgreSQL, and names a select-list position or
   a first-branch alias as the keys that sort on every engine; SQLite and SQL
-  Server take a qualified column only when the branches select it. (#792)
+  Server sort by a qualified column every branch selects and reject one no
+  branch selects. (#792)
 
 ### Tests
-- Twins pin each engine's reading of a compound's `ORDER BY`: a position and a
-  first-branch alias sort on all five, and a qualified column (an aliased
-  table's, a CTE's or a derived table's) is rejected on MySQL 8.0, Oracle XE
-  21.3.0 and PostgreSQL 16, and taken only when selected on SQLite 3.50.4 and
-  SQL Server 2022. (#792)
+- Twins pin each engine's reading of a compound's `ORDER BY` over an aliased
+  table, a CTE and a derived table: a position and a first-branch alias sort on
+  all five, and a qualified column is rejected on MySQL 8.0, Oracle XE 21.3.0
+  and PostgreSQL 16, sorts when every branch selects it on SQLite 3.50.4 and
+  SQL Server 2022, and is rejected there when no branch does. (#792)
 
 ## [0.14.0-beta.1] - 2026-11-05
 ### Added

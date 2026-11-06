@@ -208,23 +208,13 @@ public abstract class IntegrationTestBase
         return joined.Select(o.Id).From(o).Where(o.Id == 1);
     }
 
-    // User 2 then user 1 as a compound's branches, the first selecting nameItem (#792).
-    private protected static ISelectBuilderWhere UserTwoThenOne(
-        UsersTable u,
-        bool union,
-        object nameItem)
-    {
-        ISelectBuilderWhere first = Select(u.Id, nameItem).From(u).Where(u.Id == 2);
-        ISelectBuilderSetOperator joined = union ? first.Union : first.UnionAll;
-        return joined.Select(u.Id, u.Name).From(u).Where(u.Id == 1);
-    }
-
-    // The same compound over an aliased table, a CTE or a derived table, whose columns
-    // all render qualified, ordered by a name both branches select or an unselected age.
-    private protected static ISelectBuilderOrderBy QualifiedKeyCompound(
+    // Users 1 (age 30) and 4 (age 25) as a compound's branches over an aliased table, a
+    // CTE or a derived table, whose columns all render qualified; an age sort gives [4, 1]
+    // against [1, 4] for branch or id order (#792). Only the ORDER BY key varies by key.
+    private protected static ISelectBuilderOrderBy CompoundOverSource(
         string source,
         bool union,
-        bool selected)
+        string key)
     {
         UsersTable u = new("u");
         Cte c = new("c");
@@ -239,12 +229,22 @@ public abstract class IntegrationTestBase
         DbColumn id = Col(u.Id, "id");
         DbColumn name = Col(u.Name, "name");
         DbColumn age = Col(u.Age, "age");
+        ExpressionAlias ageAlias = age.As("a");
+        object firstAge = key == "alias" ? ageAlias : age;
         ISelectBuilderSelect head = from is Cte
-            ? With(c.As(Select(u.Id, u.Name, u.Age).From(u))).Select(id, name)
-            : Select(id, name);
-        ISelectBuilderWhere first = head.From(from).Where(id == 2);
+            ? With(c.As(Select(u.Id, u.Name, u.Age).From(u))).Select(id, firstAge)
+            : Select(id, firstAge);
+        ISelectBuilderWhere first = head.From(from).Where(id == 1);
         ISelectBuilderSetOperator joined = union ? first.Union : first.UnionAll;
-        return joined.Select(id, name).From(from).Where(id == 1).OrderBy(selected ? name : age);
+        ISelectBuilderWhere second = joined.Select(id, age).From(from).Where(id == 4);
+        return key switch
+        {
+            "position" => second.OrderBy(2),
+            "alias" => second.OrderBy(ageAlias),
+            "selected" => second.OrderBy(age),
+            "unselected" => second.OrderBy(name),
+            _ => throw new ArgumentOutOfRangeException(nameof(key), key, null),
+        };
 
         DbColumn Col(DbColumn tableColumn, string column) => from switch
         {
@@ -1301,22 +1301,24 @@ public abstract class IntegrationTestBase
         Assert.Equal(_fixture.Dbms == Dbms.Sqlite ? 76m : 80m, fractional);
     }
 
-    // The compound ORDER BY keys every engine takes; an aliased table's column is
-    // qualified there, which the per-engine classes twin (#792).
+    // The compound ORDER BY keys every engine takes, over the same statements the
+    // per-engine classes twin with a qualified key (#792).
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void CompoundOrderBy_PositionOrFirstBranchAlias_Sorts(bool union)
+    [InlineData("table", false)]
+    [InlineData("table", true)]
+    [InlineData("cte", false)]
+    [InlineData("cte", true)]
+    [InlineData("derived", false)]
+    [InlineData("derived", true)]
+    public void CompoundOrderBy_PositionOrFirstBranchAlias_Sorts(string source, bool union)
     {
-        UsersTable u = new("u");
-        ExpressionAlias name = u.Name.As("n");
         using IDbConnection connection = _fixture.OpenConnection();
 
         Assert.Equal(
-            new[] { 1, 2 },
-            connection.Query<int>(UserTwoThenOne(u, union, u.Name).OrderBy(2)));
+            new[] { 4, 1 },
+            connection.Query<int>(CompoundOverSource(source, union, "position")));
         Assert.Equal(
-            new[] { 1, 2 },
-            connection.Query<int>(UserTwoThenOne(u, union, name).OrderBy(name)));
+            new[] { 4, 1 },
+            connection.Query<int>(CompoundOverSource(source, union, "alias")));
     }
 }

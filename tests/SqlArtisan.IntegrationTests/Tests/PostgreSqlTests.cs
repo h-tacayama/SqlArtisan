@@ -1950,7 +1950,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         using IDbConnection connection = _fixture.OpenConnection();
 
         DbException ex = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
-            QualifiedKeyCompound(source, union, selected: true)).ToList());
+            CompoundOverSource(source, union, "selected")).ToList());
 
         Assert.Contains("missing FROM-clause entry", ex.Message);
     }

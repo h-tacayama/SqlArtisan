@@ -1465,7 +1465,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         using IDbConnection connection = _fixture.OpenConnection();
 
         DbException ex = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
-            QualifiedKeyCompound(source, union, selected: true)).ToList());
+            CompoundOverSource(source, union, "selected")).ToList());
 
         Assert.Contains("cannot be used in global ORDER clause", ex.Message);
     }

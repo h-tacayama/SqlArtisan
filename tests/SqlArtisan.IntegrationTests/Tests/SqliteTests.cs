@@ -1386,8 +1386,8 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.Equal(1, Convert.ToInt32(connection.ExecuteScalar(Select(Length("\u00e9")))));
     }
 
-    // docs/query-statements.md: a compound's ORDER BY takes a qualified column here
-    // when the branches select it, and rejects one they do not.
+    // docs/query-statements.md: a compound's ORDER BY sorts by a qualified column every
+    // branch selects here, and rejects one no branch selects.
     [Theory]
     [InlineData("table", false)]
     [InlineData("table", true)]
@@ -1395,16 +1395,16 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
     [InlineData("cte", true)]
     [InlineData("derived", false)]
     [InlineData("derived", true)]
-    public void CompoundOrderBy_QualifiedColumn_SortsOnlyIfSelected(string source, bool union)
+    public void CompoundOrderBy_QualifiedColumn_SortsIfEveryBranchSelects(string source, bool union)
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
         IEnumerable<int> ids = connection.Query<int>(
-            QualifiedKeyCompound(source, union, selected: true));
+            CompoundOverSource(source, union, "selected"));
         DbException ex = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
-            QualifiedKeyCompound(source, union, selected: false)).ToList());
+            CompoundOverSource(source, union, "unselected")).ToList());
 
-        Assert.Equal(new[] { 1, 2 }, ids);
+        Assert.Equal(new[] { 4, 1 }, ids);
         Assert.Contains("does not match any column in the result set", ex.Message);
     }
 

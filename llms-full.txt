@@ -1046,8 +1046,8 @@ An `OrderBy(...)` after the last branch sorts the combined result. A column of a
 aliased table, a CTE or a derived table there emits a qualified name (`"u".name`),
 which MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16 reject — order by a select-list
 position (`OrderBy(2)`) or by an alias the first branch selects (`.As(...)`) instead.
-SQLite 3.50.4 and SQL Server 2022 take the qualified name only for a column the
-branches select.
+SQLite 3.50.4 and SQL Server 2022 sort by a qualified column every branch selects,
+and reject one no branch selects.
 
 > [!NOTE]
 > **`Minus` after an unaliased table on SQL Server subtracts nothing.** SQL Server 2022 runs

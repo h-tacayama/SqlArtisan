@@ -1753,7 +1753,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         using IDbConnection connection = _fixture.OpenConnection();
 
         DbException ex = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
-            QualifiedKeyCompound(source, union, selected: true)).ToList());
+            CompoundOverSource(source, union, "selected")).ToList());
 
         Assert.Contains("ORA-00904", ex.Message);
     }
