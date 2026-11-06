@@ -303,6 +303,25 @@ public class TableClassGeneratorTests : IDisposable
         Assert.False(Directory.Exists(_outputDirectory));
     }
 
+    // A relative --output names the folder it resolved to, which #796's caller could
+    // not see.
+    [Fact]
+    public void Run_Check_RelativeMissingOutputDirectory_ThrowsCommandLineException()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        string relative = $"sqlartisan_tcg_missing_{Guid.NewGuid():N}";
+        string resolved = Path.Combine(Directory.GetCurrentDirectory(), relative);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => RunInto(db, RunMode.Check, relative));
+
+        Assert.Equal(
+            $"--output directory not found: {resolved}; a relative --output, or "
+                + "\"output\" in the --config file, resolves against the working directory",
+            ex.Message);
+        Assert.False(Directory.Exists(resolved));
+    }
+
     // A first run into a new folder is a plain run's, so it creates the directory.
     [Fact]
     public void Run_GenerateIntoMissingOutputDirectory_WritesEveryTable()
