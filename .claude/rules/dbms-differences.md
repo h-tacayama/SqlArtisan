@@ -115,7 +115,13 @@ the dialect layer nor a plain matrix entry (the first two identified in the
   some version on gets a floor beside the rule's dialect list (ADR 0015,
   "Context rules take the same floor"), never a second rule. A restriction
   with no API surface to anchor on (Oracle's `PRIOR` outside `CONNECT BY` —
-  CONNECT BY is wontfix per ADR 0010) stays a docs/ADR note only.
+  CONNECT BY is wontfix per ADR 0010) stays a docs/ADR note only. So does one
+  keyed on a value the analyzer traces only in part, where the engine rejects
+  the statement rather than running it with another meaning: a compound's
+  `ORDER BY` column is qualified only when its table carries an alias, a
+  constructor argument SQLA0103 follows through classic constructors in one
+  project alone, so a rule would miss the rest. The docs note and its live
+  twins are the record (#792).
 - **Value-bounded validity → an analyzer value-domain rule (SQLA0104, ADR
   0022).** A construct the engine has, with one *argument value* it rejects —
   a `DateTimePart` outside a function's grammar, MySQL's match-parameter
