@@ -1386,6 +1386,25 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.Equal(1, Convert.ToInt32(connection.ExecuteScalar(Select(Length("\u00e9")))));
     }
 
+    // docs/query-statements.md: a compound's ORDER BY takes an aliased table's
+    // column here when the branches select it, and rejects one they do not.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CompoundOrderBy_AliasedTableColumn_SortsOnlyIfSelected(bool union)
+    {
+        UsersTable u = new("u");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            UserTwoThenOne(u, union, u.Name).OrderBy(u.Name));
+        DbException ex = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            UserTwoThenOne(u, union, u.Name).OrderBy(u.Age)).ToList());
+
+        Assert.Equal(new[] { 1, 2 }, ids);
+        Assert.Contains("does not match any column in the result set", ex.Message);
+    }
+
     // docs/query-statements.md: set operators apply left to right here, so a
     // derived table is what groups the INTERSECT first.
     [Fact]

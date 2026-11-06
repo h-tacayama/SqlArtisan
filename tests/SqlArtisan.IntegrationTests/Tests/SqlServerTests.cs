@@ -1640,6 +1640,25 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Equal(1, connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1))));
     }
 
+    // docs/query-statements.md: a compound's ORDER BY takes an aliased table's
+    // column here when the branches select it, and rejects one they do not.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CompoundOrderBy_AliasedTableColumn_SortsOnlyIfSelected(bool union)
+    {
+        UsersTable u = new("u");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            UserTwoThenOne(u, union, u.Name).OrderBy(u.Name));
+        DbException ex = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            UserTwoThenOne(u, union, u.Name).OrderBy(u.Age)).ToList());
+
+        Assert.Equal(new[] { 1, 2 }, ids);
+        Assert.Contains("ORDER BY items must appear in the select list", ex.Message);
+    }
+
     // docs/query-statements.md: INTERSECT binds tighter than UNION and EXCEPT here.
     [Fact]
     public void SetOperators_IntersectAfterUnionOrExcept_BindsFirst()

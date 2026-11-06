@@ -1739,6 +1739,22 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Null(connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1)).From(Dual)));
     }
 
+    // docs/query-statements.md: a compound's ORDER BY rejects an aliased table's
+    // column here, though the branches select it (ORA-00904 on XE 21.3.0).
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CompoundOrderBy_AliasedTableColumn_IsRejected(bool union)
+    {
+        UsersTable u = new("u");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        DbException ex = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            UserTwoThenOne(u, union, u.Name).OrderBy(u.Name)).ToList());
+
+        Assert.Contains("ORA-00904", ex.Message);
+    }
+
     // docs/query-statements.md: set operators apply left to right here, so a
     // derived table is what groups the INTERSECT first.
     [Fact]
