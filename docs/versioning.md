@@ -185,9 +185,9 @@ release may change how a fact is read as well as the layout. Run `--check` with
 the installed tool before upgrading: what it reports is not the release's, so
 settle it first. Then upgrade the tool and the package and run `--fix`; with
 the schema and the options unchanged in between, what it rewrites is the
-release's alone. Upgraded already, restore the generated files from version
-control if a run has rewritten them, and put the previous version back in the
-tool manifest for the runs before the upgrade, then upgrade again.
+release's alone. Upgraded already, return the generated files to their
+committed state if a run has written them, and put the previous version back in
+the tool manifest for the runs before the upgrade, then upgrade again.
 
 ## Deprecation
 
