@@ -281,6 +281,59 @@ public class TableClassGeneratorTests : IDisposable
         Assert.False(Directory.Exists(_outputDirectory));
     }
 
+    // The drift modes compare against the committed classes, so a missing directory
+    // reported every table as added, and --fix wrote a second set there (#796).
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Run_DriftModeMissingOutputDirectory_ThrowsCommandLineException(
+        bool fix,
+        bool dryRun)
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => Run(db, fix ? RunMode.Fix : RunMode.Check, dryRun));
+
+        Assert.Equal(
+            $"--output directory not found: {_outputDirectory}; a relative --output, or "
+                + "\"output\" in the --config file, resolves against the working directory",
+            ex.Message);
+        Assert.False(Directory.Exists(_outputDirectory));
+    }
+
+    // A relative --output names the folder it resolved to, which #796's caller could
+    // not see.
+    [Fact]
+    public void Run_Check_RelativeMissingOutputDirectory_ThrowsCommandLineException()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        string relative = $"sqlartisan_tcg_missing_{Guid.NewGuid():N}";
+        string resolved = Path.Combine(Directory.GetCurrentDirectory(), relative);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => RunInto(db, RunMode.Check, relative));
+
+        Assert.Equal(
+            $"--output directory not found: {resolved}; a relative --output, or "
+                + "\"output\" in the --config file, resolves against the working directory",
+            ex.Message);
+        Assert.False(Directory.Exists(resolved));
+    }
+
+    // A first run into a new folder is a plain run's, so it creates the directory.
+    [Fact]
+    public void Run_GenerateIntoMissingOutputDirectory_WritesEveryTable()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+
+        IReadOnlyList<TableResult> results = Run(db, RunMode.Generate);
+
+        Assert.Equal([TableStatus.Added, TableStatus.Added], results.Select(r => r.Status));
+        Assert.All(results, r => Assert.True(File.Exists(r.Path)));
+    }
+
     // Read as a directory, a file made every table read as added and the first
     // write fail naming the file rather than the flag.
     [Fact]
