@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   generation into a new folder runs without `--fix`. (#796)
 
 ### Docs
+- `docs/versioning.md` and the TableClassGen README give the order of runs that
+  tells an upgrade's changes to the generated files from a schema change:
+  `--check` with the installed tool, then `--fix` after upgrading. The report
+  cannot tell them apart on its own, since a release may change how a fact is
+  read as well as the layout. (#795)
 - `docs/analyzer.md`'s version-bound register states that it lists only the
   bounds it has a source for, so a construct the matrix marks supported and
   the register has no row for is not reported whatever version is declared,
