@@ -184,9 +184,16 @@ The report after an upgrade cannot tell the release's changes from the
 schema's: a release may change how a fact is read as well as the layout, so a
 `~` line reads the same either way. The order of runs can. Before upgrading,
 run `--check` with the installed tool; any drift it reports is not the
-upgrade's, and `--fix` with that same tool settles it. Then upgrade the tool and
-the package and run `--fix`: with the schema and the options unchanged in
-between, what it rewrites is the release's alone.
+upgrade's, and `--fix` with that same tool settles it, once you delete any file
+it reports removed. Then upgrade the tool and the package and run `--fix`: with
+the schema and the options unchanged in between, what it rewrites is the
+release's alone. Upgraded already, with no `--fix` or plain run since, put the
+previous version back in the tool manifest for the first run, then upgrade
+again.
+
+The generated header names no tool version: compared as text, it would make
+every file drift on every release, and left out of the comparison, it would go
+stale on a file no later release rewrites.
 
 ## Deprecation
 
