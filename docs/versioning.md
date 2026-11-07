@@ -188,8 +188,8 @@ upgrade's, and `--fix` with that same tool settles it, once you delete any file
 it reports removed. Then upgrade the tool and the package and run `--fix`: with
 the schema and the options unchanged in between, what it rewrites is the
 release's alone. Upgraded already, with no `--fix` or plain run since, put the
-previous version back in the tool manifest for the first run, then upgrade
-again.
+previous version back in the tool manifest for the runs before the upgrade —
+the `--check` and any `--fix` it calls for — then upgrade again.
 
 The generated header names no tool version: compared as text, it would make
 every file drift on every release, and left out of the comparison, it would go
