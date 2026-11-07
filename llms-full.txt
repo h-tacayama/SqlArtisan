@@ -7367,20 +7367,14 @@ members, and an older package rejects one it lacks. Install the tool in a local
 tool manifest and upgrade it together with the package
 ([Installation](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.TableClassGen/README.md#installation)).
 
-The report after an upgrade cannot tell the release's changes from the
-schema's: a release may change how a fact is read as well as the layout, so a
-`~` line reads the same either way. The order of runs can. Before upgrading,
-run `--check` with the installed tool; any drift it reports is not the
-upgrade's, and `--fix` with that same tool settles it, once you delete any file
-it reports removed. Then upgrade the tool and the package and run `--fix`: with
+The report alone cannot tell a release's changes from the schema's, since a
+release may change how a fact is read as well as the layout. Run `--check` with
+the installed tool before upgrading: what it reports is not the release's, so
+settle it first. Then upgrade the tool and the package and run `--fix`; with
 the schema and the options unchanged in between, what it rewrites is the
-release's alone. Upgraded already, with no `--fix` or plain run since, put the
-previous version back in the tool manifest for the runs before the upgrade —
-the `--check` and any `--fix` it calls for — then upgrade again.
-
-The generated header names no tool version: compared as text, it would make
-every file drift on every release, and left out of the comparison, it would go
-stale on a file no later release rewrites.
+release's alone. Upgraded already, restore the generated files from version
+control if a run has rewritten them, and put the previous version back in the
+tool manifest for the runs before the upgrade, then upgrade again.
 
 ## Deprecation
 

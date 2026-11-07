@@ -16,14 +16,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   generation into a new folder runs without `--fix`. (#796)
 
 ### Docs
-- `docs/versioning.md` gives the order of runs that tells an upgrade's changes
-  to the generated files from a schema change, and the TableClassGen README's
-  Detecting drift links to it: `--check`, and any `--fix` it calls for, with the
-  installed tool, then `--fix` after upgrading. Once upgraded, with no `--fix`
-  or plain run since, the previous version goes back for the runs before the
-  upgrade. The report cannot tell the two apart on its own, since a release may
-  change how a fact is read as well as the layout. The page also says why the
-  generated header names no tool version. (#795)
+- `docs/versioning.md` gives the order of runs that tells a TableClassGen
+  upgrade's changes to the generated files from a schema change, and the
+  TableClassGen README's Detecting drift links to it. (#795)
 - `docs/analyzer.md`'s version-bound register states that it lists only the
   bounds it has a source for, so a construct the matrix marks supported and
   the register has no row for is not reported whatever version is declared,
