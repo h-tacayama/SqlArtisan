@@ -7367,6 +7367,15 @@ members, and an older package rejects one it lacks. Install the tool in a local
 tool manifest and upgrade it together with the package
 ([Installation](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.TableClassGen/README.md#installation)).
 
+The report alone cannot tell a release's changes from the schema's, since a
+release may change how a fact is read as well as the layout. Run `--check` with
+the installed tool before upgrading: what it reports is not the release's, so
+settle it first. Then upgrade the tool and the package and run `--fix`; with
+the schema and the options unchanged in between, what it rewrites is the
+release's alone. Upgraded already, return the generated files to their
+committed state if a run has written them, and put the previous version back in
+the tool manifest for the runs before the upgrade, then upgrade again.
+
 ## Deprecation
 
 API slated for removal is first marked `[Obsolete]` — with a message naming
