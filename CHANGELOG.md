@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   generation into a new folder runs without `--fix`. (#796)
 
 ### Docs
+- The TableClassGen README says that a `modified` table which adds or drops a
+  column lists only those columns, and that the diff `--fix` leaves shows its
+  other differences. (#803)
 - `docs/versioning.md` gives the order of runs that tells a TableClassGen
   upgrade's changes to the generated files from a schema change, and the
   TableClassGen README's Detecting drift links to it. (#795)

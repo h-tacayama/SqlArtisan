@@ -98,7 +98,7 @@ Generated 1 of 2 table classes in src/MyApp/Tables
 
 Generated classes are committed once and then quietly fall behind the schema.
 `--check` regenerates in memory and compares against the committed files, reporting
-what moved:
+which tables moved:
 
 ```
 $ sa-tableclassgen --config tablegen.json --check
@@ -115,6 +115,11 @@ Regenerate the affected tables by re-running with:
 These files have no table in the database and are left untouched:
   src/MyApp/Tables/DepartmentsTable.cs
 ```
+
+A `modified` table lists the columns it added (`+`) and dropped (`-`). With neither,
+it gets one `~ column metadata or layout changed` line for whatever else differs;
+with either, its other differences are not listed. The diff `--fix` leaves shows
+them all.
 
 `--check` writes nothing and exits `1` on drift, so it belongs in a scheduled job
 against a real environment. `--check` and `--fix` compare against the `--output`
@@ -203,9 +208,10 @@ reports what a run would write without writing it.
   file has no table. `path` is the file the run wrote, would write or found, under
   `--output` as given.
 - `status` is `unchanged`, `added`, `modified` or `removed`.
-- `changes` lists what moved in a `modified` table. Only the leading marker of each
-  entry is fixed: `+` a column added, `-` a column dropped, `~` a change in the
-  column metadata or layout. The text after it is for reading.
+- `changes` lists a `modified` table's entries as the text report shows them
+  ([Detecting drift](#detecting-drift)). Only the leading marker of each entry is
+  fixed: `+` a column added, `-` a column dropped, `~` a change in the column
+  metadata or layout. The text after it is for reading.
 
 The keys and values above are part of the tool's command-line surface, so a script
 can rely on them across releases. A minor release may add a key or a `mode` or
