@@ -209,10 +209,9 @@ reports what a run would write without writing it.
   `--output` as given.
 - `status` is `unchanged`, `added`, `modified` or `removed`.
 - `changes` lists a `modified` table's entries as the text report shows them
-  ([Detecting drift](#detecting-drift)), so a table that adds or drops a column lists
-  only those. Only the leading marker of each entry is fixed: `+` a column added,
-  `-` a column dropped, `~` a change in the column metadata or layout. The text
-  after it is for reading.
+  ([Detecting drift](#detecting-drift)). Only the leading marker of each entry is
+  fixed: `+` a column added, `-` a column dropped, `~` a change in the column
+  metadata or layout. The text after it is for reading.
 
 The keys and values above are part of the tool's command-line surface, so a script
 can rely on them across releases. A minor release may add a key or a `mode` or

@@ -308,8 +308,8 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
             .. before.Where(c => !after.Contains(c)).Select(c => $"- {c}"),
         ];
 
-        // Same columns, different text: metadata, ordering, or an emitter option
-        // moved. Naming the columns would be misleading, so say only what is known.
+        // Same columns, different text: say only that, since naming columns is misleading. Beside
+        // +/- lines the rest goes unlisted: a ~ would still send the reader to --fix's diff (#803).
         return changes.Count > 0 ? changes : ["~ column metadata or layout changed"];
     }
 
