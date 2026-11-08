@@ -96,7 +96,8 @@ internal static class UnusableIndexPredicateRule
             && DialectUsageAnalyzer.IsFromSqlArtisan(returnType.ContainingAssembly));
 
     // Only a column the call itself wraps: a function over some other expression
-    // that merely mentions the column is not the shape this reports.
+    // that merely mentions the column is not the shape this reports. A params list's
+    // elements are not read: the shape is rare, and the miss only leaves a warning out.
     private static IPropertyReferenceOperation? IndexedArgument(IInvocationOperation call)
     {
         foreach (IArgumentOperation argument in call.Arguments)

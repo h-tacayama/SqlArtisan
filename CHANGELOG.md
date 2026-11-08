@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   generation into a new folder runs without `--fix`. (#796)
 
 ### Docs
+- `docs/analyzer.md` says that `SQLA0204` does not read a column passed in a
+  `params` argument list, such as `Greatest(t.Key, x)` or
+  `Function("lower", t.Key)`.
 - The TableClassGen README says that a `modified` table which adds or drops a
   column lists only those columns, and that the diff `--fix` leaves shows its
   other differences. (#803)
