@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- `Sql.Function(name, args...)` calls a function SqlArtisan has no factory for
+  (a user-defined, schema or package function, or an uncovered built-in),
+  emitting `name(args...)` with the arguments resolved as in any other function.
+  The name must be ASCII identifiers joined by `.`, so it cannot close the call,
+  open a string or a comment, or end the statement. The analyzer's dialect matrix
+  marks the call supported on every dialect. (#794)
+
 ### Changed
 - **Breaking:** TableClassGen's `--check` and `--fix` fail with exit code `2`
   when `--output` names no existing directory, naming the resolved path. They

@@ -269,7 +269,7 @@ Type-safe C# emits the SQL you write, for **MySQL, Oracle, PostgreSQL, SQLite, a
 | **[Query Statements](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md)** | **Read** — [SELECT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#select-clause) · [FROM](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#from-clause) · [WHERE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#where-clause) · [JOIN](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#join-clause) · [ORDER BY](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#order-by-clause) · [GROUP BY / HAVING](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#group-by-and-having-clause) · [Set Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#set-operators) · [FOR UPDATE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#for-update-clause) · [Pagination](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination) |
 | | **Write** — [DELETE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#delete-statement) · [UPDATE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#update-statement) — [joined](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#joined-update--delete) · [INSERT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#insert-statement) — [multi-row](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#multiple-rows), [SET-like](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#alternative-syntax-set-like), [INSERT … SELECT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#insert-select-syntax), [UPSERT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#upsert-insert-update-or-skip), [MERGE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement) · [WITH / CTE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#with-clause-common-table-expressions) · [RETURNING](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#returning-clause) · [OUTPUT (SQL Server)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#output-clause-sql-server) |
 | **[Expressions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md)** | [NULL](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#null-literal) · [Arithmetic](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#arithmetic-operators) · [Interval Expressions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#interval-expressions) · [String Concatenation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-concatenation) · [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions) · [JSON Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#json-operators) · [Array Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#array-operators) · [Vector Distance](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#vector-distance-operators) · [Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#full-text-search) · [Scalar Subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#scalar-subquery) · [ALL / ANY / SOME](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#all--any--some) · [CASE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#case-expressions) · [CAST](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#cast) · [Window Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#window-functions) · [Conditional Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditional-aggregation-filter) · [String Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-aggregation) · [Sequence](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#sequence) |
-| **[Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md)** | [Numeric](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#numeric-functions) · [Character](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#character-functions) (incl. `REGEXP_*`) · [Date & Time](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#date-and-time-functions) (incl. `ADD_MONTHS`, `DATE_TRUNC`) · [Conversion](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#conversion-functions) · [Comparison](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#comparison-functions) (`GREATEST`, `LEAST`) · [JSON](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#json-functions) (`JSON_EXTRACT`, `JSON_VALUE`, `JSON_QUERY`) · [Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#full-text-search-functions) (`MATCH ... AGAINST`, `CONTAINS`, `@@`, FTS5 `MATCH`, `FREETEXT`) · [Aggregate](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#aggregate-functions) · [String Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#string-aggregation-functions) (`STRING_AGG`, `LISTAGG`, `GROUP_CONCAT`) · [Window / Analytic](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#window-functions) (`ROW_NUMBER`, `LAG`/`LEAD`, `PERCENTILE_CONT`) · [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types) |
+| **[Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md)** | [Numeric](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#numeric-functions) · [Character](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#character-functions) (incl. `REGEXP_*`) · [Date & Time](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#date-and-time-functions) (incl. `ADD_MONTHS`, `DATE_TRUNC`) · [Conversion](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#conversion-functions) · [Comparison](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#comparison-functions) (`GREATEST`, `LEAST`) · [JSON](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#json-functions) (`JSON_EXTRACT`, `JSON_VALUE`, `JSON_QUERY`) · [Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#full-text-search-functions) (`MATCH ... AGAINST`, `CONTAINS`, `@@`, FTS5 `MATCH`, `FREETEXT`) · [Aggregate](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#aggregate-functions) · [String Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#string-aggregation-functions) (`STRING_AGG`, `LISTAGG`, `GROUP_CONCAT`) · [Window / Analytic](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#window-functions) (`ROW_NUMBER`, `LAG`/`LEAD`, `PERCENTILE_CONT`) · [Other](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#other-functions) (`Function(name, ...)`) · [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types) |
 | **[Analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)** | Opt-in Roslyn analyzer — [enabling it](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it), [rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules), [checking a set of dialects at once](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#checking-a-set-of-dialects-at-once), [migrating from the legacy target key](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#migrating-from-the-legacy-target-key), [correcting a warning](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#correcting-a-warning-the-override-keys), [version-aware warnings](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-aware-warnings-sqla0101), [context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102), [argument value validity](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#argument-value-validity-sqla0104), [correlated DML target](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#correlated-dml-target-sqla0300), [C# fallbacks](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#c-fallbacks-sqla0301-sqla0302), [comparisons with NULL](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#comparisons-with-null-sqla0303), [Dapper model aliases](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#dapper-model-aliases-sqla0304), [schema-aware warnings](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#schema-aware-warnings-sqla0200), [mixed-dialect projects](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#mixed-dialect-projects), [CI gates](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#ci-gates-and-stricter-enforcement), [verified-against versions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#verified-against-versions), [known limitations](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#known-limitations) |
 
 > Using an AI coding assistant? Point it at [`llms.txt`](https://github.com/h-tacayama/SqlArtisan/blob/main/llms.txt) for an LLM-friendly index of this documentation, or [`llms-full.txt`](https://github.com/h-tacayama/SqlArtisan/blob/main/llms-full.txt) for the full-text dump when your tool ingests one file instead of following links. Tools integrated with [Context7](https://context7.com/) can resolve "SqlArtisan" by name instead. See the [AI coding assistants guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md) for the setup that makes generated queries verifiable.
@@ -413,6 +413,7 @@ Built-in function catalog, grouped by family, plus bind-parameter types.
 [Aggregate](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#aggregate-functions) ·
 [String Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#string-aggregation-functions) ·
 [Window / Analytic](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#window-functions) ·
+[Other](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#other-functions) ·
 [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types)
 
 ## [Analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)
@@ -3469,7 +3470,7 @@ SqlStatement sql =
 
 ## Contents
 
-- [Numeric](#numeric-functions) · [Character](#character-functions) · [Date & Time](#date-and-time-functions) · [Conversion](#conversion-functions) · [Comparison](#comparison-functions) · [JSON](#json-functions) · [Full-Text Search](#full-text-search-functions) · [Aggregate](#aggregate-functions) · [String Aggregation](#string-aggregation-functions) · [Window / Analytic](#window-functions)
+- [Numeric](#numeric-functions) · [Character](#character-functions) · [Date & Time](#date-and-time-functions) · [Conversion](#conversion-functions) · [Comparison](#comparison-functions) · [JSON](#json-functions) · [Full-Text Search](#full-text-search-functions) · [Aggregate](#aggregate-functions) · [String Aggregation](#string-aggregation-functions) · [Window / Analytic](#window-functions) · [Other](#other-functions)
 - [Bind Parameter Types](#bind-parameter-types)
 
 ---
@@ -3795,6 +3796,43 @@ expression, so passing one to `Select(...)` is rejected rather than emitting an
 
 ---
 
+## Other Functions
+
+`Function(name, args...)` calls a function SqlArtisan has no factory for: a
+user-defined function, a schema or package function (`dbo.my_func`,
+`my_pkg.my_func`), or a built-in not listed above.
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(Function("printf", "%05d", u.Id))
+    .From(u)
+    .Build(Dbms.Sqlite);
+
+// SELECT printf(:0, id)
+// FROM users
+```
+
+The arguments resolve as in any other function: a value is bound, an expression
+is emitted, and a subquery becomes a scalar subquery. With no argument the call is
+`name()`. SqlArtisan does not know the function's signature, so where an
+argument's type matters, name it with `Cast(...)`. A string argument is always bound, so a function
+that needs a literal in that position cannot be called this way.
+
+The name is emitted as written. It must be ASCII identifiers joined by `.`, each
+starting with a letter or `_` and holding only letters, digits, `_` and `$`, so it
+cannot close the call, open a string or a comment, or end the statement; a quoted
+name (`"MyFunc"`, `[dbo].[my_func]`) is rejected. Any function of that shape can
+still be called, and a keyword such as `NOT` reads as that keyword, so take the
+name from a constant or an allowlist, never from request input. The analyzer does not know the
+function either: its dialect matrix marks the call supported everywhere, so
+whether the function exists on the target is the database's to report.
+
+The result is an expression, not a condition, so compare it inside a `WHERE`. It
+takes no `.Over(...)` or `.Filter(...)`, and the call no `DISTINCT`.
+
+---
+
 ## Bind Parameter Types
 
 SqlArtisan automatically converts C# literal values into bind parameters (to bind one explicitly instead — so its marker can be shared across clauses — use `Sql.Bind(value)`; see [GROUP BY and HAVING Clause](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#group-by-and-having-clause)). Supported types are as follows:
@@ -3823,7 +3861,7 @@ Two kinds of string never become a bind parameter, and they behave differently:
 > (observed on MySQL 8.0.46).
 > SqlArtisan writes MySQL literals for the default mode, so run these statements
 > in a session without it.
-- **Identifiers** — an alias (of a select item, a table, or a derived table: a subquery's `AsTable(...)`, `Values(...)`, `Unnest(...).AsTable(...)`, or a `DerivedTable` or other `DerivedTableBase` subclass), a CTE name, a table or column name (a CTE's or derived table's column list included), a `Cast(...)` target type, the sequence name in the Oracle (`Sequence("s").Nextval`) and SQL Server (`NextValueFor("s")`) spellings, and the `RETURNING ... INTO` output variable of an `OutputParameter`, whose name must start with a letter and hold only letters, digits, `_`, `$` and `#`. These are emitted **exactly as written**, with no escaping: a type name like `DECIMAL(10,2)` is not a name that could be quoted, and rewriting an alias you spelled would break the guarantee that the SQL you write is the SQL that runs. `Sql.Hints(...)` is not an identifier but behaves the same way — it is a raw-SQL escape hatch, emitted verbatim by definition.
+- **Identifiers** — an alias (of a select item, a table, or a derived table: a subquery's `AsTable(...)`, `Values(...)`, `Unnest(...).AsTable(...)`, or a `DerivedTable` or other `DerivedTableBase` subclass), a CTE name, a table or column name (a CTE's or derived table's column list included), a `Cast(...)` target type, the sequence name in the Oracle (`Sequence("s").Nextval`) and SQL Server (`NextValueFor("s")`) spellings, the `RETURNING ... INTO` output variable of an `OutputParameter`, whose name must start with a letter and hold only letters, digits, `_`, `$` and `#`, and the name of a `Function(...)` call, held to the shape [Other Functions](#other-functions) gives. These are emitted **exactly as written**, with no escaping: a type name like `DECIMAL(10,2)` is not a name that could be quoted, and rewriting an alias you spelled would break the guarantee that the SQL you write is the SQL that runs. `Sql.Hints(...)` is not an identifier but behaves the same way — it is a raw-SQL escape hatch, emitted verbatim by definition.
 
 So automatic parameterization prevents injection **through values**. Build identifiers from constants or an allowlist you control — never straight from request input.
 
@@ -3963,6 +4001,10 @@ Absent your own `unsupported` override, `SQLA0100` only ever fires for a
 construct the matrix has confirmed — one without a matrix entry stays silent
 rather than guessed at, so an incomplete matrix can under-warn but never
 produce a false positive.
+`Sql.Function(name, ...)` names a function the matrix cannot know, so its entry
+marks every dialect supported and only your own `sqlartisan_construct_function`
+override makes `SQLA0100` report it; whether the function exists on the target is
+the database's to report.
 
 One kind of entry reports SQL the engine runs: a spelling the dialect reads as
 something else — `||` as logical OR on MySQL, `&&` as logical AND on MySQL,
@@ -7167,6 +7209,8 @@ file, and set the dialect line to your engine:
   or `Hints(...)`; map it through an allowlist of constants instead — for a
   column, a `switch` onto table-class properties, as the cookbook's runtime
   sort does.
+- Call `Function(name, ...)` only for a function SqlArtisan has no factory
+  for: the analyzer cannot check it against the target DBMS.
 - A builder chain is single-use — build a fresh chain per statement; never
   hold a partially built query for reuse.
 - Every new or changed query gets an exact-SQL unit test asserting `sql.Text`
@@ -7177,7 +7221,8 @@ Why these lines: the dialect pin plus the analyzer turns a common AI failure
 (mixing dialects) into a build signal; the table-class rule keeps
 generated queries inside the compile-checked surface, and the allowlist keeps
 request input out of the positions SqlArtisan emits verbatim, which no escaping
-protects; the single-use rule matches the builder contract; and the test rule
+protects; the `Function` rule keeps calls the analyzer can check on the
+factories it knows; the single-use rule matches the builder contract; and the test rule
 makes every generated query's SQL reviewable — and regression-locked — in the
 diff.
 

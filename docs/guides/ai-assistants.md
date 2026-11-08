@@ -175,6 +175,8 @@ file, and set the dialect line to your engine:
   or `Hints(...)`; map it through an allowlist of constants instead — for a
   column, a `switch` onto table-class properties, as the cookbook's runtime
   sort does.
+- Call `Function(name, ...)` only for a function SqlArtisan has no factory
+  for: the analyzer cannot check it against the target DBMS.
 - A builder chain is single-use — build a fresh chain per statement; never
   hold a partially built query for reuse.
 - Every new or changed query gets an exact-SQL unit test asserting `sql.Text`
@@ -185,6 +187,7 @@ Why these lines: the dialect pin plus the analyzer turns a common AI failure
 (mixing dialects) into a build signal; the table-class rule keeps
 generated queries inside the compile-checked surface, and the allowlist keeps
 request input out of the positions SqlArtisan emits verbatim, which no escaping
-protects; the single-use rule matches the builder contract; and the test rule
+protects; the `Function` rule keeps calls the analyzer can check on the
+factories it knows; the single-use rule matches the builder contract; and the test rule
 makes every generated query's SQL reviewable — and regression-locked — in the
 diff.

@@ -201,6 +201,7 @@ internal static class MatrixSweepCatalog
         });
         Add("Distinct", _ => Select(Distinct, u.DepartmentId).From(u));
         Add("Hints", _ => Select(Hints("/*+ sweep */"), u.Id).From(u));
+        Add("Function", _ => Scalar(Function("UPPER", "abc")));
         Add("Top", _ => Select(Top(1), u.Id).From(u));
         Add("Percent", _ => Select(Top(50).Percent(), u.Id).From(u));
         // WITH TIES needs an ORDER BY (the Build-time guard); the no-workaround form.
