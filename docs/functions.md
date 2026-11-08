@@ -358,10 +358,8 @@ SqlStatement sql =
 
 The arguments resolve as in any other function: a value is bound, an expression
 is emitted, and a subquery becomes a scalar subquery. With no argument the call is
-`name()`. A bound value carries its C# type, and SqlArtisan does not know the
-function's signature, so where the engine picks among same-named functions by
-argument type, the C# type decides; pass a value of the wanted type, or name
-the type with `Cast(...)`. A string argument is always bound, so a function
+`name()`. SqlArtisan does not know the function's signature, so where an
+argument's type matters, name it with `Cast(...)`. A string argument is always bound, so a function
 that needs a literal in that position cannot be called this way.
 
 The name is emitted as written. It must be ASCII identifiers joined by `.`, each
@@ -370,8 +368,8 @@ cannot close the call, open a string or a comment, or end the statement; a quote
 name (`"MyFunc"`, `[dbo].[my_func]`) is rejected. Any function of that shape can
 still be called, and a keyword such as `NOT` reads as that keyword, so take the
 name from a constant or an allowlist, never from request input. The analyzer does not know the
-function either, so no dialect check reaches it: whether the function exists on
-the target is the database's to report.
+function either: its dialect matrix marks the call supported everywhere, so
+whether the function exists on the target is the database's to report.
 
 The result is an expression, not a condition, so compare it inside a `WHERE`. It
 takes no `.Over(...)` or `.Filter(...)`, and the call no `DISTINCT`.
