@@ -5593,7 +5593,9 @@ A `CASE` *branch* over the column is not reported: `Then(t.Key)` and
 `Else(t.Key)` carry it unwrapped, so both stay silent. A simple-`CASE` operand
 (`Case(t.Key, When(...))`) transforms the column as a function does and is
 reported. `Cast(...)` is not: whether it keeps an index turns on the type it
-names, which the rule does not read.
+names, which the rule does not read. Nor is a column passed in a `params`
+argument list: `Greatest(t.Key, x)`, `Function("lower", t.Key)` and a column past
+`Coalesce`'s second argument stay silent, while `Coalesce(t.Key, x)` reports.
 
 Only `WHERE` and `ON` are checked. The same call in a select list or an
 `ORDER BY` costs no index, and `HAVING` filters groups after any index has done
