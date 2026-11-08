@@ -165,6 +165,19 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Function_NullArgument_ThrowsArgumentNullException()
+    {
+        object? value = null;
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => Function("f", value!));
+
+        Assert.Equal(
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'args')",
+            ex.Message);
+    }
+
+    [Fact]
     public void Function_NullArguments_ThrowsArgumentNullException()
     {
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(

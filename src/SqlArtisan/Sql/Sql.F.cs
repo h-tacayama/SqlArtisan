@@ -89,7 +89,7 @@ public static partial class Sql
     /// is bound with its C# type, an expression or a subquery is emitted.</param>
     /// <returns>An expression emitting <c>name(arg, ...)</c>.</returns>
     /// <exception cref="ArgumentException"><paramref name="name"/> is <see langword="null"/>, empty or white space, or is not ASCII identifiers joined by <c>.</c>, each starting with a letter or <c>_</c> and holding only letters, digits, <c>_</c> and <c>$</c>.</exception>
-    /// <exception cref="ArgumentNullException"><paramref name="args"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="args"/> is <see langword="null"/> or holds a <see langword="null"/> element.</exception>
     public static SqlExpression Function(string name, params object[] args) =>
         new NamedFunction(name, Resolve(args, nameof(args)));
 }
