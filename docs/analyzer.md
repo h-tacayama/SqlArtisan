@@ -130,6 +130,9 @@ Absent your own `unsupported` override, `SQLA0100` only ever fires for a
 construct the matrix has confirmed — one without a matrix entry stays silent
 rather than guessed at, so an incomplete matrix can under-warn but never
 produce a false positive.
+`Sql.Function(name, ...)` names a function the matrix cannot know, so `SQLA0100`
+never reports it; whether the function exists on the target is the database's to
+report.
 
 One kind of entry reports SQL the engine runs: a spelling the dialect reads as
 something else — `||` as logical OR on MySQL, `&&` as logical AND on MySQL,

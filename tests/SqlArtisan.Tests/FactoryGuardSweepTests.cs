@@ -53,6 +53,8 @@ public class FactoryGuardSweepTests
         // writes, and rejects it bare (PostgreSQL 16.15,
         // Array_NoElementsUnderACast_IsAcceptedByTheEngine).
         ["Array(Object[]) :: elements=[]"] = "SELECT ARRAY[]",
+        // A function with no argument is called with empty parentheses (now()).
+        ["Function(String, Object[]) :: args=[]"] = "SELECT x()",
         // SqlHints elides a null or empty hint: a non-semantic decoration with
         // its own no-hints spelling, unlike the clauses above.
         ["Hints(String) :: hints=null"] = "SELECT c FROM e",

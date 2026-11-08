@@ -77,4 +77,19 @@ public static partial class Sql
     /// combinations use <see cref="Contains(object, object)"/>.</remarks>
     public static SqlCondition Freetext(object column, object freetext) =>
         new FreetextCondition(Resolve(column, nameof(column)), Resolve(freetext, nameof(freetext)));
+
+    /// <summary>
+    /// A call to a function SqlArtisan has no factory for, emitting
+    /// <c>name(arg, ...)</c>: a user-defined, package or schema function, or a
+    /// built-in the library does not cover.
+    /// </summary>
+    /// <param name="name">The function name, emitted as written: ASCII identifiers
+    /// joined by <c>.</c> (<c>my_func</c>, <c>dbo.my_func</c>, <c>my_pkg.my_func</c>).</param>
+    /// <param name="args">The arguments, resolved as in any other function: a value
+    /// is bound with its C# type, an expression or a subquery is emitted.</param>
+    /// <returns>An expression emitting <c>name(arg, ...)</c>.</returns>
+    /// <exception cref="ArgumentException"><paramref name="name"/> is <see langword="null"/>, empty or white space, or is not ASCII identifiers joined by <c>.</c>, each starting with a letter or <c>_</c> and holding only letters, digits, <c>_</c> and <c>$</c>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="args"/> is <see langword="null"/>.</exception>
+    public static SqlExpression Function(string name, params object[] args) =>
+        new NamedFunction(name, Resolve(args, nameof(args)));
 }

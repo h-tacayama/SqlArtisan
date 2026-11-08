@@ -421,6 +421,9 @@ internal static class DialectMatrix
         // Hints: the mechanism (verbatim text after SELECT) is universal; the hint text itself
         // is the caller's per-dialect responsibility.
         [new MatrixKey("Hints")] = DbmsSupport.All,
+        // Function: the call shape name(args) is universal; whether the named function exists
+        // is the caller's, as the hint text is.
+        [new MatrixKey("Function")] = DbmsSupport.All,
         // TOP (n) and its PERCENT / WITH TIES modifiers — SQL Server select prefix.
         [new MatrixKey("Top")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("Percent")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),

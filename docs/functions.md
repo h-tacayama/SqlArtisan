@@ -13,7 +13,7 @@
 
 ## Contents
 
-- [Numeric](#numeric-functions) · [Character](#character-functions) · [Date & Time](#date-and-time-functions) · [Conversion](#conversion-functions) · [Comparison](#comparison-functions) · [JSON](#json-functions) · [Full-Text Search](#full-text-search-functions) · [Aggregate](#aggregate-functions) · [String Aggregation](#string-aggregation-functions) · [Window / Analytic](#window-functions)
+- [Numeric](#numeric-functions) · [Character](#character-functions) · [Date & Time](#date-and-time-functions) · [Conversion](#conversion-functions) · [Comparison](#comparison-functions) · [JSON](#json-functions) · [Full-Text Search](#full-text-search-functions) · [Aggregate](#aggregate-functions) · [String Aggregation](#string-aggregation-functions) · [Window / Analytic](#window-functions) · [Other](#other-functions)
 - [Bind Parameter Types](#bind-parameter-types)
 
 ---
@@ -339,6 +339,45 @@ expression, so passing one to `Select(...)` is rejected rather than emitting an
 
 ---
 
+## Other Functions
+
+`Function(name, args...)` calls a function SqlArtisan has no factory for: a
+user-defined function, a schema or package function (`dbo.my_func`,
+`my_pkg.my_func`), or a built-in not listed above.
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(Function("printf", "%05d", u.Id))
+    .From(u)
+    .Build(Dbms.Sqlite);
+
+// SELECT printf(:0, id)
+// FROM users
+```
+
+The arguments resolve as in any other function: a value is bound, an expression
+is emitted, and a subquery becomes a scalar subquery. With no argument the call is
+`name()`. A bound value carries its C# type, and SqlArtisan does not know the
+function's signature, so where the engine picks among same-named functions by
+argument type, the C# type decides; pass a value of the wanted type, or name
+the type with `Cast(...)`. A string argument is always bound, so a function
+that needs a literal in that position cannot be called this way.
+
+The name is emitted as written. It must be ASCII identifiers joined by `.`, each
+starting with a letter or `_` and holding only letters, digits, `_` and `$`, so it
+cannot close the call, open a string or a comment, or end the statement; a quoted
+name (`"MyFunc"`, `[dbo].[my_func]`) is rejected. Any function of that shape can
+still be called, and a keyword such as `NOT` reads as that keyword, so take the
+name from a constant or an allowlist, never from request input. The analyzer does not know the
+function either, so no dialect check reaches it: whether the function exists on
+the target is the database's to report.
+
+The result is an expression, not a condition, so compare it inside a `WHERE`. It
+takes no `.Over(...)` or `.Filter(...)`, and the call no `DISTINCT`.
+
+---
+
 ## Bind Parameter Types
 
 SqlArtisan automatically converts C# literal values into bind parameters (to bind one explicitly instead — so its marker can be shared across clauses — use `Sql.Bind(value)`; see [GROUP BY and HAVING Clause](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#group-by-and-having-clause)). Supported types are as follows:
@@ -367,6 +406,6 @@ Two kinds of string never become a bind parameter, and they behave differently:
 > (observed on MySQL 8.0.46).
 > SqlArtisan writes MySQL literals for the default mode, so run these statements
 > in a session without it.
-- **Identifiers** — an alias (of a select item, a table, or a derived table: a subquery's `AsTable(...)`, `Values(...)`, `Unnest(...).AsTable(...)`, or a `DerivedTable` or other `DerivedTableBase` subclass), a CTE name, a table or column name (a CTE's or derived table's column list included), a `Cast(...)` target type, the sequence name in the Oracle (`Sequence("s").Nextval`) and SQL Server (`NextValueFor("s")`) spellings, and the `RETURNING ... INTO` output variable of an `OutputParameter`, whose name must start with a letter and hold only letters, digits, `_`, `$` and `#`. These are emitted **exactly as written**, with no escaping: a type name like `DECIMAL(10,2)` is not a name that could be quoted, and rewriting an alias you spelled would break the guarantee that the SQL you write is the SQL that runs. `Sql.Hints(...)` is not an identifier but behaves the same way — it is a raw-SQL escape hatch, emitted verbatim by definition.
+- **Identifiers** — an alias (of a select item, a table, or a derived table: a subquery's `AsTable(...)`, `Values(...)`, `Unnest(...).AsTable(...)`, or a `DerivedTable` or other `DerivedTableBase` subclass), a CTE name, a table or column name (a CTE's or derived table's column list included), a `Cast(...)` target type, the sequence name in the Oracle (`Sequence("s").Nextval`) and SQL Server (`NextValueFor("s")`) spellings, the `RETURNING ... INTO` output variable of an `OutputParameter`, whose name must start with a letter and hold only letters, digits, `_`, `$` and `#`, and the name of a `Function(...)` call, held to the shape [Other Functions](#other-functions) gives. These are emitted **exactly as written**, with no escaping: a type name like `DECIMAL(10,2)` is not a name that could be quoted, and rewriting an alias you spelled would break the guarantee that the SQL you write is the SQL that runs. `Sql.Hints(...)` is not an identifier but behaves the same way — it is a raw-SQL escape hatch, emitted verbatim by definition.
 
 So automatic parameterization prevents injection **through values**. Build identifiers from constants or an allowlist you control — never straight from request input.

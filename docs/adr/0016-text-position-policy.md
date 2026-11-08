@@ -111,7 +111,8 @@ scalar subquery's `As` alias, a CTE's name, and a derived table's name (a
 Oracle and SQL Server sequence name, the column list of a `Sql.Values(...)` or
 `Unnest(...).AsTable(...)` derived table (#679), the `RETURNING … INTO` output
 variable (whose name ADR 0011 restricts to an Oracle nonquoted identifier's
-shape, #679), and the `Sql.Hints` raw-SQL escape hatch — have no delimiter to
+shape, #679), the `Sql.Function(...)` name (restricted to ASCII identifiers
+joined by `.`, #794), and the `Sql.Hints` raw-SQL escape hatch — have no delimiter to
 escape *into*. The outcome would be half-escaped, which is worse than a stated
 contract because it invites the belief that the other half is covered too. A
 name that reads another definition — a CTE column-list entry, a reference

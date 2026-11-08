@@ -55,8 +55,8 @@ Decision principles distilled from the #225 expressibility triage
    common BCL static-utility type. When adding a new symbol operator, check
    which side it falls on before naming it.
 3. **Non-token helpers** (`ConditionIf`, `Hints`, `Group`, `Bind`,
-   `BindArray`, `Sequence`, `Asterisk`) — invented names are allowed *only*
-   here, for API affordances that correspond to no SQL token.
+   `BindArray`, `Sequence`, `Asterisk`, `Function`) — invented names are
+   allowed *only* here, for API affordances that correspond to no SQL token.
 
 Never invent a token-like name for a real construct: `CountAll()` was rejected
 (#233) because no `COUNT_ALL` token exists — `COUNT(*)` landed as
@@ -639,6 +639,16 @@ in order, the same order there, NULLs included; and a predicate in a value
 position (`Select(t.A == 1)`, `Coalesce(x, a > b)`), which SQLite 3.50.4 runs
 too, returns the values `Case(When(c).Then(true), When(Not(c)).Then(false))`
 returns on both, NULL included.
+
+**Not yet offered (#794):** `Sql.Function(name, args)` calls a function no
+factory covers, and these forms of a call have no spelling through it: a quoted
+or non-ASCII name, which its shape guard rejects (`guards-and-empty-states.md`);
+`OVER`, `FILTER` or `DISTINCT` on the call; a function written without
+parentheses; a literal argument, since a string is bound; a named-notation
+argument (`p => v`); `*` as an argument; and a table function in `FROM`. It
+returns `SqlExpression` (ADR 0027), so any of them comes as a factory or an
+overload of its own, never a member on the result. Its `MatrixKey` is
+`DbmsSupport.All`, as `Hints`'s is: the analyzer cannot know the named function.
 
 **Several `ON CONFLICT` clauses in one `INSERT` are not offered (decided —
 do not re-file):** SQLite runs `ON CONFLICT (id) DO UPDATE ... ON CONFLICT

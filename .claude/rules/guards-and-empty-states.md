@@ -137,7 +137,10 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   bind markers' namespace (release audit pass 5), or is not shaped as an Oracle
   nonquoted identifier (a letter, then letters, digits, `_`, `$` or `#`), since
   its marker ends at any other character (`"0 "` rendered `INTO :0 ` beside a
-  positional `:0`, #679); a `RETURNING ... INTO` variable list of another width
+  positional `:0`, #679); a `Function(...)` name that is not ASCII identifiers
+  joined by `.` (a letter or `_`, then letters, digits, `_` or `$`), since it
+  renders bare and another character could close the call or open a string or a
+  comment — MySQL starts one at `#` (#794); a `RETURNING ... INTO` variable list of another width
   than its `RETURNING` list; one naming a variable twice, since the parameters
   are keyed by name; and an unnamed variable, which `default(OutputParameter)`
   reaches past the constructor (#679).
@@ -193,9 +196,10 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   count — non-negative, the only `FOR UPDATE WAIT` domain Oracle (the sole
   engine with the clause) parses, live-verified at 21c and 23ai (#483); a
   whitespace-only string in a bare-token position — the `CAST` target type,
-  the `NEXT VALUE FOR` sequence name, a `DbColumn` name — invalid on every
-  dialect, while a quoted or literal position keeps accepting whitespace
-  (an `IntervalLiteral` value aside, #669; the bare-token boundary below, gated by
+  the `NEXT VALUE FOR` sequence name, a `DbColumn` name, a `Function(...)`
+  name — invalid on every dialect, while a quoted or literal position keeps
+  accepting whitespace (an `IntervalLiteral` value aside, #669; the bare-token
+  boundary below, gated by
   the factory sweep's whitespace injection; release audit pass 2); a cast-in
   undefined `DateTimePart` value
   (`ArgumentOutOfRangeException` at the factory call, naming the construct

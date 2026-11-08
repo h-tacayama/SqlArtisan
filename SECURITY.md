@@ -36,9 +36,13 @@ derived table: a subquery's `AsTable(...)`, `Sql.Values(...)`,
 `Unnest(...).AsTable(...)`, or a `DerivedTable` or other `DerivedTableBase`
 subclass), a CTE name, a table or column name (a CTE's or derived table's
 column list included), a `CAST` target type, a sequence name in the Oracle
-(`s.NEXTVAL`) and SQL Server (`NEXT VALUE FOR s`) spellings, and the
+(`s.NEXTVAL`) and SQL Server (`NEXT VALUE FOR s`) spellings, the
 `RETURNING ... INTO` output variable of an `OutputParameter`, whose name must
-start with a letter and hold only letters, digits, `_`, `$` and `#`. These
+start with a letter and hold only letters, digits, `_`, `$` and `#`, and the
+name of a `Sql.Function(...)` call, whose shape (ASCII identifiers joined by
+`.`, each a letter or `_` followed by letters, digits, `_` and `$`) keeps it
+from closing the call, opening a string or a comment, or ending the statement,
+though any function or keyword of that shape is read as one. These
 carry tokens you wrote, so the library neither escapes nor sanitizes them; the
 SQL you write is the SQL that runs. The same holds for `Sql.Hints`, which is not
 an identifier but a raw-SQL escape hatch — emitted verbatim by definition.

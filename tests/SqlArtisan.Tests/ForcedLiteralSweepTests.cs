@@ -151,6 +151,7 @@ public class ForcedLiteralSweepTests
         ["QuantifiedSubquery.op_Addition(QuantifiedSubquery, String) :: rightSide"] = "rejected",
         ["QuantifiedSubquery.op_Addition(String, QuantifiedSubquery) :: leftSide"] = "rejected",
         ["Sql.Cast(Object, String) :: type"] = "identifier",
+        ["Sql.Function(String, Object[]) :: name"] = "identifier",
         ["Sql.Hints(String) :: hints"] = "raw",
         ["Sql.NextValueFor(String) :: sequenceName"] = "identifier",
         ["Sql.Sequence(String) :: name"] = "identifier",
