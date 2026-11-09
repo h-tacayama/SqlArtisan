@@ -565,22 +565,16 @@ reading, after measuring:
 `COUNT(*)` sat on the other side of that line: the library had no spelling
 for it (#233).
 
-**A value of the caller's own type binds through `new BindValue(value)`
-(decided — do not re-file):** a value position resolves only the types
-`docs/functions.md` § Bind Parameter Types lists and throws at the call for any
-other. The list stops a slip at the call: a collection an execution layer
-expands into an `IN` list (§ One namespace, `BindArrayValue`), which bound
-would surface only at execution, or a method group missing its parentheses,
-which CS8974 only warns on. `byte[]` stays off it besides, since `In(...)`
-reads an array per element (#669). `new BindValue(value)` takes any .NET value and hands it on as
-it is, where a Dapper type handler converts a value object (SQLite, live,
-#793). A converter registry or an
-interface for value types would add a conversion hook beside the execution
-layer's for a query already writable, so neither is offered (ADR 0010). An
-analyzer report of such a value is left out too: `SQLA0300` stands in for a
-guard whose unguarded statement runs silently wrong (ADR 0014), while this
-value fails loudly on every path, at the call or, bound with no handler, in
-the execution layer.
+**A value of the caller's own type binds through `new BindValue(value)`:** a
+value position resolves only the types `docs/functions.md` § Bind Parameter
+Types lists and throws at the call for any other, so the list stops a slip,
+such as a collection or a method group missing its parentheses, at the call.
+`new BindValue(value)` hands any .NET value on as it is, to bind where the
+execution layer converts it (a Dapper type handler, SQLite, live, #793).
+Binding a value object as written (`c.Id == id`) is open in #810. An analyzer
+report of such a value is not offered: `SQLA0300` stands in for a guard whose
+unguarded statement runs silently wrong (ADR 0014), while this value fails
+loudly at the call.
 
 **Not yet offered (#582):** the A3 review found these DML forms with no
 spelling here. Each would be a new member, overload or factory, which
