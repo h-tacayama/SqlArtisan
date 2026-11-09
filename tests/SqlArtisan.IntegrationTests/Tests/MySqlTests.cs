@@ -1684,6 +1684,15 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             Select(u.Name + u.Name).From(u).Where(u.Id == 1)));
     }
 
+    [Fact]
+    public void Probe810_MySqlData()
+    {
+        using MySql.Data.MySqlClient.MySqlConnection connection =
+            new(_fixture.ConnectionString + ";AllowPublicKeyRetrieval=True");
+        connection.Open();
+        Assert.Fail(Probe810.Run(connection, Dbms.MySql));
+    }
+
     // #767: DbmsResolver registers MySql.Data too, so the ?n markers bind through it, ?1
     // apart from ?10.
     [Fact]

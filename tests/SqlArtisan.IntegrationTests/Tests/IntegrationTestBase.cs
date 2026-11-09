@@ -30,6 +30,13 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public void Probe810_UnknownTypeValue()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        Assert.Fail(Probe810.Run(connection, _fixture.Dbms));
+    }
+
+    [Fact]
     public void SelectWhere_FiltersAndBindsParameter()
     {
         UsersTable u = new();
