@@ -568,11 +568,11 @@ for it (#233).
 **A value of the caller's own type binds through `new BindValue(value)`
 (decided — do not re-file):** a value position resolves only the types
 `docs/functions.md` § Bind Parameter Types lists and throws at the call for any
-other. The list catches a slip there — a method group missing its parentheses,
-a collection an execution layer expands into an `IN` list (§ One namespace,
-`BindArrayValue`) — which, bound, would surface only at execution or in the
-provider; `byte[]` stays off it besides, since `In(...)` reads an array per
-element (#669). `new BindValue(value)` takes any .NET value and hands it on as
+other. The list stops a slip at the call: a collection an execution layer
+expands into an `IN` list (§ One namespace, `BindArrayValue`), which bound
+would surface only at execution, or a method group missing its parentheses,
+which CS8974 only warns on. `byte[]` stays off it besides, since `In(...)`
+reads an array per element (#669). `new BindValue(value)` takes any .NET value and hands it on as
 it is, where a Dapper type handler converts a value object (SQLite, live,
 #793). A converter registry or an
 interface for value types would add a conversion hook beside the execution
