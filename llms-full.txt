@@ -4736,7 +4736,7 @@ none of the branches select the column. SQLite and SQL Server sort by such a key
 every branch selects it in the same position, so the rule leaves them out. Order
 by the column's select-list position (`OrderBy(2)`) or by an alias the first
 branch gives it (`.As(...)`) instead. The rule reads `Union` and `UnionAll`
-only, and reports only a key it can prove qualified; every other shape stays
+only, and reports only a key it reads as qualified; every other shape stays
 silent. A table's column, for example, reports only where the rule can trace
 the table's alias to a constant, as `SQLA0300` traces an empty one. The rule
 tells a column's relation by the type of the variable it is read through, so a

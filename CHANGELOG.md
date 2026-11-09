@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   marks the call supported on every dialect. (#794)
 - `SQLA0102` reports an `OrderBy(...)` key after `Union` or `UnionAll` that renders
   qualified (a column of a CTE, a derived table, or a table whose alias it can
-  trace), on MySQL, Oracle and PostgreSQL, which reject it. It tells a column's
+  trace), on MySQL, Oracle and PostgreSQL, which reject it (observed on MySQL 8.0,
+  Oracle XE 21.3.0 and Free 23ai, and PostgreSQL 16 and 17). It tells a column's
   relation by the variable it is read through, so a class exposing another
   relation's `DbColumn` can report though it renders bare. (#800)
 
