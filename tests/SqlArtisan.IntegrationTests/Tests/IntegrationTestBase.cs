@@ -208,9 +208,8 @@ public abstract class IntegrationTestBase
         return joined.Select(o.Id).From(o).Where(o.Id == 1);
     }
 
-    // Users 1 (age 30) and 4 (age 25) as UNION [ALL] branches over a qualified source: an
-    // age sort gives [4, 1], branch or id order [1, 4] (#792). "position" differs from the
-    // qualified keys only in its key; "alias" also aliases the first branch's age, and
+    // Users 1 (age 30) and 4 (age 25) as UNION [ALL] branches over a qualified source: an age
+    // sort gives [4, 1], id order [1, 4] (#792). "alias" aliases the first branch's age;
     // "onebranch" and "shifted" sort by an age the second branch omits or moves (#800).
     internal static ISelectBuilderOrderBy CompoundOverSource(
         string source,

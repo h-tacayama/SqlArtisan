@@ -600,8 +600,9 @@ column of an aliased table, a CTE or a derived table there emits a qualified nam
 branch selects the column in the same position and when no branch selects it, and SQLite
 3.50.4 and SQL Server 2022 run some such keys. On every one of them, order by a
 select-list position (`OrderBy(2)`) or by an alias the first branch selects (`.As(...)`)
-instead. With the analyzer on, `SQLA0102` reports such a key on MySQL,
-Oracle and PostgreSQL where it can prove the key qualified ([context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102)).
+instead. With the analyzer on, `SQLA0102` reports such keys on MySQL,
+Oracle and PostgreSQL; its [context rule](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102)
+says which it can tell.
 
 > [!NOTE]
 > **`Minus` after an unaliased table on SQL Server subtracts nothing.** SQL Server 2022 runs

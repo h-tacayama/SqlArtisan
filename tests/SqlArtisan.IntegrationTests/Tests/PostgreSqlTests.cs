@@ -1936,9 +1936,9 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(1, connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1))));
     }
 
-    // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified
-    // column here, when every branch selects it in the same position, when none does,
-    // and when one branch omits or moves it (PostgreSQL 16; the last two for SQLA0102, #800).
+    // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified column
+    // here whether every branch, none or one selects it, in one place or not (PostgreSQL 16);
+    // the partial keys are SQLA0102's twin (#800).
     [Theory]
     [InlineData("table", false)]
     [InlineData("table", true)]

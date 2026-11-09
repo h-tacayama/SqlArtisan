@@ -858,8 +858,8 @@ var q = Select(u.Id).From(u).Where(u.Id.In(Select(o.UserId).From(o).OrderBy(o.Us
 
 **`ORDER BY` with a qualified column after `UNION`.** After `Union` or
 `UnionAll`, MySQL, Oracle and PostgreSQL reject a sort key qualified by a table
-alias, a CTE or a derived table (`"u".age`, `"c".age`), whether every branch
-selects the column or none does. SQLite and SQL Server sort by such a key when
+alias, a CTE or a derived table (`"u".age`, `"c".age`), whether all, some or
+none of the branches select the column. SQLite and SQL Server sort by such a key when
 every branch selects it in the same position, so the rule leaves them out. Order
 by the column's select-list position (`OrderBy(2)`) or by an alias the first
 branch gives it (`.As(...)`) instead. The rule reads `Union` and `UnionAll`
@@ -1071,10 +1071,12 @@ itself. For the nineteen that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the
-matrix follows. The exceptions are the two that tell a column's relation by the
-variable it is read through, as `SQLA0300` does — the joined table in a SQLite
-`RETURNING` and the `UNION` sort key — which can report a class exposing another
-relation's `DbColumn`, as their paragraphs say.
+matrix follows. The rules are not free of false positives, though. They read no
+control flow, so a construct under `ConditionIf(false, ...)` or in an untaken
+`?:` arm reports though it never renders. And the two that tell a column's
+relation by the variable it is read through, as `SQLA0300` does — the joined
+table in a SQLite `RETURNING` and the `UNION` sort key — can report a class
+exposing another relation's `DbColumn`, as their paragraphs say.
 The absence side is equally strict: `Grouping` warns only when the chain
 shows a call *after* `.GroupBy(...)` that isn't `.WithRollup()` — from that
 point the builder's type can never accept the suffix — and a chain that

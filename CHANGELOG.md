@@ -12,9 +12,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   The name must be ASCII identifiers joined by `.`, so it cannot close the call,
   open a string or a comment, or end the statement. The analyzer's dialect matrix
   marks the call supported on every dialect. (#794)
-- `SQLA0102` reports an `OrderBy(...)` key after `Union` or `UnionAll` that it can
-  prove qualified (a column of an aliased table, a CTE or a derived table), on
-  MySQL, Oracle and PostgreSQL, which reject the qualified key. (#800)
+- `SQLA0102` reports an `OrderBy(...)` key after `Union` or `UnionAll` that renders
+  qualified (a column of a CTE, a derived table, or a table whose alias it can
+  trace), on MySQL, Oracle and PostgreSQL, which reject it. It tells a column's
+  relation by the variable it is read through, so a class exposing another
+  relation's `DbColumn` can report though it renders bare. (#800)
 
 ### Changed
 - **Breaking:** TableClassGen's `--check` and `--fix` fail with exit code `2`

@@ -1739,10 +1739,9 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Null(connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1)).From(Dual)));
     }
 
-    // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified
-    // column here, when every branch selects it in the same position, when none does,
-    // and when one branch omits or moves it (ORA-00904 on XE 21.3.0; the last two for
-    // SQLA0102, #800).
+    // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified column
+    // here whether every branch, none or one selects it, in one place or not (ORA-00904 on
+    // XE 21.3.0); the partial keys are SQLA0102's twin (#800).
     [Theory]
     [InlineData("table", false)]
     [InlineData("table", true)]
