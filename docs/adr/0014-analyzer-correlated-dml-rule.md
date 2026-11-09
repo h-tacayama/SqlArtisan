@@ -114,8 +114,9 @@ column's run-time owner, so a table class exposing another instance's
 `DbColumn` (`public DbColumn OrderId => _o.Id;`) reports on code that
 builds when `_o` is aliased or the subquery lists it (an unaliased `_o` the
 subquery does not list throws since #677); TableClassGen emits columns owned
-by their own instance. `SQLA0102`'s `UNION` sort-key rule shares the case: such
-a column reports there though it may render bare. The walk
+by their own instance. Two `SQLA0102` rules share the case: the joined table in
+a SQLite `RETURNING` reports such a column though it may be the target's, and
+the `UNION` sort key though it may render bare. The walk
 is also flow-insensitive: a correlated subquery under `ConditionIf(false,
 …)` or in an untaken `?:` arm reports though it never renders. So the rule
 fails toward silence where it cannot prove a shape, but it is not free of

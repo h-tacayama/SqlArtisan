@@ -911,7 +911,10 @@ target alone, so a column of a table an `UPDATE`'s `From(...)` joins is not
 available there: SQLite 3.50.4 rejects it, or can read the target's column
 instead, for example when the joined table is unaliased. `Build(Dbms.Sqlite)`
 throws for such a column at the `RETURNING` list's own level, so the rule
-reports before the build what the build rejects. The rule reads a joined
+reports before the build what the build rejects. The rule tells the column's
+table by the variable it is read through, as `SQLA0300` does, while the build
+reads the column's owner, so a table class exposing another table's `DbColumn`
+reports though the build accepts it. The rule reads a joined
 table it can identify, a local or a readonly field read through `this` or
 statically, on the `UPDATE ... FROM` chain `Returning(...)` is written on, so it
 stays silent on other shapes, such as a
@@ -1072,9 +1075,10 @@ itself. For the nineteen that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the
-matrix follows. The one exception is the `UNION` sort-key rule, which also reads
-the declaration proving a table's alias and so shares the false positive its
-paragraph names.
+matrix follows. The exceptions are the two that tell a table by the variable its
+column is read through, as `SQLA0300` does — the joined table in a SQLite
+`RETURNING` and the `UNION` sort key — which share its false positive, named in
+their paragraphs.
 The absence side is equally strict: `Grouping` warns only when the chain
 shows a call *after* `.GroupBy(...)` that isn't `.WithRollup()` — from that
 point the builder's type can never accept the suffix — and a chain that

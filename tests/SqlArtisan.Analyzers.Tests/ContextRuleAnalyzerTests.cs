@@ -1433,7 +1433,7 @@ public class ContextRuleAnalyzerTests
         var q = Select(Asterisk).From(Select(t.Id).From(t).Union.Select(s.Id).From(s)
             .OrderBy({|#0:Values("v", ["id"], [[1]]).Column("id")|}).AsTable("z"));
         """)]
-    public Task QualifiedKeyAfterUnion_CteOrDerivedTable_PostgreSql_ReportsSqla0102(
+    public Task QualifiedKeyAfterUnion_PostgreSql_CteOrDerivedTable_ReportsSqla0102(
         string statements) =>
         RunReporting(statements, "postgresql");
 
