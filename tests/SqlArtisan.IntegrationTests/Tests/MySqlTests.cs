@@ -1452,8 +1452,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     }
 
     // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified
-    // column here, both when every branch selects it in the same position and when none
-    // does (MySQL 8.0).
+    // column here, when every branch selects it in the same position, when none does,
+    // and when one branch omits or moves it (MySQL 8.0; the last two for SQLA0102, #800).
     [Theory]
     [InlineData("table", false)]
     [InlineData("table", true)]
@@ -1472,6 +1472,12 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         Assert.Contains("cannot be used in global ORDER clause", selected.Message);
         Assert.Contains("cannot be used in global ORDER clause", unselected.Message);
+        foreach (string partialKey in new[] { "onebranch", "shifted" })
+        {
+            DbException partial = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+                CompoundOverSource(source, union, partialKey)).ToList());
+            Assert.Contains("cannot be used in global ORDER clause", partial.Message);
+        }
     }
 
     // docs/query-statements.md: INTERSECT binds tighter than UNION and EXCEPT here.

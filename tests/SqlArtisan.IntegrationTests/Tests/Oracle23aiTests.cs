@@ -707,6 +707,12 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
 
         Assert.Contains("ORA-00904", selected.Message);
         Assert.Contains("ORA-00904", unselected.Message);
+        foreach (string partialKey in new[] { "onebranch", "shifted" })
+        {
+            DbException partial = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+                IntegrationTestBase.CompoundOverSource(source, union, partialKey)).ToList());
+            Assert.Contains("ORA-00904", partial.Message);
+        }
         Assert.Equal(
             new[] { 4, 1 },
             connection.Query<int>(

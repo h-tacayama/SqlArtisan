@@ -114,6 +114,12 @@ public sealed class PostgreSql17Tests : IClassFixture<PostgreSql17Fixture>
 
         Assert.Contains("missing FROM-clause entry", selected.Message);
         Assert.Contains("missing FROM-clause entry", unselected.Message);
+        foreach (string partialKey in new[] { "onebranch", "shifted" })
+        {
+            DbException partial = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+                IntegrationTestBase.CompoundOverSource(source, union, partialKey)).ToList());
+            Assert.Contains("missing FROM-clause entry", partial.Message);
+        }
         Assert.Equal(
             new[] { 4, 1 },
             connection.Query<int>(

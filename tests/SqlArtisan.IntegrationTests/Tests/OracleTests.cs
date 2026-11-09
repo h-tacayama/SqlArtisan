@@ -1740,8 +1740,9 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     }
 
     // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified
-    // column here, both when every branch selects it in the same position and when none
-    // does (ORA-00904 on XE 21.3.0).
+    // column here, when every branch selects it in the same position, when none does,
+    // and when one branch omits or moves it (ORA-00904 on XE 21.3.0; the last two for
+    // SQLA0102, #800).
     [Theory]
     [InlineData("table", false)]
     [InlineData("table", true)]
@@ -1760,6 +1761,12 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         Assert.Contains("ORA-00904", selected.Message);
         Assert.Contains("ORA-00904", unselected.Message);
+        foreach (string partialKey in new[] { "onebranch", "shifted" })
+        {
+            DbException partial = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+                CompoundOverSource(source, union, partialKey)).ToList());
+            Assert.Contains("ORA-00904", partial.Message);
+        }
     }
 
     // docs/query-statements.md: set operators apply left to right here, so a

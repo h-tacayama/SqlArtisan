@@ -210,7 +210,8 @@ public abstract class IntegrationTestBase
 
     // Users 1 (age 30) and 4 (age 25) as UNION [ALL] branches over a qualified source: an
     // age sort gives [4, 1], branch or id order [1, 4] (#792). "position" differs from the
-    // qualified keys only in its key; "alias" also aliases the first branch's age.
+    // qualified keys only in its key; "alias" also aliases the first branch's age, and
+    // "onebranch" and "shifted" sort by an age the second branch omits or moves (#800).
     internal static ISelectBuilderOrderBy CompoundOverSource(
         string source,
         bool union,
@@ -236,12 +237,18 @@ public abstract class IntegrationTestBase
             : Select(id, firstAge);
         ISelectBuilderWhere first = head.From(from).Where(id == 1);
         ISelectBuilderSetOperator joined = union ? first.Union : first.UnionAll;
-        ISelectBuilderWhere second = joined.Select(id, age).From(from).Where(id == 4);
+        object[] secondItems = key switch
+        {
+            "onebranch" => [id, id],
+            "shifted" => [age, id],
+            _ => [id, age],
+        };
+        ISelectBuilderWhere second = joined.Select(secondItems).From(from).Where(id == 4);
         return key switch
         {
             "position" => second.OrderBy(2),
             "alias" => second.OrderBy(ageAlias),
-            "selected" => second.OrderBy(age),
+            "selected" or "onebranch" or "shifted" => second.OrderBy(age),
             "unselected" => second.OrderBy(name),
             _ => throw new ArgumentOutOfRangeException(nameof(key), key, null),
         };
