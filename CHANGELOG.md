@@ -12,9 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   The name must be ASCII identifiers joined by `.`, so it cannot close the call,
   open a string or a comment, or end the statement. The analyzer's dialect matrix
   marks the call supported on every dialect. (#794)
-- `SQLA0102` reports an `OrderBy(...)` after `Union` or `UnionAll` given a column
-  of an aliased table, a CTE or a derived table, on MySQL, Oracle and PostgreSQL,
-  which reject the qualified key. (#800)
+- `SQLA0102` reports an `OrderBy(...)` key after `Union` or `UnionAll` that it can
+  prove qualified (a column of an aliased table, a CTE or a derived table), on
+  MySQL, Oracle and PostgreSQL, which reject the qualified key. (#800)
 
 ### Changed
 - **Breaking:** TableClassGen's `--check` and `--fix` fail with exit code `2`
@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   generation into a new folder runs without `--fix`. (#796)
 
 ### Docs
+- `docs/analyzer.md` says that `SQLA0102`'s rule for a joined table in a SQLite
+  `RETURNING` reports a table class exposing the target's `DbColumn`, though
+  `Build(Dbms.Sqlite)` accepts it, since the rule tells a column's table by the
+  variable it is read through. (#800)
 - `docs/analyzer.md` says that `SQLA0204` does not read a column passed in a
   `params` argument list, such as `Greatest(t.Key, x)` or
   `Function("lower", t.Key)`.

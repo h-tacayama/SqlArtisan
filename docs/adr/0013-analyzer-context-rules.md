@@ -49,7 +49,10 @@ reported under a new diagnostic ID `SQLA0102`, registered from the same
   ADR 0014's alias trace.
 - **Establishment discipline (the ADR 0003 extension).** A rule reports only
   when the context is proven from the same expression, and each direction
-  has its own proof obligation:
+  has its own proof obligation. Two rules that tell a column's relation by the
+  variable it is read through (the joined table in a SQLite `RETURNING`, the
+  `UNION` sort key) can report a class exposing another relation's `DbColumn`;
+  ADR 0014 and `docs/analyzer.md` record the case:
   - *Presence* (the `Limit` rule): the chain is walked to the argument edge,
     and the bound parameter's type (`ISubquery`) plus the host member name
     identify the position — the overload that actually bound, not a guess.
