@@ -572,9 +572,8 @@ such as a collection or a method group missing its parentheses, at the call.
 `new BindValue(value)` hands any .NET value on as it is, to bind where the
 execution layer converts it (a Dapper type handler, SQLite, live, #793).
 Binding a value object as written (`c.Id == id`) is open in #810. An analyzer
-report of such a value is not offered: it would track every value position
-the core resolves, where the `INTERVAL` rule tracks one member, to move a throw
-that already names the type at the call into the editor (#793).
+report of such a value is not offered: the throw already lands at the call and
+names the type (#793).
 
 **Not yet offered (#582):** the A3 review found these DML forms with no
 spelling here. Each would be a new member, overload or factory, which
