@@ -565,6 +565,18 @@ reading, after measuring:
 `COUNT(*)` sat on the other side of that line: the library had no spelling
 for it (#233).
 
+**A value of the caller's own type binds through `new BindValue(value)`
+(decided — do not re-file):** a value position resolves only the types
+`docs/functions.md` § Bind Parameter Types lists and throws at the call for any
+other, since an unknown type there may be a collection an execution layer
+expands into an `IN` list (`byte[]`'s reason, #669). `new BindValue(value)`
+takes any .NET value and hands it on as it is, where a Dapper type handler
+converts a value object (SQLite, live, #793). A converter registry or an
+interface for value types would add a conversion hook beside the execution
+layer's for a query already writable, so neither is offered (ADR 0010). An
+analyzer report of such a value is left out too: the throw comes at the call,
+so the first run of the code that writes the statement finds it.
+
 **Not yet offered (#582):** the A3 review found these DML forms with no
 spelling here. Each would be a new member, overload or factory, which
 `docs/versioning.md` counts as a minor change, and one is added when a user
