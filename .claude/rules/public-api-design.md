@@ -577,8 +577,10 @@ it is, where a Dapper type handler converts a value object (SQLite, live,
 #793). A converter registry or an
 interface for value types would add a conversion hook beside the execution
 layer's for a query already writable, so neither is offered (ADR 0010). An
-analyzer report of such a value is left out too: the throw comes at the call,
-so the first run of the code that writes the statement finds it.
+analyzer report of such a value is left out too: `SQLA0300` stands in for a
+guard whose unguarded statement would change every row (ADR 0014), while this
+value fails loudly on every path, at the call or, bound with no handler, in
+the execution layer.
 
 **Not yet offered (#582):** the A3 review found these DML forms with no
 spelling here. Each would be a new member, overload or factory, which

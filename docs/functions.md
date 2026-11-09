@@ -391,7 +391,7 @@ That list is what SqlArtisan accepts as a bind value; whether a value reaches th
 
 A `byte[]` is not in the list: `In(...)` reads an array as one value per element, so bind binary data with `new BindValue(bytes)`.
 
-A type of your own, such as a value object wrapping an id, binds the same way: `c.Id == new BindValue(customerId)`. SqlArtisan hands the value to the execution layer as it is, so that layer converts it; through `SqlArtisan.Dapper`, register a Dapper type handler for the type with `Dapper.SqlMapper.AddTypeHandler`.
+A type of your own, such as a value object wrapping an id, binds the same way: `c.Id == new BindValue(customerId)`. SqlArtisan hands the value to the execution layer as it is, so that layer converts it; through `SqlArtisan.Dapper`, derive a handler from `Dapper.SqlMapper.TypeHandler<T>` and register it with `Dapper.SqlMapper.AddTypeHandler`.
 
 `Sql.Bind(value)` rejects `null` and `DBNull.Value`. For a bound `NULL`, use `Sql.BindNull()`: `Sql.Null` inlines the `NULL` keyword into the SQL text — as does a bare C# `null` in a `VALUES` row, the one position that takes one; anywhere else it throws — while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
 
