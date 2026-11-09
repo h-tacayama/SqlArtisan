@@ -1936,9 +1936,9 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(1, connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1))));
     }
 
-    // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified
-    // column here, both when every branch selects it in the same position and when none
-    // does (PostgreSQL 16).
+    // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified column
+    // here whether every branch, none or one selects it, in one place or not (PostgreSQL 16);
+    // the partial keys are SQLA0102's twin (#800).
     [Theory]
     [InlineData("table", false)]
     [InlineData("table", true)]
@@ -1957,6 +1957,23 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
 
         Assert.Contains("missing FROM-clause entry", selected.Message);
         Assert.Contains("missing FROM-clause entry", unselected.Message);
+        foreach (string partialKey in new[] { "onebranch", "shifted" })
+        {
+            DbException partial = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+                CompoundOverSource(source, union, partialKey)).ToList());
+            Assert.Contains("missing FROM-clause entry", partial.Message);
+        }
+    }
+
+    // SQLA0102 reports a key of the outer query after UNION too (#800); the position runs.
+    [Fact]
+    public void CompoundOrderBy_OuterQueryColumn_IsRejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query(
+            CompoundOrderedByOuterColumn("outer", false)).ToList());
+        Assert.Single(connection.Query(CompoundOrderedByOuterColumn("position", false)));
     }
 
     // docs/query-statements.md: INTERSECT binds tighter than UNION and EXCEPT here.

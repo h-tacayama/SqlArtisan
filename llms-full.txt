@@ -1045,11 +1045,12 @@ lists each one, and the analyzer reports it against a declared target version.
 
 An `OrderBy(...)` after a `Union` or `UnionAll` branch sorts the combined result. A
 column of an aliased table, a CTE or a derived table there emits a qualified name
-(`"u".name`). MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16 reject it both when every
-branch selects the column in the same position and when no branch selects it, and SQLite
+(`"u".name`). MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16 reject it whether all,
+some or none of the branches select the column, in one position or not, and SQLite
 3.50.4 and SQL Server 2022 run some such keys. On every one of them, order by a
 select-list position (`OrderBy(2)`) or by an alias the first branch selects (`.As(...)`)
-instead.
+instead. With the analyzer on, `SQLA0102` reports such keys on MySQL, Oracle and
+PostgreSQL ([context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102)).
 
 > [!NOTE]
 > **`Minus` after an unaliased table on SQL Server subtracts nothing.** SQL Server 2022 runs
@@ -4522,7 +4523,7 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. In all, 25 rules ship today — eighteen reading
+expression where the construct is used. In all, 26 rules ship today — nineteen reading
 the construct's surroundings, seven reading the DML statement a clause sits in.
 Every rejection below is live-verified on the pinned lanes — MySQL 8.0, Oracle
 XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022, the Oracle floors on
@@ -4727,6 +4728,28 @@ var q = Select(u.Id).From(u).Where(u.Id.In(Select(o.UserId).From(o).OrderBy(o.Us
 // warning SQLA0102: 'OrderBy' is not supported in a subquery without a row limit on SQL Server
 ```
 
+**`ORDER BY` with a qualified column after `UNION`.** After `Union` or
+`UnionAll`, MySQL, Oracle and PostgreSQL reject a sort key qualified by a table
+alias, a CTE or a derived table (`"u".age`, `"c".age`), whether all, some or
+none of the branches select the column. SQLite and SQL Server sort by such a key when
+every branch selects it in the same position, so the rule leaves them out. Order
+by the column's select-list position (`OrderBy(2)`) or by an alias the first
+branch gives it (`.As(...)`) instead. The rule reads `Union` and `UnionAll`
+only, and reports only a key it reads as qualified; every other shape stays
+silent. A table's column, for example, reports only where the rule can trace
+the table's alias to a constant, as `SQLA0300` traces an empty one. The rule
+tells a column's relation by the type of the variable it is read through, so a
+class exposing another relation's `DbColumn` (a table, CTE or derived-table
+class) reports, though that column may render bare.
+
+```csharp
+// sqlartisan_syntax_postgresql = any
+UsersTable u = new("u");
+UsersTable v = new("v");
+var q = Select(u.Id, u.Age).From(u).Union.Select(v.Id, v.Age).From(v).OrderBy(u.Age);
+// warning SQLA0102: 'OrderBy' is not supported with a qualified column after a UNION on PostgreSQL
+```
+
 **`RETURNING` without `INTO`.** Oracle takes `RETURNING` only as
 `RETURNING ... INTO`, binding each returned value to an output variable; with no
 `INTO` the statement is rejected. PostgreSQL and SQLite take a bare
@@ -4756,7 +4779,10 @@ target alone, so a column of a table an `UPDATE`'s `From(...)` joins is not
 available there: SQLite 3.50.4 rejects it, or can read the target's column
 instead, for example when the joined table is unaliased. `Build(Dbms.Sqlite)`
 throws for such a column at the `RETURNING` list's own level, so the rule
-reports before the build what the build rejects. The rule reads a joined
+reports before the build what the build rejects. The rule tells the column's
+table by the variable it is read through, as `SQLA0300` does, while the build
+reads the column's owner, so a table class exposing the target's `DbColumn`
+reports though the build accepts it. The rule reads a joined
 table it can identify, a local or a readonly field read through `this` or
 statically, on the `UPDATE ... FROM` chain `Returning(...)` is written on, so it
 stays silent on other shapes, such as a
@@ -4913,11 +4939,14 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the eighteen that read the construct's surroundings, any shape the
+itself. For the nineteen that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the
-matrix follows.
+matrix follows. They are not free of false positives, though: they read no
+control flow, so a construct under `ConditionIf(false, ...)` or in an untaken
+`?:` arm reports though it never renders, and two of them name another in their
+paragraphs.
 The absence side is equally strict: `Grouping` warns only when the chain
 shows a call *after* `.GroupBy(...)` that isn't `.WithRollup()` — from that
 point the builder's type can never accept the suffix — and a chain that

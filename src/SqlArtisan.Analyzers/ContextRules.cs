@@ -648,6 +648,142 @@ internal static class ContextRules
             names));
     }
 
+    /// <summary>
+    /// After <c>UNION</c> / <c>UNION ALL</c>, MySQL 8.0, Oracle XE 21.3.0 and Free 23ai, and
+    /// PostgreSQL 16 and 17 reject a sort key qualified by a table alias, a CTE or a derived
+    /// table, whichever branches select the column. Live twins on those lanes.
+    /// </summary>
+    public static void CheckQualifiedKeyAfterUnion(
+        OperationAnalysisContext context, IInvocationOperation orderBy, string dialectNames)
+    {
+        if (orderBy.Instance is null || !FollowsUnionsOnly(orderBy))
+        {
+            return;
+        }
+
+        foreach (IArgumentOperation argument in orderBy.Arguments)
+        {
+            // An array the caller built holds keys the rule cannot see.
+            if (UnwrapConversions(argument.Value) is not IArrayCreationOperation
+                { Initializer: { } initializer })
+            {
+                continue;
+            }
+
+            foreach (IOperation element in initializer.ElementValues)
+            {
+                IOperation key = UnwrapSortOrder(UnwrapConversions(element));
+                if (IsQualifiedColumn(context.Compilation, key))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        DiagnosticDescriptors.ContextRestrictedConstruct,
+                        element.Syntax.GetLocation(),
+                        "OrderBy",
+                        "with a qualified column after a UNION",
+                        dialectNames));
+                }
+            }
+        }
+    }
+
+    // Every set operator up to the query's head is UNION or UNION ALL, and one is: the
+    // other operators have no twins. A chain the walk cannot follow to its head is silent.
+    private static bool FollowsUnionsOnly(IInvocationOperation orderBy)
+    {
+        bool union = false;
+        IInvocationOperation? cursor = orderBy;
+        while (cursor is not null)
+        {
+            if (cursor.Instance is { } instance
+                && UnwrapConversions(instance) is IPropertyReferenceOperation
+                {
+                    Property: { Type.Name: "ISelectBuilderSetOperator" } property,
+                    Instance: { } left,
+                }
+                && DialectUsageAnalyzer.IsFromSqlArtisan(property.ContainingAssembly))
+            {
+                if (property.Name is not ("Union" or "UnionAll"))
+                {
+                    return false;
+                }
+
+                union = true;
+                cursor = UnwrapConversions(left) as IInvocationOperation;
+                continue;
+            }
+
+            if (cursor.Instance is null)
+            {
+                return union && DialectUsageAnalyzer.IsFromSqlArtisan(
+                    cursor.TargetMethod.ContainingAssembly);
+            }
+
+            cursor = ChainChild(cursor);
+        }
+
+        return false;
+    }
+
+    // Asc, Desc, NullsFirst and NullsLast are properties returning a SortOrder of their
+    // receiver, which still renders the column.
+    private static IOperation UnwrapSortOrder(IOperation key)
+    {
+        while (key is IPropertyReferenceOperation { Type.Name: "SortOrder", Instance: { } inner }
+            && DialectUsageAnalyzer.IsFromSqlArtisan(key.Type.ContainingAssembly))
+        {
+            key = UnwrapConversions(inner);
+        }
+
+        return key;
+    }
+
+    // A CTE's or a derived table's own column renders its required name; the owner is read
+    // from the variable's type, so a subclass exposing another relation's column reports
+    // too (docs/analyzer.md). A table's column needs a provable alias.
+    private static bool IsQualifiedColumn(Compilation compilation, IOperation key)
+    {
+        if (key.Type is not { Name: "DbColumn" } type
+            || !DialectUsageAnalyzer.IsFromSqlArtisan(type.ContainingAssembly))
+        {
+            return false;
+        }
+
+        IOperation? owner = key switch
+        {
+            IPropertyReferenceOperation property => property.Instance,
+            IFieldReferenceOperation field => field.Instance,
+            IInvocationOperation { TargetMethod.Name: "Column" } column => column.Instance,
+            _ => null,
+        };
+        if (owner is null)
+        {
+            return false;
+        }
+
+        if (DerivesFrom(owner.Type, "CteBase") || DerivesFrom(owner.Type, "DerivedTableBase"))
+        {
+            return true;
+        }
+
+        return DerivesFrom(owner.Type, "DbTableBase")
+            && CorrelatedDmlRule.ResolveTargetSymbol(owner) is { } table
+            && CorrelatedDmlRule.IsProvablyAliased(compilation, table);
+    }
+
+    private static bool DerivesFrom(ITypeSymbol? type, string baseName)
+    {
+        for (ITypeSymbol? current = type; current is not null; current = current.BaseType)
+        {
+            if (current.Name == baseName
+                && DialectUsageAnalyzer.IsFromSqlArtisan(current.ContainingAssembly))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // Oracle runs the ORDER BY in a derived table and a CTE body; a lateral or APPLY source
     // is unmeasured there, so only a named predicate host or a scalar position reports it.
     private static bool IsPredicateOrScalarOperand(IInvocationOperation end) => end.Parent switch

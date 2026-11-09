@@ -6,7 +6,8 @@ namespace SqlArtisan.Analyzers.Tests;
 public class ContextRuleAnalyzerTests
 {
     // The marked span is the whole trigger invocation (receiver chain included) —
-    // the same location SQLA0100 reports for an instance-chain member.
+    // the same location SQLA0100 reports for an instance-chain member. The UNION
+    // sort-key rule marks each key instead, since one OrderBy can hold several.
     private static string Usage(string statements) => $$"""
         using SqlArtisan;
         using static SqlArtisan.Sql;
@@ -17,6 +18,12 @@ public class ContextRuleAnalyzerTests
             public DbColumn Dep;
             public T() : base("t", "") { Id =
                 new DbColumn(this, "id"); Dep = new DbColumn(this, "dep"); }
+        }
+
+        class A : DbTableBase
+        {
+            public DbColumn Id;
+            public A(string alias = "") : base("a", alias) { Id = new DbColumn(this, "id"); }
         }
 
         class C
@@ -1389,6 +1396,144 @@ public class ContextRuleAnalyzerTests
             var u = Select(t.Id).From(t).Union;
             var q = u.Select(s.Id).From(s).ForUpdate();
             """, "postgresql");
+
+    [Theory]
+    [InlineData("mysql", "Union", "a.Id")]
+    [InlineData("oracle", "Union", "a.Id")]
+    [InlineData("postgresql", "Union", "a.Id")]
+    [InlineData("postgresql", "UnionAll", "a.Id")]
+    [InlineData("postgresql", "Union", "a.Id.Desc")]
+    [InlineData("postgresql", "Union", "a.Id.Asc.NullsFirst")]
+    [InlineData("postgresql", "Union", "a.Id.NullsLast")]
+    public Task QualifiedKeyAfterUnion_AliasedTable_ReportsSqla0102(
+        string dbms, string setOperator, string key) =>
+        RunReporting($$"""
+            A a = new("a");
+            A b = new A(alias: "b");
+            var q = Select(a.Id).From(a).{{setOperator}}.Select(b.Id).From(b)
+                .OrderBy({|#0:{{key}}|});
+            """, dbms);
+
+    [Theory]
+    [InlineData("""
+        Cte c = new("c");
+        var q = With(c.As(Select(t.Id).From(t))).Select(c.Column("id")).From(c)
+            .Union.Select(s.Id).From(s).OrderBy({|#0:c.Column("id")|});
+        """)]
+    [InlineData("""
+        var d = Select(t.Id).From(t).AsTable("d");
+        var q = Select(d.Column(t.Id)).From(d).UnionAll.Select(s.Id).From(s)
+            .OrderBy({|#0:d.Column(t.Id).Desc|});
+        """)]
+    [InlineData("""
+        DerivedTable x = new("x");
+        var q = Select(t.Id).From(t).Union.Select(s.Id).From(s).OrderBy({|#0:x.Column("id")|});
+        """)]
+    [InlineData("""
+        var q = Select(Asterisk).From(Select(t.Id).From(t).Union.Select(s.Id).From(s)
+            .OrderBy({|#0:Values("v", ["id"], [[1]]).Column("id")|}).AsTable("z"));
+        """)]
+    public Task QualifiedKeyAfterUnion_PostgreSql_CteOrDerivedTable_ReportsSqla0102(
+        string statements) =>
+        RunReporting(statements, "postgresql");
+
+    // A correlated compound can sort by the outer query's table, which no branch lists.
+    [Fact]
+    public Task QualifiedKeyAfterUnion_PostgreSql_OuterQueryTable_ReportsSqla0102() =>
+        RunReporting("""
+            A x = new("x");
+            A a = new("a");
+            var q = Select(x.Id, Select(a.Id).From(a).Union.Select(a.Id).From(a)
+                .OrderBy({|#0:x.Id|}).Limit(1)).From(x);
+            """, "postgresql");
+
+    [Fact]
+    public async Task QualifiedKeyAfterUnion_EveryQualifiedKey_ReportsEach()
+    {
+        var test = AnalyzerVerifier.Create(
+            Usage("""
+                A a = new("a");
+                A b = new("b");
+                var q = Select(a.Id, t.Id).From(a).CrossJoin(t).Union.Select(b.Id, s.Id).From(b)
+                    .CrossJoin(s).OrderBy({|#0:a.Id|}, t.Id, 2, {|#1:b.Id.Desc|});
+                """),
+            AnalyzerVerifier.EditorConfig("postgresql"));
+        test.ExpectedDiagnostics.Add(
+            DiagnosticResult.CompilerWarning("SQLA0102").WithLocation(0));
+        test.ExpectedDiagnostics.Add(
+            DiagnosticResult.CompilerWarning("SQLA0102").WithLocation(1));
+        await test.RunAsync();
+    }
+
+    // SQLite and SQL Server sort by a column every branch selects in its place (#792).
+    [Theory]
+    [InlineData("sqlite")]
+    [InlineData("sqlserver")]
+    public Task QualifiedKeyAfterUnion_SortingDialect_StaysSilent(string dbms) =>
+        RunSilent("""
+            A a = new("a");
+            A b = new("b");
+            var q = Select(a.Id).From(a).Union.Select(b.Id).From(b).OrderBy(a.Id);
+            """, dbms);
+
+    [Theory]
+    // An unaliased table's column renders bare.
+    [InlineData("""
+        var q = Select(t.Id).From(t).Union.Select(s.Id).From(s).OrderBy(t.Id);
+        """)]
+    // A position and a first-branch alias are the docs' remedies.
+    [InlineData("""
+        A a = new("a");
+        var n = a.Id.As("n");
+        var q = Select(n).From(a).Union.Select(a.Id).From(a).OrderBy(1, n);
+        """)]
+    // INTERSECT, EXCEPT and MINUS have no twins yet, alone or beside a UNION.
+    [InlineData("""
+        A a = new("a");
+        var q = Select(a.Id).From(a).Intersect.Select(a.Id).From(a).OrderBy(a.Id);
+        """)]
+    [InlineData("""
+        A a = new("a");
+        var q = Select(a.Id).From(a).Union.Select(a.Id).From(a).Except.Select(a.Id).From(a)
+            .OrderBy(a.Id);
+        """)]
+    // No set operator: the query's own ORDER BY.
+    [InlineData("""
+        A a = new("a");
+        var q = Select(a.Id).From(a).OrderBy(a.Id);
+        """)]
+    // A window's ordering is no compound's ORDER BY.
+    [InlineData("""
+        A a = new("a");
+        var q = Select(a.Id, RowNumber().Over(OrderBy(a.Id))).From(a).Union
+            .Select(a.Id, a.Id).From(a).OrderBy(1);
+        """)]
+    // An expression key, and keys passed as an array the caller built.
+    [InlineData("""
+        A a = new("a");
+        object[] keys = [a.Id];
+        var q = Select(a.Id).From(a).Union.Select(a.Id).From(a).OrderBy(a.Id + 1);
+        var r = Select(a.Id).From(a).Union.Select(a.Id).From(a).OrderBy(keys);
+        """)]
+    // An alias the analyzer cannot prove: a variable, or a table assigned twice.
+    [InlineData("""
+        string alias = "a";
+        A a = new(alias);
+        var q = Select(a.Id).From(a).Union.Select(a.Id).From(a).OrderBy(a.Id);
+        """)]
+    [InlineData("""
+        A a = new("a");
+        a = new A();
+        var q = Select(a.Id).From(a).Union.Select(a.Id).From(a).OrderBy(a.Id);
+        """)]
+    // The compound's head held in a variable leaves the operators before it unseen.
+    [InlineData("""
+        A a = new("a");
+        var l = Select(a.Id).From(a);
+        var q = l.Union.Select(a.Id).From(a).OrderBy(a.Id);
+        """)]
+    public Task QualifiedKeyAfterUnion_PostgreSql_StaysSilent(string statements) =>
+        RunSilent(statements, "postgresql");
 
     [Theory]
     [InlineData("oracle", "Select(Distinct, t.Dep).From(t)")]

@@ -1739,9 +1739,9 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Null(connection.ExecuteScalar<int?>(Select(Least(Null, 3, 1)).From(Dual)));
     }
 
-    // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified
-    // column here, both when every branch selects it in the same position and when none
-    // does (ORA-00904 on XE 21.3.0).
+    // docs/query-statements.md: an ORDER BY after UNION [ALL] rejects a qualified column
+    // here whether every branch, none or one selects it, in one place or not (ORA-00904 on
+    // XE 21.3.0); the partial keys are SQLA0102's twin (#800).
     [Theory]
     [InlineData("table", false)]
     [InlineData("table", true)]
@@ -1760,6 +1760,23 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         Assert.Contains("ORA-00904", selected.Message);
         Assert.Contains("ORA-00904", unselected.Message);
+        foreach (string partialKey in new[] { "onebranch", "shifted" })
+        {
+            DbException partial = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+                CompoundOverSource(source, union, partialKey)).ToList());
+            Assert.Contains("ORA-00904", partial.Message);
+        }
+    }
+
+    // SQLA0102 reports a key of the outer query after UNION too (#800); the position runs.
+    [Fact]
+    public void CompoundOrderBy_OuterQueryColumn_IsRejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query(
+            CompoundOrderedByOuterColumn("outer", true)).ToList());
+        Assert.Single(connection.Query(CompoundOrderedByOuterColumn("position", true)));
     }
 
     // docs/query-statements.md: set operators apply left to right here, so a

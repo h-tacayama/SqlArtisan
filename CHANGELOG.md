@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   The name must be ASCII identifiers joined by `.`, so it cannot close the call,
   open a string or a comment, or end the statement. The analyzer's dialect matrix
   marks the call supported on every dialect. (#794)
+- `SQLA0102` reports an `OrderBy(...)` key after `Union` or `UnionAll` that it
+  reads as qualified (a column of a CTE, a derived table, or a table whose alias
+  it can trace) on MySQL, Oracle and PostgreSQL, which reject it (observed on
+  MySQL 8.0, Oracle XE 21.3.0 and Free 23ai, and PostgreSQL 16 and 17). (#800)
 
 ### Changed
 - **Breaking:** TableClassGen's `--check` and `--fix` fail with exit code `2`
@@ -24,6 +28,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   generation into a new folder runs without `--fix`. (#796)
 
 ### Docs
+- `docs/analyzer.md` says that the context rules read no control flow, and that
+  the joined-table SQLite `RETURNING` rule reports a table class exposing the
+  target's `DbColumn`, which `Build(Dbms.Sqlite)` accepts. (#800)
 - `docs/analyzer.md` says that `SQLA0204` does not read a column passed in a
   `params` argument list, such as `Greatest(t.Key, x)` or
   `Function("lower", t.Key)`.
@@ -39,19 +46,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   and that an `unsupported` override key reports it. (#791)
 - `docs/query-statements.md` notes that an `OrderBy(...)` after `Union` /
   `UnionAll` given a qualified column (an aliased table's, a CTE's or a derived
-  table's) is rejected by MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16 both
-  when every branch selects it in the same position and when no branch selects
-  it, and names a select-list position or a first-branch alias as the keys to
-  use on all five engines it names. (#792)
+  table's) is rejected by MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16 whether
+  all, some or none of the branches select it, in one position or not, and names
+  a select-list position or a first-branch alias as the keys to use on all five
+  engines it names. (#792, #800)
 
 ### Tests
 - Twins pin each engine's reading of an `ORDER BY` after `UNION` / `UNION ALL`
   over an aliased table, a CTE and a derived table: a position and a
-  first-branch alias sort on all five, and a qualified column is rejected on
-  MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16 both when every branch selects
-  it in the same position and when none does, sorts on SQLite 3.50.4 and SQL
-  Server 2022 in the first case, and is rejected there in the second.
-  (#792)
+  first-branch alias sort on all five. A qualified column is rejected on MySQL
+  8.0, Oracle XE 21.3.0 and Free 23ai, and PostgreSQL 16 and 17 whether all,
+  some or none of the branches select it, in one position or not, and so is an
+  outer query's column. It sorts on SQLite 3.50.4 and SQL Server 2022 when every
+  branch selects it in the same position, and is rejected there when none does.
+  (#792, #800)
 
 ## [0.14.0-beta.1] - 2026-11-05
 ### Added

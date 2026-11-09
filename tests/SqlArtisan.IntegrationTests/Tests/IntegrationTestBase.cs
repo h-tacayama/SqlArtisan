@@ -208,10 +208,10 @@ public abstract class IntegrationTestBase
         return joined.Select(o.Id).From(o).Where(o.Id == 1);
     }
 
-    // Users 1 (age 30) and 4 (age 25) as UNION [ALL] branches over a qualified source: an
-    // age sort gives [4, 1], branch or id order [1, 4] (#792). "position" differs from the
-    // qualified keys only in its key; "alias" also aliases the first branch's age.
-    private protected static ISelectBuilderOrderBy CompoundOverSource(
+    // Users 1 (age 30) and 4 (age 25) as UNION [ALL] branches over a qualified source: an age
+    // sort gives [4, 1], id order [1, 4] (#792). "alias" aliases the first branch's age;
+    // "onebranch" and "shifted" sort by an age the second branch omits or moves (#800).
+    internal static ISelectBuilderOrderBy CompoundOverSource(
         string source,
         bool union,
         string key)
@@ -236,12 +236,18 @@ public abstract class IntegrationTestBase
             : Select(id, firstAge);
         ISelectBuilderWhere first = head.From(from).Where(id == 1);
         ISelectBuilderSetOperator joined = union ? first.Union : first.UnionAll;
-        ISelectBuilderWhere second = joined.Select(id, age).From(from).Where(id == 4);
+        object[] secondItems = key switch
+        {
+            "onebranch" => [id, id],
+            "shifted" => [age, id],
+            _ => [id, age],
+        };
+        ISelectBuilderWhere second = joined.Select(secondItems).From(from).Where(id == 4);
         return key switch
         {
             "position" => second.OrderBy(2),
             "alias" => second.OrderBy(ageAlias),
-            "selected" => second.OrderBy(age),
+            "selected" or "onebranch" or "shifted" => second.OrderBy(age),
             "unselected" => second.OrderBy(name),
             _ => throw new ArgumentOutOfRangeException(nameof(key), key, null),
         };
@@ -252,6 +258,22 @@ public abstract class IntegrationTestBase
             SubqueryDerivedTable derived => derived.Column(column),
             _ => tableColumn,
         };
+    }
+
+    // A UNION subquery correlated to the outer users "x", made scalar by a row limit (#800):
+    // "outer" sorts it by the outer x.age, "position" by its own first column.
+    internal static ISqlBuilder CompoundOrderedByOuterColumn(string key, bool fetchFirst)
+    {
+        UsersTable x = new("x");
+        UsersTable u = new("u");
+        UsersTable v = new("v");
+        ISelectBuilderOrderBy ordered =
+            Select(u.Id).From(u).Where(u.Id == 1)
+            .Union
+            .Select(v.Id).From(v).Where(v.Id == 4)
+            .OrderBy(key == "outer" ? x.Age : 1);
+        object scalar = fetchFirst ? ordered.FetchFirst(1) : ordered.Limit(1);
+        return Select(x.Id, scalar).From(x).Where(x.Id == 1);
     }
 
     [Fact]
