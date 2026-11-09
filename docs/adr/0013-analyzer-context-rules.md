@@ -48,13 +48,9 @@ reported under a new diagnostic ID `SQLA0102`, registered from the same
   sort-key rule (#800) is the exception: it reads a table's declaration through
   ADR 0014's alias trace.
 - **Establishment discipline (the ADR 0003 extension).** A rule reports only
-  when the context is proven from the same expression. Two rules that tell a
-  column's relation by the variable it is read through (the joined table in a
-  SQLite `RETURNING`, the `UNION` sort key) can report a class exposing another
-  relation's `DbColumn`, which ADR 0014 records; and no rule reads control
-  flow, so one under `ConditionIf(false, ...)` reports a construct that never
-  renders. `docs/analyzer.md` states both. Each direction has its own proof
-  obligation:
+  when the context is proven from the same expression, short of the false
+  positives `docs/analyzer.md` states (ADR 0014 records the symbol-based one),
+  and each direction has its own proof obligation:
   - *Presence* (the `Limit` rule): the chain is walked to the argument edge,
     and the bound parameter's type (`ISubquery`) plus the host member name
     identify the position — the overload that actually bound, not a guess.

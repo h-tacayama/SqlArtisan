@@ -12,12 +12,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   The name must be ASCII identifiers joined by `.`, so it cannot close the call,
   open a string or a comment, or end the statement. The analyzer's dialect matrix
   marks the call supported on every dialect. (#794)
-- `SQLA0102` reports an `OrderBy(...)` key after `Union` or `UnionAll` that renders
-  qualified (a column of a CTE, a derived table, or a table whose alias it can
-  trace), on MySQL, Oracle and PostgreSQL, which reject it (observed on MySQL 8.0,
-  Oracle XE 21.3.0 and Free 23ai, and PostgreSQL 16 and 17). It tells a column's
-  relation by the variable it is read through, so a class exposing another
-  relation's `DbColumn` can report though it renders bare. (#800)
+- `SQLA0102` reports an `OrderBy(...)` key after `Union` or `UnionAll` that it
+  reads as qualified (a column of a CTE, a derived table, or a table whose alias
+  it can trace) on MySQL, Oracle and PostgreSQL, which reject it (observed on
+  MySQL 8.0, Oracle XE 21.3.0 and Free 23ai, and PostgreSQL 16 and 17). (#800)
 
 ### Changed
 - **Breaking:** TableClassGen's `--check` and `--fix` fail with exit code `2`
@@ -30,13 +28,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   generation into a new folder runs without `--fix`. (#796)
 
 ### Docs
-- `docs/analyzer.md` says that the context rules read no control flow, so
-  `SQLA0102` reports a construct under `ConditionIf(false, ...)` or in an
-  untaken `?:` arm though it never renders. (#800)
-- `docs/analyzer.md` says that `SQLA0102`'s rule for a joined table in a SQLite
-  `RETURNING` reports a table class exposing the target's `DbColumn`, though
-  `Build(Dbms.Sqlite)` accepts it, since the rule tells a column's table by the
-  variable it is read through. (#800)
+- `docs/analyzer.md` says that the context rules read no control flow, and that
+  the joined-table SQLite `RETURNING` rule reports a table class exposing the
+  target's `DbColumn`, which `Build(Dbms.Sqlite)` accepts. (#800)
 - `docs/analyzer.md` says that `SQLA0204` does not read a column passed in a
   `params` argument list, such as `Greatest(t.Key, x)` or
   `Function("lower", t.Key)`.

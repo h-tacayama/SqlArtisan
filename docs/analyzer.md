@@ -1071,12 +1071,10 @@ itself. For the nineteen that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the
-matrix follows. The rules are not free of false positives, though. They read no
+matrix follows. They are not free of false positives, though: they read no
 control flow, so a construct under `ConditionIf(false, ...)` or in an untaken
-`?:` arm reports though it never renders. And the two that tell a column's
-relation by the variable it is read through, as `SQLA0300` does — the joined
-table in a SQLite `RETURNING` and the `UNION` sort key — can report a class
-exposing another relation's `DbColumn`, as their paragraphs say.
+`?:` arm reports though it never renders, and two of them name another in their
+paragraphs.
 The absence side is equally strict: `Grouping` warns only when the chain
 shows a call *after* `.GroupBy(...)` that isn't `.WithRollup()` — from that
 point the builder's type can never accept the suffix — and a chain that
