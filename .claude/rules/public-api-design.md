@@ -565,6 +565,16 @@ reading, after measuring:
 `COUNT(*)` sat on the other side of that line: the library had no spelling
 for it (#233).
 
+**A value of the caller's own type binds through `new BindValue(value)`:** a
+value position resolves only the types `docs/functions.md` § Bind Parameter
+Types lists and throws at the call for any other, so the list stops a slip,
+such as a collection or a method group missing its parentheses, at the call.
+`new BindValue(value)` hands any .NET value on as it is, to bind where the
+execution layer converts it (a Dapper type handler, SQLite, live, #793).
+Binding a value object as written (`c.Id == id`) is open in #810. An analyzer
+report of such a value is not offered: the throw already lands at the call and
+names the type (#793).
+
 **Not yet offered (#582):** the A3 review found these DML forms with no
 spelling here. Each would be a new member, overload or factory, which
 `docs/versioning.md` counts as a minor change, and one is added when a user
@@ -827,9 +837,12 @@ Reviewed and kept as-is — not defects, not scheduled for change:
 
 - **`SqlArtisan.Dapper.SqlMapper` mirrors `Dapper.SqlMapper`'s simple name.**
   Both are static classes holding extension methods, and the mirroring is the
-  point (same shape, `ISqlBuilder` in place of `(sql, param)`); the ambiguity
-  only bites an explicit `SqlMapper.Member` reference with both namespaces
-  imported (`CS0104`), which extension-method call syntax never triggers.
+  point (same shape, `ISqlBuilder` in place of `(sql, param)`); the clash
+  bites only an explicit `SqlMapper.Member` reference, which extension-method
+  call syntax never makes: ambiguous with both namespaces imported (`CS0104`),
+  and bound to SqlArtisan's class with `SqlArtisan.Dapper` alone, as the
+  quickstart imports it (`SqlMapper.AddTypeHandler` is `CS0117`), so the docs
+  write Dapper's `Dapper.SqlMapper` (`docs-style.md`).
 - **`SqlParameters.Get<T>`** returns the type's default when no parameter has
   the given name, rather than throwing. It reads a built statement's bound
   values, which no SQL depends on, so the loud-failure mission does not reach
