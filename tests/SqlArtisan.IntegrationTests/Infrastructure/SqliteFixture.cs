@@ -14,7 +14,7 @@ public sealed class SqliteFixture : IAsyncLifetime, IDatabaseFixture
 
     public Dbms Dbms => Dbms.Sqlite;
 
-    private string ConnectionString => $"Data Source={_databasePath}";
+    public string ConnectionString => $"Data Source={_databasePath}";
 
     public IDbConnection OpenConnection()
     {

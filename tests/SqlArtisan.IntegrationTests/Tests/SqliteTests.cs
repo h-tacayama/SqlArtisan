@@ -18,6 +18,20 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         _fixture = fixture;
     }
 
+    // docs/functions.md § Bind Parameter Types: System.Data.SQLite binds a type it does not
+    // know as its ToString() text, where Microsoft.Data.Sqlite throws (#810).
+    [Fact]
+    public void UnknownBoundType_SystemDataSqliteBindsItsText()
+    {
+        using System.Data.SQLite.SQLiteConnection systemDataSqlite = new(_fixture.ConnectionString);
+        systemDataSqlite.Open();
+        using IDbConnection microsoftDataSqlite = _fixture.OpenConnection();
+
+        Assert.Equal(new[] { "Bob" }, UnknownBoundType.QueryRaw(systemDataSqlite, Dbms.Sqlite));
+        Assert.Throws<InvalidOperationException>(
+            () => UnknownBoundType.QueryRaw(microsoftDataSqlite, Dbms.Sqlite));
+    }
+
     // #681: SQLite's format() is printf, which reads the value as the format string.
     [Fact]
     public void Format_ReadsAsPrintf()

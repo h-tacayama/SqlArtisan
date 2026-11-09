@@ -1704,6 +1704,21 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
                 Select(u.Name).From(u).Where(u.Id.In(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3))));
     }
 
+    // docs/functions.md § Bind Parameter Types: MySql.Data binds a type it does not know as
+    // its ToString() text, where MySqlConnector throws (#810).
+    [Fact]
+    public void UnknownBoundType_MySqlDataBindsItsText()
+    {
+        using MySql.Data.MySqlClient.MySqlConnection mySqlData =
+            new(_fixture.ConnectionString + ";AllowPublicKeyRetrieval=True");
+        mySqlData.Open();
+        using IDbConnection mySqlConnector = _fixture.OpenConnection();
+
+        Assert.Equal(new[] { "Bob" }, UnknownBoundType.QueryRaw(mySqlData, Dbms.MySql));
+        Assert.Throws<NotSupportedException>(
+            () => UnknownBoundType.QueryRaw(mySqlConnector, Dbms.MySql));
+    }
+
     // #767: the shapes guards-and-empty-states.md leaves to the engine (#675), run here too;
     // each control runs, so the assertion fails only for the shape it names.
     [Fact]
