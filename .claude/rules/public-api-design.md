@@ -572,9 +572,10 @@ such as a collection or a method group missing its parentheses, at the call.
 `new BindValue(value)` hands any .NET value on as it is, to bind where the
 execution layer converts it (a Dapper type handler, SQLite, live, #793).
 Binding a value object as written (`c.Id == id`) is open in #810. An analyzer
-report of such a value is not offered: `SQLA0300` stands in for a guard whose
-unguarded statement runs silently wrong (ADR 0014), while this value fails
-loudly at the call.
+report of such a value is not offered: `SQLA0300` duplicates a guard whose
+unguarded statement runs silently wrong (ADR 0014), while this value is
+rejected at the call and, bound through `new BindValue` with no handler, fails
+at execution.
 
 **Not yet offered (#582):** the A3 review found these DML forms with no
 spelling here. Each would be a new member, overload or factory, which
