@@ -394,7 +394,7 @@ A `byte[]` is not in the list: `In(...)` reads an array as one value per element
 A type of your own, such as a value object wrapping an id, binds the same way: `c.Id == new BindValue(customerId)`, or in a list one element at a time, `c.Id.In(ids.Select(x => new BindValue(x)).ToArray())`. SqlArtisan hands the value to the execution layer as it is, so it binds only where that layer converts it: through `SqlArtisan.Dapper`, derive a handler from `Dapper.SqlMapper.TypeHandler<T>` and register it with `Dapper.SqlMapper.AddTypeHandler`. `SqlArtisan.ArrayBind` takes only the types its [guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) lists, so pass the value the type wraps there (`customerId.Value`).
 
 > [!WARNING]
-> **Through raw ADO.NET, `MySql.Data` binds a type it does not know as its `ToString()` text instead of throwing**, so the comparison matches other rows or none. Pass the value the type wraps there too.
+> **Through raw ADO.NET, some providers, among them `MySql.Data` and `System.Data.SQLite`, bind a type they do not know as its `ToString()` text instead of throwing**, so the comparison runs against that text. Pass the value the type wraps there too.
 
 `Sql.Bind(value)` rejects `null` and `DBNull.Value`. For a bound `NULL`, use `Sql.BindNull()`: `Sql.Null` inlines the `NULL` keyword into the SQL text — as does a bare C# `null` in a `VALUES` row, the one position that takes one; anywhere else it throws — while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
 

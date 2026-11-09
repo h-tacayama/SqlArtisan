@@ -31,6 +31,9 @@
     <!-- Direct reference lifts the transitive SSH.NET 2023.0.0 pulled by
          Testcontainers 3.10.0 above the NU1903 advisory GHSA-q939-rpr3-3284. -->
     <PackageReference Include="SSH.NET" Version="2026.0.0" />
+    <!-- Test-only: pins that this provider, which DbmsResolver registers, binds a type it
+         does not know as its ToString() text (#810). -->
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
     <!-- Direct reference lifts the transitive System.Security.Cryptography.Pkcs 9.0.4
          pulled by Microsoft.Data.SqlClient on net9.0 and later above the NU1903 advisory
          GHSA-846f-f764-76mx and the NU1902 advisory GHSA-2fmv-rv2c-59x7. -->
