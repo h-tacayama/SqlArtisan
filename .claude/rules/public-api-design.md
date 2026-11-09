@@ -842,9 +842,12 @@ Reviewed and kept as-is — not defects, not scheduled for change:
 
 - **`SqlArtisan.Dapper.SqlMapper` mirrors `Dapper.SqlMapper`'s simple name.**
   Both are static classes holding extension methods, and the mirroring is the
-  point (same shape, `ISqlBuilder` in place of `(sql, param)`); the ambiguity
-  only bites an explicit `SqlMapper.Member` reference with both namespaces
-  imported (`CS0104`), which extension-method call syntax never triggers.
+  point (same shape, `ISqlBuilder` in place of `(sql, param)`); the clash
+  bites only an explicit `SqlMapper.Member` reference, which extension-method
+  call syntax never makes: ambiguous with both namespaces imported (`CS0104`),
+  and bound to SqlArtisan's class with `SqlArtisan.Dapper` alone, as the
+  quickstart imports it (`SqlMapper.AddTypeHandler` is `CS0117`), so the docs
+  write Dapper's `Dapper.SqlMapper` (`docs-style.md`).
 - **`SqlParameters.Get<T>`** returns the type's default when no parameter has
   the given name, rather than throwing. It reads a built statement's bound
   values, which no SQL depends on, so the loud-failure mission does not reach
