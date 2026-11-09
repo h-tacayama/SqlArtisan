@@ -672,8 +672,8 @@ internal static class ContextRules
 
             foreach (IOperation element in initializer.ElementValues)
             {
-                if (IsQualifiedColumn(
-                    context.Compilation, UnwrapSortOrder(UnwrapConversions(element))))
+                IOperation key = UnwrapSortOrder(UnwrapConversions(element));
+                if (IsQualifiedColumn(context.Compilation, key))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
                         DiagnosticDescriptors.ContextRestrictedConstruct,

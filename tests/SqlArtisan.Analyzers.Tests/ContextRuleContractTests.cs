@@ -104,8 +104,15 @@ public class ContextRuleContractTests
         ];
         foreach (DbColumn column in columns)
         {
-            string text = Sql.Select(t.Column("id")).From(t).Union.Select(t.Column("id")).From(t)
-                .OrderBy(column).Build(Dbms.PostgreSql).Text;
+            string text =
+                Sql.Select(t.Column("id"))
+                .From(t)
+                .Union
+                .Select(t.Column("id"))
+                .From(t)
+                .OrderBy(column)
+                .Build(Dbms.PostgreSql)
+                .Text;
             Assert.EndsWith("ORDER BY \"x\".id", text);
         }
     }
