@@ -1,6 +1,7 @@
 using System.Data;
 using System.Data.Common;
 using Dapper;
+using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 
 namespace SqlArtisan.IntegrationTests.Tests;
@@ -91,5 +92,34 @@ public sealed class PostgreSql17Tests : IClassFixture<PostgreSql17Fixture>
         using IDbConnection connection = _fixture.OpenConnection();
 
         connection.Execute(sql);
+    }
+
+    // SQLA0102's twin (#800): the 16 lane's rejection of a qualified column in an
+    // ORDER BY after UNION [ALL], re-run here, beside the position and alias that sort.
+    [Theory]
+    [InlineData("table", false)]
+    [InlineData("table", true)]
+    [InlineData("cte", false)]
+    [InlineData("cte", true)]
+    [InlineData("derived", false)]
+    [InlineData("derived", true)]
+    public void CompoundOrderBy_QualifiedColumn_IsRejected(string source, bool union)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        DbException selected = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            IntegrationTestBase.CompoundOverSource(source, union, "selected")).ToList());
+        DbException unselected = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            IntegrationTestBase.CompoundOverSource(source, union, "unselected")).ToList());
+
+        Assert.Contains("missing FROM-clause entry", selected.Message);
+        Assert.Contains("missing FROM-clause entry", unselected.Message);
+        Assert.Equal(
+            new[] { 4, 1 },
+            connection.Query<int>(
+                IntegrationTestBase.CompoundOverSource(source, union, "position")));
+        Assert.Equal(
+            new[] { 4, 1 },
+            connection.Query<int>(IntegrationTestBase.CompoundOverSource(source, union, "alias")));
     }
 }

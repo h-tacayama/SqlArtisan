@@ -686,4 +686,33 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
             "compare" => Select(Count(Asterisk)).From(u).Where(u.Id == query),
             _ => Select(query).From(u).Where(u.Id == 1),
         };
+
+    // SQLA0102's twin (#800): the 21c lane's rejection of a qualified column in an
+    // ORDER BY after UNION [ALL], re-run here, beside the position and alias that sort.
+    [Theory]
+    [InlineData("table", false)]
+    [InlineData("table", true)]
+    [InlineData("cte", false)]
+    [InlineData("cte", true)]
+    [InlineData("derived", false)]
+    [InlineData("derived", true)]
+    public void CompoundOrderBy_QualifiedColumn_IsRejected(string source, bool union)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        DbException selected = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            IntegrationTestBase.CompoundOverSource(source, union, "selected")).ToList());
+        DbException unselected = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            IntegrationTestBase.CompoundOverSource(source, union, "unselected")).ToList());
+
+        Assert.Contains("ORA-00904", selected.Message);
+        Assert.Contains("ORA-00904", unselected.Message);
+        Assert.Equal(
+            new[] { 4, 1 },
+            connection.Query<int>(
+                IntegrationTestBase.CompoundOverSource(source, union, "position")));
+        Assert.Equal(
+            new[] { 4, 1 },
+            connection.Query<int>(IntegrationTestBase.CompoundOverSource(source, union, "alias")));
+    }
 }

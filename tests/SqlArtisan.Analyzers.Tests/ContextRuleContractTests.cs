@@ -79,6 +79,38 @@ public class ContextRuleContractTests
     }
 
     [Fact]
+    public void CteAndDerivedTableColumns_AreQualifiedInACompoundOrderBy()
+    {
+        // The UNION sort-key rule reports any CTE or derived-table column with no alias
+        // proof, so each such owner must render its name; a new one must join this list.
+        List<string> owners = [.. Core.GetExportedTypes()
+            .Where(t => !t.IsAbstract
+                && (t.IsSubclassOf(typeof(CteBase)) || t.IsSubclassOf(typeof(DerivedTableBase))))
+            .Select(t => t.Name)
+            .OrderBy(n => n, StringComparer.Ordinal)];
+        Assert.Equal(
+            ["Cte", "DerivedTable", "SubqueryDerivedTable", "UnnestDerivedTable",
+                "ValuesDerivedTable"],
+            owners);
+
+        DbTable t = new("t");
+        DbColumn[] columns =
+        [
+            new Cte("x").Column("id"),
+            new DerivedTable("x").Column("id"),
+            Sql.Select(t.Column("id")).From(t).AsTable("x").Column("id"),
+            Sql.Unnest(Sql.BindArray([1])).AsTable("x", "id").Column("id"),
+            Sql.Values("x", ["id"], [[1]]).Column("id"),
+        ];
+        foreach (DbColumn column in columns)
+        {
+            string text = Sql.Select(t.Column("id")).From(t).Union.Select(t.Column("id")).From(t)
+                .OrderBy(column).Build(Dbms.PostgreSql).Text;
+            Assert.EndsWith("ORDER BY \"x\".id", text);
+        }
+    }
+
+    [Fact]
     public void UnorderedOver_IsDeclaredOnlyOnTheValueAnalyticFamily()
     {
         // The rule reads the receiver's declared type, so the overload living

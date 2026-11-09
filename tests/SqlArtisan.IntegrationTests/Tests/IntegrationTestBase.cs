@@ -211,7 +211,7 @@ public abstract class IntegrationTestBase
     // Users 1 (age 30) and 4 (age 25) as UNION [ALL] branches over a qualified source: an
     // age sort gives [4, 1], branch or id order [1, 4] (#792). "position" differs from the
     // qualified keys only in its key; "alias" also aliases the first branch's age.
-    private protected static ISelectBuilderOrderBy CompoundOverSource(
+    internal static ISelectBuilderOrderBy CompoundOverSource(
         string source,
         bool union,
         string key)

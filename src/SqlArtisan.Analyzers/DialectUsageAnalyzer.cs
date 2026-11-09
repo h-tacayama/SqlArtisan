@@ -406,9 +406,18 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 }
 
                 break;
-            case "OrderBy"
-                when targets.Contains(TargetDbms.Oracle) || targets.Contains(TargetDbms.SqlServer):
-                ContextRules.CheckOrderByInSubquery(context, invocation, targets);
+            case "OrderBy":
+                if (targets.Contains(TargetDbms.Oracle) || targets.Contains(TargetDbms.SqlServer))
+                {
+                    ContextRules.CheckOrderByInSubquery(context, invocation, targets);
+                }
+
+                if (ContextRules.RejectingTargets(targets, s_unionQualifiedKeyUnsupported)
+                    is { } unionNames)
+                {
+                    ContextRules.CheckQualifiedKeyAfterUnion(context, invocation, unionNames);
+                }
+
                 break;
             case "Inserted" or "Deleted" when targets.Contains(TargetDbms.SqlServer):
                 ContextRules.CheckPseudoTableRequiresOutput(
@@ -484,6 +493,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     private static readonly TargetDbms[] s_setOperatedLockUnsupported =
         [TargetDbms.Oracle, TargetDbms.PostgreSql];
+
+    // SQLite and SQL Server sort by a key every branch selects in its place (#792).
+    private static readonly TargetDbms[] s_unionQualifiedKeyUnsupported =
+        [TargetDbms.MySql, TargetDbms.Oracle, TargetDbms.PostgreSql];
 
     private static readonly TargetDbms[] s_joinedDmlUnsupported =
         [TargetDbms.Oracle, TargetDbms.PostgreSql, TargetDbms.Sqlite];

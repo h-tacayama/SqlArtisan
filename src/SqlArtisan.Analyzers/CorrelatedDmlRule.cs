@@ -88,14 +88,22 @@ internal static class CorrelatedDmlRule
             _ => null,
         };
 
-    private static bool IsProvablyUnaliased(Compilation compilation, ISymbol target)
+    private static bool IsProvablyUnaliased(Compilation compilation, ISymbol target) =>
+        TryTraceAlias(compilation, target, out object? alias) && alias is null or "";
+
+    // SQLA0102's compound ORDER BY rule reads the opposite fact by the same trace.
+    internal static bool IsProvablyAliased(Compilation compilation, ISymbol table) =>
+        TryTraceAlias(compilation, table, out object? alias) && alias is string { Length: > 0 };
+
+    private static bool TryTraceAlias(Compilation compilation, ISymbol target, out object? alias)
     {
+        alias = null;
         if (SourceDeclaration.Single<VariableDeclaratorSyntax>(compilation, target)
                 is not { Initializer: { } initializer } declarator
             || SourceDeclaration.Model(compilation, declarator) is not { } model
             || model.GetOperation(initializer.Value) is not { } initial
             || UnwrapConversion(initial) is not IObjectCreationOperation creation
-            || !CreationProvablyUnaliased(compilation, creation))
+            || !TryTraceCreationAlias(compilation, creation, out alias))
         {
             return false;
         }
@@ -107,11 +115,13 @@ internal static class CorrelatedDmlRule
 
     // A zero-argument shortcut would false-positive on a ctor hardcoding an alias
     // (': base("t", "x")'), so the value reaching DbTableBase's tableAlias slot is
-    // traced through the ctor-initializer chain to a null/empty constant.
-    private static bool CreationProvablyUnaliased(
+    // traced through the ctor-initializer chain to a constant.
+    private static bool TryTraceCreationAlias(
         Compilation compilation,
-        IObjectCreationOperation creation)
+        IObjectCreationOperation creation,
+        out object? alias)
     {
+        alias = null;
         if (creation.Constructor is not { } constructor || !DerivesFromDbTableBase(creation.Type))
         {
             return false;
@@ -126,8 +136,7 @@ internal static class CorrelatedDmlRule
             if (IsSqlArtisanNamedType(constructor.ContainingType, "DbTableBase"))
             {
                 return constructor.Parameters.Length == 2
-                    && values.TryGetValue(constructor.Parameters[1], out object? alias)
-                    && alias is null or "";
+                    && values.TryGetValue(constructor.Parameters[1], out alias);
             }
 
             if (SourceDeclaration.Single<ConstructorDeclarationSyntax>(compilation, constructor)
