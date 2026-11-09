@@ -1704,6 +1704,50 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
                 Select(u.Name).From(u).Where(u.Id.In(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3))));
     }
 
+    // docs/functions.md § Bind Parameter Types: through raw ADO.NET, MySql.Data binds a
+    // type it does not know as its ToString() text, where MySqlConnector throws (#810).
+    [Fact]
+    public void UnknownBoundType_MySqlDataBindsItsText()
+    {
+        UsersTable u = new();
+        SqlStatement Statement() =>
+            Select(u.Name).From(u).Where(u.Id == new BindValue(new TextOfTwo())).Build(Dbms.MySql);
+        using MySql.Data.MySqlClient.MySqlConnection mySqlData =
+            new(_fixture.ConnectionString + ";AllowPublicKeyRetrieval=True");
+        mySqlData.Open();
+        using IDbConnection mySqlConnector = _fixture.OpenConnection();
+
+        Assert.Equal(new[] { "Bob" }, QueryRaw(mySqlData, Statement()));
+        Assert.Throws<NotSupportedException>(() => QueryRaw(mySqlConnector, Statement()));
+    }
+
+    private static List<string> QueryRaw(IDbConnection connection, SqlStatement sql)
+    {
+        using IDbCommand command = connection.CreateCommand();
+        command.CommandText = sql.Text;
+        sql.Parameters.ForEach((name, bind) =>
+        {
+            IDbDataParameter parameter = command.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.Value = bind.Value;
+            command.Parameters.Add(parameter);
+        });
+
+        using IDataReader reader = command.ExecuteReader();
+        List<string> names = new();
+        while (reader.Read())
+        {
+            names.Add(reader.GetString(0));
+        }
+
+        return names;
+    }
+
+    private sealed class TextOfTwo
+    {
+        public override string ToString() => "2";
+    }
+
     // #767: the shapes guards-and-empty-states.md leaves to the engine (#675), run here too;
     // each control runs, so the assertion fails only for the shape it names.
     [Fact]

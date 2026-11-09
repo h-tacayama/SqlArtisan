@@ -30,11 +30,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Docs
 - `docs/functions.md` says that a value of a type of your own, such as a value
   object, binds through `new BindValue(value)` where the execution layer
-  converts it: a Dapper type handler does through `SqlArtisan.Dapper`, and
-  `SqlArtisan.ArrayBind` takes only its listed types. The docs write
+  converts it: a Dapper type handler does through `SqlArtisan.Dapper`,
+  `SqlArtisan.ArrayBind` takes only its listed types, and `MySql.Data`, through
+  raw ADO.NET, binds such a value as its `ToString()` text. The docs write
   Dapper's `SqlMapper` qualified, since with `using SqlArtisan.Dapper;` alone,
   as in the quickstart, a bare `SqlMapper` names that package's own class.
-  (#793)
+  (#793, #810)
 - `docs/analyzer.md` says that the context rules read no control flow, and that
   the joined-table SQLite `RETURNING` rule reports a table class exposing the
   target's `DbColumn`, which `Build(Dbms.Sqlite)` accepts. (#800)
