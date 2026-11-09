@@ -137,6 +137,7 @@ public sealed class PostgreSql17Tests : IClassFixture<PostgreSql17Fixture>
 
         Assert.ThrowsAny<DbException>(() => connection.Query(
             IntegrationTestBase.CompoundOrderedByOuterColumn("outer", false)).ToList());
-        Assert.Single(connection.Query(IntegrationTestBase.CompoundOrderedByOuterColumn("position", false)));
+        Assert.Single(connection.Query(
+            IntegrationTestBase.CompoundOrderedByOuterColumn("position", false)));
     }
 }

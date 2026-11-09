@@ -730,6 +730,7 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
 
         Assert.ThrowsAny<DbException>(() => connection.Query(
             IntegrationTestBase.CompoundOrderedByOuterColumn("outer", true)).ToList());
-        Assert.Single(connection.Query(IntegrationTestBase.CompoundOrderedByOuterColumn("position", true)));
+        Assert.Single(connection.Query(
+            IntegrationTestBase.CompoundOrderedByOuterColumn("position", true)));
     }
 }
