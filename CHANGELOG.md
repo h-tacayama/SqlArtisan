@@ -30,6 +30,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   generation into a new folder runs without `--fix`. (#796)
 
 ### Docs
+- `docs/analyzer.md` says that the context rules read no control flow, so
+  `SQLA0102` reports a construct under `ConditionIf(false, ...)` or in an
+  untaken `?:` arm though it never renders. (#800)
 - `docs/analyzer.md` says that `SQLA0102`'s rule for a joined table in a SQLite
   `RETURNING` reports a table class exposing the target's `DbColumn`, though
   `Build(Dbms.Sqlite)` accepts it, since the rule tells a column's table by the
@@ -49,19 +52,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   and that an `unsupported` override key reports it. (#791)
 - `docs/query-statements.md` notes that an `OrderBy(...)` after `Union` /
   `UnionAll` given a qualified column (an aliased table's, a CTE's or a derived
-  table's) is rejected by MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16 both
-  when every branch selects it in the same position and when no branch selects
-  it, and names a select-list position or a first-branch alias as the keys to
-  use on all five engines it names. (#792)
+  table's) is rejected by MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16 whether
+  all, some or none of the branches select it, in one position or not, and names
+  a select-list position or a first-branch alias as the keys to use on all five
+  engines it names. (#792, #800)
 
 ### Tests
 - Twins pin each engine's reading of an `ORDER BY` after `UNION` / `UNION ALL`
   over an aliased table, a CTE and a derived table: a position and a
-  first-branch alias sort on all five, and a qualified column is rejected on
-  MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16 both when every branch selects
-  it in the same position and when none does, sorts on SQLite 3.50.4 and SQL
-  Server 2022 in the first case, and is rejected there in the second.
-  (#792)
+  first-branch alias sort on all five. A qualified column is rejected on MySQL
+  8.0, Oracle XE 21.3.0 and Free 23ai, and PostgreSQL 16 and 17 whether all,
+  some or none of the branches select it, in one position or not, and so is an
+  outer query's column. It sorts on SQLite 3.50.4 and SQL Server 2022 when every
+  branch selects it in the same position, and is rejected there when none does.
+  (#792, #800)
 
 ## [0.14.0-beta.1] - 2026-11-05
 ### Added
