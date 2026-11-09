@@ -1437,6 +1437,16 @@ public class ContextRuleAnalyzerTests
         string statements) =>
         RunReporting(statements, "postgresql");
 
+    // A correlated compound can sort by the outer query's table, which no branch lists.
+    [Fact]
+    public Task QualifiedKeyAfterUnion_PostgreSql_OuterQueryTable_ReportsSqla0102() =>
+        RunReporting("""
+            A x = new("x");
+            A a = new("a");
+            var q = Select(x.Id, Select(a.Id).From(a).Union.Select(a.Id).From(a)
+                .OrderBy({|#0:x.Id|}).Limit(1)).From(x);
+            """, "postgresql");
+
     [Fact]
     public async Task QualifiedKeyAfterUnion_EveryQualifiedKey_ReportsEach()
     {
