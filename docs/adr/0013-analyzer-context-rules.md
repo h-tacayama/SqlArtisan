@@ -44,7 +44,9 @@ reported under a new diagnostic ID `SQLA0102`, registered from the same
   `IdentifierLengthRule`: a second `OperationKind.Invocation` action,
   name-filtered on the trigger members (`Limit`, `Grouping`) before config
   resolution, dispatching into `ContextRules`. Walks go upward-only from the
-  trigger invocation — bounded, concurrent-safe, no tree scans.
+  trigger invocation — bounded, concurrent-safe, no tree scans. The `UNION`
+  sort-key rule (#800) is the exception: it reads a table's declaration through
+  ADR 0014's alias trace.
 - **Establishment discipline (the ADR 0003 extension).** A rule reports only
   when the context is proven from the same expression, and each direction
   has its own proof obligation:

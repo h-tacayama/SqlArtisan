@@ -1050,7 +1050,7 @@ branch selects the column in the same position and when no branch selects it, an
 3.50.4 and SQL Server 2022 run some such keys. On every one of them, order by a
 select-list position (`OrderBy(2)`) or by an alias the first branch selects (`.As(...)`)
 instead. With the analyzer on, `SQLA0102` reports such a key on MySQL,
-Oracle and PostgreSQL ([context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102)).
+Oracle and PostgreSQL where it can prove the key qualified ([context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102)).
 
 > [!NOTE]
 > **`Minus` after an unaliased table on SQL Server subtracts nothing.** SQL Server 2022 runs
@@ -4734,11 +4734,17 @@ alias, a CTE or a derived table (`"u".age`, `"c".age`), whether every branch
 selects the column or none does. SQLite and SQL Server sort by such a key when
 every branch selects it in the same position, so the rule leaves them out. Order
 by the column's select-list position (`OrderBy(2)`) or by an alias the first
-branch gives it (`.As(...)`) instead. The rule reads a column of a CTE or a
-derived table, and one of a table whose alias it can prove: a local or a
-read-only field created with a constant alias and not reassigned. A table passed
-in, or aliased from a variable, stays silent. So does an `ORDER BY` after
-`Intersect`, `Except` or `Minus`, which the rule does not read.
+branch gives it (`.As(...)`) instead. The rule reads a key written in the
+`OrderBy(...)` call itself: a column of a CTE or a derived table, or one of a
+table whose alias it can prove the way `SQLA0300` proves an empty one — a local
+or `readonly` field whose initializer constructs the table class with a constant
+alias, through constructors written out in the project's source, and which is
+never reassigned. Anything less certain stays silent: a key held in a variable,
+a table passed in or aliased from a variable, an inline `DbTable`, a table class
+with a primary constructor or declared in a referenced project, and an
+`ORDER BY` after any set operator other than `Union` and `UnionAll`. The proof
+shares `SQLA0300`'s false positive: a table class exposing another instance's
+`DbColumn` reports, though that column may render bare.
 
 ```csharp
 // sqlartisan_syntax_postgresql = any
@@ -4938,7 +4944,9 @@ itself. For the nineteen that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the
-matrix follows.
+matrix follows. The one exception is the `UNION` sort-key rule, which also reads
+the declaration proving a table's alias and so shares the false positive its
+paragraph names.
 The absence side is equally strict: `Grouping` warns only when the chain
 shows a call *after* `.GroupBy(...)` that isn't `.WithRollup()` — from that
 point the builder's type can never accept the suffix — and a chain that

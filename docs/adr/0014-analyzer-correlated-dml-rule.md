@@ -97,7 +97,9 @@ on a target column whose subquery chain passes the target's own symbol to a
 `From` or join step. It reads a compound's branches together, since a trailing
 `ORDER BY` sits on the last branch in source, so a branch correlating beside
 one that lists the target stays silent where `Build()` throws. The same symbol
-reading decides `SQLA0102`'s joined `DELETE` lead on Oracle past its floor.
+reading decides `SQLA0102`'s joined `DELETE` lead on Oracle past its floor, and
+the alias trace, read for a non-empty constant, its qualified sort key after
+`UNION` (#800).
 
 One deliberate-circumvention escape is accepted rather than defended
 against: reassigning the target through an `in` parameter via
@@ -112,7 +114,8 @@ column's run-time owner, so a table class exposing another instance's
 `DbColumn` (`public DbColumn OrderId => _o.Id;`) reports on code that
 builds when `_o` is aliased or the subquery lists it (an unaliased `_o` the
 subquery does not list throws since #677); TableClassGen emits columns owned
-by their own instance. The walk
+by their own instance. `SQLA0102`'s `UNION` sort-key rule shares the case: such
+a column reports there though it may render bare. The walk
 is also flow-insensitive: a correlated subquery under `ConditionIf(false,
 …)` or in an untaken `?:` arm reports though it never renders. So the rule
 fails toward silence where it cannot prove a shape, but it is not free of

@@ -6,7 +6,8 @@ namespace SqlArtisan.Analyzers.Tests;
 public class ContextRuleAnalyzerTests
 {
     // The marked span is the whole trigger invocation (receiver chain included) —
-    // the same location SQLA0100 reports for an instance-chain member.
+    // the same location SQLA0100 reports for an instance-chain member. The UNION
+    // sort-key rule marks each key instead, since one OrderBy can hold several.
     private static string Usage(string statements) => $$"""
         using SqlArtisan;
         using static SqlArtisan.Sql;
