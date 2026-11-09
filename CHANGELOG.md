@@ -30,7 +30,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Docs
 - `docs/functions.md` says that a value of a type of your own, such as a value
   object, binds through `new BindValue(value)`, which the execution layer
-  converts (a Dapper type handler through `SqlArtisan.Dapper`). (#793)
+  converts (a Dapper type handler through `SqlArtisan.Dapper`). The docs write
+  `Dapper.SqlMapper.AddTypeHandler` qualified, since a bare `SqlMapper` names
+  `SqlArtisan.Dapper`'s own class beside it. (#793)
 - `docs/analyzer.md` says that the context rules read no control flow, and that
   the joined-table SQLite `RETURNING` rule reports a table class exposing the
   target's `DbColumn`, which `Build(Dbms.Sqlite)` accepts. (#800)

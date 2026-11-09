@@ -1574,7 +1574,7 @@ purpose; a `nameof` of a member says the alias is a member name, which is
 what lets the rule be on by default.
 
 Two shapes report on code that works. A handler registered for the model with
-`SqlMapper.AddTypeHandler` reads the first column whatever the alias (Dapper
+`Dapper.SqlMapper.AddTypeHandler` reads the first column whatever the alias (Dapper
 2.1.66 on SQLite, live:
 `SqliteTests.QueryNameOfAlias_RegisteredHandler_ReadsTheFirstColumn`), and a type
 map keyed on an attribute of another name can map the column to a member the

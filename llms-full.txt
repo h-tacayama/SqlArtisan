@@ -3849,7 +3849,7 @@ That list is what SqlArtisan accepts as a bind value; whether a value reaches th
 
 A `byte[]` is not in the list: `In(...)` reads an array as one value per element, so bind binary data with `new BindValue(bytes)`.
 
-A type of your own, such as a value object wrapping an id, binds the same way: `c.Id == new BindValue(customerId)`. SqlArtisan hands the value to the execution layer as it is, so that layer converts it; through `SqlArtisan.Dapper`, register a Dapper type handler for the type with `SqlMapper.AddTypeHandler`.
+A type of your own, such as a value object wrapping an id, binds the same way: `c.Id == new BindValue(customerId)`. SqlArtisan hands the value to the execution layer as it is, so that layer converts it; through `SqlArtisan.Dapper`, register a Dapper type handler for the type with `Dapper.SqlMapper.AddTypeHandler`.
 
 `Sql.Bind(value)` rejects `null` and `DBNull.Value`. For a bound `NULL`, use `Sql.BindNull()`: `Sql.Null` inlines the `NULL` keyword into the SQL text — as does a bare C# `null` in a `VALUES` row, the one position that takes one; anywhere else it throws — while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
 
@@ -5448,7 +5448,7 @@ purpose; a `nameof` of a member says the alias is a member name, which is
 what lets the rule be on by default.
 
 Two shapes report on code that works. A handler registered for the model with
-`SqlMapper.AddTypeHandler` reads the first column whatever the alias (Dapper
+`Dapper.SqlMapper.AddTypeHandler` reads the first column whatever the alias (Dapper
 2.1.66 on SQLite, live:
 `SqliteTests.QueryNameOfAlias_RegisteredHandler_ReadsTheFirstColumn`), and a type
 map keyed on an attribute of another name can map the column to a member the

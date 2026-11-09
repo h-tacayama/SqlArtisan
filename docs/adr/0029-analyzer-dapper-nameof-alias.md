@@ -80,7 +80,7 @@ row number. A `nameof` of a member says the alias is a member name, so
 name-based mapping is the declared intent; string aliases get no rule.
 
 Two shapes still report on code that works, and are suppressed per ID: a
-handler registered for the model with `SqlMapper.AddTypeHandler`, which reads
+handler registered for the model with `Dapper.SqlMapper.AddTypeHandler`, which reads
 the first column whatever the alias (Dapper 2.1.66 on SQLite,
 `SqliteTests.QueryNameOfAlias_RegisteredHandler_ReadsTheFirstColumn`), and a type
 map keyed on an attribute of another name.
