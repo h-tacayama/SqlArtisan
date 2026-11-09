@@ -862,17 +862,13 @@ alias, a CTE or a derived table (`"u".age`, `"c".age`), whether every branch
 selects the column or none does. SQLite and SQL Server sort by such a key when
 every branch selects it in the same position, so the rule leaves them out. Order
 by the column's select-list position (`OrderBy(2)`) or by an alias the first
-branch gives it (`.As(...)`) instead. The rule reads a key written in the
-`OrderBy(...)` call itself: a column of a CTE or a derived table, or one of a
-table whose alias it can prove the way `SQLA0300` proves an empty one — a local
-or `readonly` field whose initializer constructs the table class with a constant
-alias, through constructors written out in the project's source, and which is
-never reassigned. Anything less certain stays silent: a key held in a variable,
-a table passed in or aliased from a variable, an inline `DbTable`, a table class
-with a primary constructor or declared in a referenced project, and an
-`ORDER BY` after any set operator other than `Union` and `UnionAll`. The proof
-shares `SQLA0300`'s false positive: a table class exposing another instance's
-`DbColumn` reports, though that column may render bare.
+branch gives it (`.As(...)`) instead. The rule reads `Union` and `UnionAll`
+only, and reports only a key it can prove qualified; every other shape stays
+silent. A table's column, for example, reports only where the rule can trace
+the table's alias to a constant, as `SQLA0300` traces an empty one. The rule
+tells a column's relation by the type of the variable it is read through, so a
+class exposing another relation's `DbColumn` (a table, CTE or derived-table
+class) reports, though that column may render bare.
 
 ```csharp
 // sqlartisan_syntax_postgresql = any
@@ -913,7 +909,7 @@ instead, for example when the joined table is unaliased. `Build(Dbms.Sqlite)`
 throws for such a column at the `RETURNING` list's own level, so the rule
 reports before the build what the build rejects. The rule tells the column's
 table by the variable it is read through, as `SQLA0300` does, while the build
-reads the column's owner, so a table class exposing another table's `DbColumn`
+reads the column's owner, so a table class exposing the target's `DbColumn`
 reports though the build accepts it. The rule reads a joined
 table it can identify, a local or a readonly field read through `this` or
 statically, on the `UPDATE ... FROM` chain `Returning(...)` is written on, so it
@@ -1075,10 +1071,10 @@ itself. For the nineteen that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the
-matrix follows. The exceptions are the two that tell a table by the variable its
-column is read through, as `SQLA0300` does — the joined table in a SQLite
-`RETURNING` and the `UNION` sort key — which share its false positive, named in
-their paragraphs.
+matrix follows. The exceptions are the two that tell a column's relation by the
+variable it is read through, as `SQLA0300` does — the joined table in a SQLite
+`RETURNING` and the `UNION` sort key — which can report a class exposing another
+relation's `DbColumn`, as their paragraphs say.
 The absence side is equally strict: `Grouping` warns only when the chain
 shows a call *after* `.GroupBy(...)` that isn't `.WithRollup()` — from that
 point the builder's type can never accept the suffix — and a chain that

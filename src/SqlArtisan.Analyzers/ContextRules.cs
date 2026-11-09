@@ -737,8 +737,9 @@ internal static class ContextRules
         return key;
     }
 
-    // A CTE's or a derived table's name is required and always renders, so its column is
-    // qualified whatever the instance; a table's is qualified only by a provable alias.
+    // A CTE's or a derived table's own column renders its required name; the owner is read
+    // from the variable's type, so a subclass exposing another relation's column reports
+    // too (docs/analyzer.md). A table's column needs a provable alias.
     private static bool IsQualifiedColumn(Compilation compilation, IOperation key)
     {
         if (key.Type is not { Name: "DbColumn" } type

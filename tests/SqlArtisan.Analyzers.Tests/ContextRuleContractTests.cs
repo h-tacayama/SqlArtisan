@@ -82,7 +82,7 @@ public class ContextRuleContractTests
     public void CteAndDerivedTableColumns_AreQualifiedInACompoundOrderBy()
     {
         // The UNION sort-key rule reports any CTE or derived-table column with no alias
-        // proof, so each such owner must render its name; a new one must join this list.
+        // proof, so each exported owner must render its name; a new one must join this list.
         List<string> owners = [.. Core.GetExportedTypes()
             .Where(t => !t.IsAbstract
                 && (t.IsSubclassOf(typeof(CteBase)) || t.IsSubclassOf(typeof(DerivedTableBase))))
