@@ -1965,6 +1965,17 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         }
     }
 
+    // SQLA0102 reports a key of the outer query after UNION too (#800); the position runs.
+    [Fact]
+    public void CompoundOrderBy_OuterQueryColumn_IsRejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query(
+            CompoundOrderedByOuterColumn("outer", false)).ToList());
+        Assert.Single(connection.Query(CompoundOrderedByOuterColumn("position", false)));
+    }
+
     // docs/query-statements.md: INTERSECT binds tighter than UNION and EXCEPT here.
     [Fact]
     public void SetOperators_IntersectAfterUnionOrExcept_BindsFirst()

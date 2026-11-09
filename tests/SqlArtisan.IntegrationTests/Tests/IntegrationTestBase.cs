@@ -260,6 +260,22 @@ public abstract class IntegrationTestBase
         };
     }
 
+    // A UNION subquery correlated to the outer users "x", made scalar by a row limit (#800):
+    // "outer" sorts it by the outer x.age, "position" by its own first column.
+    internal static ISqlBuilder CompoundOrderedByOuterColumn(string key, bool fetchFirst)
+    {
+        UsersTable x = new("x");
+        UsersTable u = new("u");
+        UsersTable v = new("v");
+        ISelectBuilderOrderBy ordered =
+            Select(u.Id).From(u).Where(u.Id == 1)
+            .Union
+            .Select(v.Id).From(v).Where(v.Id == 4)
+            .OrderBy(key == "outer" ? x.Age : 1);
+        object scalar = fetchFirst ? ordered.FetchFirst(1) : ordered.Limit(1);
+        return Select(x.Id, scalar).From(x).Where(x.Id == 1);
+    }
+
     [Fact]
     public void WindowFunction_RowNumber_Executes()
     {

@@ -1768,6 +1768,17 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         }
     }
 
+    // SQLA0102 reports a key of the outer query after UNION too (#800); the position runs.
+    [Fact]
+    public void CompoundOrderBy_OuterQueryColumn_IsRejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query(
+            CompoundOrderedByOuterColumn("outer", true)).ToList());
+        Assert.Single(connection.Query(CompoundOrderedByOuterColumn("position", true)));
+    }
+
     // docs/query-statements.md: set operators apply left to right here, so a
     // derived table is what groups the INTERSECT first.
     [Fact]
