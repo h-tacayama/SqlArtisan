@@ -651,7 +651,7 @@ internal static class ContextRules
     /// <summary>
     /// After <c>UNION</c> / <c>UNION ALL</c>, MySQL 8.0, Oracle XE 21.3.0 and Free 23ai, and
     /// PostgreSQL 16 and 17 reject a sort key qualified by a table alias, a CTE or a derived
-    /// table, whether every branch selects the column or none does. Live twins on those lanes.
+    /// table, whichever branches select the column. Live twins on those lanes.
     /// </summary>
     public static void CheckQualifiedKeyAfterUnion(
         OperationAnalysisContext context, IInvocationOperation orderBy, string dialectNames)
