@@ -29,22 +29,24 @@ internal static class ValueConverters
         }
 
         object? converted = convert(value);
-        if (converted is BindValue bind and not BindArrayValue && Bindable(bind.Value))
-        {
-            return bind;
-        }
 
         // A BindValue is judged and named by what it carries, the part the remedy is about.
-        object? payload = converted is BindValue carried ? carried.Value : converted;
-        if (payload is null || converted is BindArrayValue || !Bindable(payload))
+        BindValue? carrier = converted as BindValue;
+        object? payload = carrier is null ? converted : carrier.Value;
+        if (payload is null or DBNull && carrier is not BindArrayValue)
         {
-            throw new InvalidOperationException(
-                $"The value converter for {type} returned "
-                    + $"{payload?.GetType().ToString() ?? "null"}, which no value position "
-                    + "binds; return a listed type, a byte[], or a BindValue carrying one.");
+            return new ConvertedNull(type, carrier?.DbType, carrier?.Size);
         }
 
-        return new BindValue(payload);
+        if (carrier is BindArrayValue || !Bindable(payload!))
+        {
+            throw new InvalidOperationException(
+                $"The value converter for {type} returned {payload!.GetType()}, which no value "
+                    + "position binds; return a listed type, a byte[], null for SQL NULL, or a "
+                    + "BindValue carrying one.");
+        }
+
+        return carrier ?? new BindValue(payload!);
     }
 
     // byte[] stays off the list only because In(...) reads an array per element (#669);

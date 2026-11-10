@@ -50,8 +50,10 @@ internal sealed class CaptureParameter : IDbDataParameter
 
     public object? Value { get; set; }
 
+    // A null Value is SQL NULL, as Dapper sends it; SqlArtisan binds it where NULL is a value.
     internal object? Captured() =>
-        Value is not null && (_dbTypeSet || _sizeSet)
-            ? new BindValue(Value, _dbTypeSet ? _dbType : null, size: _sizeSet ? _size : null)
+        _dbTypeSet || _sizeSet
+            ? new BindValue(
+                Value ?? DBNull.Value, _dbTypeSet ? _dbType : null, size: _sizeSet ? _size : null)
             : Value;
 }

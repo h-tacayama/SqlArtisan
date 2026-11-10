@@ -17,7 +17,12 @@ internal static class OperandGuard
         leftSide ?? throw new ArgumentNullException(nameof(leftSide), NullLeftOperandMessage(op));
 
     internal static SqlExpression ThrowIfNullCompared(SqlExpression? @this, string op) =>
-        @this ?? throw ExpressionResolver.NullCompared(nameof(@this), op);
+        @this switch
+        {
+            null => throw ExpressionResolver.NullCompared(nameof(@this), op),
+            ConvertedNull converted => throw converted.Compared(op),
+            _ => @this,
+        };
 
     internal static string NullLeftOperandMessage(string op) =>
         $"The left operand of {op} cannot be null; write Sql.Null for a SQL NULL literal.";

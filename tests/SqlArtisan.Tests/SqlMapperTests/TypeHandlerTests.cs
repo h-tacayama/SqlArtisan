@@ -81,6 +81,25 @@ public class TypeHandlerTests : IDisposable
     }
 
     [Fact]
+    public void AddTypeHandler_HandlerSettingDbNull_InsertsNullAndRejectsTheComparison()
+    {
+        DapperMapper.AddTypeHandler(new OptionalIdHandler());
+        using SqliteConnection cnn = OpenSeededConnection();
+        CustomersTable c = new();
+
+        cnn.Execute(InsertInto(c, c.Id, c.Name).Values(new OptionalId(null), "Dan"));
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Select(c.Name).From(c).Where(c.Id == new OptionalId(null)).Build());
+
+        Assert.Equal(
+            ["Dan"], cnn.Query<string>(Select(c.Name).From(c).Where(c.Id.IsNull)));
+        Assert.Equal(
+            $"= never matches the NULL the value converter for {typeof(OptionalId)} returned; "
+                + "test for NULL with .IsNull or .IsNotNull.",
+            ex.Message);
+    }
+
+    [Fact]
     public void ResetTypeHandlers_RegisteredType_ClearsDapperAndSqlArtisan()
     {
         DapperMapper.AddTypeHandler(new CustomerIdHandler());
@@ -126,6 +145,8 @@ public class TypeHandlerTests : IDisposable
 
     public readonly record struct OrderId(long Value);
 
+    public readonly record struct OptionalId(long? Value);
+
     public sealed record Email(string Value);
 
     public abstract record Money(long Cents);
@@ -151,6 +172,14 @@ public class TypeHandlerTests : IDisposable
             parameter.Value = value.Value;
 
         public override CustomerId Parse(object value) => new(Convert.ToInt64(value));
+    }
+
+    private sealed class OptionalIdHandler : global::Dapper.SqlMapper.TypeHandler<OptionalId>
+    {
+        public override void SetValue(IDbDataParameter parameter, OptionalId value) =>
+            parameter.Value = value.Value is long id ? id : DBNull.Value;
+
+        public override OptionalId Parse(object value) => new(Convert.ToInt64(value));
     }
 
     private sealed class EmailHandler : global::Dapper.SqlMapper.TypeHandler<Email>

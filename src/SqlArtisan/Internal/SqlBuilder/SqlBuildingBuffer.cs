@@ -138,21 +138,23 @@ internal sealed class SqlBuildingBuffer : IDisposable
             .AppendCsv(sets)
             .CloseParenthesis();
 
-    // Renders a comma-separated list of assignments (`a = 1, b = 2`) with each
-    // target column unqualified, for the positions that forbid a qualifier.
-    internal SqlBuildingBuffer AppendAssignmentsCsv(EqualCondition[] assignments)
+    // Renders a comma-separated list of assignments (`a = 1, b = 2`), each target column
+    // unqualified unless the caller's arm names its owner (an UPDATE's joined forms).
+    internal SqlBuildingBuffer AppendAssignmentsCsv(
+        EqualCondition[] assignments,
+        bool qualified = false)
     {
         if (assignments.Length == 0)
         {
             return this;
         }
 
-        assignments[0].FormatAsAssignment(this);
+        assignments[0].FormatAsAssignment(this, qualified);
 
         for (int i = 1; i < assignments.Length; i++)
         {
             Append(", ");
-            assignments[i].FormatAsAssignment(this);
+            assignments[i].FormatAsAssignment(this, qualified);
         }
 
         return this;

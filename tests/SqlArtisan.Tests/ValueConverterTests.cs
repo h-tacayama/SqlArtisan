@@ -9,6 +9,8 @@ namespace SqlArtisan.Tests;
 [Collection("NonParallelTests")]
 public class ValueConverterTests : IDisposable
 {
+    private static readonly CustomerId NoCustomer = new(0);
+
     private readonly TestTable _t = new("t");
 
     public void Dispose() => SqlArtisanConfig.ResetValueConverters();
@@ -224,31 +226,129 @@ public class ValueConverterTests : IDisposable
     }
 
     [Fact]
-    public void Comparison_ConverterReturningNull_ThrowsInvalidOperationException()
+    public void InsertValues_ConverterReturningNull_BindsSqlNull()
     {
-        SqlArtisanConfig.AddValueConverter<CustomerId>(_ => null!);
+        RegisterNoneAsNull();
+        TestTable t = new();
 
-        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
-            () => _t.Code == new CustomerId(2));
+        SqlStatement sql = InsertInto(t, t.Code, t.Name).Values(NoCustomer, "z").Build();
 
-        Assert.Equal(
-            $"The value converter for {typeof(CustomerId)} returned null, which no value "
-                + "position binds; return a listed type, a byte[], or a BindValue carrying one.",
-            ex.Message);
+        Assert.Equal("INSERT INTO test_table (code, name) VALUES (:0, :1)", sql.Text);
+        Assert.Equal(DBNull.Value, sql.Parameters.Get<object>(":0"));
     }
 
     [Fact]
-    public void Comparison_ConverterReturningBindNull_ThrowsInvalidOperationException()
+    public void UpdateSet_ConverterReturningNull_BindsSqlNull()
     {
-        SqlArtisanConfig.AddValueConverter<CustomerId>(_ => BindNull());
+        RegisterNoneAsNull();
+        TestTable t = new();
 
-        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
-            () => _t.Code == new CustomerId(2));
+        SqlStatement sql = Update(t).Set(t.Code == NoCustomer).Where(t.Name == "z").Build();
+
+        Assert.Equal("UPDATE test_table SET code = :0 WHERE name = :1", sql.Text);
+        Assert.Equal(DBNull.Value, sql.Parameters.Get<object>(":0"));
+    }
+
+    // The joined arm renders SET through the qualified form, not through the condition.
+    [Fact]
+    public void UpdateSet_MySql_JoinedForm_ConverterReturningNull_BindsSqlNull()
+    {
+        RegisterNoneAsNull();
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            Update(t)
+            .InnerJoin(s).On(t.Code == s.Code)
+            .Set(t.Code == NoCustomer)
+            .Build(Dbms.MySql);
 
         Assert.Equal(
-            $"The value converter for {typeof(CustomerId)} returned {typeof(DBNull)}, which no "
-                + "value position binds; return a listed type, a byte[], or a BindValue "
-                + "carrying one.",
+            "UPDATE test_table AS `t` INNER JOIN test_table `s` ON `t`.code = `s`.code "
+                + "SET `t`.code = ?0",
+            sql.Text);
+        Assert.Equal(DBNull.Value, sql.Parameters.Get<object>("?0"));
+    }
+
+    [Fact]
+    public void InsertValues_ConverterReturningBindNullOfAType_KeepsTheDbType()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId>(_ => BindNull(DbType.Int64));
+        TestTable t = new();
+        List<BindValue> binds = [];
+
+        InsertInto(t, t.Code).Values(new CustomerId(2)).Build()
+            .Parameters.ForEach((_, bind) => binds.Add(bind));
+
+        BindValue bind = Assert.Single(binds);
+        Assert.Equal(DBNull.Value, bind.Value);
+        Assert.Equal(DbType.Int64, bind.DbType);
+    }
+
+    [Fact]
+    public void Select_ConverterReturningNull_BindsSqlNull()
+    {
+        RegisterNoneAsNull();
+
+        SqlStatement sql = Select(NoCustomer).From(_t).Build();
+
+        Assert.Equal("SELECT :0 FROM test_table \"t\"", sql.Text);
+        Assert.Equal(DBNull.Value, sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
+    public void Where_ConverterReturningNull_ThrowsArgumentException()
+    {
+        RegisterNoneAsNull();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Select(_t.Name).From(_t).Where(_t.Code == NoCustomer).Build());
+
+        Assert.Equal(NeverMatches("="), ex.Message);
+    }
+
+    [Fact]
+    public void NotEqual_ConverterReturningNull_ThrowsArgumentException()
+    {
+        RegisterNoneAsNull();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => _t.Code != NoCustomer);
+
+        Assert.Equal(NeverMatches("<>"), ex.Message);
+    }
+
+    [Fact]
+    public void NotIn_ConverterReturningNull_ThrowsArgumentException()
+    {
+        RegisterNoneAsNull();
+        CustomerId[] ids = [new(1), NoCustomer];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => _t.Code.NotIn(ids));
+
+        Assert.Equal(NeverMatches("NOT IN"), ex.Message);
+    }
+
+    [Fact]
+    public void ComparisonLeftSide_ConverterReturningNull_ThrowsArgumentException()
+    {
+        RegisterNoneAsNull();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Bind(NoCustomer) < _t.Code);
+
+        Assert.Equal(NeverMatches("<"), ex.Message);
+    }
+
+    [Fact]
+    public void SimpleCaseWhen_ConverterReturningNull_ThrowsArgumentException()
+    {
+        RegisterNoneAsNull();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => When(NoCustomer));
+
+        Assert.Equal(
+            $"A simple CASE never matches the NULL the value converter for {typeof(CustomerId)} "
+                + "returned; test for NULL with a searched When(expr.IsNull).",
             ex.Message);
     }
 
@@ -262,10 +362,17 @@ public class ValueConverterTests : IDisposable
 
         Assert.Equal(
             $"The value converter for {typeof(CustomerId)} returned {typeof(Email)}, which no "
-                + "value position binds; return a listed type, a byte[], or a BindValue "
-                + "carrying one.",
+                + "value position binds; return a listed type, a byte[], null for SQL NULL, or "
+                + "a BindValue carrying one.",
             ex.Message);
     }
+
+    private static void RegisterNoneAsNull() =>
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value == 0 ? null! : id.Value);
+
+    private static string NeverMatches(string construct) =>
+        $"{construct} never matches the NULL the value converter for {typeof(CustomerId)} "
+            + "returned; test for NULL with .IsNull or .IsNotNull.";
 
     public readonly record struct CustomerId(long Value);
 

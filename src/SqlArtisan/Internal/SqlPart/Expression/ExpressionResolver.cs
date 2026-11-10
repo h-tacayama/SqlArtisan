@@ -204,7 +204,11 @@ internal static class ExpressionResolver
                 : NullCompared(paramName, construct);
         }
 
-        return Resolve(item, paramName);
+        // `=` also writes SET, so its condition rejects the NULL when it renders as one.
+        SqlExpression resolved = Resolve(item, paramName);
+        return resolved is ConvertedNull converted && construct != Operators.Equal
+            ? throw converted.Compared(construct)
+            : resolved;
     }
 
     // The right operand an ANY / ALL / SOME completes, in the slots QuantifiedExpression's
@@ -279,7 +283,8 @@ internal static class ExpressionResolver
             throw new ArgumentNullException(paramName, NullSimpleCaseMessage);
         }
 
-        return Resolve(item, paramName);
+        SqlExpression resolved = Resolve(item, paramName);
+        return resolved is ConvertedNull converted ? throw converted.InSimpleCase() : resolved;
     }
 
     internal static ArgumentNullException NullCompared(string paramName, string construct) =>

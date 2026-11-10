@@ -21,8 +21,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   or, through `SqlArtisan.Dapper`, `SqlMapper.AddTypeHandler(handler)`, which
   registers the Dapper type handler with Dapper too and converts through its
   `SetValue`. The value converts when it is passed, so raw ADO.NET and
-  `SqlArtisan.ArrayBind` receive the converted value as well. `BindArray(...)`
-  and `new BindValue(value)` do not convert. `SqlArtisanConfig.ResetValueConverters()`
+  `SqlArtisan.ArrayBind` receive the converted value as well. A converter's
+  `null` (or a handler's `DBNull`) binds SQL NULL in a `VALUES` row, a `SET` or a
+  select item, and a comparison throws on it. `BindArray(...)` and
+  `new BindValue(value)` do not convert. `SqlArtisanConfig.ResetValueConverters()`
   and `SqlMapper.ResetTypeHandlers()` clear the registrations. (#810)
 
 ### Changed

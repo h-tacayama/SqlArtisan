@@ -578,6 +578,8 @@ execution path receives the converted value; opening the list instead would hand
 the object itself to providers that bind it as its `ToString()` text (#811). A
 listed type never reaches the registry (ADR 0006) and never converts. `BindArray`
 does not convert: an empty array has no element to learn the converted type from.
+A converter's `null` or `DBNull` binds SQL NULL where NULL is a value and is
+rejected in a compared position (`guards-and-empty-states.md`, null arguments).
 `new BindValue(value)` stays the as-is route. No analyzer reports an unregistered
 type: registration is a run-time fact, usually in another project, and the throw
 already lands at the call and names the type (#793).
