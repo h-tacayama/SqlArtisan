@@ -60,11 +60,18 @@ public sealed class MatchFunction : IIncompleteExpression
 
     // MySQL 8.0 runs AGAINST (NULL) and matches no row, so neither Sql.Null nor a NULL
     // test is a remedy for the predicate (#614).
-    private static SqlExpression ResolveSearchText(object searchExpr) =>
-        searchExpr is null
-            ? throw new ArgumentNullException(
+    // A value converter's NULL is the C# null's case (#810).
+    private static SqlExpression ResolveSearchText(object searchExpr)
+    {
+        if (searchExpr is null)
+        {
+            throw new ArgumentNullException(
                 nameof(searchExpr),
                 "AGAINST cannot take a C# null, and a NULL search text matches no row; "
-                    + "pass the text, or leave the predicate out.")
-            : Resolve(searchExpr, nameof(searchExpr));
+                    + "pass the text, or leave the predicate out.");
+        }
+
+        SqlExpression resolved = Resolve(searchExpr, nameof(searchExpr));
+        return resolved is ConvertedNull converted ? throw converted.InSearchText() : resolved;
+    }
 }

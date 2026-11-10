@@ -27,7 +27,7 @@ public static class SqlArtisanConfig
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="convert"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><typeparamref name="T"/> binds without a converter, or is an interface or abstract.</exception>
-    public static void AddValueConverter<T>(Func<T, object> convert)
+    public static void AddValueConverter<T>(Func<T, object?> convert)
     {
         ArgumentNullException.ThrowIfNull(convert);
 
@@ -48,7 +48,7 @@ public static class SqlArtisanConfig
     }
 
     /// <summary>
-    /// Removes every converter <see cref="AddValueConverter{T}(Func{T, object})"/> registered.
+    /// Removes every converter <see cref="AddValueConverter{T}(Func{T, object?})"/> registered.
     /// </summary>
     public static void ResetValueConverters() => ValueConverters.Clear();
 

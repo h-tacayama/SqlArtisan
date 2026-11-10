@@ -15,6 +15,7 @@ public static partial class SqlMapper
     /// Call it in place of Dapper's own <c>AddTypeHandler</c>, which SqlArtisan cannot see. A
     /// type it registers with SqlArtisan reaches every execution path converted; one a value
     /// position binds by itself, an interface and an abstract type register with Dapper alone.
+    /// <para>A <c>Precision</c> or <c>Scale</c> the handler sets is not carried.</para>
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="handler"/> is <see langword="null"/>.</exception>
     public static void AddTypeHandler<T>(global::Dapper.SqlMapper.TypeHandler<T> handler)
@@ -34,7 +35,7 @@ public static partial class SqlMapper
         {
             CaptureParameter parameter = new();
             handler.SetValue(parameter, value);
-            return parameter.Captured()!;
+            return parameter.Captured();
         });
     }
 

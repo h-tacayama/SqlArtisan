@@ -12,6 +12,10 @@ internal sealed class ConvertedNull(Type source, DbType? dbType, int? size)
         new($"{construct} never matches the NULL the value converter for {source} returned; "
             + "test for NULL with .IsNull or .IsNotNull.");
 
+    internal ArgumentException InSearchText() =>
+        new($"AGAINST matches no row for the NULL the value converter for {source} returned; "
+            + "pass the text, or leave the predicate out.");
+
     internal ArgumentException InSimpleCase() =>
         new($"A simple CASE never matches the NULL the value converter for {source} returned; "
             + "test for NULL with a searched When(expr.IsNull).");

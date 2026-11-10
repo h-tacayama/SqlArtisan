@@ -340,6 +340,64 @@ public class ValueConverterTests : IDisposable
     }
 
     [Fact]
+    public void InReceiver_ConverterReturningNull_ThrowsArgumentException()
+    {
+        RegisterNoneAsNull();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Bind(NoCustomer).In(_t.Code, _t.Name));
+
+        Assert.Equal(NeverMatches("IN"), ex.Message);
+    }
+
+    [Fact]
+    public void BetweenReceiver_ConverterReturningNull_ThrowsArgumentException()
+    {
+        RegisterNoneAsNull();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Bind(NoCustomer).Between(_t.Code, _t.Name));
+
+        Assert.Equal(NeverMatches("BETWEEN"), ex.Message);
+    }
+
+    [Fact]
+    public void LikeReceiver_ConverterReturningNull_ThrowsArgumentException()
+    {
+        RegisterNoneAsNull();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Bind(NoCustomer).NotLike(_t.Name));
+
+        Assert.Equal(NeverMatches("NOT LIKE"), ex.Message);
+    }
+
+    [Fact]
+    public void Against_ConverterReturningNull_ThrowsArgumentException()
+    {
+        RegisterNoneAsNull();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Match(_t.Name).Against(NoCustomer));
+
+        Assert.Equal(
+            "AGAINST matches no row for the NULL the value converter for "
+                + $"{typeof(CustomerId)} returned; pass the text, or leave the predicate out.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void FunctionArgument_ConverterReturningNull_BindsSqlNull()
+    {
+        RegisterNoneAsNull();
+
+        SqlStatement sql = Select(Coalesce(_t.Code, NoCustomer)).From(_t).Build();
+
+        Assert.Equal("SELECT COALESCE(\"t\".code, :0) FROM test_table \"t\"", sql.Text);
+        Assert.Equal(DBNull.Value, sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
     public void SimpleCaseWhen_ConverterReturningNull_ThrowsArgumentException()
     {
         RegisterNoneAsNull();
@@ -368,7 +426,7 @@ public class ValueConverterTests : IDisposable
     }
 
     private static void RegisterNoneAsNull() =>
-        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value == 0 ? null! : id.Value);
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value == 0 ? null : id.Value);
 
     private static string NeverMatches(string construct) =>
         $"{construct} never matches the NULL the value converter for {typeof(CustomerId)} "
