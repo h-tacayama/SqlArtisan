@@ -77,7 +77,7 @@ public static partial class Sql
     /// combinations use <see cref="Contains(object, object)"/>.</remarks>
     public static SqlCondition Freetext(object column, object freetext) =>
         new FreetextCondition(
-            Resolve(column, nameof(column)),
+            ResolveSearched(column, nameof(column), Keywords.Freetext),
             ResolveSearched(freetext, nameof(freetext), Keywords.Freetext));
 
     /// <summary>

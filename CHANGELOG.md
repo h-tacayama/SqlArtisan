@@ -17,18 +17,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   it can trace) on MySQL, Oracle and PostgreSQL, which reject it (observed on
   MySQL 8.0, Oracle XE 21.3.0 and Free 23ai, and PostgreSQL 16 and 17). (#800)
 - A type of your own, such as a value object, binds wherever a value binds once
-  a converter for it is registered:
-  `SqlArtisanConfig.AddValueConverter<T>(convert)`, or, through
+  a converter for it is registered with
+  `SqlArtisanConfig.AddValueConverter<T>(convert)` or, through
   `SqlArtisan.Dapper`, `SqlMapper.AddTypeHandler(handler)`, which registers the
-  Dapper type handler with Dapper too and, for a concrete type no value position
-  binds by itself, converts through its `SetValue`. The value converts when it
-  is passed, so raw ADO.NET and `SqlArtisan.ArrayBind` receive the converted
-  value as well. A converter's `null` (or a handler's `DBNull`) binds SQL NULL
-  where NULL is a value, such as a `VALUES` row or a `SET`, and any operand of a
-  comparison or a predicate throws on it. `BindArray(...)` and
-  `new BindValue(value)` do not convert.
-  `SqlArtisanConfig.ResetValueConverters()` and `SqlMapper.ResetTypeHandlers()`
-  clear the registrations. (#810)
+  Dapper handler too. The value converts when it is passed, so every execution
+  path receives it. A converter's SQL NULL binds where NULL is a value and
+  throws in a comparison or a predicate. `BindArray(...)` and
+  `new BindValue(value)` do not convert. (#810)
 
 ### Changed
 - **Breaking:** TableClassGen's `--check` and `--fix` fail with exit code `2`

@@ -174,10 +174,9 @@ Three rules to know from day one:
   `DbmsResolver.RegisterProvider("My.Provider.Connection", Dbms.PostgreSql)`.
 - **Register a type handler through `SqlArtisan.Dapper`.**
   `SqlMapper.AddTypeHandler(handler)` registers a `Dapper.SqlMapper.TypeHandler<T>`
-  with Dapper and lets a value of `T`, such as a value object, bind as written
-  (`c.Id == customerId`); a `T` that is an interface or abstract registers with
-  Dapper alone. Registered through Dapper's own `AddTypeHandler`, the
-  value is rejected at the call. See [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types).
+  with Dapper and lets a value object bind as written (`c.Id == customerId`),
+  which Dapper's own `AddTypeHandler` does not. Which types it converts:
+  [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types).
 
 Not using Dapper after all? Call `.Build(Dbms.X)` yourself and feed
 `sql.Text` / `sql.Parameters` to raw ADO.NET or any other mapper — see the

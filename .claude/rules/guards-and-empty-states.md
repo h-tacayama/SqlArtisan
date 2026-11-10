@@ -852,12 +852,11 @@ the caller did not mean. Judge a null argument by which failure it produces:
   converter returns (`SqlArtisanConfig.AddValueConverter`, a Dapper type handler
   setting `DBNull`) is the C# `null`'s case, not `Sql.Null`'s: the caller's code
   writes no NULL and `SQLA0303` cannot see one, so any operand of a comparison or a
-  predicate (a JSONB key and a full-text search text included, where a C# `null` takes
-  the `Sql.Null` message, bar `AGAINST`'s own) and a simple `CASE` reject it
-  (`ConvertedNull`),
-  where it binds as a value elsewhere, such as a `VALUES` row, a `SET` or a function
-  argument. `=` rejects it at `Build()`, from `EqualCondition.Format`, since the same
-  condition is a `SET` assignment when `FormatAsAssignment` renders it (#810). A grouping, partition or `DISTINCT ON` key is another:
+  predicate and a simple `CASE` reject it (`ConvertedNull`), while it binds as a value
+  elsewhere. `=` rejects it at `Build()`, from `EqualCondition.Format`, since the same
+  condition is a `SET` assignment when `FormatAsAssignment` renders it.
+  `ConvertedNullSweepTests` holds every public member returning a `SqlCondition` to
+  it (#810). A grouping, partition or `DISTINCT ON` key is another:
   `Sql.Null` there is a constant key, silent where it runs (`PARTITION BY NULL`
   is one partition on PostgreSQL 16 and SQLite, `GROUP BY NULL` one group on
   SQLite) and rejected by PostgreSQL 16 in `GROUP BY`, a grouping element and

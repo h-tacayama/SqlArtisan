@@ -442,8 +442,8 @@ public class ValueConverterTests : IDisposable
 
         Assert.Equal(
             $"The value converter for {typeof(CustomerId)} returned {typeof(Email)}; return a "
-                + "listed type, a byte[], null for SQL NULL or a BindValue carrying one, or pass "
-                + "a value the provider takes as it is through new BindValue(value).",
+                + "listed type, a byte[], null or a BindValue carrying one, or bind a value the "
+                + "provider takes as it is at the call with new BindValue(value).",
             ex.Message);
     }
 

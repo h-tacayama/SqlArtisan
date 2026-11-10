@@ -354,7 +354,7 @@ public class FactoryGuardSweepTests
 
     // A valid value for every parameter type the Sql surface declares, so the
     // injected degenerate argument is the only invalid thing in the call.
-    private static object? Filler(MethodInfo method, ParameterInfo parameter)
+    internal static object? Filler(MethodInfo method, ParameterInfo parameter)
     {
         Type t = parameter.ParameterType;
         DbTable table = new("t", "a");
@@ -598,7 +598,7 @@ public class FactoryGuardSweepTests
     // Embeds the factory's return value in a minimal statement and builds it.
     // Returns the SQL on a silent build; null when the build threw (loud) or
     // the node cannot reach SQL without further completing calls.
-    private static string? TryBuild(object? node)
+    internal static string? TryBuild(object? node)
     {
         try
         {
@@ -676,7 +676,7 @@ public class FactoryGuardSweepTests
         }
     }
 
-    private static string Signature(MethodInfo method)
+    internal static string Signature(MethodInfo method)
     {
         StringBuilder signature = new();
         signature.Append(method.Name).Append('(');
