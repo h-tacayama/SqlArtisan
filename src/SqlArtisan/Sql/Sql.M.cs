@@ -33,7 +33,7 @@ public static partial class Sql
     /// <remarks>SQLite syntax. For the MySQL <c>MATCH ... AGAINST</c> construct use
     /// <see cref="Match(object, object[])"/>.</remarks>
     public static SqlCondition Match(DbTableBase table, object pattern) =>
-        new MatchCondition(table, Resolve(pattern, nameof(pattern)));
+        new MatchCondition(table, ResolveSearched(pattern, nameof(pattern), Keywords.Match));
 
     /// <summary>
     /// The <c>MAX(<paramref name="expr"/>)</c> aggregate: the largest value of

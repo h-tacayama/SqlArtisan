@@ -35,7 +35,7 @@ public static partial class SqlMapper
         {
             CaptureParameter parameter = new();
             handler.SetValue(parameter, value);
-            return parameter.Captured();
+            return parameter.Captured(typeof(T));
         });
     }
 

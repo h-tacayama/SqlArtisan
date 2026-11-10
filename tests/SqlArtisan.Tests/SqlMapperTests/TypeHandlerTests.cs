@@ -100,6 +100,20 @@ public class TypeHandlerTests : IDisposable
     }
 
     [Fact]
+    public void AddTypeHandler_HandlerSettingNoValue_ThrowsInvalidOperationException()
+    {
+        DapperMapper.AddTypeHandler(new SilentHandler());
+
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+            () => InsertInto(_t, _t.Code).Values(new SilentId(1)));
+
+        Assert.Equal(
+            $"The type handler for {typeof(SilentId)} set no parameter Value; "
+                + "set DBNull.Value for SQL NULL.",
+            ex.Message);
+    }
+
+    [Fact]
     public void ResetTypeHandlers_RegisteredType_ClearsDapperAndSqlArtisan()
     {
         DapperMapper.AddTypeHandler(new CustomerIdHandler());
@@ -147,6 +161,8 @@ public class TypeHandlerTests : IDisposable
 
     public readonly record struct OptionalId(long? Value);
 
+    public readonly record struct SilentId(long Value);
+
     public sealed record Email(string Value);
 
     public abstract record Money(long Cents);
@@ -180,6 +196,15 @@ public class TypeHandlerTests : IDisposable
             parameter.Value = value.Value is long id ? id : DBNull.Value;
 
         public override OptionalId Parse(object value) => new(Convert.ToInt64(value));
+    }
+
+    private sealed class SilentHandler : global::Dapper.SqlMapper.TypeHandler<SilentId>
+    {
+        public override void SetValue(IDbDataParameter parameter, SilentId value)
+        {
+        }
+
+        public override SilentId Parse(object value) => new(Convert.ToInt64(value));
     }
 
     private sealed class EmailHandler : global::Dapper.SqlMapper.TypeHandler<Email>

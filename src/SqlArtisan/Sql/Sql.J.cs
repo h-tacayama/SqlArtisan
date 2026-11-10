@@ -152,7 +152,7 @@ public static partial class Sql
         CollectionGuard.ThrowIfEmpty(keys, nameof(keys), "?& requires at least one key.");
         return new JsonbExistsAllCondition(
             ResolveCompared(jsonExpr, nameof(jsonExpr), Operators.JsonbExistsAll),
-            Resolve(keys, nameof(keys)));
+            ResolveSearched(keys, nameof(keys), Operators.JsonbExistsAll));
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ public static partial class Sql
         CollectionGuard.ThrowIfEmpty(keys, nameof(keys), "?| requires at least one key.");
         return new JsonbExistsAnyCondition(
             ResolveCompared(jsonExpr, nameof(jsonExpr), Operators.JsonbExistsAny),
-            Resolve(keys, nameof(keys)));
+            ResolveSearched(keys, nameof(keys), Operators.JsonbExistsAny));
     }
 
     /// <summary>

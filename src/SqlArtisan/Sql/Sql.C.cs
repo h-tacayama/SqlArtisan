@@ -628,7 +628,7 @@ public static partial class Sql
     public static SqlCondition Contains(object column, object searchCondition) =>
         new ContainsCondition(
             Resolve(column, nameof(column)),
-            Resolve(searchCondition, nameof(searchCondition)));
+            ResolveSearched(searchCondition, nameof(searchCondition), Keywords.Contains));
 
     /// <summary>
     /// The Oracle Text <c>CONTAINS(column, query)</c> operator: the relevance score of

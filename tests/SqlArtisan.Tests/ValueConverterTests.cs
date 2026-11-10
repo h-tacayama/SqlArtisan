@@ -387,6 +387,28 @@ public class ValueConverterTests : IDisposable
     }
 
     [Fact]
+    public void JsonbExistsAllKey_ConverterReturningNull_ThrowsArgumentException()
+    {
+        RegisterNoneAsNull();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => JsonbExistsAll(_t.Name, "a", NoCustomer));
+
+        Assert.Equal(NeverMatches("?&"), ex.Message);
+    }
+
+    [Fact]
+    public void Contains_ConverterReturningNull_ThrowsArgumentException()
+    {
+        RegisterNoneAsNull();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Contains(_t.Name, NoCustomer));
+
+        Assert.Equal(NeverMatches("CONTAINS"), ex.Message);
+    }
+
+    [Fact]
     public void FunctionArgument_ConverterReturningNull_BindsSqlNull()
     {
         RegisterNoneAsNull();

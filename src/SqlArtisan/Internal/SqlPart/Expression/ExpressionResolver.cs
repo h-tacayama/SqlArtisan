@@ -211,6 +211,31 @@ internal static class ExpressionResolver
             : resolved;
     }
 
+    // A predicate operand ResolveCompared does not resolve, as a C# null keeps the Sql.Null
+    // message there: a converter's NULL is still written nowhere the caller sees (#810).
+    internal static SqlExpression ResolveSearched(object item, string paramName, string construct)
+    {
+        SqlExpression resolved = Resolve(item, paramName);
+        return resolved is ConvertedNull converted ? throw converted.Compared(construct) : resolved;
+    }
+
+    internal static SqlExpression[] ResolveSearched(
+        object[] items,
+        string paramName,
+        string construct)
+    {
+        SqlExpression[] resolved = Resolve(items, paramName);
+        foreach (SqlExpression item in resolved)
+        {
+            if (item is ConvertedNull converted)
+            {
+                throw converted.Compared(construct);
+            }
+        }
+
+        return resolved;
+    }
+
     // The right operand an ANY / ALL / SOME completes, in the slots QuantifiedExpression's
     // remarks list; every other position leaves it to the IIncompleteExpression message.
     internal static SqlExpression ResolveQuantifiable(

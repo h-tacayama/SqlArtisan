@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `SetValue`. The value converts when it is passed, so raw ADO.NET and
   `SqlArtisan.ArrayBind` receive the converted value as well. A converter's
   `null` (or a handler's `DBNull`) binds SQL NULL where NULL is a value, such as
-  a `VALUES` row or a `SET`, and either side of a comparison or a predicate
+  a `VALUES` row or a `SET`, and any operand of a comparison or a predicate
   throws on it. `BindArray(...)` and
   `new BindValue(value)` do not convert. `SqlArtisanConfig.ResetValueConverters()`
   and `SqlMapper.ResetTypeHandlers()` clear the registrations. (#810)

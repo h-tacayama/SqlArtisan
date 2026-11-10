@@ -71,7 +71,7 @@ plan, so the loop measures warm steady state rather than first-call cost.
 `ValueConverterBenchmarks` measures what a registered value converter costs SqlArtisan
 itself, so it is no cross-builder comparison: one statement binding `id.Value` against
 the same statement binding a value object the converter turns into that value
-(`dotnet run -c Release -- --filter '*ValueConverterBenchmarks*'`).
+(`dotnet run --project $P -c Release -- --filter '*ValueConverterBenchmarks*'`).
 
 ## Pinned library versions
 
