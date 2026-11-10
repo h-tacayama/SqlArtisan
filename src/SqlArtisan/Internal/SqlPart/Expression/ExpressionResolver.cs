@@ -216,7 +216,7 @@ internal static class ExpressionResolver
     internal static SqlExpression ResolveSearched(object item, string paramName, string construct)
     {
         SqlExpression resolved = Resolve(item, paramName);
-        return resolved is ConvertedNull converted ? throw converted.Compared(construct) : resolved;
+        return resolved is ConvertedNull converted ? throw converted.Searched(construct) : resolved;
     }
 
     internal static SqlExpression[] ResolveSearched(
@@ -229,7 +229,7 @@ internal static class ExpressionResolver
         {
             if (item is ConvertedNull converted)
             {
-                throw converted.Compared(construct);
+                throw converted.Searched(construct);
             }
         }
 

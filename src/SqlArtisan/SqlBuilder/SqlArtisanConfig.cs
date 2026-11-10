@@ -19,7 +19,7 @@ public static class SqlArtisanConfig
     /// wherever a value binds, it binds as what <paramref name="convert"/> returns.
     /// </summary>
     /// <typeparam name="T">The value's type: a concrete type no value position binds without a converter.</typeparam>
-    /// <param name="convert">Returns the value to bind: a type a value position binds, a <see cref="byte"/> array, <see langword="null"/> for SQL <c>NULL</c>, which a comparison rejects, or a <see cref="BindValue"/> carrying one to set its data type or size.</param>
+    /// <param name="convert">Returns the value to bind: a type a value position binds without a converter, a <see cref="byte"/> array, <see langword="null"/> for SQL <c>NULL</c>, which a comparison rejects, or a <see cref="BindValue"/> carrying one to set its data type or size.</param>
     /// <remarks>
     /// The converter runs when the value is passed, so it reaches values passed after this
     /// call; registering <typeparamref name="T"/> again replaces it for them.

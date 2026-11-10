@@ -394,7 +394,7 @@ public class ValueConverterTests : IDisposable
         ArgumentException ex = Assert.Throws<ArgumentException>(
             () => JsonbExistsAll(_t.Name, "a", NoCustomer));
 
-        Assert.Equal(NeverMatches("?&"), ex.Message);
+        Assert.Equal(CannotTake("?&"), ex.Message);
     }
 
     [Fact]
@@ -405,7 +405,7 @@ public class ValueConverterTests : IDisposable
         ArgumentException ex = Assert.Throws<ArgumentException>(
             () => Contains(_t.Name, NoCustomer));
 
-        Assert.Equal(NeverMatches("CONTAINS"), ex.Message);
+        Assert.Equal(CannotTake("CONTAINS"), ex.Message);
     }
 
     [Fact]
@@ -441,14 +441,18 @@ public class ValueConverterTests : IDisposable
             () => _t.Code == new CustomerId(2));
 
         Assert.Equal(
-            $"The value converter for {typeof(CustomerId)} returned {typeof(Email)}, which no "
-                + "value position binds; return a listed type, a byte[], null for SQL NULL, or "
-                + "a BindValue carrying one.",
+            $"The value converter for {typeof(CustomerId)} returned {typeof(Email)}; return a "
+                + "listed type, a byte[], null for SQL NULL or a BindValue carrying one, or pass "
+                + "a value the provider takes as it is through new BindValue(value).",
             ex.Message);
     }
 
     private static void RegisterNoneAsNull() =>
         SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value == 0 ? null : id.Value);
+
+    private static string CannotTake(string construct) =>
+        $"{construct} cannot take the NULL the value converter for {typeof(CustomerId)} "
+            + "returned; pass a value, or leave the predicate out.";
 
     private static string NeverMatches(string construct) =>
         $"{construct} never matches the NULL the value converter for {typeof(CustomerId)} "

@@ -12,6 +12,12 @@ internal sealed class ConvertedNull(Type source, DbType? dbType, int? size)
         new($"{construct} never matches the NULL the value converter for {source} returned; "
             + "test for NULL with .IsNull or .IsNotNull.");
 
+    // A JSONB key or a full-text search text: the engines skip it, match every row or
+    // fail, so no NULL test is a remedy there.
+    internal ArgumentException Searched(string construct) =>
+        new($"{construct} cannot take the NULL the value converter for {source} returned; "
+            + "pass a value, or leave the predicate out.");
+
     internal ArgumentException InSearchText() =>
         new($"AGAINST matches no row for the NULL the value converter for {source} returned; "
             + "pass the text, or leave the predicate out.");

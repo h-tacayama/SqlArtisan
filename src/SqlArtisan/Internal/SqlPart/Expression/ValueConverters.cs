@@ -41,9 +41,9 @@ internal static class ValueConverters
         if (carrier is BindArrayValue || !Bindable(payload!))
         {
             throw new InvalidOperationException(
-                $"The value converter for {type} returned {payload!.GetType()}, which no value "
-                    + "position binds; return a listed type, a byte[], null for SQL NULL, or a "
-                    + "BindValue carrying one.");
+                $"The value converter for {type} returned {payload!.GetType()}; return a listed "
+                    + "type, a byte[], null for SQL NULL or a BindValue carrying one, or pass a "
+                    + "value the provider takes as it is through new BindValue(value).");
         }
 
         return carrier ?? new BindValue(payload!);
