@@ -5,16 +5,16 @@ namespace SqlArtisan.Dapper;
 public static partial class SqlMapper
 {
     /// <summary>
-    /// Registers <paramref name="handler"/> with Dapper, and, for a type no value position
-    /// binds by itself, such as a value object, with SqlArtisan too: wherever a value of
-    /// <typeparamref name="T"/> binds, it binds as what the handler's <c>SetValue</c> sets.
+    /// Registers <paramref name="handler"/> with Dapper and, for a type no value position binds
+    /// by itself, such as a value object, with SqlArtisan: a value of <typeparamref name="T"/>
+    /// then binds as the value, data type and size the handler's <c>SetValue</c> sets.
     /// </summary>
     /// <typeparam name="T">The type the handler reads and writes.</typeparam>
     /// <param name="handler">The handler; its <c>SetValue</c> runs when the value is passed, on a parameter of SqlArtisan's own, so it must not cast to a provider's parameter type.</param>
     /// <remarks>
     /// Call it in place of Dapper's own <c>AddTypeHandler</c>, which SqlArtisan cannot see.
-    /// A type a value position binds by itself registers with Dapper alone. The value then
-    /// reaches every execution path converted, raw ADO.NET included.
+    /// A type a value position binds by itself, an interface and an abstract type register
+    /// with Dapper alone. The value then reaches every execution path converted.
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="handler"/> is <see langword="null"/>.</exception>
     public static void AddTypeHandler<T>(global::Dapper.SqlMapper.TypeHandler<T> handler)
@@ -22,7 +22,10 @@ public static partial class SqlMapper
         ArgumentNullException.ThrowIfNull(handler);
 
         global::Dapper.SqlMapper.AddTypeHandler(handler);
-        if (BindsWithoutConverter<T>())
+
+        // A value is matched by its own type, so a converter for an interface or an
+        // abstract type would never run; Dapper still reads a member declared as one.
+        if (BindsWithoutConverter<T>() || typeof(T).IsInterface || typeof(T).IsAbstract)
         {
             return;
         }

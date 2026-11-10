@@ -199,9 +199,11 @@ with MySQL Connector/NET's `MySqlX.XDevAPI.Relational.SqlStatement`; and
 
 A **namespace** can capture a simple name too. Inside `namespace SqlArtisan` or
 any namespace beneath it, the name `Dapper` binds to `SqlArtisan.Dapper` before
-the global `Dapper`, so `Dapper.SqlMapper.TypeHandler<T>` fails with `CS0426` and
-`Dapper.DynamicParameters` with `CS0234`, while `Dapper.SqlMapper.AddTypeHandler(...)`
-binds to `SqlArtisan.Dapper`'s, which registers with Dapper too (#810). It reaches only code
+the global `Dapper`, so `Dapper.SqlMapper.TypeHandler<T>` fails with `CS0426`,
+`Dapper.DynamicParameters` with `CS0234` and
+`Dapper.SqlMapper.AddTypeHandler(type, handler)` with `CS1501`, while
+`Dapper.SqlMapper.AddTypeHandler(handler)` binds to `SqlArtisan.Dapper`'s, which
+registers with Dapper too (#810). It reaches only code
 declared in that namespace tree — this repo's own projects, or an extension
 written there — and the fix is `global::Dapper.…` or a file-level `using Dapper;`, as
 `ArrayQueryParameter.cs` and `PostgreSqlTests.cs` do. Not grounds for a rename:
@@ -285,7 +287,7 @@ would bind as a value (Dapper sends its integer):
 (`ExpressionResolver`, the select-item and insert-value resolvers) reject one
 in every `object` slot, naming `Sql.Bind(...)` only for one meant as the
 value; `Bind`, `new BindValue(...)` and `BindArray(...)` still take one, so
-storing it stays writable and `IsBindable` / `IsBindableType` stay one set
+storing it stays writable and `IsListed` / `IsBindableType` stay one set
 (#667). `Dbms` and `DbTypeCategory` still bind implicitly: no factory takes
 either as an argument, so one in a value slot is meant, and
 `FunctionArgumentEnumTests` makes a new public enum take a side. A

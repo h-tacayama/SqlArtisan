@@ -29,20 +29,24 @@ internal static class ValueConverters
         }
 
         object? converted = convert(value);
-        if (converted is BindValue bind and not BindArrayValue
-            && ExpressionResolver.IsListed(bind.Value))
+        if (converted is BindValue bind and not BindArrayValue && Bindable(bind.Value))
         {
             return bind;
         }
 
-        if (converted is null || converted is BindValue || !ExpressionResolver.IsListed(converted))
+        if (converted is null || converted is BindValue || !Bindable(converted))
         {
             throw new InvalidOperationException(
                 $"The value converter for {type} returned "
-                    + $"{converted?.GetType().ToString() ?? "null"}, which binds as no SQL value; "
-                    + "return a type a value position binds.");
+                    + $"{converted?.GetType().ToString() ?? "null"}, which no value position "
+                    + "binds; return a listed type, a byte[], or a BindValue carrying one.");
         }
 
         return new BindValue(converted);
     }
+
+    // byte[] stays off the list only because In(...) reads an array per element (#669);
+    // a converted value is one value, so binary data binds as it does through BindValue.
+    private static bool Bindable(object value) =>
+        ExpressionResolver.IsListed(value) || value is byte[];
 }

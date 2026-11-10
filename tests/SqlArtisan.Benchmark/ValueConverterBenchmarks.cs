@@ -5,7 +5,7 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.Benchmark;
 
 // What a registered value converter costs one bound value against writing .Value, on the
-// same statement (#810). SqlArtisan alone: no other builder takes a value object.
+// same statement (#810): SqlArtisan's own cost, not a cross-builder comparison.
 [MemoryDiagnoser]
 public class ValueConverterBenchmarks
 {

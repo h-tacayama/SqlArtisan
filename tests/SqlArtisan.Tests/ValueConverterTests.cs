@@ -97,6 +97,29 @@ public class ValueConverterTests : IDisposable
     }
 
     [Fact]
+    public void Comparison_ConverterReturningByteArray_BindsTheBytes()
+    {
+        byte[] bytes = [1, 2, 3];
+        SqlArtisanConfig.AddValueConverter<Hash>(hash => hash.Bytes);
+
+        SqlStatement sql = Select(_t.Code).From(_t).Where(_t.Name == new Hash(bytes)).Build();
+
+        Assert.Same(bytes, sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
+    public void AddValueConverter_ValuePassedBeforeReregistration_KeepsTheFirstConversion()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
+        SqlCondition held = _t.Code == new CustomerId(2);
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value * 100);
+
+        SqlStatement sql = Select(_t.Name).From(_t).Where(held).Build();
+
+        Assert.Equal(2L, sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
     public void AddValueConverter_SecondRegistration_ReplacesTheFirst()
     {
         SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
@@ -209,9 +232,8 @@ public class ValueConverterTests : IDisposable
             () => _t.Code == new CustomerId(2));
 
         Assert.Equal(
-            $"The value converter for {typeof(CustomerId)} returned null, which binds as no "
-                + "SQL value; "
-                + "return a type a value position binds.",
+            $"The value converter for {typeof(CustomerId)} returned null, which no value "
+                + "position binds; return a listed type, a byte[], or a BindValue carrying one.",
             ex.Message);
     }
 
@@ -224,15 +246,17 @@ public class ValueConverterTests : IDisposable
             () => _t.Code == new CustomerId(2));
 
         Assert.Equal(
-            $"The value converter for {typeof(CustomerId)} returned {typeof(Email)}, which "
-                + "binds as no SQL value; "
-                + "return a type a value position binds.",
+            $"The value converter for {typeof(CustomerId)} returned {typeof(Email)}, which no "
+                + "value position binds; return a listed type, a byte[], or a BindValue "
+                + "carrying one.",
             ex.Message);
     }
 
     public readonly record struct CustomerId(long Value);
 
     public sealed record Email(string Value);
+
+    public sealed record Hash(byte[] Bytes);
 
     public interface IEntityId
     {

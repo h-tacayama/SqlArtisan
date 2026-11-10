@@ -54,6 +54,17 @@ public class TypeHandlerTests : IDisposable
     }
 
     [Fact]
+    public void AddTypeHandler_AbstractType_RegistersWithDapperOnly()
+    {
+        DapperMapper.AddTypeHandler(new MoneyHandler());
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => _t.Code == new Yen(5));
+
+        Assert.Equal($"Invalid type for SqlExpression: {typeof(Yen)}", ex.Message);
+        Assert.True(global::Dapper.SqlMapper.HasTypeHandler(typeof(Money)));
+    }
+
+    [Fact]
     public void AddTypeHandler_QueryThroughDapper_ReturnsTheRowAndReadsTheValueObject()
     {
         DapperMapper.AddTypeHandler(new CustomerIdHandler());
@@ -117,6 +128,10 @@ public class TypeHandlerTests : IDisposable
 
     public sealed record Email(string Value);
 
+    public abstract record Money(long Cents);
+
+    public sealed record Yen(long Cents) : Money(Cents);
+
     private sealed class CustomersTable : DbTableBase
     {
         public CustomersTable() : base("customers", string.Empty)
@@ -148,6 +163,14 @@ public class TypeHandlerTests : IDisposable
         }
 
         public override Email Parse(object value) => new((string)value);
+    }
+
+    private sealed class MoneyHandler : global::Dapper.SqlMapper.TypeHandler<Money>
+    {
+        public override void SetValue(IDbDataParameter parameter, Money? value) =>
+            parameter.Value = value!.Cents;
+
+        public override Money Parse(object value) => new Yen(Convert.ToInt64(value));
     }
 
     private sealed class UtcDateTimeHandler : global::Dapper.SqlMapper.TypeHandler<DateTime>
