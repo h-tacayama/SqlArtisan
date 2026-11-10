@@ -238,6 +238,21 @@ public class ValueConverterTests : IDisposable
     }
 
     [Fact]
+    public void Comparison_ConverterReturningBindNull_ThrowsInvalidOperationException()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId>(_ => BindNull());
+
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+            () => _t.Code == new CustomerId(2));
+
+        Assert.Equal(
+            $"The value converter for {typeof(CustomerId)} returned {typeof(DBNull)}, which no "
+                + "value position binds; return a listed type, a byte[], or a BindValue "
+                + "carrying one.",
+            ex.Message);
+    }
+
+    [Fact]
     public void Comparison_ConverterReturningUnlistedType_ThrowsInvalidOperationException()
     {
         SqlArtisanConfig.AddValueConverter<CustomerId>(id => new Email(id.ToString()));

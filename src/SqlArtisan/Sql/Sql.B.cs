@@ -106,17 +106,15 @@ public static partial class Sql
     // reach it: an empty array has no element to learn the converted type from (#810).
     private static void ThrowIfUnbindableElement<T>()
     {
-        Type type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-        if (ValueConverters.Has(type))
+        if (IsBindableType(typeof(T)))
         {
-            throw new ArgumentException(
-                $"BindArray does not apply the value converter for {type}; "
-                    + "pass an array of the values it wraps.");
+            return;
         }
 
-        if (!IsBindableType(typeof(T)))
-        {
-            throw new ArgumentException($"Invalid element type for BindArray: {typeof(T)}");
-        }
+        Type type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+        throw new ArgumentException(ValueConverters.Has(type)
+            ? $"BindArray does not apply the value converter for {type}; "
+                + "pass an array of the values it wraps."
+            : $"Invalid element type for BindArray: {typeof(T)}");
     }
 }

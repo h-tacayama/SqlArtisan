@@ -34,15 +34,17 @@ internal static class ValueConverters
             return bind;
         }
 
-        if (converted is null || converted is BindValue || !Bindable(converted))
+        // A BindValue is judged and named by what it carries, the part the remedy is about.
+        object? payload = converted is BindValue carried ? carried.Value : converted;
+        if (payload is null || converted is BindArrayValue || !Bindable(payload))
         {
             throw new InvalidOperationException(
                 $"The value converter for {type} returned "
-                    + $"{converted?.GetType().ToString() ?? "null"}, which no value position "
+                    + $"{payload?.GetType().ToString() ?? "null"}, which no value position "
                     + "binds; return a listed type, a byte[], or a BindValue carrying one.");
         }
 
-        return new BindValue(converted);
+        return new BindValue(payload);
     }
 
     // byte[] stays off the list only because In(...) reads an array per element (#669);

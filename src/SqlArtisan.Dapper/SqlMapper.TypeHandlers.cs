@@ -12,9 +12,9 @@ public static partial class SqlMapper
     /// <typeparam name="T">The type the handler reads and writes.</typeparam>
     /// <param name="handler">The handler; its <c>SetValue</c> runs when the value is passed, on a parameter of SqlArtisan's own, so it must not cast to a provider's parameter type.</param>
     /// <remarks>
-    /// Call it in place of Dapper's own <c>AddTypeHandler</c>, which SqlArtisan cannot see.
-    /// A type a value position binds by itself, an interface and an abstract type register
-    /// with Dapper alone. The value then reaches every execution path converted.
+    /// Call it in place of Dapper's own <c>AddTypeHandler</c>, which SqlArtisan cannot see. A
+    /// type it registers with SqlArtisan reaches every execution path converted; one a value
+    /// position binds by itself, an interface and an abstract type register with Dapper alone.
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="handler"/> is <see langword="null"/>.</exception>
     public static void AddTypeHandler<T>(global::Dapper.SqlMapper.TypeHandler<T> handler)

@@ -37,7 +37,6 @@ public static class SqlArtisanConfig
             throw new ArgumentException($"{type} binds without a value converter.");
         }
 
-        // A converter is found by the value's exact type, which is never one of these.
         if (type.IsInterface || type.IsAbstract)
         {
             throw new ArgumentException(
