@@ -14,7 +14,10 @@ public class ConvertedNullSweepTests : IDisposable
     // The NULL tests are the remedy the rejection names, so they take it as their receiver.
     private static readonly string[] NullTests = ["get_IsNull", "get_IsNotNull"];
 
-    public ConvertedNullSweepTests() => SqlArtisanConfig.AddValueConverter<NoneId>(_ => null);
+    public ConvertedNullSweepTests()
+    {
+        SqlArtisanConfig.AddValueConverter<NoneId>(_ => null);
+    }
 
     public void Dispose() => SqlArtisanConfig.ResetValueConverters();
 
