@@ -4,8 +4,8 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.Tests;
 
 // guards-and-empty-states.md, null arguments: a value converter's NULL is rejected as any
-// operand of a predicate (#810). Every public member returning a SqlCondition, given one in
-// a value slot or as its receiver, throws naming the converter; a slot added later fails here.
+// operand of a predicate or a simple CASE (#810). Every public member returning a SqlCondition,
+// and every simple-CASE operand, given one, throws naming the converter.
 [Collection("NonParallelTests")]
 public class ConvertedNullSweepTests : IDisposable
 {
@@ -54,6 +54,21 @@ public class ConvertedNullSweepTests : IDisposable
                 {
                     violations.Add($"{Describe(method)} :: receiver — {failure}");
                 }
+            }
+        }
+
+        // A simple CASE compares its operand to each WHEN, returning no SqlCondition.
+        foreach (MethodInfo method in typeof(Sql)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Where(m => m.Name is "Case" or "When"
+                && m.GetParameters() is [{ ParameterType: Type first }, ..]
+                && first == typeof(object)))
+        {
+            checkedSlots++;
+            string? failure = Run(method, null, Fill(method, 0, new NoneId()));
+            if (failure is not null)
+            {
+                violations.Add($"{Describe(method)} :: operand — {failure}");
             }
         }
 
@@ -128,10 +143,15 @@ public class ConvertedNullSweepTests : IDisposable
                 : $"threw for another reason: {ex.InnerException?.Message}";
         }
 
+        if (result is not SqlCondition condition)
+        {
+            return "accepted at the call";
+        }
+
         try
         {
             SqlStatement sql = Select(Column()).From(new DbTable("t", "a"))
-                .Where((SqlCondition)result!).Build(Dbms.PostgreSql);
+                .Where(condition).Build(Dbms.PostgreSql);
             return $"built {sql.Text}";
         }
         catch (ArgumentException ex) when (ex.Message.Contains(ConverterMessage))

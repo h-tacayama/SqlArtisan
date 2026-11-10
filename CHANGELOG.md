@@ -23,7 +23,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   Dapper handler too. The value converts when it is passed, so every execution
   path receives it. A converter's SQL NULL binds where NULL is a value and
   throws in a comparison or a predicate. `BindArray(...)` and
-  `new BindValue(value)` do not convert. (#810)
+  `new BindValue(value)` do not convert. `SqlArtisanConfig.ResetValueConverters()`
+  and `SqlMapper.ResetTypeHandlers()` clear the registrations; Dapper's own
+  `ResetTypeHandlers()` leaves SqlArtisan's converters in place. (#810)
 
 ### Changed
 - **Breaking:** TableClassGen's `--check` and `--fix` fail with exit code `2`

@@ -3,8 +3,7 @@ using System.Collections.Concurrent;
 namespace SqlArtisan.Internal;
 
 // The converters SqlArtisanConfig.AddValueConverter registers, keyed by the value's exact
-// type. A listed type never reaches the lookup (ExpressionResolver checks the list first),
-// so a build binding only listed types pays nothing for the registry (#810).
+// type (#810).
 internal static class ValueConverters
 {
     private static readonly ConcurrentDictionary<Type, Func<object, object?>> s_converters =
@@ -17,9 +16,7 @@ internal static class ValueConverters
 
     internal static bool Has(Type type) => s_converters.ContainsKey(type);
 
-    // Converted when the value is passed, so every execution path, raw ADO.NET and
-    // ArrayBind included, receives the underlying value: a provider handed the object
-    // itself may bind its ToString() text (#811).
+    // Converted when the value is passed, so every execution path receives it (#811).
     internal static BindValue Convert(object value)
     {
         Type type = value.GetType();

@@ -204,15 +204,13 @@ internal static class ExpressionResolver
                 : NullCompared(paramName, construct);
         }
 
-        // `=` also writes SET, so its condition rejects the NULL when it renders as one.
         SqlExpression resolved = Resolve(item, paramName);
         return resolved is ConvertedNull converted && construct != Operators.Equal
             ? throw converted.Compared(construct)
             : resolved;
     }
 
-    // A predicate operand ResolveCompared does not resolve, as a C# null keeps the Sql.Null
-    // message there: a converter's NULL is still written nowhere the caller sees (#810).
+    // A predicate operand where a C# null keeps the Sql.Null message, so not ResolveCompared.
     internal static SqlExpression ResolveSearched(object item, string paramName, string construct)
     {
         SqlExpression resolved = Resolve(item, paramName);

@@ -415,8 +415,7 @@ public abstract class SqlExpression : SqlPart
             ComparedReceiver(NotLikeConstruct),
             ResolveQuantifiable(rightSide, nameof(rightSide), NotLikeConstruct));
 
-    // The receiver is the predicate's left operand, which a value converter's NULL reaches
-    // through Bind(...) and which never matches there (#810), as the operators reject.
+    // A converter's NULL reaches a predicate's receiver through Bind(...) (#810).
     private SqlExpression ComparedReceiver(string construct) =>
         this is ConvertedNull converted ? throw converted.Compared(construct) : this;
 }

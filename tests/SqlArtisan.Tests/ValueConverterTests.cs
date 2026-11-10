@@ -308,38 +308,6 @@ public class ValueConverterTests : IDisposable
     }
 
     [Fact]
-    public void NotEqual_ConverterReturningNull_ThrowsArgumentException()
-    {
-        RegisterNoneAsNull();
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() => _t.Code != NoCustomer);
-
-        Assert.Equal(NeverMatches("<>"), ex.Message);
-    }
-
-    [Fact]
-    public void NotIn_ConverterReturningNull_ThrowsArgumentException()
-    {
-        RegisterNoneAsNull();
-        CustomerId[] ids = [new(1), NoCustomer];
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() => _t.Code.NotIn(ids));
-
-        Assert.Equal(NeverMatches("NOT IN"), ex.Message);
-    }
-
-    [Fact]
-    public void ComparisonLeftSide_ConverterReturningNull_ThrowsArgumentException()
-    {
-        RegisterNoneAsNull();
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(
-            () => Bind(NoCustomer) < _t.Code);
-
-        Assert.Equal(NeverMatches("<"), ex.Message);
-    }
-
-    [Fact]
     public void InReceiver_ConverterReturningNull_ThrowsArgumentException()
     {
         RegisterNoneAsNull();
@@ -348,28 +316,6 @@ public class ValueConverterTests : IDisposable
             () => Bind(NoCustomer).In(_t.Code, _t.Name));
 
         Assert.Equal(NeverMatches("IN"), ex.Message);
-    }
-
-    [Fact]
-    public void BetweenReceiver_ConverterReturningNull_ThrowsArgumentException()
-    {
-        RegisterNoneAsNull();
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(
-            () => Bind(NoCustomer).Between(_t.Code, _t.Name));
-
-        Assert.Equal(NeverMatches("BETWEEN"), ex.Message);
-    }
-
-    [Fact]
-    public void LikeReceiver_ConverterReturningNull_ThrowsArgumentException()
-    {
-        RegisterNoneAsNull();
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(
-            () => Bind(NoCustomer).NotLike(_t.Name));
-
-        Assert.Equal(NeverMatches("NOT LIKE"), ex.Message);
     }
 
     [Fact]
@@ -384,17 +330,6 @@ public class ValueConverterTests : IDisposable
             "AGAINST matches no row for the NULL the value converter for "
                 + $"{typeof(CustomerId)} returned; pass the text, or leave the predicate out.",
             ex.Message);
-    }
-
-    [Fact]
-    public void JsonbExistsAllKey_ConverterReturningNull_ThrowsArgumentException()
-    {
-        RegisterNoneAsNull();
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(
-            () => JsonbExistsAll(_t.Name, "a", NoCustomer));
-
-        Assert.Equal(CannotTake("?&"), ex.Message);
     }
 
     [Fact]
