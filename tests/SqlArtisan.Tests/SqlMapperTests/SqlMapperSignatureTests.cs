@@ -26,6 +26,10 @@ public class SqlMapperSignatureTests
 
         // Dapper ships this receiver on the async verb only; the mirror follows Dapper (#639).
         "SqlMapper.ExecuteReaderAsync(DbConnection)",
+
+        // Startup configuration, not verbs: they run no command, so nothing to await (#810).
+        "SqlMapper.AddTypeHandler<T>",
+        "SqlMapper.ResetTypeHandlers",
     ];
 
     /// <summary>

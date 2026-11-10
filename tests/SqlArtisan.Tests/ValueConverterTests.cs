@@ -1,0 +1,241 @@
+using System.Data;
+using Oracle.ManagedDataAccess.Client;
+using SqlArtisan.ArrayBind.Internal;
+using static SqlArtisan.Sql;
+
+namespace SqlArtisan.Tests;
+
+// The registry is process-wide, so these run alone and leave it empty (#810).
+[Collection("NonParallelTests")]
+public class ValueConverterTests : IDisposable
+{
+    private readonly TestTable _t = new("t");
+
+    public void Dispose() => SqlArtisanConfig.ResetValueConverters();
+
+    [Fact]
+    public void Comparison_RegisteredValueObject_BindsTheConvertedValue()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
+
+        SqlStatement sql = Select(_t.Name).From(_t).Where(_t.Code == new CustomerId(2)).Build();
+
+        Assert.Equal("SELECT \"t\".name FROM test_table \"t\" WHERE \"t\".code = :0", sql.Text);
+        Assert.Equal(2L, sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
+    public void In_RegisteredValueObjectArray_BindsEachConvertedValue()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
+        CustomerId[] ids = [new(1), new(3)];
+
+        SqlStatement sql = Select(_t.Name).From(_t).Where(_t.Code.In(ids)).Build();
+
+        Assert.Equal(
+            "SELECT \"t\".name FROM test_table \"t\" WHERE \"t\".code IN (:0, :1)", sql.Text);
+        Assert.Equal(1L, sql.Parameters.Get<object>(":0"));
+        Assert.Equal(3L, sql.Parameters.Get<object>(":1"));
+    }
+
+    [Fact]
+    public void InsertValues_RegisteredValueObject_BindsTheConvertedValue()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
+
+        TestTable t = new();
+
+        SqlStatement sql = InsertInto(t, t.Code, t.Name).Values(new CustomerId(9), "z").Build();
+
+        Assert.Equal("INSERT INTO test_table (code, name) VALUES (:0, :1)", sql.Text);
+        Assert.Equal(9L, sql.Parameters.Get<object>(":0"));
+        Assert.Equal("z", sql.Parameters.Get<object>(":1"));
+    }
+
+    [Fact]
+    public void Bind_RegisteredValueObject_BindsTheConvertedValue()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
+
+        Assert.Equal(2L, Bind(new CustomerId(2)).Value);
+    }
+
+    [Fact]
+    public void BindValue_RegisteredValueObject_KeepsTheValue()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
+
+        Assert.Equal(new CustomerId(2), new BindValue(new CustomerId(2)).Value);
+    }
+
+    [Fact]
+    public void Comparison_ConverterReturningBindValue_KeepsItsDbType()
+    {
+        SqlArtisanConfig.AddValueConverter<Email>(
+            email => new BindValue(email.Value, DbType.AnsiString, size: 320));
+        List<BindValue> binds = [];
+
+        SqlStatement sql =
+            Select(_t.Code).From(_t).Where(_t.Name == new Email("a@example.com")).Build();
+        sql.Parameters.ForEach((_, bind) => binds.Add(bind));
+
+        BindValue bind = Assert.Single(binds);
+        Assert.Equal("a@example.com", bind.Value);
+        Assert.Equal(DbType.AnsiString, bind.DbType);
+        Assert.Equal(320, bind.Size);
+    }
+
+    [Fact]
+    public void AddValueConverter_NullableType_ConvertsTheValue()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId?>(id => id!.Value.Value);
+        CustomerId? id = new CustomerId(2);
+
+        SqlStatement sql = Select(_t.Name).From(_t).Where(_t.Code == id).Build();
+
+        Assert.Equal(2L, sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
+    public void AddValueConverter_SecondRegistration_ReplacesTheFirst()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value * 10);
+
+        Assert.Equal(20L, Bind(new CustomerId(2)).Value);
+    }
+
+    [Fact]
+    public void ExecuteArrayBind_RegisteredValueObject_BindsTheConvertedValue()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+        ISqlBuilder[] rows =
+        [
+            InsertInto(t, t.Id).Values(new CustomerId(1)),
+            InsertInto(t, t.Id).Values(new CustomerId(2)),
+        ];
+
+        using OracleCommand command =
+            OracleArrayBindCommandFactory.Create(connection, rows, transaction: null);
+
+        Assert.Equal(OracleDbType.Int64, command.Parameters[0].OracleDbType);
+        Assert.Equal([1L, 2L], (object[])command.Parameters[0].Value!);
+    }
+
+    [Fact]
+    public void Comparison_UnregisteredValueObject_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => _t.Code == new CustomerId(2));
+
+        Assert.Equal($"Invalid type for SqlExpression: {typeof(CustomerId)}", ex.Message);
+    }
+
+    [Fact]
+    public void ResetValueConverters_RegisteredType_ThrowsArgumentException()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
+        SqlArtisanConfig.ResetValueConverters();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => _t.Code == new CustomerId(2));
+
+        Assert.Equal($"Invalid type for SqlExpression: {typeof(CustomerId)}", ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_RegisteredValueObject_ThrowsArgumentException()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Select(_t.Name).From(_t).OrderBy(new CustomerId(2)));
+
+        Assert.Equal($"Invalid type for OrderByItem: {typeof(CustomerId)}", ex.Message);
+    }
+
+    [Fact]
+    public void BindArray_RegisteredElementType_ThrowsArgumentException()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => BindArray(new CustomerId[] { new(1) }));
+
+        Assert.Equal(
+            $"BindArray does not apply the value converter for {typeof(CustomerId)}; "
+                + "pass an array of the values it wraps.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void AddValueConverter_ListedType_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => SqlArtisanConfig.AddValueConverter<long>(value => value));
+
+        Assert.Equal("System.Int64 binds without a value converter.", ex.Message);
+    }
+
+    [Fact]
+    public void AddValueConverter_Interface_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => SqlArtisanConfig.AddValueConverter<IEntityId>(id => id.Raw));
+
+        Assert.Equal(
+            $"A value converter is found by the value's own type, so {typeof(IEntityId)} "
+                + "must be a concrete type.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void AddValueConverter_NullConverter_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => SqlArtisanConfig.AddValueConverter<CustomerId>(null!));
+
+        Assert.Equal("convert", ex.ParamName);
+    }
+
+    [Fact]
+    public void Comparison_ConverterReturningNull_ThrowsInvalidOperationException()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId>(_ => null!);
+
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+            () => _t.Code == new CustomerId(2));
+
+        Assert.Equal(
+            $"The value converter for {typeof(CustomerId)} returned null, which binds as no "
+                + "SQL value; "
+                + "return a type a value position binds.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Comparison_ConverterReturningUnlistedType_ThrowsInvalidOperationException()
+    {
+        SqlArtisanConfig.AddValueConverter<CustomerId>(id => new Email(id.ToString()));
+
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+            () => _t.Code == new CustomerId(2));
+
+        Assert.Equal(
+            $"The value converter for {typeof(CustomerId)} returned {typeof(Email)}, which "
+                + "binds as no SQL value; "
+                + "return a type a value position binds.",
+            ex.Message);
+    }
+
+    public readonly record struct CustomerId(long Value);
+
+    public sealed record Email(string Value);
+
+    public interface IEntityId
+    {
+        long Raw { get; }
+    }
+}

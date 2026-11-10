@@ -1,4 +1,5 @@
 using System.Data;
+using SqlArtisan.Internal;
 using static SqlArtisan.Internal.ExpressionResolver;
 
 namespace SqlArtisan;
@@ -35,7 +36,7 @@ public static partial class Sql
             throw UnresolvableValue(nameof(Bind), value);
         }
 
-        return new BindValue(value);
+        return IsListed(value) ? new BindValue(value) : ValueConverters.Convert(value);
     }
 
     /// <summary>
@@ -53,10 +54,7 @@ public static partial class Sql
             throw new ArgumentNullException(nameof(values), BindValue.NullValueMessage);
         }
 
-        if (!IsBindableType(typeof(T)))
-        {
-            throw new ArgumentException($"Invalid element type for BindArray: {typeof(T)}");
-        }
+        ThrowIfUnbindableElement<T>();
 
         return new BindArrayValue(values);
     }
@@ -69,10 +67,7 @@ public static partial class Sql
             throw new ArgumentNullException(nameof(values), BindValue.NullValueMessage);
         }
 
-        if (!IsBindableType(typeof(T)))
-        {
-            throw new ArgumentException($"Invalid element type for BindArray: {typeof(T)}");
-        }
+        ThrowIfUnbindableElement<T>();
 
         // Normalized to T[] so the ADO-visible value is deterministic: Npgsql
         // maps arrays natively but not e.g. HashSet<T>.
@@ -106,4 +101,22 @@ public static partial class Sql
     /// <returns>A bind-parameter handle for a SQL <c>NULL</c> of
     /// <paramref name="dbType"/>.</returns>
     public static BindValue BindNull(DbType dbType) => new(DBNull.Value, dbType);
+
+    // The array binds as it is, so a converter registered for the element type does not
+    // reach it: an empty array has no element to learn the converted type from (#810).
+    private static void ThrowIfUnbindableElement<T>()
+    {
+        Type type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+        if (ValueConverters.Has(type))
+        {
+            throw new ArgumentException(
+                $"BindArray does not apply the value converter for {type}; "
+                    + "pass an array of the values it wraps.");
+        }
+
+        if (!IsBindableType(typeof(T)))
+        {
+            throw new ArgumentException($"Invalid element type for BindArray: {typeof(T)}");
+        }
+    }
 }

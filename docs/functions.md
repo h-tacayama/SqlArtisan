@@ -391,10 +391,26 @@ That list is what SqlArtisan accepts as a bind value; whether a value reaches th
 
 A `byte[]` is not in the list: `In(...)` reads an array as one value per element, so bind binary data with `new BindValue(bytes)`.
 
-A type of your own, such as a value object wrapping an id, binds the same way: `c.Id == new BindValue(customerId)`, or in a list one element at a time, `c.Id.In(ids.Select(x => new BindValue(x)).ToArray())`. SqlArtisan hands the value to the execution layer as it is, so it binds only where that layer converts it: through `SqlArtisan.Dapper`, derive a handler from `Dapper.SqlMapper.TypeHandler<T>` and register it with `Dapper.SqlMapper.AddTypeHandler`. `SqlArtisan.ArrayBind` takes only the types its [guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) lists, so pass the value the type wraps there (`customerId.Value`).
+A type of your own, such as a value object wrapping an id, binds once a converter for it is registered at startup, and then wherever a value binds: `c.Id == customerId`, `c.Id.In(customerIds)`, a `Values(...)` row, `Sql.Bind(customerId)`.
+
+```csharp
+SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
+
+// Through SqlArtisan.Dapper, register the Dapper type handler instead, a class derived from
+// Dapper.SqlMapper.TypeHandler<CustomerId>: one call registers it with Dapper, for reads,
+// and converts through its SetValue.
+SqlMapper.AddTypeHandler(new CustomerIdHandler());
+
+Select(c.Name).From(c).Where(c.Id == customerId)
+// SELECT "c".name FROM customers "c" WHERE "c".id = :0    (:0 is customerId.Value)
+```
+
+The value is converted when it is passed, so every execution path receives what the converter returns: a type the list above names, or a `BindValue` carrying one to set its `DbType` or size. A handler's `SetValue` runs on a parameter of SqlArtisan's own, so it must not cast to a provider's parameter type. `Dapper.SqlMapper.AddTypeHandler`, called directly, registers with Dapper alone; `SqlMapper.ResetTypeHandlers()` clears both registrations, and `SqlArtisanConfig.ResetValueConverters()` SqlArtisan's. `BindArray(...)` does not convert, so pass it an array of the wrapped values.
+
+`new BindValue(value)` hands its value to the execution layer as it is, so a type of your own binds that way only where that layer converts it, as a Dapper type handler does at execution. `SqlArtisan.ArrayBind` takes only the types its [guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) lists.
 
 > [!WARNING]
-> **Through raw ADO.NET, some providers, among them `MySql.Data` and `System.Data.SQLite`, bind a type they do not know as its `ToString()` text instead of throwing**, so the comparison runs against that text. Pass the value the type wraps there too.
+> **Through raw ADO.NET, some providers, among them `MySql.Data` and `System.Data.SQLite`, bind a type they do not know as its `ToString()` text instead of throwing**, so a `new BindValue(value)` of such a type compares against that text. Register a converter, or pass the value the type wraps.
 
 `Sql.Bind(value)` rejects `null` and `DBNull.Value`. For a bound `NULL`, use `Sql.BindNull()`: `Sql.Null` inlines the `NULL` keyword into the SQL text — as does a bare C# `null` in a `VALUES` row, the one position that takes one; anywhere else it throws — while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
 

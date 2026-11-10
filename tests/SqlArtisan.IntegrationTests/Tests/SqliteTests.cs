@@ -32,6 +32,28 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
             () => UnknownBoundType.QueryRaw(microsoftDataSqlite, Dbms.Sqlite));
     }
 
+    // docs/functions.md § Bind Parameter Types: a handler registered through
+    // SqlArtisan.Dapper converts the value when it is passed, so System.Data.SQLite, which
+    // binds a type it does not know as its text, receives the wrapped value too (#810).
+    [Fact]
+    public void AddTypeHandler_ValueObject_BindsTheWrappedValueOnEveryPath()
+    {
+        SqlArtisan.Dapper.SqlMapper.AddTypeHandler(new UserIdHandler());
+        UsersTable u = new();
+        using System.Data.SQLite.SQLiteConnection systemDataSqlite = new(_fixture.ConnectionString);
+        systemDataSqlite.Open();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            new[] { "Bob" },
+            UnknownBoundType.QueryRaw(
+                systemDataSqlite,
+                Select(u.Name).From(u).Where(u.Id == new UserId(2)).Build(Dbms.Sqlite)));
+        Assert.Equal(
+            new[] { new UserId(2) },
+            connection.Query<UserId>(Select(u.Id).From(u).Where(u.Id == new UserId(2))));
+    }
+
     // #681: SQLite's format() is printf, which reads the value as the format string.
     [Fact]
     public void Format_ReadsAsPrintf()
@@ -1704,5 +1726,15 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
 
         public override void SetValue(IDbDataParameter parameter, HandledLabel? value) =>
             parameter.Value = value?.Value;
+    }
+
+    private readonly record struct UserId(long Value);
+
+    private sealed class UserIdHandler : global::Dapper.SqlMapper.TypeHandler<UserId>
+    {
+        public override void SetValue(IDbDataParameter parameter, UserId value) =>
+            parameter.Value = value.Value;
+
+        public override UserId Parse(object value) => new(Convert.ToInt64(value));
     }
 }

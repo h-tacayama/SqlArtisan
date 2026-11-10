@@ -15,6 +15,45 @@ public static class SqlArtisanConfig
     public static Dbms DefaultDbms { get; private set; } = Dbms.PostgreSql;
 
     /// <summary>
+    /// Registers how a value of <typeparamref name="T"/>, such as a value object, binds:
+    /// wherever a value binds, it binds as what <paramref name="convert"/> returns.
+    /// </summary>
+    /// <typeparam name="T">The value's type: a concrete type no value position binds without a converter.</typeparam>
+    /// <param name="convert">Returns the value to bind, of a type a value position binds, or a <see cref="BindValue"/> carrying one to set its data type or size.</param>
+    /// <remarks>
+    /// The converter runs when the value is passed, so it reaches statements built after
+    /// this call; registering <typeparamref name="T"/> again replaces it.
+    /// <see cref="Sql.BindArray{T}(T[])"/> and <c>new BindValue(value)</c> do not convert.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="convert"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><typeparamref name="T"/> binds without a converter, or is an interface or abstract.</exception>
+    public static void AddValueConverter<T>(Func<T, object> convert)
+    {
+        ArgumentNullException.ThrowIfNull(convert);
+
+        Type type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+        if (ExpressionResolver.IsBindableType(type))
+        {
+            throw new ArgumentException($"{type} binds without a value converter.");
+        }
+
+        // A converter is found by the value's exact type, which is never one of these.
+        if (type.IsInterface || type.IsAbstract)
+        {
+            throw new ArgumentException(
+                $"A value converter is found by the value's own type, so {type} "
+                    + "must be a concrete type.");
+        }
+
+        ValueConverters.Add(type, value => convert((T)value));
+    }
+
+    /// <summary>
+    /// Removes every converter <see cref="AddValueConverter{T}(Func{T, object})"/> registered.
+    /// </summary>
+    public static void ResetValueConverters() => ValueConverters.Clear();
+
+    /// <summary>
     /// Sets the dialect used by parameterless <see cref="ISqlBuilder.Build()"/> calls.
     /// </summary>
     /// <param name="dbms">The engine to use as the default; not <see cref="Dbms.Unknown"/>.</param>

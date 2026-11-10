@@ -68,6 +68,11 @@ linq2db and EF Core reuse a connection object and a `DbContext` created once in
 `[GlobalSetup]` — neither is ever opened — and EF Core caches the compiled query
 plan, so the loop measures warm steady state rather than first-call cost.
 
+`ValueConverterBenchmarks` is SqlArtisan alone, since no other builder takes a value
+object: one statement binding `id.Value` against the same statement binding a value
+object a registered converter turns into that value
+(`dotnet run -c Release -- --filter '*ValueConverterBenchmarks*'`).
+
 ## Pinned library versions
 
 The comparison is only meaningful against the versions it was run with. The

@@ -164,7 +164,7 @@ the output values can be read back with `Get<T>`.
 > the hand-off path, bind the string with `Sql.Bind(...)` where its position
 > takes a bound value, or run the statement through ADO.NET.
 
-Two execution rules to know from day one:
+Three rules to know from day one:
 
 - **A builder chain is single-use.** The Dapper call runs `Build()` for you,
   which finishes the chain — build a fresh query per call instead of holding
@@ -172,6 +172,11 @@ Two execution rules to know from day one:
 - **Unknown providers need one registration.** `DbmsResolver` knows the common
   connection types; a wrapper or exotic provider registers once at startup:
   `DbmsResolver.RegisterProvider("My.Provider.Connection", Dbms.PostgreSql)`.
+- **Register a type handler through `SqlArtisan.Dapper`.**
+  `SqlMapper.AddTypeHandler(handler)` registers a `Dapper.SqlMapper.TypeHandler<T>`
+  with Dapper and lets a value of `T`, such as a value object, bind as written
+  (`c.Id == customerId`). Registered through Dapper's own `AddTypeHandler`, the
+  value is rejected at the call. See [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types).
 
 Not using Dapper after all? Call `.Build(Dbms.X)` yourself and feed
 `sql.Text` / `sql.Parameters` to raw ADO.NET or any other mapper — see the

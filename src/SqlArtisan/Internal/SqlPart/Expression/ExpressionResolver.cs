@@ -354,13 +354,19 @@ internal static class ExpressionResolver
     // its type and would bind as the value (#667). Sql.Bind and new BindValue(...) skip
     // this, so binding one stays writable; no factory takes Dbms or DbTypeCategory.
     internal static BindValue BindImplicitly(object value) =>
-        value is DateTimePart or RegexpOptions or SearchModifier
-            ? throw new ArgumentException($"{value.GetType().Name} is a function argument, not a "
-                + $"value; pass it to a {value.GetType().Name} parameter, or, to store or compare "
-                + "the enum itself, bind it with Sql.Bind(...).")
-            : new BindValue(value);
+        !IsListed(value)
+            ? ValueConverters.Convert(value)
+            : value is DateTimePart or RegexpOptions or SearchModifier
+                ? throw new ArgumentException($"{value.GetType().Name} is a function argument, "
+                    + $"not a value; pass it to a {value.GetType().Name} parameter, or, to store "
+                    + "or compare the enum itself, bind it with Sql.Bind(...).")
+                : new BindValue(value);
 
+    // The list first: a listed value never reaches the converter registry (ADR 0006).
     internal static bool IsBindable(object value) =>
+        IsListed(value) || ValueConverters.Has(value.GetType());
+
+    internal static bool IsListed(object value) =>
         IsBoolean(value)
         || IsCharacter(value)
         || IsDateTime(value)
@@ -368,7 +374,7 @@ internal static class ExpressionResolver
         || IsEnum(value)
         || value is Guid;
 
-    // Type-level twin of IsBindable for BindArray's element check: the element
+    // Type-level twin of IsListed for BindArray's element check: the element
     // type is fixed at the call site, so even an empty array validates
     // deterministically. Keep the two sets identical.
     internal static bool IsBindableType(Type type)

@@ -1,5 +1,6 @@
 using System.Data;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using SqlArtisan.Dapper;
@@ -90,13 +91,15 @@ public class SqlMapperDapperTokenTests
         Assert.Equal("caller key", cnn.ExecuteScalar(query));
     }
 
-    // Calls every public verb, so one added later cannot skip the check unseen.
+    // Calls every public verb, so one added later cannot skip the check unseen. A verb is
+    // an extension on the connection; the type-handler registration runs no command (#810).
     [Fact]
     public async Task SqlMapper_EveryVerbGivenLiteralToken_ThrowsArgumentException()
     {
         using SqliteConnection cnn = OpenSeededConnection();
-        MethodInfo[] verbs = typeof(SqlArtisan.Dapper.SqlMapper).GetMethods(
-            BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly);
+        MethodInfo[] verbs = [.. typeof(SqlArtisan.Dapper.SqlMapper).GetMethods(
+                BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Where(m => m.IsDefined(typeof(ExtensionAttribute)))];
         List<string> unguarded = [];
 
         foreach (MethodInfo declared in verbs)

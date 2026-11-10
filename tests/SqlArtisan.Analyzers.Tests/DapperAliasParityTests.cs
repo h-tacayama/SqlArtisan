@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace SqlArtisan.Analyzers.Tests;
@@ -10,11 +11,13 @@ namespace SqlArtisan.Analyzers.Tests;
 /// </summary>
 public class DapperAliasParityTests
 {
+    // A verb is an extension on the connection; AddTypeHandler<T> runs no query (#810).
     [Fact]
     public void EveryTypedDapperVerb_IsClassified()
     {
         string[] verbs = [.. typeof(SqlArtisan.Dapper.SqlMapper)
             .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Where(m => m.IsDefined(typeof(ExtensionAttribute)))
             .Where(m => m.IsGenericMethodDefinition && m.GetGenericArguments().Length == 1)
             .Select(m => m.Name)
             .Distinct()
