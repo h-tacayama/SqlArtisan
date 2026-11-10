@@ -19,9 +19,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - A type of your own, such as a value object, binds wherever a value binds once a
   converter for it is registered: `SqlArtisanConfig.AddValueConverter<T>(convert)`,
   or, through `SqlArtisan.Dapper`, `SqlMapper.AddTypeHandler(handler)`, which
-  registers the Dapper type handler with Dapper too and converts through its
-  `SetValue`. The value converts when it is passed, so raw ADO.NET and
-  `SqlArtisan.ArrayBind` receive the converted value as well. A converter's
+  registers the Dapper type handler with Dapper too and, for a concrete type no
+  value position binds by itself, converts through its `SetValue`. The value
+  converts when it is passed, so raw ADO.NET and `SqlArtisan.ArrayBind` receive
+  the converted value as well. A converter's
   `null` (or a handler's `DBNull`) binds SQL NULL where NULL is a value, such as
   a `VALUES` row or a `SET`, and any operand of a comparison or a predicate
   throws on it. `BindArray(...)` and

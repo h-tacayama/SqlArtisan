@@ -175,7 +175,8 @@ Three rules to know from day one:
 - **Register a type handler through `SqlArtisan.Dapper`.**
   `SqlMapper.AddTypeHandler(handler)` registers a `Dapper.SqlMapper.TypeHandler<T>`
   with Dapper and lets a value of `T`, such as a value object, bind as written
-  (`c.Id == customerId`). Registered through Dapper's own `AddTypeHandler`, the
+  (`c.Id == customerId`); a `T` that is an interface or abstract registers with
+  Dapper alone. Registered through Dapper's own `AddTypeHandler`, the
   value is rejected at the call. See [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types).
 
 Not using Dapper after all? Call `.Build(Dbms.X)` yourself and feed

@@ -849,8 +849,8 @@ Reviewed and kept as-is — not defects, not scheduled for change:
   point (same shape, `ISqlBuilder` in place of `(sql, param)`); the clash
   bites only an explicit `SqlMapper.Member` reference, which extension-method
   call syntax never makes: ambiguous with both namespaces imported (`CS0104`),
-  or with both classes under `using static` for a bare `AddTypeHandler(...)`
-  (`CS0121`, #810), and bound to SqlArtisan's class with `SqlArtisan.Dapper`
+  or with both classes under `using static` for a bare `AddTypeHandler(...)` or
+  `ResetTypeHandlers()` (`CS0121`, #810), and bound to SqlArtisan's class with `SqlArtisan.Dapper`
   alone, as the quickstart imports it (`SqlMapper.TypeHandler<T>` is `CS0426`),
   so the docs write Dapper's own members `Dapper.SqlMapper.…` (`docs-style.md`).
 - **`SqlParameters.Get<T>`** returns the type's default when no parameter has

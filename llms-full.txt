@@ -3863,7 +3863,7 @@ Select(c.Name).From(c).Where(c.Id == customerId)
 // SELECT "c".name FROM customers "c" WHERE "c".id = :0    (:0 is customerId.Value)
 ```
 
-The value is converted when it is passed, so every execution path receives what the converter returns: a type the list above names, a `byte[]`, or a `BindValue` carrying one to set its `DbType` or size. A converter that returns `null`, or a type handler that sets `DBNull.Value`, binds SQL NULL where NULL is a value, such as a `VALUES` row, a `SET`, a select item or a function argument; a handler that sets no `Value` throws. As any operand of a comparison or a predicate, such as `IN`, `NOT IN`, `BETWEEN`, `LIKE` or `AGAINST`, and in a simple `CASE`, the NULL throws instead (`=` when the statement is built, because it also writes `SET`); in a comparison it matches no row, so test for NULL with `.IsNull`. A handler's `SetValue` runs on a parameter of SqlArtisan's own, so it must not cast to a provider's parameter type, and of what it sets only the value, `DbType` and size are kept. `Dapper.SqlMapper.AddTypeHandler`, called directly, registers with Dapper alone; `SqlMapper.ResetTypeHandlers()` clears both registrations, and `SqlArtisanConfig.ResetValueConverters()` SqlArtisan's. `BindArray(...)` does not convert, so pass it an array of the wrapped values.
+The value is converted when it is passed, so every execution path receives what the converter returns: a type the list above names, a `byte[]`, or a `BindValue` carrying one to set its `DbType` or size. A converter that returns `null`, or a type handler that sets `DBNull.Value`, binds SQL NULL where NULL is a value, such as a `VALUES` row, a `SET`, a select item or a function argument; a handler that sets no `Value` throws. As any operand of a comparison or a predicate, such as `IN`, `NOT IN`, `BETWEEN`, `LIKE` or `AGAINST`, and in a simple `CASE`, the NULL throws instead (`=` when the statement is built, because it also writes `SET`); in a comparison it matches no row, so test for NULL with `.IsNull`. A handler's `SetValue` runs on a parameter of SqlArtisan's own, so it must not cast to a provider's parameter type, and of what it sets only the value, `DbType` and size are kept. `Dapper.SqlMapper.AddTypeHandler`, called directly, registers with Dapper alone, and so does `SqlMapper.AddTypeHandler` for a listed type, an interface or an abstract type, since a value is matched by its own type; `SqlMapper.ResetTypeHandlers()` clears both registrations, and `SqlArtisanConfig.ResetValueConverters()` SqlArtisan's. `BindArray(...)` does not convert, so pass it an array of the wrapped values.
 
 `new BindValue(value)` hands its value to the execution layer as it is, so a type of your own binds that way only where that layer converts it, as a Dapper type handler does at execution. `SqlArtisan.ArrayBind` takes only the types its [guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) lists.
 
@@ -6890,7 +6890,8 @@ Three rules to know from day one:
 - **Register a type handler through `SqlArtisan.Dapper`.**
   `SqlMapper.AddTypeHandler(handler)` registers a `Dapper.SqlMapper.TypeHandler<T>`
   with Dapper and lets a value of `T`, such as a value object, bind as written
-  (`c.Id == customerId`). Registered through Dapper's own `AddTypeHandler`, the
+  (`c.Id == customerId`); a `T` that is an interface or abstract registers with
+  Dapper alone. Registered through Dapper's own `AddTypeHandler`, the
   value is rejected at the call. See [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types).
 
 Not using Dapper after all? Call `.Build(Dbms.X)` yourself and feed
