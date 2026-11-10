@@ -376,9 +376,10 @@ public class ValueConverterTests : IDisposable
             () => _t.Code == new CustomerId(2));
 
         Assert.Equal(
-            $"The value converter for {typeof(CustomerId)} returned {typeof(Email)}; return a "
-                + "listed type, a byte[], null or a BindValue carrying one, or bind a value the "
-                + "provider takes as it is at the call with new BindValue(value).",
+            $"The value converter for {typeof(CustomerId)} produced {typeof(Email)}; a "
+                + "converter, or a type handler's SetValue, must produce a listed type, a byte[], "
+                + "null or a BindValue carrying one, and a provider's own type binds at the call "
+                + "through new BindValue(value).",
             ex.Message);
     }
 

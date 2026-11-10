@@ -15,6 +15,9 @@ public static partial class SqlMapper
     /// Call it in place of Dapper's own <c>AddTypeHandler</c>, which SqlArtisan cannot see. A
     /// type it registers with SqlArtisan reaches every execution path converted; one a value
     /// position binds by itself, an interface and an abstract type register with Dapper alone.
+    /// <para>The value <c>SetValue</c> sets must be one a value position binds, a <c>byte[]</c>
+    /// or <c>DBNull</c>, or each value written as is throws; a provider's own type, such as
+    /// pgvector's <c>Vector</c>, binds through <c>new BindValue(value)</c>.</para>
     /// <para>A <c>Precision</c> or <c>Scale</c> the handler sets is not carried.</para>
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="handler"/> is <see langword="null"/>.</exception>

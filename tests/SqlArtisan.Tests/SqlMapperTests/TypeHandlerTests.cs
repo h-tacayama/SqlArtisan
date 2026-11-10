@@ -113,6 +113,28 @@ public class TypeHandlerTests : IDisposable
             ex.Message);
     }
 
+    // pgvector's VectorTypeHandler has this shape: the provider takes the type itself.
+    [Fact]
+    public void AddTypeHandler_HandlerPassingItsOwnType_ThrowsAndBindValueStillBinds()
+    {
+        DapperMapper.AddTypeHandler(new PassThroughHandler());
+
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+            () => _t.Code == new ProviderNative(1));
+
+        Assert.Equal(
+            $"The value converter for {typeof(ProviderNative)} produced "
+                + $"{typeof(ProviderNative)}; a converter, or a type handler's SetValue, must "
+                + "produce a listed type, a byte[], null or a BindValue carrying one, and a "
+                + "provider's own type binds at the call through new BindValue(value).",
+            ex.Message);
+        SqlStatement sql = Select(_t.Name)
+            .From(_t)
+            .Where(_t.Code == new BindValue(new ProviderNative(1)))
+            .Build();
+        Assert.Equal(new ProviderNative(1), sql.Parameters.Get<object>(":0"));
+    }
+
     [Fact]
     public void ResetTypeHandlers_RegisteredType_ClearsDapperAndSqlArtisan()
     {
@@ -163,6 +185,8 @@ public class TypeHandlerTests : IDisposable
 
     public readonly record struct SilentId(long Value);
 
+    public readonly record struct ProviderNative(long Value);
+
     public sealed record Email(string Value);
 
     public abstract record Money(long Cents);
@@ -196,6 +220,14 @@ public class TypeHandlerTests : IDisposable
             parameter.Value = value.Value is long id ? id : DBNull.Value;
 
         public override OptionalId Parse(object value) => new(Convert.ToInt64(value));
+    }
+
+    private sealed class PassThroughHandler : global::Dapper.SqlMapper.TypeHandler<ProviderNative>
+    {
+        public override void SetValue(IDbDataParameter parameter, ProviderNative value) =>
+            parameter.Value = value;
+
+        public override ProviderNative Parse(object value) => (ProviderNative)value;
     }
 
     private sealed class SilentHandler : global::Dapper.SqlMapper.TypeHandler<SilentId>
