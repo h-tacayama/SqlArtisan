@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.15.0-beta.1] - 2026-11-11
 ### Added
 - `Sql.Function(name, args...)` calls a function SqlArtisan has no factory for
   (a user-defined, schema or package function, or an uncovered built-in),
