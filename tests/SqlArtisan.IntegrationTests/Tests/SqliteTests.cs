@@ -36,7 +36,7 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
     // SqlArtisan.Dapper converts the value when it is passed, so System.Data.SQLite, which
     // binds a type it does not know as its text, receives the wrapped value too (#810).
     [Fact]
-    public void AddTypeHandler_ValueObject_BindsTheWrappedValueOnEveryPath()
+    public void AddTypeHandler_UnlistedType_BindsTheWrappedValueOnEveryPath()
     {
         SqlArtisan.Dapper.SqlMapper.AddTypeHandler(new UserIdHandler());
         UsersTable u = new();

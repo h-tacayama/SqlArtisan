@@ -16,8 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   reads as qualified (a column of a CTE, a derived table, or a table whose alias
   it can trace) on MySQL, Oracle and PostgreSQL, which reject it (observed on
   MySQL 8.0, Oracle XE 21.3.0 and Free 23ai, and PostgreSQL 16 and 17). (#800)
-- A type of your own, such as a value object, binds wherever a value binds once
-  a converter for it is registered with
+- A .NET type of your own, such as one wrapping an id, binds wherever a value
+  binds once a converter for it is registered with
   `SqlArtisanConfig.AddValueConverter<T>(convert)` or, through
   `SqlArtisan.Dapper`, `SqlMapper.AddTypeHandler(handler)`, which registers the
   Dapper handler too. The value converts when it is passed, so every execution

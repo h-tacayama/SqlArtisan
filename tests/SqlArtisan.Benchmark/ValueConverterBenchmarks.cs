@@ -26,7 +26,7 @@ public class ValueConverterBenchmarks
     }
 
     [Benchmark]
-    public (string Sql, int ParameterCount) RegisteredValueObject()
+    public (string Sql, int ParameterCount) RegisteredType()
     {
         Users u = new("u");
         SqlStatement sql = Select(u.Name).From(u).Where(u.Id == Id).Build();

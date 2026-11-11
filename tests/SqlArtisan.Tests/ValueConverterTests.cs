@@ -16,7 +16,7 @@ public class ValueConverterTests : IDisposable
     public void Dispose() => SqlArtisanConfig.ResetValueConverters();
 
     [Fact]
-    public void Comparison_RegisteredValueObject_BindsTheConvertedValue()
+    public void Comparison_RegisteredType_BindsTheConvertedValue()
     {
         SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
 
@@ -27,7 +27,7 @@ public class ValueConverterTests : IDisposable
     }
 
     [Fact]
-    public void In_RegisteredValueObjectArray_BindsEachConvertedValue()
+    public void In_RegisteredTypeArray_BindsEachConvertedValue()
     {
         SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
         CustomerId[] ids = [new(1), new(3)];
@@ -41,7 +41,7 @@ public class ValueConverterTests : IDisposable
     }
 
     [Fact]
-    public void InsertValues_RegisteredValueObject_BindsTheConvertedValue()
+    public void InsertValues_RegisteredType_BindsTheConvertedValue()
     {
         SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
 
@@ -55,7 +55,7 @@ public class ValueConverterTests : IDisposable
     }
 
     [Fact]
-    public void Bind_RegisteredValueObject_BindsTheConvertedValue()
+    public void Bind_RegisteredType_BindsTheConvertedValue()
     {
         SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
 
@@ -63,7 +63,7 @@ public class ValueConverterTests : IDisposable
     }
 
     [Fact]
-    public void BindValue_RegisteredValueObject_KeepsTheValue()
+    public void BindValue_RegisteredType_KeepsTheValue()
     {
         SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
 
@@ -131,7 +131,7 @@ public class ValueConverterTests : IDisposable
     }
 
     [Fact]
-    public void ExecuteArrayBind_RegisteredValueObject_BindsTheConvertedValue()
+    public void ExecuteArrayBind_RegisteredType_BindsTheConvertedValue()
     {
         SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
         using OracleConnection connection = new();
@@ -150,7 +150,7 @@ public class ValueConverterTests : IDisposable
     }
 
     [Fact]
-    public void Comparison_UnregisteredValueObject_ThrowsArgumentException()
+    public void Comparison_UnregisteredType_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(
             () => _t.Code == new CustomerId(2));
@@ -171,7 +171,7 @@ public class ValueConverterTests : IDisposable
     }
 
     [Fact]
-    public void OrderBy_RegisteredValueObject_ThrowsArgumentException()
+    public void OrderBy_RegisteredType_ThrowsArgumentException()
     {
         SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
 

@@ -3849,7 +3849,7 @@ That list is what SqlArtisan accepts as a bind value; whether a value reaches th
 
 A `byte[]` is not in the list: `In(...)` reads an array as one value per element, so bind binary data with `new BindValue(bytes)`.
 
-A type of your own, such as a value object wrapping an id, binds once a converter for it is registered at startup, and then wherever a value binds, such as `c.Id == customerId`, `c.Id.In(customerIds)` or a `Values(...)` row.
+A .NET type of your own, such as one wrapping an id (`record struct CustomerId(long Value)`), binds once a converter for it is registered at startup, and then wherever a value binds, such as `c.Id == customerId`, `c.Id.In(customerIds)` or a `Values(...)` row.
 
 ```csharp
 SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
@@ -6891,7 +6891,8 @@ Three rules to know from day one:
   `DbmsResolver.RegisterProvider("My.Provider.Connection", Dbms.PostgreSql)`.
 - **Register a type handler through `SqlArtisan.Dapper`.**
   `SqlMapper.AddTypeHandler(handler)` registers a `Dapper.SqlMapper.TypeHandler<T>`
-  with Dapper and lets a value object bind as written (`c.Id == customerId`),
+  with Dapper and lets a value of a type of your own bind as written
+  (`c.Id == customerId`),
   which Dapper's own `AddTypeHandler` does not. Which types it converts:
   [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types).
 

@@ -174,7 +174,8 @@ Three rules to know from day one:
   `DbmsResolver.RegisterProvider("My.Provider.Connection", Dbms.PostgreSql)`.
 - **Register a type handler through `SqlArtisan.Dapper`.**
   `SqlMapper.AddTypeHandler(handler)` registers a `Dapper.SqlMapper.TypeHandler<T>`
-  with Dapper and lets a value object bind as written (`c.Id == customerId`),
+  with Dapper and lets a value of a type of your own bind as written
+  (`c.Id == customerId`),
   which Dapper's own `AddTypeHandler` does not. Which types it converts:
   [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types).
 

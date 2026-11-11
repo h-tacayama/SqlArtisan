@@ -15,7 +15,7 @@ public static class SqlArtisanConfig
     public static Dbms DefaultDbms { get; private set; } = Dbms.PostgreSql;
 
     /// <summary>
-    /// Registers how a value of <typeparamref name="T"/>, such as a value object, binds:
+    /// Registers how a value of <typeparamref name="T"/>, a .NET type of your own, binds:
     /// wherever a value binds, it binds as what <paramref name="convert"/> returns.
     /// </summary>
     /// <typeparam name="T">The value's type: a concrete type no value position binds without a converter.</typeparam>

@@ -16,7 +16,7 @@ public class TypeHandlerTests : IDisposable
     public void Dispose() => DapperMapper.ResetTypeHandlers();
 
     [Fact]
-    public void AddTypeHandler_ValueObject_BindsWhatSetValueSets()
+    public void AddTypeHandler_UnlistedType_BindsWhatSetValueSets()
     {
         DapperMapper.AddTypeHandler(new CustomerIdHandler());
 
@@ -65,7 +65,7 @@ public class TypeHandlerTests : IDisposable
     }
 
     [Fact]
-    public void AddTypeHandler_QueryThroughDapper_ReturnsTheRowAndReadsTheValueObject()
+    public void AddTypeHandler_QueryThroughDapper_ReturnsTheRowAndReadsTheTypeBack()
     {
         DapperMapper.AddTypeHandler(new CustomerIdHandler());
         using SqliteConnection cnn = OpenSeededConnection();

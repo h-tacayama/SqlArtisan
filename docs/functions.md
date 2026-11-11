@@ -391,7 +391,7 @@ That list is what SqlArtisan accepts as a bind value; whether a value reaches th
 
 A `byte[]` is not in the list: `In(...)` reads an array as one value per element, so bind binary data with `new BindValue(bytes)`.
 
-A type of your own, such as a value object wrapping an id, binds once a converter for it is registered at startup, and then wherever a value binds, such as `c.Id == customerId`, `c.Id.In(customerIds)` or a `Values(...)` row.
+A .NET type of your own, such as one wrapping an id (`record struct CustomerId(long Value)`), binds once a converter for it is registered at startup, and then wherever a value binds, such as `c.Id == customerId`, `c.Id.In(customerIds)` or a `Values(...)` row.
 
 ```csharp
 SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);

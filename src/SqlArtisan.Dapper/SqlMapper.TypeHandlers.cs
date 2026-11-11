@@ -5,8 +5,8 @@ namespace SqlArtisan.Dapper;
 public static partial class SqlMapper
 {
     /// <summary>
-    /// Registers <paramref name="handler"/> with Dapper and, for a type no value position binds
-    /// by itself, such as a value object, with SqlArtisan: a value of <typeparamref name="T"/>
+    /// Registers <paramref name="handler"/> with Dapper and, for a .NET type of your own that no
+    /// value position binds by itself, with SqlArtisan: a value of <typeparamref name="T"/>
     /// then binds as the value, data type and size the handler's <c>SetValue</c> sets.
     /// </summary>
     /// <typeparam name="T">The type the handler reads and writes.</typeparam>
