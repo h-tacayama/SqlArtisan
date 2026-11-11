@@ -382,7 +382,7 @@ internal static class ExpressionResolver
     // its type and would bind as the value (#667). Sql.Bind and new BindValue(...) skip
     // this, so binding one stays writable; no factory takes Dbms or DbTypeCategory.
     internal static BindValue BindImplicitly(object value) =>
-        !IsListed(value)
+        !IsDirectlyBindable(value)
             ? ValueConverters.Convert(value)
             : value is DateTimePart or RegexpOptions or SearchModifier
                 ? throw new ArgumentException($"{value.GetType().Name} is a function argument, "
@@ -390,11 +390,14 @@ internal static class ExpressionResolver
                     + "or compare the enum itself, bind it with Sql.Bind(...).")
                 : new BindValue(value);
 
-    // The list first: a listed value never reaches the converter registry (ADR 0006).
+    // The directly bindable check first: such a value never reaches the converter
+    // registry (ADR 0006).
     internal static bool IsBindable(object value) =>
-        IsListed(value) || ValueConverters.Has(value.GetType());
+        IsDirectlyBindable(value) || ValueConverters.Has(value.GetType());
 
-    internal static bool IsListed(object value) =>
+    // Directly: without a value converter, the types docs/functions.md § Bind Parameter
+    // Types lists.
+    internal static bool IsDirectlyBindable(object value) =>
         IsBoolean(value)
         || IsCharacter(value)
         || IsDateTime(value)
@@ -402,10 +405,10 @@ internal static class ExpressionResolver
         || IsEnum(value)
         || value is Guid;
 
-    // Type-level twin of IsListed for BindArray's element check: the element
+    // Type-level twin of IsDirectlyBindable for BindArray's element check: the element
     // type is fixed at the call site, so even an empty array validates
     // deterministically. Keep the two sets identical.
-    internal static bool IsBindableType(Type type)
+    internal static bool IsDirectlyBindableType(Type type)
     {
         Type unwrapped = Nullable.GetUnderlyingType(type) ?? type;
         return unwrapped == typeof(bool)

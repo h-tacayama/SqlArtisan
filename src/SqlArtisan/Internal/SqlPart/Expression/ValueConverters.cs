@@ -35,13 +35,13 @@ internal static class ValueConverters
             return new ConvertedNull(type, carrier?.DbType, carrier?.Size);
         }
 
-        if (carrier is BindArrayValue || !Bindable(payload!))
+        if (carrier is BindArrayValue || !IsConvertedValueBindable(payload!))
         {
             throw new InvalidOperationException(
                 $"The value converter for {type} produced {payload!.GetType()}; a converter, or "
-                    + "a type handler's SetValue, must produce a listed type, a byte[], null or "
-                    + "a BindValue carrying one, and a provider's own type binds at the call "
-                    + "through new BindValue(value).");
+                    + "a type handler's SetValue, must produce a type SqlArtisan binds directly, "
+                    + "a byte[], null or a BindValue carrying one, and a provider's own type "
+                    + "binds at the call through new BindValue(value).");
         }
 
         return carrier ?? new BindValue(payload!);
@@ -49,6 +49,6 @@ internal static class ValueConverters
 
     // byte[] stays off the list only because In(...) reads an array per element (#669);
     // a converted value is one value, so binary data binds as it does through BindValue.
-    private static bool Bindable(object value) =>
-        ExpressionResolver.IsListed(value) || value is byte[];
+    private static bool IsConvertedValueBindable(object value) =>
+        ExpressionResolver.IsDirectlyBindable(value) || value is byte[];
 }

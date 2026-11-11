@@ -36,7 +36,7 @@ public static partial class Sql
             throw UnresolvableValue(nameof(Bind), value);
         }
 
-        return IsListed(value) ? new BindValue(value) : ValueConverters.Convert(value);
+        return IsDirectlyBindable(value) ? new BindValue(value) : ValueConverters.Convert(value);
     }
 
     /// <summary>
@@ -106,7 +106,7 @@ public static partial class Sql
     // reach it: an empty array has no element to learn the converted type from (#810).
     private static void ThrowIfUnbindableElement<T>()
     {
-        if (IsBindableType(typeof(T)))
+        if (IsDirectlyBindableType(typeof(T)))
         {
             return;
         }

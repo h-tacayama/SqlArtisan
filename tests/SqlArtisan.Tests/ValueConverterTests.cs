@@ -377,9 +377,9 @@ public class ValueConverterTests : IDisposable
 
         Assert.Equal(
             $"The value converter for {typeof(CustomerId)} produced {typeof(Email)}; a "
-                + "converter, or a type handler's SetValue, must produce a listed type, a byte[], "
-                + "null or a BindValue carrying one, and a provider's own type binds at the call "
-                + "through new BindValue(value).",
+                + "converter, or a type handler's SetValue, must produce a type SqlArtisan binds "
+                + "directly, a byte[], null or a BindValue carrying one, and a provider's own "
+                + "type binds at the call through new BindValue(value).",
             ex.Message);
     }
 

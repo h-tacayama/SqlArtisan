@@ -29,7 +29,7 @@ public static partial class SqlMapper
 
         // A value is matched by its own type, so a converter for an interface or an
         // abstract type would never run; Dapper still reads a member declared as one.
-        if (BindsWithoutConverter<T>() || typeof(T).IsInterface || typeof(T).IsAbstract)
+        if (IsDirectlyBindable<T>() || typeof(T).IsInterface || typeof(T).IsAbstract)
         {
             return;
         }
@@ -56,7 +56,7 @@ public static partial class SqlMapper
 
     // BindArray takes exactly the types a value position binds by itself, an empty array
     // included, so it answers the question without a copy of the core's list.
-    private static bool BindsWithoutConverter<T>()
+    private static bool IsDirectlyBindable<T>()
     {
         try
         {

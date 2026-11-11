@@ -287,8 +287,8 @@ would bind as a value (Dapper sends its integer):
 (`ExpressionResolver`, the select-item and insert-value resolvers) reject one
 in every `object` slot, naming `Sql.Bind(...)` only for one meant as the
 value; `Bind`, `new BindValue(...)` and `BindArray(...)` still take one, so
-storing it stays writable and `IsListed` / `IsBindableType` stay one set
-(#667). `Dbms` and `DbTypeCategory` still bind implicitly: no factory takes
+storing it stays writable and `IsDirectlyBindable` / `IsDirectlyBindableType` stay
+one set (#667). `Dbms` and `DbTypeCategory` still bind implicitly: no factory takes
 either as an argument, so one in a value slot is meant, and
 `FunctionArgumentEnumTests` makes a new public enum take a side. A
 function-argument enum wrapped in `Bind` binds in any slot, a `REGEXP_*`
@@ -575,9 +575,10 @@ and another type only once `SqlArtisanConfig.AddValueConverter<T>` or
 call otherwise, so the list still stops a slip such as a collection or a method
 group missing its parentheses. The value converts when it is passed, so every
 execution path receives the converted value; opening the list instead would hand
-the object itself to providers that bind it as its `ToString()` text (#811). A
-listed type never reaches the registry (ADR 0006) and never converts. `BindArray`
-does not convert: an empty array has no element to learn the converted type from.
+the object itself to providers that bind it as its `ToString()` text (#811). A type
+that binds directly never reaches the registry (ADR 0006) and never converts.
+`BindArray` does not convert: an empty array has no element to learn the converted
+type from.
 A converter's `null` or `DBNull` binds SQL NULL where NULL is a value and is
 rejected in a compared position (`guards-and-empty-states.md`, null arguments).
 `new BindValue(value)` stays the as-is route. No analyzer reports an unregistered

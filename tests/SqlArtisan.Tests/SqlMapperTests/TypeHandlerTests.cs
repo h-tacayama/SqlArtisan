@@ -125,8 +125,9 @@ public class TypeHandlerTests : IDisposable
         Assert.Equal(
             $"The value converter for {typeof(ProviderNative)} produced "
                 + $"{typeof(ProviderNative)}; a converter, or a type handler's SetValue, must "
-                + "produce a listed type, a byte[], null or a BindValue carrying one, and a "
-                + "provider's own type binds at the call through new BindValue(value).",
+                + "produce a type SqlArtisan binds directly, a byte[], null or a BindValue "
+                + "carrying one, and a provider's own type binds at the call through "
+                + "new BindValue(value).",
             ex.Message);
         SqlStatement sql = Select(_t.Name)
             .From(_t)

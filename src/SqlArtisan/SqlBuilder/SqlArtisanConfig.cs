@@ -32,7 +32,7 @@ public static class SqlArtisanConfig
         ArgumentNullException.ThrowIfNull(convert);
 
         Type type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-        if (ExpressionResolver.IsBindableType(type))
+        if (ExpressionResolver.IsDirectlyBindableType(type))
         {
             throw new ArgumentException($"{type} binds without a value converter.");
         }
