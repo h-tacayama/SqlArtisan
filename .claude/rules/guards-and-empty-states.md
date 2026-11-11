@@ -855,8 +855,8 @@ the caller did not mean. Judge a null argument by which failure it produces:
   predicate and a simple `CASE` reject it (`ConvertedNull`), while it binds as a value
   elsewhere. `=` rejects it at `Build()`, from `EqualCondition.Format`, since the same
   condition is a `SET` assignment when `FormatAsAssignment` renders it.
-  `ConvertedNullSweepTests` holds every public member returning a `SqlCondition` to
-  it (#810). A grouping, partition or `DISTINCT ON` key is another:
+  `ConvertedNullSweepTests` holds every public member returning a `SqlCondition` or an
+  `ANY` / `ALL` / `SOME` operand to it (#810). A grouping, partition or `DISTINCT ON` key is another:
   `Sql.Null` there is a constant key, silent where it runs (`PARTITION BY NULL`
   is one partition on PostgreSQL 16 and SQLite, `GROUP BY NULL` one group on
   SQLite) and rejected by PostgreSQL 16 in `GROUP BY`, a grouping element and

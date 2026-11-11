@@ -344,6 +344,50 @@ public class ValueConverterTests : IDisposable
     }
 
     [Fact]
+    public void Any_ConverterReturningNull_ThrowsArgumentException()
+    {
+        RegisterNoneAsNull();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Any(Bind(NoCustomer)));
+
+        Assert.Equal(CannotTake("ANY"), ex.Message);
+    }
+
+    [Fact]
+    public void InsertValues_RegisteredArrayType_BindsTheConvertedValue()
+    {
+        SqlArtisanConfig.AddValueConverter<string[]>(tags => string.Join(",", tags));
+        TestTable t = new();
+
+        SqlStatement sql = InsertInto(t, t.Code, t.Name).Values(1, new[] { "a", "b" }).Build();
+
+        Assert.Equal("INSERT INTO test_table (code, name) VALUES (:0, :1)", sql.Text);
+        Assert.Equal("a,b", sql.Parameters.Get<object>(":1"));
+    }
+
+    [Fact]
+    public void MergeThenInsert_RegisteredArrayType_BindsTheConvertedValue()
+    {
+        SqlArtisanConfig.AddValueConverter<string[]>(tags => string.Join(",", tags));
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        SqlStatement sql = MergeInto(t)
+            .Using(s)
+            .On(t.Code == s.Code)
+            .WhenNotMatched()
+            .ThenInsert(t.Code, t.Name)
+            .Values(s.Code, new[] { "a", "b" })
+            .Build();
+
+        Assert.Equal(
+            "MERGE INTO test_table \"t\" USING test_table \"s\" ON (\"t\".code = \"s\".code) "
+                + "WHEN NOT MATCHED THEN INSERT (code, name) VALUES (\"s\".code, :0)",
+            sql.Text);
+        Assert.Equal("a,b", sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
     public void FunctionArgument_ConverterReturningNull_BindsSqlNull()
     {
         RegisterNoneAsNull();
