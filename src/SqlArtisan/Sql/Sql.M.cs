@@ -18,7 +18,10 @@ public static partial class Sql
     /// <remarks>MySQL syntax. For the SQLite FTS5 <c>table MATCH pattern</c>
     /// predicate use <see cref="Match(DbTableBase, object)"/>.</remarks>
     public static MatchFunction Match(object column, params object[] otherColumns) =>
-        new([Resolve(column, nameof(column)), .. Resolve(otherColumns, nameof(otherColumns))]);
+        new([
+            ResolveSearched(column, nameof(column), Keywords.Match),
+            .. ResolveSearched(otherColumns, nameof(otherColumns), Keywords.Match),
+        ]);
 
     /// <summary>
     /// The SQLite FTS5 <c>table MATCH pattern</c> predicate: matches rows of the

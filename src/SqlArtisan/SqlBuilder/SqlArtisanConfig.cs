@@ -21,12 +21,12 @@ public static class SqlArtisanConfig
     /// <typeparam name="T">The value's type: a concrete type no value position binds without a converter.</typeparam>
     /// <param name="convert">Returns the value to bind: a type a value position binds without a converter, a <see cref="byte"/> array, <see langword="null"/> for SQL <c>NULL</c>, which a comparison rejects, or a <see cref="BindValue"/> carrying one to set its data type or size.</param>
     /// <remarks>
-    /// The converter runs when the value is passed, so it reaches values passed after this
-    /// call; registering <typeparamref name="T"/> again replaces it for them.
-    /// <see cref="Sql.BindArray{T}(T[])"/> and <c>new BindValue(value)</c> do not convert.
+    /// It runs when the value is passed, so it reaches values passed after this call, and
+    /// registering <typeparamref name="T"/> again replaces it. <c>new BindValue(value)</c> does
+    /// not convert; <see cref="Sql.BindArray{T}(T[])"/> rejects an array of a registered type.
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="convert"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException"><typeparamref name="T"/> binds without a converter, or is an interface or abstract.</exception>
+    /// <exception cref="ArgumentException"><typeparamref name="T"/> binds without a converter, is an interface or abstract, or is an <see cref="object"/> array.</exception>
     public static void AddValueConverter<T>(Func<T, object?> convert)
     {
         ArgumentNullException.ThrowIfNull(convert);
@@ -42,6 +42,13 @@ public static class SqlArtisanConfig
             throw new ArgumentException(
                 $"A value converter is found by the value's own type, so {type} "
                     + "must be a concrete type.");
+        }
+
+        if (type == typeof(object[]))
+        {
+            throw new ArgumentException(
+                $"A value converter cannot take {type}: its value cannot be told from a "
+                    + "list of values.");
         }
 
         ValueConverters.Add(type, value => convert((T)value));

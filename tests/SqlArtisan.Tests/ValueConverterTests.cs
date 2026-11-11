@@ -11,6 +11,13 @@ public class ValueConverterTests : IDisposable
 {
     private static readonly CustomerId NoCustomer = new(0);
 
+    private static readonly string[] Tags = ["a", "b"];
+
+    private static readonly string AmbiguousList =
+        $"A {typeof(string[])} passed as the whole argument list could be the list or one "
+            + "value, since a value converter is registered for it; pass (object)value to bind "
+            + "it as one value, or [.. value] to pass its elements.";
+
     private readonly TestTable _t = new("t");
 
     public void Dispose() => SqlArtisanConfig.ResetValueConverters();
@@ -427,8 +434,161 @@ public class ValueConverterTests : IDisposable
             ex.Message);
     }
 
+    [Fact]
+    public void Coalesce_RegisteredArrayTypeAsTheList_ThrowsArgumentException()
+    {
+        RegisterTags();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Coalesce(_t.Name, _t.Name, Tags));
+
+        Assert.Equal(AmbiguousList, ex.Message);
+    }
+
+    [Fact]
+    public void Coalesce_RegisteredArrayTypeCastToObject_BindsOneConvertedValue()
+    {
+        RegisterTags();
+
+        SqlStatement sql = Select(Coalesce(_t.Name, _t.Name, (object)Tags)).From(_t).Build();
+
+        Assert.Equal(
+            "SELECT COALESCE(\"t\".name, \"t\".name, :0) FROM test_table \"t\"", sql.Text);
+        Assert.Equal("a,b", sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
+    public void Coalesce_RegisteredArraySpreadIntoTheList_BindsEachElement()
+    {
+        RegisterTags();
+
+        SqlStatement sql = Select(Coalesce(_t.Name, _t.Name, [.. Tags])).From(_t).Build();
+
+        Assert.Equal(
+            "SELECT COALESCE(\"t\".name, \"t\".name, :0, :1) FROM test_table \"t\"",
+            sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<object>(":0"));
+        Assert.Equal("b", sql.Parameters.Get<object>(":1"));
+    }
+
+    [Fact]
+    public void Select_RegisteredArrayTypeAsTheList_ThrowsArgumentException()
+    {
+        RegisterTags();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Select(Tags));
+
+        Assert.Equal(AmbiguousList, ex.Message);
+    }
+
+    [Fact]
+    public void Returning_RegisteredArrayTypeAsTheList_ThrowsArgumentException()
+    {
+        RegisterTags();
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => InsertInto(t, t.Name).Values("x").Returning(Tags));
+
+        Assert.Equal(AmbiguousList, ex.Message);
+    }
+
+    [Fact]
+    public void Output_RegisteredArrayTypeAsTheList_ThrowsArgumentException()
+    {
+        RegisterTags();
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => DeleteFrom(t).Output(Tags));
+
+        Assert.Equal(AmbiguousList, ex.Message);
+    }
+
+    [Fact]
+    public void InsertValues_RegisteredArrayTypeAsTheRow_ThrowsArgumentException()
+    {
+        RegisterTags();
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => InsertInto(t, t.Name).Values(Tags));
+
+        Assert.Equal(AmbiguousList, ex.Message);
+    }
+
+    [Fact]
+    public void InsertValues_RegisteredArrayTypeCastToObject_BindsOneConvertedValue()
+    {
+        RegisterTags();
+        TestTable t = new();
+
+        SqlStatement sql = InsertInto(t, t.Name).Values((object)Tags).Build();
+
+        Assert.Equal("INSERT INTO test_table (name) VALUES (:0)", sql.Text);
+        Assert.Equal("a,b", sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
+    public void InsertValues_RegisteredArrayTypeRows_ReadsEachAsARow()
+    {
+        RegisterTags();
+        TestTable t = new();
+
+        SqlStatement sql = InsertInto(t, t.Name, t.Code).Values(new[] { Tags, Tags }).Build();
+
+        Assert.Equal("INSERT INTO test_table (name, code) VALUES (:0, :1), (:2, :3)", sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<object>(":0"));
+        Assert.Equal("b", sql.Parameters.Get<object>(":3"));
+    }
+
+    [Fact]
+    public void MergeValues_RegisteredArrayTypeAsTheRow_ThrowsArgumentException()
+    {
+        RegisterTags();
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => MergeInto(t)
+                .Using(s)
+                .On(t.Code == s.Code)
+                .WhenNotMatched()
+                .ThenInsert(t.Name)
+                .Values(Tags));
+
+        Assert.Equal(AmbiguousList, ex.Message);
+    }
+
+    [Fact]
+    public void In_RegisteredArrayType_ReadsTheList()
+    {
+        RegisterTags();
+
+        SqlStatement sql = Select(_t.Code).From(_t).Where(_t.Name.In(Tags)).Build();
+
+        Assert.Equal(
+            "SELECT \"t\".code FROM test_table \"t\" WHERE \"t\".name IN (:0, :1)", sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
+    public void AddValueConverter_ObjectArray_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => SqlArtisanConfig.AddValueConverter<object[]>(values => values.Length));
+
+        Assert.Equal(
+            "A value converter cannot take System.Object[]: its value cannot be told from a "
+                + "list of values.",
+            ex.Message);
+    }
+
     private static void RegisterNoneAsNull() =>
         SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value == 0 ? null : id.Value);
+
+    private static void RegisterTags() =>
+        SqlArtisanConfig.AddValueConverter<string[]>(tags => string.Join(",", tags));
 
     private static string CannotTake(string construct) =>
         $"{construct} cannot take the NULL the value converter for {typeof(CustomerId)} "

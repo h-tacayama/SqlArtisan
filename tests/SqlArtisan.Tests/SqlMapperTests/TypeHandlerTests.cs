@@ -65,6 +65,20 @@ public class TypeHandlerTests : IDisposable
     }
 
     [Fact]
+    public void AddTypeHandler_ObjectArray_RegistersWithDapperOnly()
+    {
+        DapperMapper.AddTypeHandler(new ObjectArrayHandler());
+
+        SqlStatement sql =
+            Select(_t.Name).From(_t).Where(_t.Code.In(new object[] { 1, 2 })).Build();
+
+        Assert.Equal(
+            "SELECT \"t\".name FROM test_table \"t\" WHERE \"t\".code IN (:0, :1)", sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<object>(":0"));
+        Assert.True(global::Dapper.SqlMapper.HasTypeHandler(typeof(object[])));
+    }
+
+    [Fact]
     public void AddTypeHandler_QueryThroughDapper_ReturnsTheRowAndReadsTheTypeBack()
     {
         DapperMapper.AddTypeHandler(new CustomerIdHandler());
@@ -258,6 +272,14 @@ public class TypeHandlerTests : IDisposable
             parameter.Value = value!.Cents;
 
         public override Money Parse(object value) => new Yen(Convert.ToInt64(value));
+    }
+
+    private sealed class ObjectArrayHandler : global::Dapper.SqlMapper.TypeHandler<object[]>
+    {
+        public override void SetValue(IDbDataParameter parameter, object[]? value) =>
+            parameter.Value = value!.Length;
+
+        public override object[] Parse(object value) => [value];
     }
 
     private sealed class UtcDateTimeHandler : global::Dapper.SqlMapper.TypeHandler<DateTime>

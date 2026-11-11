@@ -4,8 +4,8 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.Tests;
 
 // guards-and-empty-states.md, null arguments: a value converter's NULL is rejected as any
-// operand of a predicate or a simple CASE (#810). Every public member returning a SqlCondition
-// or an ANY / ALL / SOME operand, and every simple-CASE operand, given one, throws naming it.
+// operand of a predicate or a simple CASE (#810). Every public member returning a SqlCondition,
+// an ANY / ALL / SOME operand or a MATCH, and every simple-CASE operand, throws naming it.
 [Collection("NonParallelTests")]
 public class ConvertedNullSweepTests : IDisposable
 {
@@ -91,7 +91,8 @@ public class ConvertedNullSweepTests : IDisposable
                     ? declared.MakeGenericMethod(typeof(object))
                     : declared;
                 if (typeof(SqlCondition).IsAssignableFrom(method.ReturnType)
-                    || method.ReturnType == typeof(QuantifiedExpression))
+                    || method.ReturnType == typeof(QuantifiedExpression)
+                    || method.ReturnType == typeof(MatchFunction))
                 {
                     yield return method;
                 }
@@ -148,6 +149,7 @@ public class ConvertedNullSweepTests : IDisposable
         {
             SqlCondition c => c,
             QuantifiedExpression q => Column() == q,
+            MatchFunction m => m.Against("x"),
             _ => null,
         };
         if (condition is null)

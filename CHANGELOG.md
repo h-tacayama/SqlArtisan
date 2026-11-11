@@ -22,8 +22,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `SqlArtisan.Dapper`, `SqlMapper.AddTypeHandler(handler)`, which registers the
   Dapper handler too. The value converts when it is passed, so every execution
   path receives it. A converter's SQL NULL binds where NULL is a value and
-  throws in a comparison or a predicate. `BindArray(...)` and
-  `new BindValue(value)` do not convert. `SqlArtisanConfig.ResetValueConverters()`
+  throws in a comparison or a predicate. A registered array type passed as a
+  whole list of values throws, since it could be the list or one value.
+  `new BindValue(value)` does not convert, and `BindArray(...)` rejects an array
+  of a registered type. `SqlArtisanConfig.ResetValueConverters()`
   and `SqlMapper.ResetTypeHandlers()` clear the registrations; Dapper's own
   `ResetTypeHandlers()` leaves SqlArtisan's converters in place. (#810)
 

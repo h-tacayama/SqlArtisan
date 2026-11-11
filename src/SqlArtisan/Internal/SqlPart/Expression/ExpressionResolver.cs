@@ -42,6 +42,7 @@ internal static class ExpressionResolver
             throw new ArgumentNullException(paramName, NullValueMessage);
         }
 
+        ValueConverters.ThrowIfListIsRegisteredValue(items);
         var resolved = new SqlExpression[items.Length];
 
         for (int i = 0; i < items.Length; i++)
@@ -363,6 +364,7 @@ internal static class ExpressionResolver
             throw new ArgumentNullException(itemsName, NullValueMessage);
         }
 
+        ValueConverters.ThrowIfListIsRegisteredValue(items);
         return new SqlExpression[items.Length + leadingCount];
     }
 

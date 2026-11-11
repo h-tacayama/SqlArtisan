@@ -95,7 +95,9 @@ Four cases are specific to this library, beyond the usual API-level changes:
   moves earlier or changes its message. A check moved to the call that writes a
   node moves earlier even where the last release never rendered the node, as
   in a disabled `ConditionIf` operand. A case not known to have failed counts as
-  breaking.
+  breaking. Adding a type to
+  [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types)
+  is one: a converter registered for it starts to throw.
 
 The analyzer's diagnostics follow their own rules, below: a new warning may
 land in a minor release, since it changes what a build reports, never what a

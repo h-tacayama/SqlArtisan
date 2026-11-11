@@ -12,6 +12,7 @@ internal static class InsertValueResolver
     // array type with a value converter is a value the caller registered (#810).
     internal static void ThrowIfArrayValue(object?[] values, string? severalRows)
     {
+        ValueConverters.ThrowIfListIsRegisteredValue(values);
         foreach (object? value in values)
         {
             if (value is Array && !ValueConverters.Has(value.GetType()))

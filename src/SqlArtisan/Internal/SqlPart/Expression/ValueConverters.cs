@@ -16,6 +16,21 @@ internal static class ValueConverters
 
     internal static bool Has(Type type) => s_converters.ContainsKey(type);
 
+    // params object[] takes an array of a reference element type as the list itself, so a
+    // registered one could be the list or one value; In, NotIn and a list of rows declare
+    // the list reading in their types and skip this.
+    internal static void ThrowIfListIsRegisteredValue(object?[]? items)
+    {
+        Type? type = items?.GetType();
+        if (type is not null && type != typeof(object[]) && s_converters.ContainsKey(type))
+        {
+            throw new ArgumentException(
+                $"A {type} passed as the whole argument list could be the list or one value, "
+                    + "since a value converter is registered for it; pass (object)value to bind "
+                    + "it as one value, or [.. value] to pass its elements.");
+        }
+    }
+
     // Converted when the value is passed, so every execution path receives it (#811).
     internal static BindValue Convert(object value)
     {

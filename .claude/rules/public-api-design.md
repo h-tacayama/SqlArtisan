@@ -581,7 +581,13 @@ that binds directly never reaches the registry (ADR 0006) and never converts.
 type from.
 A converter's `null` or `DBNull` binds SQL NULL where NULL is a value and is
 rejected in a compared position (`guards-and-empty-states.md`, null arguments).
-`new BindValue(value)` stays the as-is route. No analyzer reports an unregistered
+`new BindValue(value)` stays the as-is route. A registered array of a reference element
+type passed alone to a `params object[]` is the list itself by C# covariance, so its
+reading would turn with the argument count (`Coalesce(a, tags)` converts,
+`Coalesce(a, b, tags)` spreads); a list of values rejects it as either. `In` / `NotIn`
+and the lists of rows declare the list reading in their types, a key position already
+rejects a value, and `object[]` takes no converter, since its value is no different from
+a list (`RegisteredArrayListSweepTests`). No analyzer reports an unregistered
 type: registration is a run-time fact, usually in another project, and the throw
 already lands at the call and names the type (#793).
 
