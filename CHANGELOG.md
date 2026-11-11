@@ -16,6 +16,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   reads as qualified (a column of a CTE, a derived table, or a table whose alias
   it can trace) on MySQL, Oracle and PostgreSQL, which reject it (observed on
   MySQL 8.0, Oracle XE 21.3.0 and Free 23ai, and PostgreSQL 16 and 17). (#800)
+- A .NET type of your own, such as one wrapping an id, binds wherever a value
+  binds once a converter for it is registered with
+  `SqlArtisanConfig.AddValueConverter<T>(convert)` or, through
+  `SqlArtisan.Dapper`, `SqlMapper.AddTypeHandler(handler)`, which registers the
+  Dapper handler too. The value converts when it is passed, so every execution
+  path receives it. A converter's SQL NULL binds where NULL is a value and
+  throws in a comparison or a predicate. A registered array type passed as a
+  whole list of values throws, since it could be the list or one value.
+  `new BindValue(value)` does not convert, and `BindArray(...)` rejects an array
+  whose element type is registered. `SqlArtisanConfig.ResetValueConverters()`
+  and `SqlMapper.ResetTypeHandlers()` clear the registrations; Dapper's own
+  `ResetTypeHandlers()` leaves SqlArtisan's converters in place. (#810)
 
 ### Changed
 - **Breaking:** TableClassGen's `--check` and `--fix` fail with exit code `2`
@@ -28,15 +40,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   generation into a new folder runs without `--fix`. (#796)
 
 ### Docs
-- `docs/functions.md` says that a value of a type of your own, such as a value
-  object, binds through `new BindValue(value)` where the execution layer
-  converts it: a Dapper type handler does through `SqlArtisan.Dapper`,
-  `SqlArtisan.ArrayBind` takes only its listed types, and some providers
-  through raw ADO.NET, among them `MySql.Data` and `System.Data.SQLite`, bind
-  such a value as its `ToString()` text. The docs write
-  Dapper's `SqlMapper` qualified, since with `using SqlArtisan.Dapper;` alone,
-  as in the quickstart, a bare `SqlMapper` names that package's own class.
-  (#793, #810)
+- `docs/functions.md` says that `new BindValue(value)` hands a value of a type of
+  your own to the execution layer as it is, so it binds only where that layer
+  converts it: a Dapper type handler does, and some providers through raw
+  ADO.NET, among them `MySql.Data` and `System.Data.SQLite`, bind such a value
+  as its `ToString()` text. The docs write Dapper's own `SqlMapper` members
+  qualified, since with `using SqlArtisan.Dapper;` alone, as in the quickstart,
+  a bare `SqlMapper` names that package's own class. (#793, #810)
 - `docs/analyzer.md` says that the context rules read no control flow, and that
   the joined-table SQLite `RETURNING` rule reports a table class exposing the
   target's `DbColumn`, which `Build(Dbms.Sqlite)` accepts. (#800)

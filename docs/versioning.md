@@ -26,8 +26,8 @@ with different promises.
   - **The types you name and create** — tables and columns, CTEs and derived
     tables, bind values, the `Sql` factories, the configuration and statement
     types: everything on this page applies to them in full. One exception:
-    deriving from `BindValue` is not covered. It is unsealed only so that
-    `BindArrayValue` can derive from it; construct it, don't subclass it.
+    deriving from `BindValue` is not covered. It is unsealed only for the
+    library's own subclasses; construct it, don't subclass it.
   - **The values the API hands back.** A `Sql.*` call, operator, or chain step
     returns a node, clause, or builder stage typed by what it offers next or
     by the parameter that takes it: `Sql.Sum(...)` returns an
@@ -95,7 +95,9 @@ Four cases are specific to this library, beyond the usual API-level changes:
   moves earlier or changes its message. A check moved to the call that writes a
   node moves earlier even where the last release never rendered the node, as
   in a disabled `ConditionIf` operand. A case not known to have failed counts as
-  breaking.
+  breaking. Adding a type to
+  [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types)
+  is one: a converter registered for it starts to throw.
 
 The analyzer's diagnostics follow their own rules, below: a new warning may
 land in a minor release, since it changes what a build reports, never what a

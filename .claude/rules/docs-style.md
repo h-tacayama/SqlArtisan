@@ -46,10 +46,11 @@ with availability left to the database"). ADR cross-references belong in
   The reference section is titled **Bind Parameter Types**.
 - **UPSERT** in caps as the feature/concept name (the actual per-dialect methods
   are `ON CONFLICT` / `ON DUPLICATE KEY UPDATE` / `MERGE`).
-- **Dapper's `SqlMapper` is written `Dapper.SqlMapper`** in docs
-  (`Dapper.SqlMapper.AddTypeHandler`): `SqlArtisan.Dapper` declares a `SqlMapper`
-  too, so under the quickstart's usings a bare `SqlMapper` names it, which has no
-  `AddTypeHandler` (CS0117).
+- **Dapper's own `SqlMapper` members are written `Dapper.SqlMapper.…`** in docs
+  (`Dapper.SqlMapper.TypeHandler<T>`): `SqlArtisan.Dapper` declares a `SqlMapper`
+  too, so under the quickstart's usings a bare `SqlMapper` names it, which mirrors
+  the verbs and `AddTypeHandler` / `ResetTypeHandlers` only (CS0426 for
+  `SqlMapper.TypeHandler<T>`). A bare `SqlMapper.AddTypeHandler` names SqlArtisan's.
 - **query builder** (not "SQL builder"). Performance wording: **allocation-light**
   / **lowest-allocation** / **fast**, in that hook order ("allocation-light, fast").
 

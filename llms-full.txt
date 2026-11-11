@@ -3849,10 +3849,30 @@ That list is what SqlArtisan accepts as a bind value; whether a value reaches th
 
 A `byte[]` is not in the list: `In(...)` reads an array as one value per element, so bind binary data with `new BindValue(bytes)`.
 
-A type of your own, such as a value object wrapping an id, binds the same way: `c.Id == new BindValue(customerId)`, or in a list one element at a time, `c.Id.In(ids.Select(x => new BindValue(x)).ToArray())`. SqlArtisan hands the value to the execution layer as it is, so it binds only where that layer converts it: through `SqlArtisan.Dapper`, derive a handler from `Dapper.SqlMapper.TypeHandler<T>` and register it with `Dapper.SqlMapper.AddTypeHandler`. `SqlArtisan.ArrayBind` takes only the types its [guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) lists, so pass the value the type wraps there (`customerId.Value`).
+A .NET type of your own, such as one wrapping an id (`record struct CustomerId(long Value)`), binds once a converter for it is registered at startup, and then wherever a value binds, such as `c.Id == customerId`, `c.Id.In(customerIds)` or a `Values(...)` row.
+
+```csharp
+SqlArtisanConfig.AddValueConverter<CustomerId>(id => id.Value);
+
+// Through SqlArtisan.Dapper, register the Dapper type handler instead, a class derived from
+// Dapper.SqlMapper.TypeHandler<CustomerId>: one call registers it with Dapper, for reads,
+// and converts through its SetValue.
+SqlMapper.AddTypeHandler(new CustomerIdHandler());
+
+Select(c.Name).From(c).Where(c.Id == customerId)
+// SELECT "c".name FROM customers "c" WHERE "c".id = :0    (:0 is customerId.Value)
+```
+
+The value converts when it is passed, so every execution path receives what the converter returns: a type the list above names, a `byte[]`, `null` for SQL NULL, or a `BindValue` carrying one to set its `DbType` or size. SQL NULL binds where NULL is a value, such as a `VALUES` row or a `SET`; as an operand of a comparison or a predicate it throws, as a C# `null` does (`=` when the statement is built, since it also writes `SET`), so test for NULL with `.IsNull`. `BindArray(...)` rejects an array whose element type has a converter, and `SqlArtisanConfig.ResetValueConverters()` clears the converters.
+
+An array type that itself has a converter, such as `string[]` after `AddValueConverter<string[]>(...)`, throws when a `string[] tags` is passed as a whole list of values, such as `Values(tags)` or `Coalesce(a, b, tags)`, since C# passes it as the list itself: pass `(object)tags` to bind it as one value, or `[.. tags]` for its elements. `In(...)`, `NotIn(...)` and `Values(rows)` read it as the list, and `==` compares the converted value.
+
+Through `SqlArtisan.Dapper`, the handler's `SetValue` runs on a parameter of SqlArtisan's own: it must set `Value` (`DBNull.Value` for SQL NULL) and must not cast to a provider's parameter type, and only the value, `DbType` and size it sets are kept. That value must be a type the converter could return, or every value written as is throws, and one Dapper takes, or the statement fails when it runs: a handler that hands a provider its own type, such as pgvector's `Vector`, or a type Dapper rejects, such as `DateOnly`, keeps its type bound through `new BindValue(value)`. A handler for a type the list names, an interface, an abstract type or `object[]` registers with Dapper alone, as `Dapper.SqlMapper.AddTypeHandler` called directly does. `SqlMapper.ResetTypeHandlers()` clears both registrations.
+
+`new BindValue(value)` hands its value to the execution layer as it is, so a type of your own binds that way only where that layer converts it, as a Dapper type handler does at execution. `SqlArtisan.ArrayBind` takes only the types its [guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) lists.
 
 > [!WARNING]
-> **Through raw ADO.NET, some providers, among them `MySql.Data` and `System.Data.SQLite`, bind a type they do not know as its `ToString()` text instead of throwing**, so the comparison runs against that text. Pass the value the type wraps there too.
+> **Through raw ADO.NET, some providers, among them `MySql.Data` and `System.Data.SQLite`, bind a type they do not know as its `ToString()` text instead of throwing**, so a `new BindValue(value)` of such a type compares against that text. Register a converter and pass the value itself rather than through `new BindValue`, or pass the value the type wraps.
 
 `Sql.Bind(value)` rejects `null` and `DBNull.Value`. For a bound `NULL`, use `Sql.BindNull()`: `Sql.Null` inlines the `NULL` keyword into the SQL text — as does a bare C# `null` in a `VALUES` row, the one position that takes one; anywhere else it throws — while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
 
@@ -5450,9 +5470,9 @@ handler registered at run time, or for an extra column Dapper ignores on
 purpose; a `nameof` of a member says the alias is a member name, which is
 what lets the rule be on by default.
 
-Two shapes report on code that works. A handler registered for the model with
-`Dapper.SqlMapper.AddTypeHandler` reads the first column whatever the alias (Dapper
-2.1.66 on SQLite, live:
+Two shapes report on code that works. A Dapper type handler registered for the
+model, through either package's `SqlMapper.AddTypeHandler`, reads the first column
+whatever the alias (Dapper 2.1.66 on SQLite, live:
 `SqliteTests.QueryNameOfAlias_RegisteredHandler_ReadsTheFirstColumn`), and a type
 map keyed on an attribute of another name can map the column to a member the
 alias does not name. Suppress the rule there the standard Roslyn way
@@ -6863,7 +6883,7 @@ the output values can be read back with `Get<T>`.
 > the hand-off path, bind the string with `Sql.Bind(...)` where its position
 > takes a bound value, or run the statement through ADO.NET.
 
-Two execution rules to know from day one:
+Three rules to know from day one:
 
 - **A builder chain is single-use.** The Dapper call runs `Build()` for you,
   which finishes the chain — build a fresh query per call instead of holding
@@ -6871,6 +6891,12 @@ Two execution rules to know from day one:
 - **Unknown providers need one registration.** `DbmsResolver` knows the common
   connection types; a wrapper or exotic provider registers once at startup:
   `DbmsResolver.RegisterProvider("My.Provider.Connection", Dbms.PostgreSql)`.
+- **Register a type handler through `SqlArtisan.Dapper`.**
+  `SqlMapper.AddTypeHandler(handler)` registers a `Dapper.SqlMapper.TypeHandler<T>`
+  with Dapper and lets a value of a type of your own bind as written
+  (`c.Id == customerId`),
+  which Dapper's own `AddTypeHandler` does not. Which types it converts:
+  [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types).
 
 Not using Dapper after all? Call `.Build(Dbms.X)` yourself and feed
 `sql.Text` / `sql.Parameters` to raw ADO.NET or any other mapper — see the
@@ -7296,8 +7322,8 @@ with different promises.
   - **The types you name and create** — tables and columns, CTEs and derived
     tables, bind values, the `Sql` factories, the configuration and statement
     types: everything on this page applies to them in full. One exception:
-    deriving from `BindValue` is not covered. It is unsealed only so that
-    `BindArrayValue` can derive from it; construct it, don't subclass it.
+    deriving from `BindValue` is not covered. It is unsealed only for the
+    library's own subclasses; construct it, don't subclass it.
   - **The values the API hands back.** A `Sql.*` call, operator, or chain step
     returns a node, clause, or builder stage typed by what it offers next or
     by the parameter that takes it: `Sql.Sum(...)` returns an
@@ -7365,7 +7391,9 @@ Four cases are specific to this library, beyond the usual API-level changes:
   moves earlier or changes its message. A check moved to the call that writes a
   node moves earlier even where the last release never rendered the node, as
   in a disabled `ConditionIf` operand. A case not known to have failed counts as
-  breaking.
+  breaking. Adding a type to
+  [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types)
+  is one: a converter registered for it starts to throw.
 
 The analyzer's diagnostics follow their own rules, below: a new warning may
 land in a minor release, since it changes what a build reports, never what a

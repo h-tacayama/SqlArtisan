@@ -68,6 +68,11 @@ linq2db and EF Core reuse a connection object and a `DbContext` created once in
 `[GlobalSetup]` — neither is ever opened — and EF Core caches the compiled query
 plan, so the loop measures warm steady state rather than first-call cost.
 
+`ValueConverterBenchmarks` measures what a registered value converter costs SqlArtisan
+itself, so it is no cross-builder comparison: one statement binding `id.Value` against
+the same statement binding a type of your own the converter turns into that value
+(`dotnet run --project $P -c Release -- --filter '*ValueConverterBenchmarks*'`).
+
 ## Pinned library versions
 
 The comparison is only meaningful against the versions it was run with. The

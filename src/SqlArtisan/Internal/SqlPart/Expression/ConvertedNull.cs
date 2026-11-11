@@ -1,0 +1,28 @@
+using System.Data;
+
+namespace SqlArtisan.Internal;
+
+// A SQL NULL a value converter returned. It binds where NULL is a value, such as a VALUES
+// row or a SET, but a comparison rejects it: written nowhere the call site or the analyzer
+// sees, it would silently match no row, the class a C# null is rejected for (#810).
+internal sealed class ConvertedNull(Type source, DbType? dbType, int? size)
+    : BindValue(DBNull.Value, dbType, null, size)
+{
+    internal ArgumentException Compared(string construct) =>
+        new($"{construct} never matches the NULL the value converter for {source} returned; "
+            + "test for NULL with .IsNull or .IsNotNull.");
+
+    // A JSONB key or a full-text search text: the engines skip it, match every row or
+    // fail, so no NULL test is a remedy there.
+    internal ArgumentException Searched(string construct) =>
+        new($"{construct} cannot take the NULL the value converter for {source} returned; "
+            + "pass a value, or leave the predicate out.");
+
+    internal ArgumentException InSearchText() =>
+        new($"AGAINST matches no row for the NULL the value converter for {source} returned; "
+            + "pass the text, or leave the predicate out.");
+
+    internal ArgumentException InSimpleCase() =>
+        new($"A simple CASE never matches the NULL the value converter for {source} returned; "
+            + "test for NULL with a searched When(expr.IsNull).");
+}

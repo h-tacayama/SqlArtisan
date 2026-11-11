@@ -76,7 +76,9 @@ public static partial class Sql
     /// <remarks>SQL Server syntax. For exact words, prefixes, and boolean
     /// combinations use <see cref="Contains(object, object)"/>.</remarks>
     public static SqlCondition Freetext(object column, object freetext) =>
-        new FreetextCondition(Resolve(column, nameof(column)), Resolve(freetext, nameof(freetext)));
+        new FreetextCondition(
+            ResolveSearched(column, nameof(column), Keywords.Freetext),
+            ResolveSearched(freetext, nameof(freetext), Keywords.Freetext));
 
     /// <summary>
     /// A call to a function SqlArtisan has no factory for, emitting

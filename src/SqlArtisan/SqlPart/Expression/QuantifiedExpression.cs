@@ -17,7 +17,10 @@ public sealed class QuantifiedExpression : SqlPart, IIncompleteExpression
     internal QuantifiedExpression(string keyword, SqlExpression operand)
     {
         _keyword = keyword;
-        _operand = operand;
+        // ANY / ALL over a NULL array matches no row, and no NULL test reaches it (#810).
+        _operand = operand is ConvertedNull converted
+            ? throw converted.Searched(keyword)
+            : operand;
     }
 
     string IIncompleteExpression.IncompleteMessage =>

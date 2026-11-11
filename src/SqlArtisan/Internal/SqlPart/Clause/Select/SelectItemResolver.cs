@@ -18,6 +18,7 @@ internal static class SelectItemResolver
     // position in a failure, since the value never reached a SELECT list.
     internal static SqlPart[] Resolve(object[] items, string position, string paramName)
     {
+        ValueConverters.ThrowIfListIsRegisteredValue(items);
         var resolved = new SqlPart[items.Length];
 
         for (int i = 0; i < items.Length; i++)

@@ -38,7 +38,7 @@ internal sealed class UpdateSetClause : SqlPart
             // This arm names each column's owner, and MySQL's joined UPDATE sets another
             // table's column that way, so only an unaliased owner can render bare here.
             AssignmentResolver.ThrowIfUnaliasedOwner(_assignments);
-            buffer.AppendCsv(_assignments);
+            buffer.AppendAssignmentsCsv(_assignments, qualified: true);
         }
         else
         {

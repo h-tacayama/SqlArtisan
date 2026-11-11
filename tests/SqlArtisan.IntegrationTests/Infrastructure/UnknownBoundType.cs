@@ -11,8 +11,13 @@ internal static class UnknownBoundType
     internal static List<string> QueryRaw(IDbConnection connection, Dbms dbms)
     {
         UsersTable u = new();
-        SqlStatement sql =
-            Select(u.Name).From(u).Where(u.Id == new BindValue(new TextOfTwo())).Build(dbms);
+        return QueryRaw(
+            connection,
+            Select(u.Name).From(u).Where(u.Id == new BindValue(new TextOfTwo())).Build(dbms));
+    }
+
+    internal static List<string> QueryRaw(IDbConnection connection, SqlStatement sql)
+    {
         using IDbCommand command = connection.CreateCommand();
         command.CommandText = sql.Text;
         sql.Parameters.ForEach((name, bind) =>

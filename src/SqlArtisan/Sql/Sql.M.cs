@@ -18,7 +18,10 @@ public static partial class Sql
     /// <remarks>MySQL syntax. For the SQLite FTS5 <c>table MATCH pattern</c>
     /// predicate use <see cref="Match(DbTableBase, object)"/>.</remarks>
     public static MatchFunction Match(object column, params object[] otherColumns) =>
-        new([Resolve(column, nameof(column)), .. Resolve(otherColumns, nameof(otherColumns))]);
+        new([
+            ResolveSearched(column, nameof(column), Keywords.Match),
+            .. ResolveSearched(otherColumns, nameof(otherColumns), Keywords.Match),
+        ]);
 
     /// <summary>
     /// The SQLite FTS5 <c>table MATCH pattern</c> predicate: matches rows of the
@@ -33,7 +36,7 @@ public static partial class Sql
     /// <remarks>SQLite syntax. For the MySQL <c>MATCH ... AGAINST</c> construct use
     /// <see cref="Match(object, object[])"/>.</remarks>
     public static SqlCondition Match(DbTableBase table, object pattern) =>
-        new MatchCondition(table, Resolve(pattern, nameof(pattern)));
+        new MatchCondition(table, ResolveSearched(pattern, nameof(pattern), Keywords.Match));
 
     /// <summary>
     /// The <c>MAX(<paramref name="expr"/>)</c> aggregate: the largest value of

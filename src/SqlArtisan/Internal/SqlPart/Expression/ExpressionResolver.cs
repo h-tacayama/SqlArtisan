@@ -42,6 +42,7 @@ internal static class ExpressionResolver
             throw new ArgumentNullException(paramName, NullValueMessage);
         }
 
+        ValueConverters.ThrowIfListIsRegisteredValue(items);
         var resolved = new SqlExpression[items.Length];
 
         for (int i = 0; i < items.Length; i++)
@@ -204,7 +205,34 @@ internal static class ExpressionResolver
                 : NullCompared(paramName, construct);
         }
 
-        return Resolve(item, paramName);
+        SqlExpression resolved = Resolve(item, paramName);
+        return resolved is ConvertedNull converted && construct != Operators.Equal
+            ? throw converted.Compared(construct)
+            : resolved;
+    }
+
+    // A predicate operand where a C# null keeps the Sql.Null message, so not ResolveCompared.
+    internal static SqlExpression ResolveSearched(object item, string paramName, string construct)
+    {
+        SqlExpression resolved = Resolve(item, paramName);
+        return resolved is ConvertedNull converted ? throw converted.Searched(construct) : resolved;
+    }
+
+    internal static SqlExpression[] ResolveSearched(
+        object[] items,
+        string paramName,
+        string construct)
+    {
+        SqlExpression[] resolved = Resolve(items, paramName);
+        foreach (SqlExpression item in resolved)
+        {
+            if (item is ConvertedNull converted)
+            {
+                throw converted.Searched(construct);
+            }
+        }
+
+        return resolved;
     }
 
     // The right operand an ANY / ALL / SOME completes, in the slots QuantifiedExpression's
@@ -279,7 +307,8 @@ internal static class ExpressionResolver
             throw new ArgumentNullException(paramName, NullSimpleCaseMessage);
         }
 
-        return Resolve(item, paramName);
+        SqlExpression resolved = Resolve(item, paramName);
+        return resolved is ConvertedNull converted ? throw converted.InSimpleCase() : resolved;
     }
 
     internal static ArgumentNullException NullCompared(string paramName, string construct) =>
@@ -335,6 +364,7 @@ internal static class ExpressionResolver
             throw new ArgumentNullException(itemsName, NullValueMessage);
         }
 
+        ValueConverters.ThrowIfListIsRegisteredValue(items);
         return new SqlExpression[items.Length + leadingCount];
     }
 
@@ -354,13 +384,22 @@ internal static class ExpressionResolver
     // its type and would bind as the value (#667). Sql.Bind and new BindValue(...) skip
     // this, so binding one stays writable; no factory takes Dbms or DbTypeCategory.
     internal static BindValue BindImplicitly(object value) =>
-        value is DateTimePart or RegexpOptions or SearchModifier
-            ? throw new ArgumentException($"{value.GetType().Name} is a function argument, not a "
-                + $"value; pass it to a {value.GetType().Name} parameter, or, to store or compare "
-                + "the enum itself, bind it with Sql.Bind(...).")
-            : new BindValue(value);
+        !IsDirectlyBindable(value)
+            ? ValueConverters.Convert(value)
+            : value is DateTimePart or RegexpOptions or SearchModifier
+                ? throw new ArgumentException($"{value.GetType().Name} is a function argument, "
+                    + $"not a value; pass it to a {value.GetType().Name} parameter, or, to store "
+                    + "or compare the enum itself, bind it with Sql.Bind(...).")
+                : new BindValue(value);
 
+    // The directly bindable check first: such a value never reaches the converter
+    // registry (ADR 0006).
     internal static bool IsBindable(object value) =>
+        IsDirectlyBindable(value) || ValueConverters.Has(value.GetType());
+
+    // Directly: without a value converter, the types docs/functions.md § Bind Parameter
+    // Types lists.
+    internal static bool IsDirectlyBindable(object value) =>
         IsBoolean(value)
         || IsCharacter(value)
         || IsDateTime(value)
@@ -368,10 +407,10 @@ internal static class ExpressionResolver
         || IsEnum(value)
         || value is Guid;
 
-    // Type-level twin of IsBindable for BindArray's element check: the element
+    // Type-level twin of IsDirectlyBindable for BindArray's element check: the element
     // type is fixed at the call site, so even an empty array validates
     // deterministically. Keep the two sets identical.
-    internal static bool IsBindableType(Type type)
+    internal static bool IsDirectlyBindableType(Type type)
     {
         Type unwrapped = Nullable.GetUnderlyingType(type) ?? type;
         return unwrapped == typeof(bool)

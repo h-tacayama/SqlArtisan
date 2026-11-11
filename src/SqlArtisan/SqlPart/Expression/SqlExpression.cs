@@ -245,7 +245,7 @@ public abstract class SqlExpression : SqlPart
     /// <returns>The <c>BETWEEN</c> condition.</returns>
     public SqlCondition Between(object rightSide1, object rightSide2) =>
         new BetweenCondition(
-            this,
+            ComparedReceiver(Keywords.Between),
             ResolveCompared(rightSide1, nameof(rightSide1), Keywords.Between),
             ResolveCompared(rightSide2, nameof(rightSide2), Keywords.Between));
 
@@ -258,7 +258,7 @@ public abstract class SqlExpression : SqlPart
     /// <returns>The <c>NOT BETWEEN</c> condition.</returns>
     public SqlCondition NotBetween(object rightSide1, object rightSide2) =>
         new NotBetweenCondition(
-            this,
+            ComparedReceiver(NotBetweenConstruct),
             ResolveCompared(rightSide1, nameof(rightSide1), NotBetweenConstruct),
             ResolveCompared(rightSide2, nameof(rightSide2), NotBetweenConstruct));
 
@@ -275,7 +275,7 @@ public abstract class SqlExpression : SqlPart
         CollectionGuard.ThrowIfEmpty(
             expressions, nameof(expressions), "IN requires at least one value.");
         return new InCondition(
-            this,
+            ComparedReceiver(Keywords.In),
             ResolveCompared(expressions, nameof(expressions), Keywords.In));
     }
 
@@ -298,7 +298,9 @@ public abstract class SqlExpression : SqlPart
     public SqlCondition In<T>(IReadOnlyCollection<T> values)
     {
         CollectionGuard.ThrowIfEmpty(values, nameof(values), "IN requires at least one value.");
-        return new InCondition(this, ResolveCompared(values, nameof(values), Keywords.In));
+        return new InCondition(
+            ComparedReceiver(Keywords.In),
+            ResolveCompared(values, nameof(values), Keywords.In));
     }
 
     /// <summary>
@@ -315,7 +317,9 @@ public abstract class SqlExpression : SqlPart
     public SqlCondition In<T>(T[] values)
     {
         CollectionGuard.ThrowIfEmpty(values, nameof(values), "IN requires at least one value.");
-        return new InCondition(this, ResolveCompared(values, nameof(values), Keywords.In));
+        return new InCondition(
+            ComparedReceiver(Keywords.In),
+            ResolveCompared(values, nameof(values), Keywords.In));
     }
 
     /// <summary>
@@ -324,7 +328,7 @@ public abstract class SqlExpression : SqlPart
     /// <param name="subquery">The subquery whose result set is tested against.</param>
     /// <returns>The <c>IN</c> condition.</returns>
     public SqlCondition In(ISubquery subquery) =>
-        new InSubqueryCondition(this, subquery);
+        new InSubqueryCondition(ComparedReceiver(Keywords.In), subquery);
 
     /// <summary>
     /// The <c>expr NOT IN (<paramref name="expressions"/>)</c> condition.
@@ -339,7 +343,7 @@ public abstract class SqlExpression : SqlPart
         CollectionGuard.ThrowIfEmpty(
             expressions, nameof(expressions), "NOT IN requires at least one value.");
         return new NotInCondition(
-            this,
+            ComparedReceiver(NotInConstruct),
             ResolveCompared(expressions, nameof(expressions), NotInConstruct));
     }
 
@@ -361,7 +365,9 @@ public abstract class SqlExpression : SqlPart
     public SqlCondition NotIn<T>(IReadOnlyCollection<T> values)
     {
         CollectionGuard.ThrowIfEmpty(values, nameof(values), "NOT IN requires at least one value.");
-        return new NotInCondition(this, ResolveCompared(values, nameof(values), NotInConstruct));
+        return new NotInCondition(
+            ComparedReceiver(NotInConstruct),
+            ResolveCompared(values, nameof(values), NotInConstruct));
     }
 
     /// <summary>
@@ -376,7 +382,9 @@ public abstract class SqlExpression : SqlPart
     public SqlCondition NotIn<T>(T[] values)
     {
         CollectionGuard.ThrowIfEmpty(values, nameof(values), "NOT IN requires at least one value.");
-        return new NotInCondition(this, ResolveCompared(values, nameof(values), NotInConstruct));
+        return new NotInCondition(
+            ComparedReceiver(NotInConstruct),
+            ResolveCompared(values, nameof(values), NotInConstruct));
     }
 
     /// <summary>
@@ -385,7 +393,7 @@ public abstract class SqlExpression : SqlPart
     /// <param name="subquery">The subquery whose result set is tested against.</param>
     /// <returns>The <c>NOT IN</c> condition.</returns>
     public SqlCondition NotIn(ISubquery subquery) =>
-        new NotInSubqueryCondition(this, subquery);
+        new NotInSubqueryCondition(ComparedReceiver(NotInConstruct), subquery);
 
     /// <summary>
     /// The <c>expr LIKE <paramref name="rightSide"/></c> pattern-match condition.
@@ -393,7 +401,9 @@ public abstract class SqlExpression : SqlPart
     /// <param name="rightSide">The pattern, with <c>%</c> / <c>_</c> wildcards.</param>
     /// <returns>The <c>LIKE</c> condition.</returns>
     public LikeCondition Like(object rightSide) =>
-        new(this, ResolveQuantifiable(rightSide, nameof(rightSide), Keywords.Like));
+        new(
+            ComparedReceiver(Keywords.Like),
+            ResolveQuantifiable(rightSide, nameof(rightSide), Keywords.Like));
 
     /// <summary>
     /// The <c>expr NOT LIKE <paramref name="rightSide"/></c> pattern-match condition.
@@ -401,5 +411,11 @@ public abstract class SqlExpression : SqlPart
     /// <param name="rightSide">The pattern, with <c>%</c> / <c>_</c> wildcards.</param>
     /// <returns>The <c>NOT LIKE</c> condition.</returns>
     public NotLikeCondition NotLike(object rightSide) =>
-        new(this, ResolveQuantifiable(rightSide, nameof(rightSide), NotLikeConstruct));
+        new(
+            ComparedReceiver(NotLikeConstruct),
+            ResolveQuantifiable(rightSide, nameof(rightSide), NotLikeConstruct));
+
+    // A converter's NULL reaches a predicate's receiver through Bind(...) (#810).
+    private SqlExpression ComparedReceiver(string construct) =>
+        this is ConvertedNull converted ? throw converted.Compared(construct) : this;
 }
