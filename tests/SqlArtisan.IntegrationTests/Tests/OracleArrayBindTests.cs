@@ -295,6 +295,36 @@ public sealed class OracleArrayBindTests : IClassFixture<OracleFixture>
         Assert.Equal(3146, ex.Number);
     }
 
+    // A value converts when it is passed, so ExecuteArrayBind binds the converted value, and a
+    // converter's NULL binds as a NULL row (#810).
+    [Fact]
+    public void ExecuteArrayBind_RegisteredType_InsertsTheConvertedValues()
+    {
+        SqlArtisanConfig.AddValueConverter<UserName>(name => name.Value);
+        UsersTable u = new();
+        using OracleConnection connection = (OracleConnection)_fixture.OpenConnection();
+        using OracleTransaction transaction = connection.BeginTransaction();
+        List<ISqlBuilder> statements =
+        [
+            InsertInto(u, u.Id, u.Name).Values(9501L, new UserName("Converted One")),
+            InsertInto(u, u.Id, u.Name).Values(9502L, new UserName(null)),
+            InsertInto(u, u.Id, u.Name).Values(9503L, new UserName("Converted Three")),
+        ];
+
+        int inserted = connection.ExecuteArrayBind(statements, transaction);
+
+        Assert.Equal(3, inserted);
+        Assert.Equal(
+            new string?[] { "Converted One", null, "Converted Three" },
+            connection.Query<string?>(
+                Select(u.Name).From(u).Where(u.Id >= 9501).OrderBy(u.Id),
+                transaction));
+
+        transaction.Rollback();
+    }
+
+    private sealed record UserName(string? Value);
+
     private sealed class UserRow
     {
         public long Id { get; init; }
