@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   throws in a comparison or a predicate. A registered array type passed as a
   whole list of values throws, since it could be the list or one value.
   `new BindValue(value)` does not convert, and `BindArray(...)` rejects an array
-  of a registered type. `SqlArtisanConfig.ResetValueConverters()`
+  whose element type is registered. `SqlArtisanConfig.ResetValueConverters()`
   and `SqlMapper.ResetTypeHandlers()` clear the registrations; Dapper's own
   `ResetTypeHandlers()` leaves SqlArtisan's converters in place. (#810)
 

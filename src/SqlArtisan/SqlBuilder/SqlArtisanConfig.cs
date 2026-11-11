@@ -23,7 +23,7 @@ public static class SqlArtisanConfig
     /// <remarks>
     /// It runs when the value is passed, so it reaches values passed after this call, and
     /// registering <typeparamref name="T"/> again replaces it. <c>new BindValue(value)</c> does
-    /// not convert; <see cref="Sql.BindArray{T}(T[])"/> rejects an array of a registered type.
+    /// not convert; <see cref="Sql.BindArray{T}(T[])"/> rejects an array of registered values.
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="convert"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><typeparamref name="T"/> binds without a converter, is an interface or abstract, or is an <see cref="object"/> array.</exception>
