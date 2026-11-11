@@ -397,8 +397,8 @@ internal static class ExpressionResolver
     internal static bool IsBindable(object value) =>
         IsDirectlyBindable(value) || ValueConverters.Has(value.GetType());
 
-    // Directly: without a value converter, the types docs/functions.md § Bind Parameter
-    // Types lists.
+    // Directly: without a value converter. Frozen at the 1.0 list: a type added later is
+    // read after the registry, so a converter registered for it keeps winning (#814).
     internal static bool IsDirectlyBindable(object value) =>
         IsBoolean(value)
         || IsCharacter(value)
@@ -407,9 +407,9 @@ internal static class ExpressionResolver
         || IsEnum(value)
         || value is Guid;
 
-    // Type-level twin of IsDirectlyBindable for BindArray's element check: the element
-    // type is fixed at the call site, so even an empty array validates
-    // deterministically. Keep the two sets identical.
+    // Type-level twin of IsDirectlyBindable, the same frozen set: an element type is fixed
+    // at the call site, so an empty array validates too, and AddValueConverter's rejection
+    // is this set, which the shipped SqlArtisan.Dapper relies on (#814).
     internal static bool IsDirectlyBindableType(Type type)
     {
         Type unwrapped = Nullable.GetUnderlyingType(type) ?? type;
