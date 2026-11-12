@@ -433,8 +433,8 @@ the family base that declares its members (`Sql.Sum` →
 `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`), a base a
 parameter takes (`Sql.Nowait` → `LockBehaviorBase`, `a == b` → `EqualityCondition`,
 which `Set` takes), or else `SqlExpression`, `SqlCondition` or `SqlPart` (`Sql.Abs`,
-`a < b`, `Sql.Rollup`). A family base is returned only where an engine with the
-function runs every member the base offers: `Sql.Stdev`, `Stdevp`, `Var` and `Varp`
+`a < b`, `Sql.Rollup`). A family base is returned only where each member it offers
+runs on some engine with the function: `Sql.Stdev`, `Stdevp`, `Var` and `Varp`
 return `AggregateFunction`, not `UnfilteredAggregateFunction`, since the matrix's
 `Filter` cell leaves out SQL Server, their one engine (rejected on SQL Server 2022, the
 sweep's `Filter` case; #815, after #662's DISTINCT windows;
