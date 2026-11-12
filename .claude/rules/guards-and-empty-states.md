@@ -930,7 +930,8 @@ typed-element positions the same way: `CollectionGuard.ThrowIfNullElement`
 constructors — `FROM`, JOIN/DELETE `USING`, `ON CONFLICT`, `OUTPUT INTO`,
 `WITH`, `GROUPING SETS`, MERGE `ThenInsert` — and the multi-row `VALUES` rows;
 `FactoryGuardSweepTests` now fails on a bare `NullReferenceException` reached
-from an element injection (whole-argument nulls keep the loud-NRE exemption);
+from an element injection or a null `params` array (other whole-argument nulls keep the
+loud-NRE exemption);
 and `BuilderElementGuardTests` pins the builder-side sites the factory sweep
 cannot reach. A new typed element position lands on this shape, not a bare NRE.
 A lone null argument binds the `params` array itself to null (`From(null)`), so
