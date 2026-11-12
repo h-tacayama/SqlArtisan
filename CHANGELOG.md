@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   call that names it (`Else(thenExpr: x)`) no longer compiles, and `Else(null)`
   reports `elseExpr` as the parameter.
 
+### Fixed
+- `SqlArtisan.Dapper`'s `SqlMapper.AddTypeHandler` decides whether to register
+  with SqlArtisan by asking `SqlArtisanConfig.AddValueConverter`, which keeps
+  accepting a type a later release binds by itself, instead of trying
+  `Sql.BindArray` on an empty array. A value type of 64 KiB or more no longer
+  throws `TypeLoadException` after the handler was registered with Dapper;
+  every other type registers as before. (#814)
+
+### Docs
+- `docs/versioning.md` says that adding a type to Bind Parameter Types is not
+  breaking: a converter or type handler registered for the type keeps
+  converting it, `Sql.BindArray` keeps rejecting an array of it while one is
+  registered, and a list reading such as `In(...)`'s of an array stays. It said
+  that such a converter would start to throw. (#814)
+
 ## [0.15.0-beta.1] - 2026-11-11
 ### Added
 - `Sql.Function(name, args...)` calls a function SqlArtisan has no factory for

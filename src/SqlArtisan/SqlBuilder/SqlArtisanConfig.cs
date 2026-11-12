@@ -31,6 +31,8 @@ public static class SqlArtisanConfig
     {
         ArgumentNullException.ThrowIfNull(convert);
 
+        // What this rejects, and that it throws ArgumentException, stay as of 1.0:
+        // SqlArtisan.Dapper's AddTypeHandler catches it to register with Dapper alone (#814).
         Type type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
         if (ExpressionResolver.IsDirectlyBindableType(type))
         {

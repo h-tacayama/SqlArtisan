@@ -1,4 +1,6 @@
 using System.Data;
+using System.Numerics;
+using System.Runtime.InteropServices;
 using Microsoft.Data.Sqlite;
 using SqlArtisan.Dapper;
 using static SqlArtisan.Sql;
@@ -76,6 +78,59 @@ public class TypeHandlerTests : IDisposable
             "SELECT \"t\".name FROM test_table \"t\" WHERE \"t\".code IN (:0, :1)", sql.Text);
         Assert.Equal(1, sql.Parameters.Get<object>(":0"));
         Assert.True(global::Dapper.SqlMapper.HasTypeHandler(typeof(object[])));
+    }
+
+    [Fact]
+    public void AddTypeHandler_Interface_RegistersWithDapperOnly()
+    {
+        DapperMapper.AddTypeHandler(new EntityKeyHandler());
+
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => _t.Code == new OrderKey(5));
+
+        Assert.Equal($"Invalid type for SqlExpression: {typeof(OrderKey)}", ex.Message);
+        Assert.True(global::Dapper.SqlMapper.HasTypeHandler(typeof(IEntityKey)));
+    }
+
+    [Fact]
+    public void AddTypeHandler_Enum_RegistersWithDapperOnly()
+    {
+        DapperMapper.AddTypeHandler(new DayOfWeekHandler());
+
+        Assert.Equal(DayOfWeek.Monday, Bind(DayOfWeek.Monday).Value);
+        Assert.True(global::Dapper.SqlMapper.HasTypeHandler(typeof(DayOfWeek)));
+    }
+
+    [Fact]
+    public void AddTypeHandler_NullableOfUnlistedType_BindsWhatSetValueSets()
+    {
+        DapperMapper.AddTypeHandler(new NullableCustomerIdHandler());
+
+        SqlStatement sql = Select(_t.Name).From(_t).Where(_t.Code == new CustomerId(2)).Build();
+
+        Assert.Equal("SELECT \"t\".name FROM test_table \"t\" WHERE \"t\".code = :0", sql.Text);
+        Assert.Equal(2L, sql.Parameters.Get<object>(":0"));
+    }
+
+    // An empty array of a value type this large cannot be created, which a probe through
+    // BindArray failed on after Dapper had registered the handler (#814).
+    [Fact]
+    public void AddTypeHandler_LargeValueType_BindsWhatSetValueSets()
+    {
+        DapperMapper.AddTypeHandler(new LargeValueHandler());
+
+        Assert.Equal(7L, Bind(new LargeValue { Value = 7 }).Value);
+        Assert.True(global::Dapper.SqlMapper.HasTypeHandler(typeof(LargeValue)));
+    }
+
+    // A later release may bind BigInteger by itself; a handler registered for it keeps
+    // converting it there, which docs/versioning.md promises (#814).
+    [Fact]
+    public void AddTypeHandler_TypeOffTheList_BindsWhatSetValueSets()
+    {
+        DapperMapper.AddTypeHandler(new BigIntegerHandler());
+
+        Assert.Equal(5L, Bind(new BigInteger(5)).Value);
     }
 
     [Fact]
@@ -204,6 +259,19 @@ public class TypeHandlerTests : IDisposable
 
     public sealed record Email(string Value);
 
+    public interface IEntityKey
+    {
+        long Raw { get; }
+    }
+
+    public sealed record OrderKey(long Raw) : IEntityKey;
+
+    [StructLayout(LayoutKind.Sequential, Size = 70000)]
+    public struct LargeValue
+    {
+        public long Value;
+    }
+
     public abstract record Money(long Cents);
 
     public sealed record Yen(long Cents) : Money(Cents);
@@ -227,6 +295,48 @@ public class TypeHandlerTests : IDisposable
             parameter.Value = value.Value;
 
         public override CustomerId Parse(object value) => new(Convert.ToInt64(value));
+    }
+
+    private sealed class EntityKeyHandler : global::Dapper.SqlMapper.TypeHandler<IEntityKey>
+    {
+        public override void SetValue(IDbDataParameter parameter, IEntityKey? value) =>
+            parameter.Value = value?.Raw;
+
+        public override IEntityKey Parse(object value) => new OrderKey(Convert.ToInt64(value));
+    }
+
+    private sealed class DayOfWeekHandler : global::Dapper.SqlMapper.TypeHandler<DayOfWeek>
+    {
+        public override void SetValue(IDbDataParameter parameter, DayOfWeek value) =>
+            parameter.Value = value.ToString();
+
+        public override DayOfWeek Parse(object value) => Enum.Parse<DayOfWeek>((string)value);
+    }
+
+    private sealed class NullableCustomerIdHandler
+        : global::Dapper.SqlMapper.TypeHandler<CustomerId?>
+    {
+        public override void SetValue(IDbDataParameter parameter, CustomerId? value) =>
+            parameter.Value = value is CustomerId id ? id.Value : DBNull.Value;
+
+        public override CustomerId? Parse(object value) => new CustomerId(Convert.ToInt64(value));
+    }
+
+    private sealed class LargeValueHandler : global::Dapper.SqlMapper.TypeHandler<LargeValue>
+    {
+        public override void SetValue(IDbDataParameter parameter, LargeValue value) =>
+            parameter.Value = value.Value;
+
+        public override LargeValue Parse(object value) =>
+            new() { Value = Convert.ToInt64(value) };
+    }
+
+    private sealed class BigIntegerHandler : global::Dapper.SqlMapper.TypeHandler<BigInteger>
+    {
+        public override void SetValue(IDbDataParameter parameter, BigInteger value) =>
+            parameter.Value = (long)value;
+
+        public override BigInteger Parse(object value) => new(Convert.ToInt64(value));
     }
 
     private sealed class OptionalIdHandler : global::Dapper.SqlMapper.TypeHandler<OptionalId>

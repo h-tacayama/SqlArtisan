@@ -7393,7 +7393,12 @@ Four cases are specific to this library, beyond the usual API-level changes:
   in a disabled `ConditionIf` operand. A case not known to have failed counts as
   breaking. Adding a type to
   [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types)
-  is one: a converter registered for it starts to throw.
+  is not one: `SqlArtisanConfig.AddValueConverter` and `SqlMapper.AddTypeHandler`
+  keep accepting the type, a converter registered for it keeps converting it
+  wherever a value binds, `Sql.BindArray` keeps rejecting an array of it while
+  one is registered, and it binds as itself only where none is. A type some
+  position reads as a list of values, as `In(...)` reads an array, keeps that
+  reading.
 
 The analyzer's diagnostics follow their own rules, below: a new warning may
 land in a minor release, since it changes what a build reports, never what a

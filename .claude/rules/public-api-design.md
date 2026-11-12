@@ -576,7 +576,8 @@ call otherwise, so the list still stops a slip such as a collection or a method
 group missing its parentheses. The value converts when it is passed, so every
 execution path receives the converted value; opening the list instead would hand
 the object itself to providers that bind it as its `ToString()` text (#811). A type
-that binds directly never reaches the registry (ADR 0006) and never converts.
+on the 1.0 list binds directly, never reaching the registry (ADR 0006), and never
+converts.
 `BindArray` does not convert: an empty array has no element to learn the converted
 type from.
 A converter's `null` or `DBNull` binds SQL NULL where NULL is a value and is
@@ -590,6 +591,30 @@ rejects a value, and `object[]` takes no converter, since its value is no differ
 a list (`RegisteredArrayListSweepTests`). No analyzer reports an unregistered
 type: registration is a run-time fact, usually in another project, and the throw
 already lands at the call and names the type (#793).
+
+**A type added to the list after 1.0 loses to a registered converter (#814):**
+`docs/versioning.md` counts the addition as minor only because a caller who
+registered the type sees no change, so the addition never touches the 1.0 set that
+`ExpressionResolver.IsDirectlyBindable` / `IsDirectlyBindableType` hold: that set is
+what `AddValueConverter` rejects, with `ArgumentException`, and the shipped
+`SqlArtisan.Dapper` catches exactly that to register a handler with Dapper alone, so
+neither the set nor the exception type can change in 1.x. The new type goes in a list
+of its own, read after the registry wherever a value resolves; registered, it stays an
+unlisted type everywhere: `BindArray` rejects an array of it, another converter
+returning it throws in `IsConvertedValueBindable`'s check, `ThrowIfArrayValue` and the
+key resolvers treat it as any registered type, and it never joins `IsNumeric`, whose
+sort-key reading would change. An array of a reference element type is never added,
+since `params object[]` reads one as the list or as one value by the argument count.
+Give it no SQLA0205 type category, which reads the static type a registered converter
+replaces. The same change rewrites the text that names the list as what registers
+with Dapper alone or what a converter may return (`docs/functions.md`'s
+converter-return sentence and type-handler paragraph, `AddValueConverter`'s
+`<typeparam>` and `<exception>`), and its CHANGELOG entry says that
+`SqlArtisan.Dapper` 0.15.0-beta.1, whose
+`AddTypeHandler` probed `BindArray`, skips registering a handler for the type with
+SqlArtisan. `BindParameterTypeContractTests` holds the set and, for the likely
+additions, the conversion through each value resolver (`Sql.Bind`, `SelectItemResolver`,
+`InsertValueResolver`, `ExpressionResolver.Resolve`), so a new resolver adds a case there.
 
 **Not yet offered (#582):** the A3 review found these DML forms with no
 spelling here. Each would be a new member, overload or factory, which
