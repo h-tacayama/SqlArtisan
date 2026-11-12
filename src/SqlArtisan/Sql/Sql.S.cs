@@ -216,7 +216,7 @@ public static partial class Sql
     /// <returns>An aggregate emitting <c>STDEV(expr)</c>.</returns>
     /// <remarks>SQL Server syntax — no double-D. MySQL, Oracle, and PostgreSQL
     /// spell this <see cref="StddevSamp(object)"/>.</remarks>
-    public static UnfilteredAggregateFunction Stdev(object expr) =>
+    public static AggregateFunction Stdev(object expr) =>
         new StdevFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
@@ -227,7 +227,7 @@ public static partial class Sql
     /// <returns>An aggregate emitting <c>STDEVP(expr)</c>.</returns>
     /// <remarks>SQL Server syntax — no double-D. MySQL, Oracle, and PostgreSQL
     /// spell this <see cref="StddevPop(object)"/>.</remarks>
-    public static UnfilteredAggregateFunction Stdevp(object expr) =>
+    public static AggregateFunction Stdevp(object expr) =>
         new StdevpFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>

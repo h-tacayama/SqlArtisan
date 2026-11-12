@@ -269,7 +269,9 @@ Usage examples and each engine's index requirements live in
 - `Variance()` for `VARIANCE` (MySQL, Oracle, PostgreSQL — **not the same statistic on all three, see below**)
 - `Var()` for `VAR`; `Varp()` for `VARP` (SQL Server)
 
-Chain `.Filter(condition)` on any of these for conditional aggregation —
+Chain `.Filter(condition)` on any of these but `Stdev()`, `Stdevp()`, `Var()` and
+`Varp()`, whose one engine, SQL Server, has no `FILTER` (observed on SQL Server
+2022), for conditional aggregation —
 `SUM(x) FILTER (WHERE ...)` (see
 [Expressions: Conditional Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditional-aggregation-filter)).
 Chain `.Over(...)` to turn any of them into a window function (see
