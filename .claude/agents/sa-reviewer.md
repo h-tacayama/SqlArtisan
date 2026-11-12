@@ -23,7 +23,7 @@ not from how the change describes itself.
    --verify-no-changes`), then the ADR-conformance and convention checks.
    The path-scoped rules under `.claude/rules/` (analyzer-rules,
    code-comments, csharp-formatting, dbms-differences, docs-style,
-   guards-and-empty-states, public-api-design, sql-building-style,
+   guards-and-empty-states, naming, public-api-design, sql-building-style,
    unit-tests) are part of the bar — read the ones the diff touches.
 3. **Verify empirically.** You have no Edit/Write tools by design — build the
    throwaway harness under `/tmp` with Bash heredocs, per

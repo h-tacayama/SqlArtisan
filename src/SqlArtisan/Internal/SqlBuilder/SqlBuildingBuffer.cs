@@ -26,10 +26,10 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // DbColumn's Format fails loudly instead. Holds an aliased target too (#595).
     private TableReference? _correlatedDmlTarget;
     // Fits the padding beside _disposed, so it costs no build an allocation.
-    private bool _qualifyReturningByTableName;
+    private bool _qualifiesReturningByTableName;
     // Set by DO UPDATE SET for the rest of its statement level: PostgreSQL reads an
     // unaliased target's bare column there as ambiguous with EXCLUDED's (#675).
-    private bool _qualifyUpsertTarget;
+    private bool _qualifiesUpsertTarget;
     // Inside a nested block the guard defers to the block's end: a target column
     // is legitimate only where its own block lists the target (#607, #679).
     // A byte flags enum, so it shares that padding.
@@ -378,13 +378,13 @@ internal sealed class SqlBuildingBuffer : IDisposable
     internal SqlBuildingBuffer EncloseInParentheses(ISubquery subquery)
     {
         TableReference? target = _correlatedDmlTarget;
-        if (HoldsReturningTarget && RebindsReturningTarget(subquery))
+        if (HoldsReturningTarget && ExposesReturningTargetName(subquery))
         {
             _correlatedDmlTarget = null;
         }
 
-        bool qualifyUpsertTarget = _qualifyUpsertTarget;
-        _qualifyUpsertTarget = false;
+        bool qualifiesUpsertTarget = _qualifiesUpsertTarget;
+        _qualifiesUpsertTarget = false;
 
         // A subquery is its own block for the deferred guard.
         TargetGuard outer = _targetGuard;
@@ -400,7 +400,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
         ThrowIfBlockCorrelates();
         Append(')');
         _correlatedDmlTarget = target;
-        _qualifyUpsertTarget = qualifyUpsertTarget;
+        _qualifiesUpsertTarget = qualifiesUpsertTarget;
         _targetGuard = outer;
         _block = outerBlock;
         return this;
@@ -423,34 +423,34 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
     internal string ExcludedName => _dialect.ExcludedName;
 
-    internal void EnableUpsertTargetQualification() => _qualifyUpsertTarget = true;
+    internal void EnableUpsertTargetQualification() => _qualifiesUpsertTarget = true;
 
     internal SqlBuildingBuffer AppendReturningItems(SqlPart[] items)
     {
-        _qualifyUpsertTarget = false;
-        _qualifyReturningByTableName = _dialect.ReturningIgnoresTargetAlias;
+        _qualifiesUpsertTarget = false;
+        _qualifiesReturningByTableName = _dialect.ReturningIgnoresTargetAlias;
         AppendSelectItems(items);
-        _qualifyReturningByTableName = false;
+        _qualifiesReturningByTableName = false;
         return this;
     }
 
     private bool HoldsReturningTarget =>
-        _qualifyReturningByTableName && _correlatedDmlTarget is DbTableBase { HasAlias: true };
+        _qualifiesReturningByTableName && _correlatedDmlTarget is DbTableBase { HasAlias: true };
 
     // A scope exposing the target's table name would capture `users.id`; one
     // exposing its alias owns the `"u".id` the caller wrote, which a swap would
     // send to the target. Either keeps the alias; set-operator blocks share it.
-    private bool RebindsReturningTarget(ISubquery subquery) =>
+    private bool ExposesReturningTargetName(ISubquery subquery) =>
         subquery is not SelectBuilder select
         || select.ExposesNameOf((DbTableBase)_correlatedDmlTarget!);
 
     // SQLite 3.50.4 resolves the target in RETURNING by table name alone; a
     // subquery or CTE body that rebinds the name or the alias clears the slot.
     internal bool QualifiesByTableName(TableReference owner) =>
-        (_qualifyReturningByTableName
+        (_qualifiesReturningByTableName
             && owner is DbTableBase { HasAlias: true }
             && SpellsReturningTarget(owner))
-        || (_qualifyUpsertTarget
+        || (_qualifiesUpsertTarget
             && owner is DbTableBase { HasAlias: false }
             && _pseudoRowTarget is { HasAlias: false } target
             && TableReference.NamesSameTable(owner, target));
@@ -460,7 +460,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // holds the target; ADR 0011 records the reads left unguarded (#742).
     internal void ThrowIfReturningReadsAnotherTable(TableReference owner)
     {
-        if (_qualifyReturningByTableName
+        if (_qualifiesReturningByTableName
             && _pseudoRowTarget is { } target
             && !ReferenceEquals(owner, target)
             && !(owner.CorrelationName == target.CorrelationName
@@ -509,7 +509,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         TableReference? target = _correlatedDmlTarget;
         bool guardsTarget = target is DbTableBase { HasAlias: false };
-        if (!guardsTarget && (!HoldsReturningTarget || RebindsReturningTarget(body)))
+        if (!guardsTarget && (!HoldsReturningTarget || ExposesReturningTargetName(body)))
         {
             _correlatedDmlTarget = null;
         }
