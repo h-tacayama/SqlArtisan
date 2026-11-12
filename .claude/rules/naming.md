@@ -32,9 +32,10 @@ The misreadings the audit fixed:
   caller's builder, so it became `MarkComposed`. `SqlBuildingBuffer`'s `Append…` and
   `Enclose…` write text, so `QualifyUpsertTarget`, which only sets a flag, became
   `EnableUpsertTargetQualification`.
-- **A `Try…` that cannot report failure.** `TryDeriveColumnNames` threw for the failure
-  it named and became `DeriveColumnNames`. A `Try…` returns `bool` with an `out` and
-  can return false.
+- **A `Try…` that throws for some of its failures.** `TryDeriveColumnNames` returned
+  null for an unnamed item but threw for a `*` one, so it became `DeriveColumnNames`,
+  which throws for every failure. A `Try…` returns `bool` with an `out` and reports
+  each failure by returning false.
 - **A word a neighbour uses for something else.**
   - In the core, "bind" is parameter binding, so name capture is `ExposesTargetName`.
   - In DML code, "target" alone is the statement's table, so a column assigned twice
