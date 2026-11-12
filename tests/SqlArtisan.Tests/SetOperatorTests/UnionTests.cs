@@ -48,6 +48,31 @@ public class UnionTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // A branch takes every prefix overload the statement's own Select(...) does.
+    [Fact]
+    public void Union_BranchSelectPrefixes_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Code).From(_t)
+            .Union.Select(Distinct, _t.Code).From(_t)
+            .Union.Select(DistinctOn(_t.Code), _t.Code).From(_t)
+            .Union.Select(Hints("/*+ A */"), _t.Code).From(_t)
+            .Union.Select(Hints("/*+ B */"), Distinct, _t.Code).From(_t)
+            .Union.Select(Hints("/*+ C */"), DistinctOn(_t.Code), _t.Code).From(_t)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT \"t\".code FROM test_table \"t\" ");
+        expected.Append("UNION SELECT DISTINCT \"t\".code FROM test_table \"t\" ");
+        expected.Append("UNION SELECT DISTINCT ON (\"t\".code) \"t\".code FROM test_table \"t\" ");
+        expected.Append("UNION SELECT /*+ A */ \"t\".code FROM test_table \"t\" ");
+        expected.Append("UNION SELECT /*+ B */ DISTINCT \"t\".code FROM test_table \"t\" ");
+        expected.Append("UNION SELECT /*+ C */ DISTINCT ON (\"t\".code) \"t\".code ");
+        expected.Append("FROM test_table \"t\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
     [Fact]
     public void Union_SelectWithFromWhere_CorrectSql()
     {

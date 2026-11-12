@@ -101,16 +101,25 @@ public class BuilderReuseTests
         Assert.Equal(1, ora.Parameters.Get<int>(":0"));
     }
 
-    [Fact]
-    public void Returning_BuildCalledTwice_ThrowsArgumentException()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Returning_BuildCalledTwice_ThrowsArgumentException(bool dbmsFirst)
     {
         // Returning().Build() routes through BuildWithPart, which bypasses
         // AddPart's guard directly — a distinct path from every other stage.
         IReturningBuilder ret = Update(_t).Set(_t.Code == 1).Returning(_t.Code);
-        ret.Build();
+        if (dbmsFirst)
+        {
+            ret.Build(Dbms.PostgreSql);
+        }
+        else
+        {
+            ret.Build();
+        }
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            ret.Build(Dbms.Oracle));
+            dbmsFirst ? ret.Build() : ret.Build(Dbms.Oracle));
 
         Assert.Equal(
             "This RETURNING stage was already completed by Build() or Into(...); "
@@ -382,6 +391,26 @@ public class BuilderReuseTests
             ex.Message);
     }
 
+    // Checked before the rows are read, so an empty batch names the freeze rather than
+    // its own emptiness.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void InsertValues_EmptyRowCollectionAfterBuild_ThrowsArgumentException(bool jagged)
+    {
+        IInsertBuilderColumnsOutput held = InsertInto(_t, _t.Code);
+        held.Values(1).Build();
+        object[][] rowArray = [];
+        List<object[]> rowList = [];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            jagged ? held.Values(rowArray) : held.Values(rowList));
+
+        Assert.Equal(
+            "This INSERT statement was already built; start a new chain.",
+            ex.Message);
+    }
+
     [Fact]
     public void Returning_BuildThrewOnDialectGuard_LeavesStageUsable()
     {
@@ -494,6 +523,20 @@ public class BuilderReuseTests
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             held.Where(_t.Code == 1).Build());
+
+        Assert.Equal(DanglingJoinMessage, ex.Message);
+    }
+
+    [Fact]
+    public void Join_NoOnThenCompletedJoinOnHeldBuilder_ThrowsArgumentException()
+    {
+        TestTable s = new("s");
+        TestTable u = new("u");
+        ISelectBuilderFrom held = Select(_t.Code).From(_t);
+        held.InnerJoin(s);
+        held.InnerJoin(u).On(_t.Code == u.Code);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Build());
 
         Assert.Equal(DanglingJoinMessage, ex.Message);
     }
@@ -768,6 +811,23 @@ public class BuilderReuseTests
 
         Assert.Equal(
             "A MERGE WHEN branch takes one action; DELETE cannot be combined with UPDATE SET, "
+                + "and a stage on a held builder supplied both.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void ThenDelete_ThenThenUpdateSet_OnHeldBranch_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+        IMergeBuilderWhenMatched held = MergeInto(t).Using(s).On(t.Code == s.Code).WhenMatched();
+        held.ThenDelete();
+        ISqlBuilder second = held.ThenUpdateSet(t.Name == s.Name);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => second.Build());
+
+        Assert.Equal(
+            "A MERGE WHEN branch takes one action; UPDATE SET cannot be combined with DELETE, "
                 + "and a stage on a held builder supplied both.",
             ex.Message);
     }

@@ -317,6 +317,16 @@ public partial class FunctionTests
         Assert.Equal("SECOND precision must not be negative.", ex.Message);
     }
 
+    [Fact]
+    public void ToSecond_ZeroPrecision_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(IntervalLiteral("4 5:12:10", Day(), ToSecond(0)))
+            .Build(Dbms.Oracle);
+
+        Assert.Equal("SELECT INTERVAL '4 5:12:10' DAY TO SECOND(0)", sql.Text);
+    }
+
     // PostgreSQL 16 runs a SECOND precision above 9, clamping it with a warning.
     [Fact]
     public void ToSecond_PrecisionAboveNine_CorrectSql()

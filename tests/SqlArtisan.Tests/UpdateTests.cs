@@ -426,6 +426,56 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_PostgreSql_FromJoin_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+        TestTable u = new("u");
+
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == s.Name)
+            .From(s)
+            .InnerJoin(u).On(s.Code == u.Code)
+            .Where(t.Code == s.Code)
+            .Build(Dbms.PostgreSql);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE test_table AS \"t\" ");
+        expected.Append("SET name = \"s\".name ");
+        expected.Append("FROM test_table \"s\" ");
+        expected.Append("INNER JOIN test_table \"u\" ON \"s\".code = \"u\".code ");
+        expected.Append("WHERE \"t\".code = \"s\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Update_PostgreSql_FromJoinUsing_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+        TestTable u = new("u");
+
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == s.Name)
+            .From(s)
+            .InnerJoin(u).Using(u.Code)
+            .Where(t.Code == s.Code)
+            .Build(Dbms.PostgreSql);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE test_table AS \"t\" ");
+        expected.Append("SET name = \"s\".name ");
+        expected.Append("FROM test_table \"s\" ");
+        expected.Append("INNER JOIN test_table \"u\" USING (code) ");
+        expected.Append("WHERE \"t\".code = \"s\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Update_Sqlite_From_CorrectSql()
     {
         // SQLite's UPDATE ... FROM (3.33+) shares PostgreSQL's spelling.
@@ -474,6 +524,34 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_SqlServer_FromOuterJoins_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+        TestTable u = new("u");
+        TestTable v = new("v");
+
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == s.Name)
+            .From(t)
+            .LeftJoin(s).On(t.Code == s.Code)
+            .RightJoin(u).On(t.Code == u.Code)
+            .FullJoin(v).On(t.Code == v.Code)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE \"t\" ");
+        expected.Append("SET \"t\".name = \"s\".name ");
+        expected.Append("FROM test_table \"t\" ");
+        expected.Append("LEFT JOIN test_table \"s\" ON \"t\".code = \"s\".code ");
+        expected.Append("RIGHT JOIN test_table \"u\" ON \"t\".code = \"u\".code ");
+        expected.Append("FULL JOIN test_table \"v\" ON \"t\".code = \"v\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Update_MySql_Join_CorrectSql()
     {
         // MySQL's multi-table UPDATE puts the JOIN before SET and qualifies the
@@ -494,6 +572,77 @@ public class UpdateTests
         expected.Append("SET `t`.name = `s`.name");
 
         Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Update_MySql_DirectOuterJoinsWithWhere_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+        TestTable u = new("u");
+
+        SqlStatement sql =
+            Update(t)
+            .LeftJoin(s).On(t.Code == s.Code)
+            .RightJoin(u).On(t.Code == u.Code)
+            .Set(t.Name == s.Name)
+            .Where(u.Code == 1)
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE test_table AS `t` ");
+        expected.Append("LEFT JOIN test_table `s` ON `t`.code = `s`.code ");
+        expected.Append("RIGHT JOIN test_table `u` ON `t`.code = `u`.code ");
+        expected.Append("SET `t`.name = `s`.name ");
+        expected.Append("WHERE `u`.code = ?0");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+    }
+
+    [Fact]
+    public void Update_MySql_DirectJoinUsing_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            Update(t)
+            .InnerJoin(s).Using(s.Code)
+            .Set(t.Name == s.Name)
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE test_table AS `t` ");
+        expected.Append("INNER JOIN test_table `s` USING (code) ");
+        expected.Append("SET `t`.name = `s`.name");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Update_JoinUsingNullColumn_ThrowsArgumentNullException(bool direct)
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+        {
+            if (direct)
+            {
+                Update(t).InnerJoin(s).Using(s.Code, s.Name, null!);
+            }
+            else
+            {
+                Update(t).Set(t.Name == "a").From(t).InnerJoin(s).Using(s.Code, s.Name, null!);
+            }
+        });
+
+        Assert.Equal(
+            "A USING column list must not contain a null column. (Parameter 'additionalColumns')",
+            ex.Message);
     }
 
     [Fact]
@@ -635,6 +784,28 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_SqlServer_OutputIntoWithoutColumnList_CorrectSql()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == "a")
+            .Output(Deleted(t.Name))
+            .Into(a)
+            .Where(t.Code == 1)
+            .Build(Dbms.SqlServer);
+
+        Assert.Equal(
+            "UPDATE test_table SET name = @0 OUTPUT DELETED.name INTO archive_table "
+                + "WHERE code = @1",
+            sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<string>("@0"));
+        Assert.Equal(1, sql.Parameters.Get<int>("@1"));
+    }
+
+    [Fact]
     public void Update_OutputNullExpression_ThrowsArgumentNullException()
     {
         TestTable t = new();
@@ -645,6 +816,17 @@ public class UpdateTests
         Assert.Equal(
             "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'items')",
             ex.Message);
+    }
+
+    [Fact]
+    public void Update_OutputUnresolvableItem_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t).Set(t.Name == "a").Output(new object()));
+
+        Assert.Equal("Invalid type for OutputItem: System.Object", ex.Message);
     }
 
     // Oracle, the one engine with RETURNING ... INTO, takes no leading WITH on DML,
@@ -739,6 +921,35 @@ public class UpdateTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // A star item's width is the schema's, which the library cannot see, so the INTO column
+    // list is not checked against one OUTPUT item here: it is left to the engine.
+    [Fact]
+    public void Update_SqlServer_OutputStarIntoColumnList_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+        ArchiveTable a = new();
+
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == s.Name)
+            .Output(s.Asterisk)
+            .Into(a, a.Code, a.Name)
+            .From(t)
+            .InnerJoin(s).On(t.Code == s.Code)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE \"t\" ");
+        expected.Append("SET \"t\".name = \"s\".name ");
+        expected.Append("OUTPUT \"s\".* INTO archive_table (code, name) ");
+        expected.Append("FROM test_table \"t\" ");
+        expected.Append("INNER JOIN test_table \"s\" ");
+        expected.Append("ON \"t\".code = \"s\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
     [Fact]
     public void Update_SqlServer_OutputIntoAliasedTarget_ThrowsArgumentException()
     {
@@ -753,6 +964,23 @@ public class UpdateTests
 
         Assert.Equal(
             "The destination table of OUTPUT ... INTO must not be aliased.", ex.Message);
+    }
+
+    [Fact]
+    public void Update_SqlServer_OutputIntoWidthMismatch_ThrowsAtInto()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .Set(t.Name == "a")
+            .Output(Deleted(t.Code), Deleted(t.Name))
+            .Into(a, a.Code));
+
+        Assert.Equal(
+            "The OUTPUT list has 2 item(s), but the INTO column list declares 1 column(s).",
+            ex.Message);
     }
 
     [Fact]
@@ -1119,13 +1347,22 @@ public class UpdateTests
         Assert.False(typeof(IReturning).IsAssignableFrom(stage));
     }
 
-    [Fact]
-    public void Update_HeldStageJoinedThenSetReturning_ThrowsAtBuild()
+    [Theory]
+    [InlineData("INNER")]
+    [InlineData("LEFT")]
+    [InlineData("RIGHT")]
+    public void Update_HeldStageJoinedThenSetReturning_ThrowsAtBuild(string join)
     {
         TestTable t = new("t");
         ArchiveTable a = new("a");
         IUpdateBuilderUpdate held = Update(t);
-        held.InnerJoin(a).On(a.Code == t.Code);
+        IUpdateBuilderJoinOn joined = join switch
+        {
+            "INNER" => held.InnerJoin(a),
+            "LEFT" => held.LeftJoin(a),
+            _ => held.RightJoin(a),
+        };
+        joined.On(a.Code == t.Code);
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             held.Set(t.Name == "a").Returning(t.Code).Build(Dbms.PostgreSql));

@@ -94,6 +94,29 @@ public class WithTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // A CTE body is a nested block only while it renders; the statement after it
+    // reads its own FROM.
+    [Fact]
+    public void With_SelectReadingUnaliasedTable_CorrectSql()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+        TestCte cte = new("cte");
+
+        SqlStatement sql =
+            With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
+            .Select(t.Code)
+            .From(t)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH \"cte\" AS ");
+        expected.Append("(SELECT code cte_code FROM archive_table) ");
+        expected.Append("SELECT code FROM test_table");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
     [Fact]
     public void With_SelectDistinct_CorrectSql()
     {
@@ -330,6 +353,34 @@ public class WithTests
     }
 
     [Fact]
+    public void With_CteBodyCompoundOrderByThenLimit_CorrectSql()
+    {
+        TestTable a = new("a");
+        TestTable b = new("b");
+        TestCte cte = new("cte");
+
+        SqlStatement sql =
+            With(cte.As(
+                Select(a.Code.As(cte.CteCode)).From(a)
+                .Union.Select(b.Code).From(b)
+                .OrderBy(1)
+                .Limit(5)))
+            .Select(cte.CteCode)
+            .From(cte)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH \"cte\" AS ");
+        expected.Append("(SELECT \"a\".code cte_code FROM test_table \"a\" ");
+        expected.Append("UNION SELECT \"b\".code FROM test_table \"b\" ");
+        expected.Append("ORDER BY 1 LIMIT :0) ");
+        expected.Append("SELECT \"cte\".cte_code FROM \"cte\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(5, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
     public void With_Delete_CorrectSql()
     {
         TestTable a = new("a");
@@ -559,6 +610,27 @@ public class WithTests
 
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal("x", sql.Parameters.Get<string>("?0"));
+    }
+
+    [Fact]
+    public void With_MySql_LeadingWithBeforeDelete_CorrectSql()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        TestTable b = new("b");
+
+        SqlStatement sql =
+            With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
+            .DeleteFrom(b)
+            .Where(b.Code.In(Select(cte.CteCode).From(cte)))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("WITH `cte` AS (SELECT `a`.code cte_code FROM test_table `a`) ");
+        expected.Append("DELETE FROM test_table AS `b` ");
+        expected.Append("WHERE `b`.code IN (SELECT `cte`.cte_code FROM `cte`)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]
@@ -1018,6 +1090,29 @@ public class WithTests
             "INSERT INTO test_table (code) WITH \"cte\" AS (SELECT \"a\".code cte_code "
                 + "FROM test_table \"a\") SELECT \"cte\".cte_code FROM \"cte\"",
             sql.Text);
+    }
+
+    [Fact]
+    public void InsertInto_MidChainWithRecursive_CorrectSql()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        TestTable b = new();
+
+        SqlStatement sql =
+            InsertInto(b, b.Code)
+            .WithRecursive(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
+            .Select(cte.CteCode)
+            .From(cte)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO test_table (code) ");
+        expected.Append("WITH RECURSIVE \"cte\" AS ");
+        expected.Append("(SELECT \"a\".code cte_code FROM test_table \"a\") ");
+        expected.Append("SELECT \"cte\".cte_code FROM \"cte\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]

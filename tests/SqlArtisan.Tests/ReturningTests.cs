@@ -789,21 +789,27 @@ public class ReturningTests
             sql.Text);
     }
 
-    [Fact]
-    public void Returning_Sqlite_CorrelatedSubquery_CorrectSql()
+    // Only a quoted name loses its first and last characters before the comparison,
+    // so "tt" and "aa" stay distinct.
+    [Theory]
+    [InlineData("t", "a")]
+    [InlineData("tt", "aa")]
+    public void Returning_Sqlite_CorrelatedSubquery_CorrectSql(
+        string targetAlias,
+        string innerAlias)
     {
-        TestTable t = new("t");
-        ArchiveTable a = new("a");
+        TestTable t = new(targetAlias);
+        ArchiveTable a = new(innerAlias);
         SqlStatement sql =
             DeleteFrom(t)
             .Returning(t.Code, Select(Count(Asterisk)).From(a).Where(a.Code == t.Code))
             .Build(Dbms.Sqlite);
 
         StringBuilder expected = new();
-        expected.Append("DELETE FROM test_table AS \"t\" ");
+        expected.Append($"DELETE FROM test_table AS \"{targetAlias}\" ");
         expected.Append("RETURNING test_table.code, ");
-        expected.Append("(SELECT COUNT(*) FROM archive_table \"a\" ");
-        expected.Append("WHERE \"a\".code = test_table.code)");
+        expected.Append($"(SELECT COUNT(*) FROM archive_table \"{innerAlias}\" ");
+        expected.Append($"WHERE \"{innerAlias}\".code = test_table.code)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -862,6 +868,29 @@ public class ReturningTests
         expected.Append("DELETE FROM test_table AS \"t\" ");
         expected.Append("RETURNING (SELECT COUNT(*) FROM archive_table \"Test_Table\" ");
         expected.Append("WHERE \"Test_Table\".code < \"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    // Names are compared unquoted, so a delimited spelling of the table name rebinds
+    // it as the bare one does.
+    [Theory]
+    [InlineData("\"test_table\"")]
+    [InlineData("[test_table]")]
+    [InlineData("`test_table`")]
+    public void Returning_Sqlite_SubqueryRebindingTheQuotedTableName_KeepsTheAlias(string name)
+    {
+        TestTable t = new("t");
+        DbTable inner = new(name);
+        SqlStatement sql =
+            DeleteFrom(t)
+            .Returning(Select(Count(Asterisk)).From(inner).Where(inner.Column("code") < t.Code))
+            .Build(Dbms.Sqlite);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM test_table AS \"t\" ");
+        expected.Append($"RETURNING (SELECT COUNT(*) FROM {name} ");
+        expected.Append("WHERE code < \"t\".code)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

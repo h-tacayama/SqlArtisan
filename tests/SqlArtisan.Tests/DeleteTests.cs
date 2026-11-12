@@ -117,17 +117,23 @@ public class DeleteTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
-    [Fact]
-    public void DeleteFrom_CorrelatedSubqueryUnaliasedTarget_ThrowsArgumentException()
+    // A second bare target column in the block counts as the first does.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void DeleteFrom_CorrelatedSubqueryUnaliasedTarget_ThrowsArgumentException(bool twice)
     {
         // The bare outer column would resolve to the inner table — a silent
         // tautology deleting every row — so the guard throws at Build (#253).
         TestTable t = new();
         TestTable r = new("r");
+        SqlCondition correlation = twice
+            ? r.Code == t.Code & r.Name == t.Name
+            : r.Code == t.Code;
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             DeleteFrom(t)
-            .Where(Exists(Select(r.Code).From(r).Where(r.Code == t.Code)))
+            .Where(Exists(Select(r.Code).From(r).Where(correlation)))
             .Build());
 
         Assert.Equal(
@@ -178,6 +184,29 @@ public class DeleteTests
 
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal("x", sql.Parameters.Get<string>(":0"));
+    }
+
+    // A subquery's own unaliased table is no correlation, so an unaliased target
+    // stays legal beside it.
+    [Fact]
+    public void DeleteFrom_SubqueryReadingItsOwnUnaliasedTable_CorrectSql()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .Where(t.Code.In(Select(a.Code).From(a)))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM ");
+        expected.Append("test_table ");
+        expected.Append("WHERE ");
+        expected.Append("code IN ");
+        expected.Append("(SELECT code FROM archive_table)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     // The listing scopes its own block only: a subquery nested in it that does not
@@ -448,28 +477,32 @@ public class DeleteTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
-    // A branch listing the target lets the compound's ORDER BY name the target's column.
-    [Fact]
-    public void DeleteFrom_CteBodyCompoundOrderByTargetColumn_CorrectSql()
+    // A branch listing the target lets the compound's ORDER BY name the target's
+    // column, whichever branch it is.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void DeleteFrom_CteBodyCompoundOrderByTargetColumn_CorrectSql(bool firstBranch)
     {
         TestTable t = new();
         TestTable r = new("r");
         TestCte cte = new("cte");
         DbColumn cteCode = new(cte, "code");
+        ISubquery body = firstBranch
+            ? Select(t.Code).From(t).Union.Select(r.Code).From(r).OrderBy(t.Code)
+            : Select(r.Code).From(r).Union.Select(t.Code).From(t).OrderBy(t.Code);
 
         SqlStatement sql =
-            With(cte.As(
-                Select(t.Code).From(t)
-                .Union.Select(r.Code).From(r)
-                .OrderBy(t.Code)))
+            With(cte.As(body))
             .DeleteFrom(t)
             .Where(t.Code.In(Select(cteCode).From(cte)))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("WITH \"cte\" AS ");
-        expected.Append("(SELECT code FROM test_table ");
-        expected.Append("UNION SELECT \"r\".code FROM test_table \"r\" ");
+        expected.Append(firstBranch
+            ? "(SELECT code FROM test_table UNION SELECT \"r\".code FROM test_table \"r\" "
+            : "(SELECT \"r\".code FROM test_table \"r\" UNION SELECT code FROM test_table ");
         expected.Append("ORDER BY code) ");
         expected.Append("DELETE FROM test_table ");
         expected.Append("WHERE code IN ");
@@ -632,6 +665,32 @@ public class DeleteTests
     }
 
     [Fact]
+    public void DeleteFrom_SqlServer_FromOuterJoins_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+        TestTable u = new("u");
+        TestTable v = new("v");
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .From(t)
+            .LeftJoin(s).On(t.Code == s.Code)
+            .RightJoin(u).On(t.Code == u.Code)
+            .FullJoin(v).On(t.Code == v.Code)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE \"t\" ");
+        expected.Append("FROM test_table \"t\" ");
+        expected.Append("LEFT JOIN test_table \"s\" ON \"t\".code = \"s\".code ");
+        expected.Append("RIGHT JOIN test_table \"u\" ON \"t\".code = \"u\".code ");
+        expected.Append("FULL JOIN test_table \"v\" ON \"t\".code = \"v\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void DeleteFrom_SqlServer_FromJoinOnAllConditionsExcluded_ThrowsArgumentException()
     {
         TestTable t = new("t");
@@ -665,6 +724,41 @@ public class DeleteTests
         expected.Append("ON `t`.code = `s`.code");
 
         Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DeleteFrom_MySql_FromJoinUsing_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .From(t)
+            .InnerJoin(s).Using(s.Code, s.Name)
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE `t` ");
+        expected.Append("FROM test_table `t` ");
+        expected.Append("INNER JOIN test_table `s` ");
+        expected.Append("USING (code, name)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DeleteFrom_FromJoinUsingNullColumn_ThrowsArgumentNullException()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            DeleteFrom(t).From(t).InnerJoin(s).Using(s.Code, s.Name, null!));
+
+        Assert.Equal(
+            "A USING column list must not contain a null column. (Parameter 'additionalColumns')",
+            ex.Message);
     }
 
     // Not re-listed, the lead keeps `DELETE FROM target` before a second FROM, which
@@ -703,6 +797,30 @@ public class DeleteTests
         expected.Append("DELETE FROM ");
         expected.Append("test_table \"t\" ");
         expected.Append("FROM test_table \"s\" ");
+        expected.Append("WHERE \"t\".code = \"s\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DeleteFrom_Oracle_FromNotRepeatingTargetWithJoin_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+        TestTable u = new("u");
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .From(s)
+            .InnerJoin(u).On(s.Code == u.Code)
+            .Where(t.Code == s.Code)
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("FROM test_table \"s\" ");
+        expected.Append("INNER JOIN test_table \"u\" ON \"s\".code = \"u\".code ");
         expected.Append("WHERE \"t\".code = \"s\".code");
 
         Assert.Equal(expected.ToString(), sql.Text);
@@ -822,6 +940,25 @@ public class DeleteTests
     }
 
     [Fact]
+    public void DeleteFrom_SqlServer_OutputIntoWithoutColumnList_CorrectSql()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .Output(Deleted(t.Code))
+            .Into(a)
+            .Where(t.Code == 1)
+            .Build(Dbms.SqlServer);
+
+        Assert.Equal(
+            "DELETE FROM test_table OUTPUT DELETED.code INTO archive_table WHERE code = @0",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+    }
+
+    [Fact]
     public void DeleteFrom_SqlServer_OutputAlias_CorrectSql()
     {
         // SQL Server permits an OUTPUT column alias, so aliases are not rejected.
@@ -886,6 +1023,22 @@ public class DeleteTests
 
         Assert.Equal(
             "The destination table of OUTPUT ... INTO must not be aliased.", ex.Message);
+    }
+
+    [Fact]
+    public void DeleteFrom_SqlServer_OutputIntoWidthMismatch_ThrowsAtInto()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t)
+            .Output(Deleted(t.Code), Deleted(t.Name))
+            .Into(a, a.Code));
+
+        Assert.Equal(
+            "The OUTPUT list has 2 item(s), but the INTO column list declares 1 column(s).",
+            ex.Message);
     }
 
     [Fact]

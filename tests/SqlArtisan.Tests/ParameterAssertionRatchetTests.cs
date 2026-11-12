@@ -57,7 +57,7 @@ public class ParameterAssertionRatchetTests
         ["SqlBuilderTests/BuildTests.cs"] = 5,
         ["SubqueryTests.cs"] = 1,
         ["UpdateTests.cs"] = 4,
-        ["UpsertTests.cs"] = 11,
+        ["UpsertTests.cs"] = 10,
         ["WithTests.cs"] = 9,
     };
 
