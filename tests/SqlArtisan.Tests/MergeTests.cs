@@ -434,8 +434,7 @@ public class MergeTests
         Assert.Equal(2, sql.Parameters.Count);
     }
 
-    // A MERGE always joins its target to a source, so the joined-target rule holds for
-    // every MERGE; With(...) builds the same clause (#820).
+    // With(...) builds the same MergeIntoClause, so both routes reject (#820).
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

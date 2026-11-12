@@ -10,8 +10,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** `MergeInto(...)` throws `ArgumentException` for a target with no
   alias, on every dialect, as a joined `UPDATE` or `DELETE` does. A `MERGE`
   joins its target to its source, and an unaliased target's columns rendered by
-  name alone, so a source column of the same name made the statement ambiguous
-  (`MERGE INTO users USING ... "s" (id, ...) ON (id = "s".id)`). Alias the target:
+  name alone, so a source column of the same name took the reference: in `ON`
+  or a branch condition the statement failed as ambiguous, and in a
+  `WHEN NOT MATCHED` `ThenInsert(...)` value, which has no target row, it read
+  the source's column and wrote that value with no error (observed on
+  PostgreSQL 16.15). Alias the target:
   `MergeInto(new UsersTable("t"))`. (#820)
 - **Breaking:** `Sql.Stdev`, `Sql.Stdevp`, `Sql.Var` and `Sql.Varp` return
   `AggregateFunction` instead of `UnfilteredAggregateFunction`, so they no

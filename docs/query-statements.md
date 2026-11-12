@@ -961,7 +961,7 @@ values**. SqlArtisan refuses to build that form; `Build()` throws:
 
 > The target of a correlated UPDATE, DELETE, or MERGE must be aliased.
 
-A `MERGE` target is aliased whatever its subqueries read (see [MERGE](#merge)). Any other table a
+A `MERGE` target is aliased whatever its subqueries read (see [MERGE Statement](#merge-statement)). Any other table a
 subquery reads without listing it, in any statement, throws `A table a correlated subquery references must be aliased.` for the same
 reason (see [Scalar Subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#scalar-subquery)).
 

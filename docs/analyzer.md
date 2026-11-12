@@ -1345,7 +1345,9 @@ listing the target in its own `From(...)` or join, can be silently wrong: the ba
 then the subquery no longer depends on the outer row and the statement acts
 on the wrong rows or, from a `SET` subquery, writes the wrong values.
 `Build()` rejects this statement at run time; `SQLA0300` is the same finding
-surfaced at compile time, where the fix is cheapest.
+surfaced at compile time, where the fix is cheapest. A MERGE target with no alias
+throws earlier, at `MergeInto(...)`, whatever its subqueries read (see
+[MERGE Statement](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement)).
 
 ```csharp
 // sqlartisan_syntax_postgresql = any
@@ -1380,7 +1382,8 @@ own local or readonly field to its `From(...)` or a join reads the target as
 its own relation, which `Build()` accepts, so it stays silent. CTE bodies are not walked, whether the `With(...)` chain heads the
 statement or sits in a subquery or a MERGE `USING` source: a target column
 read there stays silent and is left to `Build()`, which accepts a body that
-reads the target as its own relation and rejects one that correlates.
+reads the target as its own relation and rejects one that correlates; an
+unaliased MERGE target never reaches `Build()`, since `MergeInto(...)` rejects it.
 
 The warning fires on every configured dialect, because the wrong-scope
 resolution is universal, not a dialect fact.
