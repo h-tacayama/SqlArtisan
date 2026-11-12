@@ -18,9 +18,9 @@ below are what the audit found, not a mandate over existing code. It distils the
 The misreadings the audit fixed:
 
 - **Another scope or a hidden condition.** The name claims another scope than the code
-  covers (`ResolveIntervalOperand` resolves the right operand of every `+` / `-`, so it
-  became `ResolveAdditiveOperand`), or hides the condition it applies
-  (`ThrowIfJoinedDeleteTargetNotRepeated` became
+  covers (`ResolveIntervalOperand` resolves the right operand of `SqlExpression`'s `+` /
+  `-` whatever its type, so it became `ResolveAdditiveOperand`), or hides the condition
+  it applies (`ThrowIfJoinedDeleteTargetNotRepeated` became
   `ThrowIfDeleteTargetNotRepeatedInFromOffOracle`). Two members with different scopes
   are not spelled as synonyms (`ThrowIfFrozen` and `ThrowIfNotBuildable`).
 - **A bool read as an action or a value.** `QuoteName` read as an action and became
@@ -45,5 +45,7 @@ The misreadings the audit fixed:
   `IsOrdinalType` became `IsIntegralType` once the ROUND check reused it.
 
 Guards are spelled three ways: `ThrowIf<failure>`, `Validate…` for the ADR 0012
-value-domain guards in a `*Guard` class, and TableClassGen's `Guard<Subject>`. A new
-guard takes its neighbours' spelling, and no guard is renamed into another's.
+value-domain guards in a `*Guard` class, and TableClassGen's `Guard<Subject>`, which
+names the thing checked. A guard named for its failure is `ThrowIf…`:
+`GuardNothingToReport` read as ensuring there is nothing to report, so it became
+`ThrowIfNothingToReport`. A new guard otherwise takes its neighbours' spelling.
