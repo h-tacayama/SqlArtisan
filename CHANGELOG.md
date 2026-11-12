@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- **Breaking:** `MergeInto(...)` throws `ArgumentException` for a target with no
+  alias, on every dialect, as a joined `UPDATE` or `DELETE` does. A `MERGE`
+  joins its target to its source, and an unaliased target's columns rendered by
+  name alone, so a source column of the same name made the statement ambiguous
+  (`MERGE INTO users USING ... "s" (id, ...) ON (id = "s".id)`). Alias the target:
+  `MergeInto(new UsersTable("t"))`. (#820)
 - **Breaking:** `Sql.Stdev`, `Sql.Stdevp`, `Sql.Var` and `Sql.Varp` return
   `AggregateFunction` instead of `UnfilteredAggregateFunction`, so they no
   longer offer `.Filter(...)`: SQL Server, the one engine with these functions,

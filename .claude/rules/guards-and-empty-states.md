@@ -249,7 +249,14 @@ tables', and one dialect-independent rule keeps every target reference
 qualified (a joined table's own alias stays the caller's choice). The guard is loud and the aliased spelling runs on each lane with
 a joined-DML twin (`Joined*_Executes` on MySQL, PostgreSQL, SQLite and SQL
 Server), so an engine that accepts an unaliased joined target is not an
-over-guard finding at any tier.
+over-guard finding at any tier. A `MERGE` always joins its target to its source, so
+`MergeInto(...)` rejects an unaliased target the same way, at the call, on every
+dialect (`ThrowIfMergeTargetUnaliased`, #820): its bare column met a same-named
+source column in `ON`, a branch condition or a value. Qualifying by table name, as
+`DO UPDATE SET` does (#721), stays an `INSERT` form: an `INSERT` target cannot be
+aliased on MySQL or SQL Server, while every engine with `MERGE` takes a target
+alias. The correlated-DML guard therefore never sees a `MERGE` target; its message
+keeps `MERGE` because SQLA0300, which reports before `Build()`, shares it.
 
 **Which clause pairs no dialect runs get a guard (decided — do not re-file):** a
 pair of statement clauses no dialect accepts together is rejected when both
@@ -718,7 +725,7 @@ select item never pass through `BuildCore`, and a duplicate clause or
 dangling join is no less wrong one level down — and made the `INSERT` root
 open a new `WITH` block, so a leading `With(...).InsertInto(...)` and the
 feeding `SELECT`'s own `With(...)` coexist. The correlated-DML guard (#253)
-arms for `MergeInto(...)` too. Its fifth pass gave the walk a slot-exclusivity
+armed for `MergeInto(...)` too, until #820 required every `MERGE` target aliased. Its fifth pass gave the walk a slot-exclusivity
 dimension — `LIMIT`/`FETCH`, a `DELETE`'s `FROM`/`USING`, and an `INSERT`'s
 `VALUES`/`SET`/`SELECT` row sources are spellings of one slot a held stage
 could stack past the once-per-kind check — and made a condition-free join

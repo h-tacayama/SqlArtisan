@@ -22,9 +22,6 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     // constructor; MERGE's fluent pairing makes a field the equivalent carrier.
     private int _pendingInsertColumnCount;
 
-    private protected override DbTableBase? CorrelatedDmlGuardTarget =>
-        target.HasAlias ? null : target;
-
     protected override string StatementName => Keywords.Merge;
 
     public SqlStatement Build() => BuildCore(SqlArtisanConfig.DefaultDbms);

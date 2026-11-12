@@ -44,6 +44,16 @@ internal static class DmlTargetGuard
         }
     }
 
+    // A MERGE always joins its target to a source, so the joined-target rule holds for
+    // every MERGE (#820).
+    internal static void ThrowIfMergeTargetUnaliased(DbTableBase target)
+    {
+        if (!target.HasAlias)
+        {
+            throw new ArgumentException("The target of a MERGE must be aliased.");
+        }
+    }
+
     // Not re-listed, the lead keeps `DELETE FROM target` before a second FROM: Oracle
     // 23.26.3 runs that opener as it runs USING; XE 21.3.0 and the other engines reject it
     // with the joined target's alias (twins DeleteFromNotRelisted_*, ContextRule_*; #679).
