@@ -18,13 +18,13 @@ internal sealed class SelectClauseWithDistinctTop : SqlPart, ISelectItemsClause,
 
     public SqlPart[] SelectItems => _selectItems;
 
-    public bool WithTies => _top.HasWithTies;
+    public bool HasWithTies => _top.HasWithTies;
 
     internal static SelectClauseWithDistinctTop Parse(
         DistinctKeyword distinct,
         TopClause top,
         object[] selectItems) =>
-        new(distinct, top, SelectItemResolver.ResolveOrThrow(selectItems));
+        new(distinct, top, SelectItemResolver.ResolveNonEmpty(selectItems));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Select} ")

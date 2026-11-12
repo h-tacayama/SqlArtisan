@@ -7,17 +7,17 @@ namespace SqlArtisan.Internal;
 internal sealed class QualifiedAsteriskMarker : SqlPart
 {
     private readonly string _qualifier;
-    private readonly bool _quoteQualifier;
+    private readonly bool _isQualifierQuoted;
 
     internal QualifiedAsteriskMarker(string qualifier, bool quoteQualifier)
     {
         _qualifier = qualifier;
-        _quoteQualifier = quoteQualifier;
+        _isQualifierQuoted = quoteQualifier;
     }
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        if (_quoteQualifier)
+        if (_isQualifierQuoted)
         {
             buffer.EncloseInAliasQuotes(_qualifier);
         }

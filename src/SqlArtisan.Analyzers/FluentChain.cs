@@ -41,9 +41,9 @@ internal static class FluentChain
 
     public static IInvocationOperation? Parent(IOperation current)
     {
-        IOperation unwrapped = SkipConversion(current);
-        return unwrapped.Parent is IInvocationOperation invocation
-            && invocation.Instance == unwrapped
+        IOperation outer = EnclosingConversionOrSelf(current);
+        return outer.Parent is IInvocationOperation invocation
+            && invocation.Instance == outer
             && DialectUsageAnalyzer.IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly)
                 ? invocation
                 : null;
@@ -51,7 +51,7 @@ internal static class FluentChain
 
     // An operation used as a typed argument or receiver often sits behind an
     // implicit conversion.
-    public static IOperation SkipConversion(IOperation operation) =>
+    public static IOperation EnclosingConversionOrSelf(IOperation operation) =>
         operation.Parent is IConversionOperation conversion ? conversion : operation;
 
     /// <summary>

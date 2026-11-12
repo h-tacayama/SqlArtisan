@@ -14,7 +14,7 @@ public sealed class SubqueryDerivedTable : DerivedTableBase, IColumnAccessor
 
     internal SubqueryDerivedTable(ISubquery subquery, string name) : base(name)
     {
-        _subquery = SqlBuilderBase.Composed(subquery);
+        _subquery = SqlBuilderBase.MarkComposed(subquery);
     }
 
     /// <inheritdoc/>
@@ -26,10 +26,10 @@ public sealed class SubqueryDerivedTable : DerivedTableBase, IColumnAccessor
     public DbColumn Column(string name) => new(this, name);
 
     /// <inheritdoc/>
-    public DbColumn Column(DbColumn source) => new(this, source.Name, source.QuoteName);
+    public DbColumn Column(DbColumn source) => new(this, source.Name, source.IsNameQuoted);
 
     /// <inheritdoc/>
-    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name, alias.QuoteAlias);
+    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name, alias.IsAliasQuoted);
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .EncloseInParentheses(_subquery)

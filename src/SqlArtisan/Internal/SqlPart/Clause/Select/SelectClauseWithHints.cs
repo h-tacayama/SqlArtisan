@@ -14,7 +14,7 @@ internal sealed class SelectClauseWithHints : SqlPart, ISelectItemsClause
     public SqlPart[] SelectItems => _selectItems;
 
     internal static SelectClauseWithHints Parse(SqlHints hints, object[] selectItems) =>
-        new(hints, SelectItemResolver.ResolveOrThrow(selectItems));
+        new(hints, SelectItemResolver.ResolveNonEmpty(selectItems));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Select} ")

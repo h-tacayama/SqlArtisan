@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- **Breaking:** `Sql.Else`'s parameter is named `elseExpr`, not `thenExpr`, so a
+  call that names it (`Else(thenExpr: x)`) no longer compiles, and `Else(null)`
+  reports `elseExpr` as the parameter.
 
 ## [0.15.0-beta.1] - 2026-11-11
 ### Added

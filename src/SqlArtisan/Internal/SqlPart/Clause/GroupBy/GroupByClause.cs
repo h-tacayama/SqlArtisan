@@ -6,7 +6,7 @@ internal sealed class GroupByClause : SqlPart
 
     private GroupByClause(SqlPart[] groupByItems)
     {
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             groupByItems, nameof(groupByItems), "GROUP BY requires at least one item.");
 
         _groupByItems = groupByItems;

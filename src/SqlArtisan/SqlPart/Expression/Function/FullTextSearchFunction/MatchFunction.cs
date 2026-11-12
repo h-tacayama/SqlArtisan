@@ -72,6 +72,6 @@ public sealed class MatchFunction : IIncompleteExpression
         }
 
         SqlExpression resolved = Resolve(searchExpr, nameof(searchExpr));
-        return resolved is ConvertedNull converted ? throw converted.InSearchText() : resolved;
+        return resolved is ConvertedNull converted ? throw converted.InAgainst() : resolved;
     }
 }

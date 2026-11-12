@@ -26,7 +26,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
         ImmutableArray.Create(
-        DiagnosticDescriptors.InvalidConfiguration,
+        DiagnosticDescriptors.InvalidConfigurationValue,
         DiagnosticDescriptors.UnrecognizedConfigurationKey,
         DiagnosticDescriptors.ConfigurationDisablesAllDialects,
         DiagnosticDescriptors.RemovedConfigurationKey,
@@ -364,7 +364,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DialectTargetSet targets = GetTargets(context, cache);
         if (shape != ContextRules.DmlShape.None)
         {
-            if (RejectingDmlTargets(targets, shape, invocation) is { } names)
+            if (RejectingDmlTargetNames(targets, shape, invocation) is { } names)
             {
                 ContextRules.ReportDmlShape(context, invocation, shape, names);
             }
@@ -393,7 +393,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                         context, invocation, TargetDbmsNames.Display(TargetDbms.SqlServer));
                 }
 
-                if (ContextRules.RejectingTargets(targets, s_distinctWindowUnsupported)
+                if (ContextRules.RejectingTargetNames(targets, s_distinctWindowUnsupported)
                     is { } distinctNames)
                 {
                     ContextRules.CheckDistinctAggregateWindow(context, invocation, distinctNames);
@@ -412,7 +412,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                     ContextRules.CheckOrderByInSubquery(context, invocation, targets);
                 }
 
-                if (ContextRules.RejectingTargets(targets, s_unionQualifiedKeyUnsupported)
+                if (ContextRules.RejectingTargetNames(targets, s_unionQualifiedKeyUnsupported)
                     is { } unionNames)
                 {
                     ContextRules.CheckQualifiedKeyAfterUnion(context, invocation, unionNames);
@@ -450,19 +450,19 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 ContextRules.CheckRepeatedMergeBranch(context, invocation, targets);
                 break;
             case "ForUpdate":
-                if (ContextRules.RejectingTargets(targets, s_groupedLockUnsupported)
+                if (ContextRules.RejectingTargetNames(targets, s_groupedLockUnsupported)
                     is { } groupedNames)
                 {
                     ContextRules.CheckForUpdateAfterGroupBy(context, invocation, groupedNames);
                 }
 
-                if (ContextRules.RejectingTargets(targets, s_rowLimitedLockUnsupported)
+                if (ContextRules.RejectingTargetNames(targets, s_rowLimitedLockUnsupported)
                     is { } limitedNames)
                 {
                     ContextRules.CheckForUpdateAfterRowLimiting(context, invocation, limitedNames);
                 }
 
-                if (ContextRules.RejectingTargets(targets, s_setOperatedLockUnsupported)
+                if (ContextRules.RejectingTargetNames(targets, s_setOperatedLockUnsupported)
                     is { } setOperatedNames)
                 {
                     ContextRules.CheckForUpdateAfterSetOperator(
@@ -547,7 +547,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     // Oracle 23.26.3 runs the DELETE ... FROM lead that does not re-list the target and
     // rejects the one that does (ORA-00942), so past its floor only a provable re-list reports.
-    private static bool RelistedDeleteLead(
+    private static bool IsRelistedDeleteLead(
         ContextRules.DmlShape shape, IInvocationOperation invocation) =>
         shape == ContextRules.DmlShape.JoinedDeleteLead
         && ContextRules.ProvablyRelistsDeleteTarget(invocation);
@@ -566,7 +566,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         return null;
     }
 
-    private static string? RejectingDmlTargets(
+    private static string? RejectingDmlTargetNames(
         DialectTargetSet targets,
         ContextRules.DmlShape shape,
         IInvocationOperation invocation)
@@ -581,7 +581,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
             if (AcceptedFrom(shape, dbms) is { } floor
                 && (targets.VersionFor(dbms) ?? DialectMatrix.BaselineVersion[dbms]) >= floor
-                && !RelistedDeleteLead(shape, invocation))
+                && !IsRelistedDeleteLead(shape, invocation))
             {
                 continue;
             }
@@ -966,7 +966,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             // unset — the kept CompilerVisibleProperty emits the MSBuild keys to every build.
             foreach (string removedKey in AnalyzerConfigResolver.RemovedKeys)
             {
-                if (AnalyzerConfigResolver.TryGetSetValue(options, removedKey, out _)
+                if (AnalyzerConfigResolver.TryGetNonBlankValue(options, removedKey, out _)
                     && reportedRemovedKeys.Add(removedKey))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
@@ -995,7 +995,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                     && reportedOverrideValues.Add((overrideKey, overrideValue)))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
-                        DiagnosticDescriptors.InvalidConfiguration,
+                        DiagnosticDescriptors.InvalidConfigurationValue,
                         Location.None,
                         overrideKey,
                         overrideValue,
@@ -1078,7 +1078,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
             bool hasUnrecognizedSyntaxValue = false;
             foreach ((TargetDbms dbms, string key, string value)
-                in AnalyzerConfigResolver.SetSyntaxValues(options))
+                in AnalyzerConfigResolver.NonBlankSyntaxValues(options))
             {
                 if (!AnalyzerConfigResolver.IsRecognizedSyntaxValue(dbms, value))
                 {
@@ -1128,7 +1128,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         if (reported.Add((key, value)))
         {
             context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticDescriptors.InvalidConfiguration,
+                DiagnosticDescriptors.InvalidConfigurationValue,
                 Location.None,
                 key,
                 value,

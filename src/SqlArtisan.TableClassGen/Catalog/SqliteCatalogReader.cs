@@ -83,7 +83,7 @@ internal sealed class SqliteCatalogReader(
             while (reader.Read())
             {
                 rows.Add((
-                    NormalizeName(reader.GetString(0)),
+                    EmittedName(reader.GetString(0)),
                     reader.GetString(0),
                     reader.GetString(1),
                     reader.GetInt32(2) != 0,
@@ -128,7 +128,7 @@ internal sealed class SqliteCatalogReader(
                 dbms: Dbms.Sqlite));
         }
 
-        table = new CatalogTable(NormalizeName(tableName), columns);
+        table = new CatalogTable(EmittedName(tableName), columns);
         return true;
     }
 
@@ -142,6 +142,6 @@ internal sealed class SqliteCatalogReader(
         return Convert.ToInt64(command.ExecuteScalar()) > 0;
     }
 
-    private string NormalizeName(string name) =>
+    private string EmittedName(string name) =>
         _lowercaseNames ? name.ToLowerInvariant() : name;
 }

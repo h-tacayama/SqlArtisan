@@ -46,7 +46,7 @@ internal static class ContextRules
             current = link;
         }
 
-        IOperation? parent = FluentChain.SkipConversion(current).Parent;
+        IOperation? parent = FluentChain.EnclosingConversionOrSelf(current).Parent;
         if (parent is not IArgumentOperation argument || !IsQuantifiedSubqueryArgument(argument))
         {
             return;
@@ -417,17 +417,17 @@ internal static class ContextRules
         string? names;
         string position;
         if ((derived & DerivedRows.Distinct) != 0
-            && (names = RejectingTargets(targets, s_derivedLockUnsupported)) is not null)
+            && (names = RejectingTargetNames(targets, s_derivedLockUnsupported)) is not null)
         {
             position = "with a DISTINCT clause";
         }
         else if ((derived & DerivedRows.Aggregate) != 0
-            && (names = RejectingTargets(targets, s_derivedLockUnsupported)) is not null)
+            && (names = RejectingTargetNames(targets, s_derivedLockUnsupported)) is not null)
         {
             position = "with an aggregate function";
         }
         else if ((derived & (DerivedRows.DistinctOn | DerivedRows.Window)) != 0
-            && (names = RejectingTargets(targets, s_windowedLockUnsupported)) is not null)
+            && (names = RejectingTargetNames(targets, s_windowedLockUnsupported)) is not null)
         {
             position = (derived & DerivedRows.DistinctOn) != 0
                 ? "with a DISTINCT clause"
@@ -635,7 +635,7 @@ internal static class ContextRules
 
         bool operand = member == "As" || member is null && IsPredicateOrScalarOperand(end);
         TargetDbms[] rejecting = operand ? s_orderedOperandUnsupported : s_orderedTableUnsupported;
-        if (RejectingTargets(targets, rejecting) is not { } names)
+        if (RejectingTargetNames(targets, rejecting) is not { } names)
         {
             return;
         }
@@ -766,7 +766,7 @@ internal static class ContextRules
         }
 
         return DerivesFrom(owner.Type, "DbTableBase")
-            && CorrelatedDmlRule.ResolveTargetSymbol(owner) is { } table
+            && CorrelatedDmlRule.ResolveTableSymbol(owner) is { } table
             && CorrelatedDmlRule.IsProvablyAliased(compilation, table);
     }
 
@@ -880,7 +880,7 @@ internal static class ContextRules
             {
                 update = true;
                 target = cursor.Arguments.FirstOrDefault() is { } head
-                    ? CorrelatedDmlRule.ResolveTargetSymbol(head.Value)
+                    ? CorrelatedDmlRule.ResolveTableSymbol(head.Value)
                     : null;
                 break;
             }
@@ -936,7 +936,7 @@ internal static class ContextRules
                 }
 
                 break;
-            case not null when CorrelatedDmlRule.ResolveTargetSymbol(operation) is { } symbol:
+            case not null when CorrelatedDmlRule.ResolveTableSymbol(operation) is { } symbol:
                 (symbols ??= []).Add(symbol);
                 break;
         }
@@ -962,7 +962,7 @@ internal static class ContextRules
                 when DialectUsageAnalyzer.IsFromSqlArtisan(method.ContainingAssembly):
                 return ReadsAnyTable(unary.Operand, tables);
             case IFieldReferenceOperation or IPropertyReferenceOperation
-                when tables.Any(table => CorrelatedDmlRule.IsTargetColumn(operation, table)):
+                when tables.Any(table => CorrelatedDmlRule.IsColumnOf(operation, table)):
                 return true;
             case IPropertyReferenceOperation { Instance: { } instance } property
                 when DialectUsageAnalyzer.IsFromSqlArtisan(property.Property.ContainingAssembly):
@@ -1111,7 +1111,7 @@ internal static class ContextRules
 
         if (head is not { Arguments.Length: 1 }
             || !DialectUsageAnalyzer.IsFromSqlArtisan(head.TargetMethod.ContainingAssembly)
-            || CorrelatedDmlRule.ResolveTargetSymbol(head.Arguments[0].Value) is not { } target)
+            || CorrelatedDmlRule.ResolveTableSymbol(head.Arguments[0].Value) is not { } target)
         {
             return false;
         }
@@ -1176,7 +1176,7 @@ internal static class ContextRules
     /// The configured targets that <paramref name="rejecting"/> covers, joined for
     /// the message — <c>null</c> when the configuration names none of them.
     /// </summary>
-    public static string? RejectingTargets(DialectTargetSet targets, TargetDbms[] rejecting)
+    public static string? RejectingTargetNames(DialectTargetSet targets, TargetDbms[] rejecting)
     {
         List<string>? names = null;
         foreach (TargetDbms dbms in rejecting)
@@ -1218,14 +1218,14 @@ internal static class ContextRules
     // A conversion to ISubquery, an ISubquery member (As, AsTable), or one of the
     // object-typed hosts that embed it: a comparison operand or a select item. A
     // result parked in a var keeps the stage type and converts out of sight here.
-    private static bool ConsumedAsSubquery(IInvocationOperation forUpdate) =>
-        forUpdate.Parent switch
+    private static bool ConsumedAsSubquery(IInvocationOperation chainEnd) =>
+        chainEnd.Parent switch
         {
             IConversionOperation { Type: { Name: "ISubquery" } target } =>
                 DialectUsageAnalyzer.IsFromSqlArtisan(target.ContainingAssembly),
             IConversionOperation { Type.SpecialType: SpecialType.System_Object } boxed =>
                 IsEmbeddingObjectHost(boxed),
-            IInvocationOperation host when host.Instance == forUpdate =>
+            IInvocationOperation host when host.Instance == chainEnd =>
                 host.TargetMethod.ContainingType.Name == "ISubquery"
                     && DialectUsageAnalyzer.IsFromSqlArtisan(
                         host.TargetMethod.ContainingAssembly),

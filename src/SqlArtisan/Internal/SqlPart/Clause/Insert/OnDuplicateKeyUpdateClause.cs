@@ -17,7 +17,7 @@ internal sealed class OnDuplicateKeyUpdateClause : SqlPart
         DbTableBase target)
     {
         EqualCondition[] resolved = AssignmentResolver.Resolve(assignments, Clause);
-        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: false, Clause);
+        AssignmentResolver.ThrowIfDuplicateColumn(resolved, qualified: false, Clause);
         AssignmentResolver.ThrowIfNotTargetColumn(resolved, target, Clause);
 
         return new(resolved);

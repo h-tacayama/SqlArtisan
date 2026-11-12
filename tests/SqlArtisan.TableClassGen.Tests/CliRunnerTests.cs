@@ -86,7 +86,7 @@ public class CliRunnerTests
         {
             string[] args =
             [
-                "--dbms", "sqlite", "--file", db.ConnectionInfo.ServiceName,
+                "--dbms", "sqlite", "--file", db.ConnectionInfo.Database,
                 "--namespace", "N", "--output", outputDirectory,
             ];
 
@@ -163,7 +163,7 @@ public class CliRunnerTests
 
         public string[] Args(TempSqliteDatabase db) =>
         [
-            "--dbms", "sqlite", "--file", db.ConnectionInfo.ServiceName,
+            "--dbms", "sqlite", "--file", db.ConnectionInfo.Database,
             "--namespace", "N", "--output", _path,
         ];
 

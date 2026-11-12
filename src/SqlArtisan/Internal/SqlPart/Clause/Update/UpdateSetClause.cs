@@ -22,13 +22,13 @@ internal sealed class UpdateSetClause : SqlPart
 
         // A pair sharing a correlation name, or both unaliased, renders one token either
         // way, so it is rejected here; the rest wait for Build(), once .From(t) is known.
-        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: true, Keywords.Set);
+        AssignmentResolver.ThrowIfDuplicateColumn(resolved, qualified: true, Keywords.Set);
         return new(resolved, target, state);
     }
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        AssignmentResolver.ThrowIfDuplicateTarget(
+        AssignmentResolver.ThrowIfDuplicateColumn(
             _assignments, _state.QualifiesSetTarget, Keywords.Set);
 
         buffer.Append($"{Keywords.Set} ");

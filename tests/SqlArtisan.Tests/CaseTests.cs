@@ -895,4 +895,14 @@ public class CaseTests
             "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'thenExpr')",
             ex.Message);
     }
+
+    [Fact]
+    public void Else_NullValue_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => Else(null!));
+
+        Assert.Equal(
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'elseExpr')",
+            ex.Message);
+    }
 }

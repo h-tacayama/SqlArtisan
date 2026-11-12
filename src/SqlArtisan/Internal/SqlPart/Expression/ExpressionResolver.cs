@@ -246,7 +246,7 @@ internal static class ExpressionResolver
             : ResolveCompared(item, paramName, construct);
 
     // The right operand of + / -, the arithmetic slot MySQL's INTERVAL completes (#666).
-    internal static SqlExpression ResolveIntervalOperand(object item, string paramName) =>
+    internal static SqlExpression ResolveAdditiveOperand(object item, string paramName) =>
         item is IntervalExpression interval
             ? new PositionBoundOperand(interval)
             : Resolve(item, paramName);

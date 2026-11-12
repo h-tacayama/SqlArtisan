@@ -20,7 +20,7 @@ public class ConsoleUITests
         Assert.False(settings.LowercaseNames);
         Assert.Empty(settings.TableNames);
         // No initial-letter subfolder — the create-subfolders default is "n".
-        Assert.Equal(Path.Combine(".", "Users.cs"), settings.CreateOutputFilePath("Users"));
+        Assert.Equal(Path.Combine(".", "Users.cs"), settings.OutputFilePath("Users"));
     }
 
     private static T WithInput<T>(string input, Func<T> read)

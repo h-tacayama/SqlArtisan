@@ -86,7 +86,7 @@ internal sealed class InsertBuilder :
 
     public IInsertBuilderOutputInto Output(params object[] items)
     {
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             items, nameof(items), "OUTPUT requires at least one expression.",
             ExpressionResolver.NullValueMessage);
         AddPart(new OutputClause(SelectItemResolver.Resolve(items, "OutputItem", nameof(items))));
@@ -112,14 +112,14 @@ internal sealed class InsertBuilder :
 
     public IInsertBuilderValues Values(params object?[] values)
     {
-        ThrowIfBuilt();
+        ThrowIfFrozen();
         AddValuesRow(values);
         return this;
     }
 
     public IInsertBuilderValues Values(IEnumerable<object?[]> rows)
     {
-        ThrowIfBuilt();
+        ThrowIfFrozen();
         if (rows is null)
         {
             throw new ArgumentNullException(nameof(rows), NullRowsMessage);
@@ -131,7 +131,7 @@ internal sealed class InsertBuilder :
 
     public IInsertBuilderValues Values(object?[][] rows)
     {
-        ThrowIfBuilt();
+        ThrowIfFrozen();
         if (rows is null)
         {
             throw new ArgumentNullException(nameof(rows), NullRowsMessage);
@@ -299,7 +299,7 @@ internal sealed class InsertBuilder :
 
         // The caller's enumeration may have composed, built or given rows to this builder
         // since the checks above, so they run again before any row lands (#679).
-        ThrowIfBuilt();
+        ThrowIfFrozen();
         if (_valuesClause is not null && _valuesClause.RowWidth != resolved[0].Length)
         {
             throw RowWidthMismatch(_valuesClause.RowWidth, resolved[0].Length);

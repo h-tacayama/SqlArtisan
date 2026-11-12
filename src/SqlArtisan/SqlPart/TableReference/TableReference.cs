@@ -67,7 +67,7 @@ public abstract class TableReference : SqlPart
     // A CTE or derived-table name also qualifies column references, so it is quoted
     // to match them: a bare name case-folds on Oracle while the quoted reference does
     // not (ORA-00904).
-    private protected virtual bool QuoteName => false;
+    private protected virtual bool IsNameQuoted => false;
 
     // The index just past the last `.` outside a quoted identifier, or 0 when
     // the name is unqualified.
@@ -104,7 +104,7 @@ public abstract class TableReference : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        if (QuoteName)
+        if (IsNameQuoted)
         {
             buffer.EncloseInAliasQuotes(_name);
         }

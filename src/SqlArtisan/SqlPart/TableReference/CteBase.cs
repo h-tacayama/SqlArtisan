@@ -23,6 +23,6 @@ public abstract class CteBase(string name) : TableReference(name, "A CTE require
 
     // The CTE name is quoted wherever it is referenced (e.g. `FROM "cte"`) to
     // match the quoted `WITH "cte" AS ...` definition and the quoted column
-    // references (`"cte".col`). See TableReference.QuoteName.
-    private protected override bool QuoteName => true;
+    // references (`"cte".col`). See TableReference.IsNameQuoted.
+    private protected override bool IsNameQuoted => true;
 }

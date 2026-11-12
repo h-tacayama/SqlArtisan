@@ -18,7 +18,7 @@ internal sealed class ConvertedNull(Type source, DbType? dbType, int? size)
         new($"{construct} cannot take the NULL the value converter for {source} returned; "
             + "pass a value, or leave the predicate out.");
 
-    internal ArgumentException InSearchText() =>
+    internal ArgumentException InAgainst() =>
         new($"AGAINST matches no row for the NULL the value converter for {source} returned; "
             + "pass the text, or leave the predicate out.");
 

@@ -6,13 +6,13 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
-    /// The <c>ELSE <paramref name="thenExpr"/></c> arm of a CASE expression,
+    /// The <c>ELSE <paramref name="elseExpr"/></c> arm of a CASE expression,
     /// passed to a <c>Sql.Case(...)</c> overload.
     /// </summary>
-    /// <param name="thenExpr">The value returned when no <c>WHEN</c> matches.</param>
+    /// <param name="elseExpr">The value returned when no <c>WHEN</c> matches.</param>
     /// <returns>The <c>ELSE</c> arm.</returns>
-    public static CaseElseExpression Else(object thenExpr) =>
-        new(Resolve(thenExpr, nameof(thenExpr)));
+    public static CaseElseExpression Else(object elseExpr) =>
+        new(Resolve(elseExpr, nameof(elseExpr)));
 
     /// <summary>
     /// References a column of the row proposed for insertion inside an UPSERT

@@ -14,7 +14,7 @@ internal sealed class DoUpdateSetClause : SqlPart
     internal static DoUpdateSetClause Parse(EqualityCondition[] assignments, DbTableBase target)
     {
         EqualCondition[] resolved = AssignmentResolver.Resolve(assignments, Clause);
-        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: false, Clause);
+        AssignmentResolver.ThrowIfDuplicateColumn(resolved, qualified: false, Clause);
         AssignmentResolver.ThrowIfNotTargetColumn(resolved, target, Clause);
 
         return new(resolved);
@@ -22,7 +22,7 @@ internal sealed class DoUpdateSetClause : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        buffer.QualifyUpsertTarget();
+        buffer.EnableUpsertTargetQualification();
         buffer
             .Append($"{Clause} ")
             .AppendAssignmentsCsv(_assignments);

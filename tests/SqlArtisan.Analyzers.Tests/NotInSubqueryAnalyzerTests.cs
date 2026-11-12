@@ -171,7 +171,7 @@ public class NotInSubqueryAnalyzerTests
             """);
 
     // The same hazard one level down: only the column, not the whole
-    // condition, is held in a local — FiltersOutNulls can't match its
+    // condition, is held in a local — MentionsNotNullFilter can't match its
     // receiver back to the flagged column either.
     [Fact]
     public Task NotIn_IsNotNullReceiverHeldInLocal_Silent() =>

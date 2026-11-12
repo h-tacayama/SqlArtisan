@@ -9,12 +9,13 @@ internal enum TableStatus
 }
 
 internal sealed class TableResult(
-    string tableName,
+    string name,
     string path,
     TableStatus status,
     IReadOnlyList<string> changes)
 {
-    public string TableName => tableName;
+    // A table's name, or for a Removed result its file's name.
+    public string Name => name;
 
     public string Path => path;
 
@@ -54,7 +55,7 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
         List<(TableResult Result, string Code)> compared =
         [
             .. emitted.Select(e => (
-                Compare(e.Table, _settings.CreateOutputFilePath(e.Table.ClassName), e.Code),
+                Compare(e.Table, _settings.OutputFilePath(e.Table.ClassName), e.Code),
                 e.Code)),
         ];
 
@@ -63,7 +64,7 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
         List<TableResult> results = [.. compared.Select(c => c.Result)];
         results.AddRange(FindRemoved(results));
 
-        GuardNothingToReport(results);
+        ThrowIfNothingToReport(results);
 
         if (!options.DryRun)
         {
@@ -123,7 +124,7 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
 
     // An emptied schema still reports its committed files as removed, so only a run
     // with nothing at all to say cannot tell a wrong schema name from a right one.
-    private void GuardNothingToReport(IReadOnlyList<TableResult> results)
+    private void ThrowIfNothingToReport(IReadOnlyList<TableResult> results)
     {
         if (results.Count == 0)
         {
@@ -237,7 +238,7 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
     {
         foreach ((CatalogTable table, string code) in emitted)
         {
-            string path = _settings.CreateOutputFilePath(table.ClassName);
+            string path = _settings.OutputFilePath(table.ClassName);
 
             if (File.Exists(path))
             {
@@ -261,7 +262,7 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
                     + "another --output");
         }
 
-        if (!NameOneTable(existing, current))
+        if (!IsSameTable(existing, current))
         {
             throw new CommandLineException(
                 $"{Path.GetFileName(path)} already describes table '{existing}', and this run "
@@ -273,7 +274,7 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
     // The committed file carries the emitted literal, which --lowercase and
     // --qualify-schema each vary, so compare the identity it spells rather than
     // its text: a schema counts only where both sides carry one.
-    private static bool NameOneTable(string existing, string current)
+    private static bool IsSameTable(string existing, string current)
     {
         (string existingSchema, string existingName) = SplitQualified(existing);
         (string currentSchema, string currentName) = SplitQualified(current);

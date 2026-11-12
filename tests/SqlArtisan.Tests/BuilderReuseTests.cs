@@ -373,7 +373,7 @@ public class BuilderReuseTests
         stmt.Build();
 
         // A repeat Values() accumulates a row via AddRow, bypassing AddPart —
-        // ThrowIfBuilt on Values guards that path too.
+        // ThrowIfFrozen on Values guards that path too.
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             stmt.Values(2, "b"));
 

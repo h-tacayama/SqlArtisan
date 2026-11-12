@@ -31,7 +31,7 @@ internal static class InsertValueResolver
 
     internal static SqlExpression[] Resolve(object?[] values, string position)
     {
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             values, nameof(values), "A VALUES row requires at least one value.");
 
         var resolved = new SqlExpression[values.Length];

@@ -13,7 +13,7 @@ internal sealed class ReturningBuilder : IReturningBuilder
 
     internal static ReturningBuilder Create(SqlBuilderBase inner, object[] expressions)
     {
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             expressions, nameof(expressions), "RETURNING requires at least one expression.",
             ExpressionResolver.NullValueMessage);
 
@@ -53,7 +53,7 @@ internal sealed class ReturningBuilder : IReturningBuilder
     public ISqlBuilder Into(params OutputParameter[] outputs)
     {
         ThrowIfCompleted();
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             outputs, nameof(outputs), "INTO requires at least one output parameter.");
 
         if (outputs.Length != _expressions.Length)

@@ -7,9 +7,9 @@ internal static class SelectItemResolver
     // The eager guard for the SELECT list (#236): PostgreSQL runs an empty one, but a list
     // computed empty is likelier a slip, so it throws at the call (ADR 0011, #675).
     // RETURNING guards its own emptiness in ReturningBuilder.Create.
-    internal static SqlPart[] ResolveOrThrow(object[] selectItems)
+    internal static SqlPart[] ResolveNonEmpty(object[] selectItems)
     {
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             selectItems, nameof(selectItems), "SELECT requires at least one item.");
         return Resolve(selectItems, "SelectItem", nameof(selectItems));
     }

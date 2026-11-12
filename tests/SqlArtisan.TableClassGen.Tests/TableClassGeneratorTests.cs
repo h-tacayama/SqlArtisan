@@ -142,7 +142,7 @@ public class TableClassGeneratorTests : IDisposable
         TableResult removed = Assert.Single(
             Run(db, RunMode.Check).Where(r => r.Status == TableStatus.Removed));
 
-        Assert.Equal("TagTable.cs", removed.TableName);
+        Assert.Equal("TagTable.cs", removed.Name);
     }
 
     [Fact]
@@ -204,7 +204,7 @@ public class TableClassGeneratorTests : IDisposable
         IReadOnlyList<TableResult> results = Run(db, RunMode.Generate, tableNames: ["item"]);
 
         TableResult only = Assert.Single(results);
-        Assert.Equal("item", only.TableName);
+        Assert.Equal("item", only.Name);
         Assert.False(File.Exists(Path.Combine(_outputDirectory, "TagTable.cs")));
     }
 
@@ -264,7 +264,7 @@ public class TableClassGeneratorTests : IDisposable
         IReadOnlyList<TableResult> results = Run(db, RunMode.Check, tableNames: ["ITEM"]);
 
         TableResult item = Assert.Single(results);
-        Assert.Equal("item", item.TableName);
+        Assert.Equal("item", item.Name);
         Assert.Equal(TableStatus.Unchanged, item.Status);
     }
 
@@ -540,7 +540,7 @@ public class TableClassGeneratorTests : IDisposable
         TableResult removed = Assert.Single(
             Run(db, RunMode.Check), r => r.Status == TableStatus.Removed);
 
-        Assert.Equal("TagTable.cs", removed.TableName);
+        Assert.Equal("TagTable.cs", removed.Name);
     }
 
     // The emitter copies --namespace as given, so the scan compared `App.Tables `
@@ -634,7 +634,7 @@ public class TableClassGeneratorTests : IDisposable
         TableResult only = Assert.Single(
             Run(db, RunMode.Generate, tableNames: ["item", "item"]));
 
-        Assert.Equal("item", only.TableName);
+        Assert.Equal("item", only.Name);
     }
 
     // The escape hatch the message names has to work.
@@ -650,7 +650,7 @@ public class TableClassGeneratorTests : IDisposable
         TableResult only = Assert.Single(
             Run(db, RunMode.Generate, tableNames: ["dupe_class"]));
 
-        Assert.Equal("dupe_class", only.TableName);
+        Assert.Equal("dupe_class", only.Name);
     }
 
     // Nothing read and nothing committed used to be a successful run reporting
@@ -665,7 +665,7 @@ public class TableClassGeneratorTests : IDisposable
             () => Run(db, RunMode.Generate));
 
         Assert.Equal(
-            $"No tables found in the SQLite database file '{db.ConnectionInfo.ServiceName}'; "
+            $"No tables found in the SQLite database file '{db.ConnectionInfo.Database}'; "
                 + "check --file",
             error.Message);
     }
@@ -714,7 +714,7 @@ public class TableClassGeneratorTests : IDisposable
     }
 
     private static TableResult Single(IReadOnlyList<TableResult> results, string tableName) =>
-        Assert.Single(results.Where(r => r.TableName == tableName));
+        Assert.Single(results.Where(r => r.Name == tableName));
 
     // The file name is what collides, and the common filesystems fold case.
     [Fact]

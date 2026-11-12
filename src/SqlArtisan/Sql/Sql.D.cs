@@ -245,7 +245,7 @@ public static partial class Sql
         (object search, object result)[] searchResultPairs,
         object @default)
     {
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             searchResultPairs, nameof(searchResultPairs),
             "DECODE requires at least one (search, result) pair.");
         return new DecodeFunction(

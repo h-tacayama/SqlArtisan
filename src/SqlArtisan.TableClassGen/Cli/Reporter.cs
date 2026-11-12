@@ -73,7 +73,7 @@ internal sealed class Reporter(RunOptions options)
             // drift check found current is otherwise indistinguishable from one it skipped.
             foreach (TableResult result in results)
             {
-                Console.WriteLine($"  {Label(result.Status),-9} {result.TableName}");
+                Console.WriteLine($"  {Label(result.Status),-9} {result.Name}");
             }
 
             Console.WriteLine();
@@ -92,7 +92,7 @@ internal sealed class Reporter(RunOptions options)
 
         foreach (TableResult result in drifted)
         {
-            Console.WriteLine($"  {Label(result.Status),-9} {result.TableName}");
+            Console.WriteLine($"  {Label(result.Status),-9} {result.Name}");
 
             foreach (string change in result.Changes)
             {
@@ -175,7 +175,7 @@ internal sealed class Reporter(RunOptions options)
         if (fixable.Count > 0)
         {
             next.AppendLine("Regenerate the affected tables by re-running with:");
-            next.Append($"  --fix --tables {string.Join(",", fixable.Select(r => r.TableName))}");
+            next.Append($"  --fix --tables {string.Join(",", fixable.Select(r => r.Name))}");
         }
 
         if (removed.Count > 0)
@@ -213,7 +213,7 @@ internal sealed class Reporter(RunOptions options)
                 drift = results.Any(r => r.Status != TableStatus.Unchanged),
                 tables = results.Select(r => new
                 {
-                    name = r.TableName,
+                    name = r.Name,
                     status = Label(r.Status),
                     path = r.Path,
                     changes = r.Changes,

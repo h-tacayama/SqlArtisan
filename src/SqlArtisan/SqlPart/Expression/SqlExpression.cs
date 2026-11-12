@@ -158,7 +158,7 @@ public abstract class SqlExpression : SqlPart
     public static SqlExpression operator +(SqlExpression @this, object rightSide) =>
         new AdditionOperator(
             OperandGuard.ThrowIfNull(@this, Operators.Plus),
-            ResolveIntervalOperand(rightSide, nameof(rightSide)));
+            ResolveAdditiveOperand(rightSide, nameof(rightSide)));
 
     /// <summary>
     /// The SQL addition operator with a string first:
@@ -182,7 +182,7 @@ public abstract class SqlExpression : SqlPart
     public static SqlExpression operator -(SqlExpression @this, object rightSide) =>
         new SubtractionOperator(
             OperandGuard.ThrowIfNull(@this, Operators.Minus),
-            ResolveIntervalOperand(rightSide, nameof(rightSide)));
+            ResolveAdditiveOperand(rightSide, nameof(rightSide)));
 
     /// <summary>
     /// The SQL multiplication operator: <c><paramref name="this"/> *
@@ -234,7 +234,7 @@ public abstract class SqlExpression : SqlPart
     /// </summary>
     /// <param name="column">The target CTE / derived-table column.</param>
     /// <returns>The aliased expression.</returns>
-    public ExpressionAlias As(DbColumn column) => new(this, column.Name, column.QuoteName);
+    public ExpressionAlias As(DbColumn column) => new(this, column.Name, column.IsNameQuoted);
 
     /// <summary>
     /// The <c>expr BETWEEN <paramref name="rightSide1"/> AND <paramref name="rightSide2"/></c>
@@ -272,7 +272,7 @@ public abstract class SqlExpression : SqlPart
     /// 21.3.0, PostgreSQL 16.15 and SQL Server 2022 reject it).</exception>
     public SqlCondition In(params object[] expressions)
     {
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             expressions, nameof(expressions), "IN requires at least one value.");
         return new InCondition(
             ComparedReceiver(Keywords.In),
@@ -297,7 +297,8 @@ public abstract class SqlExpression : SqlPart
     // IReadOnlyCollection<T>, not IEnumerable<T>: a string is an IEnumerable<char>.
     public SqlCondition In<T>(IReadOnlyCollection<T> values)
     {
-        CollectionGuard.ThrowIfEmpty(values, nameof(values), "IN requires at least one value.");
+        CollectionGuard.ThrowIfNullOrEmpty(
+            values, nameof(values), "IN requires at least one value.");
         return new InCondition(
             ComparedReceiver(Keywords.In),
             ResolveCompared(values, nameof(values), Keywords.In));
@@ -316,7 +317,8 @@ public abstract class SqlExpression : SqlPart
     // overload it would be ambiguous with the params one.
     public SqlCondition In<T>(T[] values)
     {
-        CollectionGuard.ThrowIfEmpty(values, nameof(values), "IN requires at least one value.");
+        CollectionGuard.ThrowIfNullOrEmpty(
+            values, nameof(values), "IN requires at least one value.");
         return new InCondition(
             ComparedReceiver(Keywords.In),
             ResolveCompared(values, nameof(values), Keywords.In));
@@ -340,7 +342,7 @@ public abstract class SqlExpression : SqlPart
     /// 21.3.0, PostgreSQL 16.15 and SQL Server 2022 reject it).</exception>
     public SqlCondition NotIn(params object[] expressions)
     {
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             expressions, nameof(expressions), "NOT IN requires at least one value.");
         return new NotInCondition(
             ComparedReceiver(NotInConstruct),
@@ -364,7 +366,8 @@ public abstract class SqlExpression : SqlPart
     /// </remarks>
     public SqlCondition NotIn<T>(IReadOnlyCollection<T> values)
     {
-        CollectionGuard.ThrowIfEmpty(values, nameof(values), "NOT IN requires at least one value.");
+        CollectionGuard.ThrowIfNullOrEmpty(
+            values, nameof(values), "NOT IN requires at least one value.");
         return new NotInCondition(
             ComparedReceiver(NotInConstruct),
             ResolveCompared(values, nameof(values), NotInConstruct));
@@ -381,7 +384,8 @@ public abstract class SqlExpression : SqlPart
     /// 21.3.0, PostgreSQL 16.15 and SQL Server 2022 reject it).</exception>
     public SqlCondition NotIn<T>(T[] values)
     {
-        CollectionGuard.ThrowIfEmpty(values, nameof(values), "NOT IN requires at least one value.");
+        CollectionGuard.ThrowIfNullOrEmpty(
+            values, nameof(values), "NOT IN requires at least one value.");
         return new NotInCondition(
             ComparedReceiver(NotInConstruct),
             ResolveCompared(values, nameof(values), NotInConstruct));

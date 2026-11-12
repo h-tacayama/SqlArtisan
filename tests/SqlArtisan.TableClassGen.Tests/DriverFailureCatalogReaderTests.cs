@@ -58,7 +58,7 @@ public class DriverFailureCatalogReaderTests
             Dbms.PostgreSql,
             host: "localhost",
             port: 5432,
-            serviceName: "db",
+            database: "db",
             schema: "s",
             username: "u",
             password: "p");
@@ -94,7 +94,7 @@ public class DriverFailureCatalogReaderTests
     private static void AssertNamesTheFile(TempSqliteDatabase db, CommandLineException error)
     {
         string sentence =
-            $"Cannot read the SQLite database file '{db.ConnectionInfo.ServiceName}'; "
+            $"Cannot read the SQLite database file '{db.ConnectionInfo.Database}'; "
                 + "check --file (";
 
         Assert.StartsWith(sentence, error.Message, StringComparison.Ordinal);

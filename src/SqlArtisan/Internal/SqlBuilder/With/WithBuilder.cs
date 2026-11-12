@@ -28,7 +28,7 @@ internal sealed class WithBuilder : IWithBuilderWith, IWithBuilderWithRecursive
     {
         CollectionGuard.ThrowIfNullElement(
             columns, nameof(columns), "An INSERT column list must not contain a null column.");
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             columns, nameof(columns), "An INSERT column list requires at least one column.");
         ColumnListGuard.ThrowIfDuplicate(
             columns, "An INSERT column list must not name a column twice.");
@@ -61,13 +61,17 @@ internal sealed class WithBuilder : IWithBuilderWith, IWithBuilderWithRecursive
         SqlHints hints,
         DistinctKeyword distinct,
         params object[] selectItems) =>
-        new SelectBuilder(_withPart, SelectClauseWithOptions.Parse(hints, distinct, selectItems));
+        new SelectBuilder(
+            _withPart,
+            SelectClauseWithHintsDistinct.Parse(hints, distinct, selectItems));
 
     public ISelectBuilderSelect Select(
         SqlHints hints,
         DistinctOnKeyword distinctOn,
         params object[] selectItems) =>
-        new SelectBuilder(_withPart, SelectClauseWithOptions.Parse(hints, distinctOn, selectItems));
+        new SelectBuilder(
+            _withPart,
+            SelectClauseWithHintsDistinct.Parse(hints, distinctOn, selectItems));
 
     public ISelectBuilderSelect Select(TopClause top, params object[] selectItems) =>
         new SelectBuilder(_withPart, SelectClauseWithTop.Parse(top, selectItems));

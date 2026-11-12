@@ -204,7 +204,7 @@ files are edited); procedures live in `.claude/skills/`. Add new conventions
 there, not here — a pointer line in this list is enough.
 
 **Rules** (`.claude/rules/`): analyzer-rules, code-comments, csharp-formatting,
-dbms-differences, docs-style, guards-and-empty-states, public-api-design,
+dbms-differences, docs-style, guards-and-empty-states, naming, public-api-design,
 sql-building-style, unit-tests.
 
 **Skills** (`.claude/skills/`): sa-add-sql-function, sa-clause-audit,

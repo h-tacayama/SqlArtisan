@@ -9,7 +9,7 @@ namespace SqlArtisan;
 /// </summary>
 public sealed class DbColumn : SqlExpression
 {
-    private readonly bool _quoteName;
+    private readonly bool _isNameQuoted;
 
     /// <summary>
     /// Creates a reference to the named column of <paramref name="owner"/>.
@@ -33,14 +33,14 @@ public sealed class DbColumn : SqlExpression
 
         Owner = owner;
         Name = name;
-        _quoteName = quoteName;
+        _isNameQuoted = quoteName;
     }
 
     internal TableReference Owner { get; }
 
     internal string Name { get; }
 
-    internal bool QuoteName => _quoteName;
+    internal bool IsNameQuoted => _isNameQuoted;
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
@@ -59,9 +59,9 @@ public sealed class DbColumn : SqlExpression
         }
         else
         {
-            // A bare DML-target column inside a subquery resolves to the inner
-            // scope — a silent tautology — so the guard fails loudly (#253).
-            buffer.ThrowIfCorrelatedDmlColumn(Owner);
+            // A bare column of a table its block does not list can bind an inner
+            // same-named column, the DML target's or any other's (#253, #677).
+            buffer.ThrowIfBareColumnCorrelates(Owner);
         }
 
         AppendName(buffer);
@@ -74,7 +74,7 @@ public sealed class DbColumn : SqlExpression
 
     private void AppendName(SqlBuildingBuffer buffer)
     {
-        if (_quoteName)
+        if (_isNameQuoted)
         {
             buffer.EncloseInAliasQuotes(Name);
         }

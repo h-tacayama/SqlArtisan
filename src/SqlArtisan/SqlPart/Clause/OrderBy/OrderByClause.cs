@@ -12,7 +12,7 @@ public sealed class OrderByClause : SqlPart
 
     private OrderByClause(SqlPart[] orderByItems)
     {
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             orderByItems, nameof(orderByItems), "ORDER BY requires at least one item.");
 
         _orderByItems = orderByItems;

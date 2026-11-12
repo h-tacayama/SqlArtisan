@@ -17,12 +17,12 @@ namespace SqlArtisan.Analyzers;
 internal readonly struct ValueDomainScope
 {
     private readonly DialectSupportResolver.MatrixMatch? _match;
-    private readonly bool _isAsserted;
+    private readonly bool _hasSupportedOverride;
 
-    private ValueDomainScope(DialectSupportResolver.MatrixMatch? match, bool isAsserted)
+    private ValueDomainScope(DialectSupportResolver.MatrixMatch? match, bool hasSupportedOverride)
     {
         _match = match;
-        _isAsserted = isAsserted;
+        _hasSupportedOverride = hasSupportedOverride;
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ internal readonly struct ValueDomainScope
     /// declared version.
     /// </summary>
     public bool Covers(TargetDbms dbms, DialectTargetSet targets) =>
-        _isAsserted
+        _hasSupportedOverride
         || _match is not { } match
         || DialectSupportResolver.Evaluate(match, dbms, targets.VersionFor(dbms)).IsSupported;
 }

@@ -91,9 +91,9 @@ Packing is deliberate — and stays — in exactly four shapes:
   line stays valid:
 
   ```csharp
-  CollectionGuard.ThrowIfEmpty(
+  CollectionGuard.ThrowIfNullOrEmpty(
       columns, nameof(columns), "An INSERT column list requires at least one column.");
-  CollectionGuard.ThrowIfEmpty(
+  CollectionGuard.ThrowIfNullOrEmpty(
       searchResultPairs, nameof(searchResultPairs),
       "DECODE requires at least one (search, result) pair.");
   ```

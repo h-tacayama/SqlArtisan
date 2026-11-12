@@ -31,7 +31,7 @@ internal static class CorrelatedDmlRule
             return;
         }
 
-        if (ResolveTargetSymbol(dml.Arguments[0].Value) is not { } target
+        if (ResolveTableSymbol(dml.Arguments[0].Value) is not { } target
             || !IsProvablyUnaliased(context.Compilation, target))
         {
             return;
@@ -79,7 +79,7 @@ internal static class CorrelatedDmlRule
     // Only shapes whose runtime identity the symbol decides: a local, or a
     // readonly field read through this/statically (another instance's field is
     // a different table object).
-    internal static ISymbol? ResolveTargetSymbol(IOperation value) =>
+    internal static ISymbol? ResolveTableSymbol(IOperation value) =>
         UnwrapConversion(value) switch
         {
             ILocalReferenceOperation local => local.Local,
@@ -328,7 +328,7 @@ internal static class CorrelatedDmlRule
         }
 
         // A block listing the target reads it as its own relation, as Build() does (#679).
-        if (IsTargetColumn(node, target)
+        if (IsColumnOf(node, target)
             && EnclosingSubquery(node, root) is { } block
             && !ChainLists(block, target))
         {
@@ -358,7 +358,7 @@ internal static class CorrelatedDmlRule
 
     // The member belongs to the user's table class; its DbColumn TYPE is the
     // SqlArtisan gate (and disambiguates System.Data.Common.DbColumn).
-    internal static bool IsTargetColumn(IOperation node, ISymbol target)
+    internal static bool IsColumnOf(IOperation node, ISymbol table)
     {
         if (node is not (IPropertyReferenceOperation or IFieldReferenceOperation))
         {
@@ -372,7 +372,7 @@ internal static class CorrelatedDmlRule
         }
 
         IOperation? instance = member.Instance is { } receiver ? UnwrapConversion(receiver) : null;
-        return target switch
+        return table switch
         {
             ILocalSymbol local => instance is ILocalReferenceOperation localReference
                 && SymbolEqualityComparer.Default.Equals(localReference.Local, local),
@@ -446,7 +446,7 @@ internal static class CorrelatedDmlRule
     internal static bool Lists(IOperation value, ISymbol target) =>
         UnwrapConversion(value) is IArrayCreationOperation { Initializer: { } initializer }
             ? initializer.ElementValues.Any(element => Lists(element, target))
-            : SymbolEqualityComparer.Default.Equals(ResolveTargetSymbol(value), target);
+            : SymbolEqualityComparer.Default.Equals(ResolveTableSymbol(value), target);
 
     private static bool IsThisOrStatic(IFieldReferenceOperation field) =>
         field.Instance is null or IInstanceReferenceOperation;

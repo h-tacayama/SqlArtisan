@@ -19,13 +19,13 @@ public sealed class CommonTableExpression
         ArgumentNullException.ThrowIfNull(subquery);
 
         _name = name;
-        _subquery = SqlBuilderBase.ComposedAsCteBody(subquery);
+        _subquery = SqlBuilderBase.MarkComposedAsCteBody(subquery);
     }
 
     private CommonTableExpression(string name, ISubquery subquery, CteColumnName[] columnNames)
     {
         _name = name;
-        _subquery = SqlBuilderBase.ComposedAsCteBody(subquery);
+        _subquery = SqlBuilderBase.MarkComposedAsCteBody(subquery);
         _columnNames = columnNames;
     }
 
@@ -41,7 +41,7 @@ public sealed class CommonTableExpression
     /// <remarks>MySQL (8.0+), Oracle, PostgreSQL, SQLite, and SQL Server syntax.</remarks>
     public CommonTableExpression WithColumnList()
     {
-        CteColumnName[] columnNames = TryDeriveColumnNames() ?? throw NoColumnName();
+        CteColumnName[] columnNames = DeriveColumnNames();
         if (HasDuplicateName(columnNames))
         {
             throw new ArgumentException(
@@ -77,7 +77,7 @@ public sealed class CommonTableExpression
                 buffer.Append(", ");
             }
 
-            if (columnNames[i].Quote)
+            if (columnNames[i].IsQuoted)
             {
                 buffer.EncloseInAliasQuotes(columnNames[i].Name);
             }
@@ -91,34 +91,26 @@ public sealed class CommonTableExpression
         AppendAsSubquery(buffer);
     }
 
-    private CteColumnName[]? TryDeriveColumnNames()
+    private CteColumnName[] DeriveColumnNames()
     {
-        SqlPart[]? selectItems = (_subquery as SelectBuilder)?.FirstSelectItems();
-        if (selectItems is null)
-        {
-            return null;
-        }
+        SqlPart[] selectItems =
+            (_subquery as SelectBuilder)?.FirstSelectItems() ?? throw NoColumnName();
 
         CteColumnName[] names = new CteColumnName[selectItems.Length];
         for (int i = 0; i < selectItems.Length; i++)
         {
-            CteColumnName? name = selectItems[i] switch
+            CteColumnName name = selectItems[i] switch
             {
-                DbColumn column => new CteColumnName(column.Name, column.QuoteName),
-                ExpressionAlias alias => new CteColumnName(alias.Name, alias.QuoteAlias),
+                DbColumn column => new CteColumnName(column.Name, column.IsNameQuoted),
+                ExpressionAlias alias => new CteColumnName(alias.Name, alias.IsAliasQuoted),
                 // Neither marker has As(...), so the generic remedy is unreachable.
                 AsteriskMarker or QualifiedAsteriskMarker => throw new ArgumentException(
                     "A CTE column list requires a name for every column of the CTE's first "
                         + "query block; select the columns by name instead of *."),
-                _ => null,
+                _ => throw NoColumnName(),
             };
 
-            if (name is null)
-            {
-                return null;
-            }
-
-            names[i] = name.Value;
+            names[i] = name;
         }
 
         return names;
@@ -190,4 +182,4 @@ public sealed class CommonTableExpression
 }
 
 // A CTE column-list entry: the select item's name and its quoting.
-internal readonly record struct CteColumnName(string Name, bool Quote);
+internal readonly record struct CteColumnName(string Name, bool IsQuoted);

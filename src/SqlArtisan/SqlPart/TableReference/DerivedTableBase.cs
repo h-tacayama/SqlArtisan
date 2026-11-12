@@ -16,6 +16,6 @@ public abstract class DerivedTableBase(string name)
     internal override string CorrelationName => _name;
 
     // The alias is quoted at its definition site (`... ) "x"`) to match how a
-    // reference to it renders (`"x".col`). See TableReference.QuoteName.
-    private protected override bool QuoteName => true;
+    // reference to it renders (`"x".col`). See TableReference.IsNameQuoted.
+    private protected override bool IsNameQuoted => true;
 }

@@ -228,8 +228,8 @@ internal static class ArgumentValueValidityRule
                 is not { } argument
             || Unwrap(argument.Value) is not { } scale
             || scale.ConstantValue is not { HasValue: true, Value: { } value }
-            || IsOrdinalType(scale.Type) is not true
-            || ToOrdinal(value) is not < 0
+            || IsIntegralType(scale.Type) is not true
+            || ToInt64(value) is not < 0
             || ValueDomainScope.For(context, invocation) is not { } scope)
         {
             return;
@@ -305,11 +305,11 @@ internal static class ArgumentValueValidityRule
 
             // The library renders every integral type as an ordinal, so the
             // check follows the type rather than the boxed int an enum carries.
-            if (IsOrdinalType(key.Type) is true)
+            if (IsIntegralType(key.Type) is true)
             {
                 // Below 1 is rejected at the call on every dialect, so naming
                 // one here would point at the wrong problem.
-                if (ToOrdinal(value) is > 0 && invalidOn is { Count: > 0 })
+                if (ToInt64(value) is > 0 && invalidOn is { Count: > 0 })
                 {
                     Report(context, element, memberName, value, OrdinalNoun, invalidOn);
                 }
@@ -353,7 +353,7 @@ internal static class ArgumentValueValidityRule
         return text.IndexOfAny(['.', 'E', 'e']) < 0 ? text + ".0" : text;
     }
 
-    private static bool IsOrdinalType(ITypeSymbol? type) => type?.SpecialType is
+    private static bool IsIntegralType(ITypeSymbol? type) => type?.SpecialType is
         SpecialType.System_SByte or SpecialType.System_Byte or SpecialType.System_Int16
         or SpecialType.System_UInt16 or SpecialType.System_Int32 or SpecialType.System_UInt32
         or SpecialType.System_Int64 or SpecialType.System_UInt64
@@ -362,7 +362,7 @@ internal static class ArgumentValueValidityRule
     private static bool IsFractionalType(ITypeSymbol? type) => type?.SpecialType is
         SpecialType.System_Single or SpecialType.System_Double or SpecialType.System_Decimal;
 
-    private static long? ToOrdinal(object value) => value switch
+    private static long? ToInt64(object value) => value switch
     {
         sbyte v => v,
         byte v => v,

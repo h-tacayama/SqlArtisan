@@ -7,7 +7,7 @@ internal static class AssignmentResolver
 {
     internal static EqualCondition[] Resolve(EqualityCondition[] assignments, string clause)
     {
-        // Inline rather than CollectionGuard.ThrowIfEmpty, which takes the message
+        // Inline rather than CollectionGuard.ThrowIfNullOrEmpty, which takes the message
         // eagerly: interpolating it would allocate on every call (ADR 0006).
         if (assignments is null)
         {
@@ -90,19 +90,19 @@ internal static class AssignmentResolver
         }
     }
 
-    // Keyed on the token the target renders as, never on its owner: the
+    // Keyed on the token the column renders as, never on its owner: the
     // always-unqualified clauses drop owner and alias, so two handles — or two
     // tables — sharing a column name emit `SET a = 1, a = 2` all the same.
-    internal static void ThrowIfDuplicateTarget(
+    internal static void ThrowIfDuplicateColumn(
         EqualCondition[] assignments, bool qualified, string clause)
     {
         for (int i = 1; i < assignments.Length; i++)
         {
-            DbColumn target = (DbColumn)assignments[i].LeftSide;
+            DbColumn column = (DbColumn)assignments[i].LeftSide;
             for (int j = 0; j < i; j++)
             {
                 DbColumn earlier = (DbColumn)assignments[j].LeftSide;
-                if (RendersSameToken(target, earlier, qualified))
+                if (RendersSameToken(column, earlier, qualified))
                 {
                     throw new ArgumentException(
                         $"The {clause} assignment list must not assign the same column twice.");
@@ -111,16 +111,16 @@ internal static class AssignmentResolver
         }
     }
 
-    private static bool RendersSameToken(DbColumn target, DbColumn earlier, bool qualified)
+    private static bool RendersSameToken(DbColumn column, DbColumn earlier, bool qualified)
     {
-        if (!string.Equals(target.Name, earlier.Name, StringComparison.Ordinal))
+        if (!string.Equals(column.Name, earlier.Name, StringComparison.Ordinal))
         {
             return false;
         }
 
         return !qualified
             || string.Equals(
-                target.Owner.CorrelationName,
+                column.Owner.CorrelationName,
                 earlier.Owner.CorrelationName,
                 StringComparison.Ordinal);
     }

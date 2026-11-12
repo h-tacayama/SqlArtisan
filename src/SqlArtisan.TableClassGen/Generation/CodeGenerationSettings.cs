@@ -26,7 +26,7 @@ internal sealed class CodeGenerationSettings(
 
     // Path computation only: creating the directory here would make --dry-run and
     // --check, which both need the path without writing, touch the file system.
-    public string CreateOutputFilePath(string className)
+    public string OutputFilePath(string className)
     {
         string directory = _createSubFolders && className.Length > 0
             ? Path.Combine(outputDirectory, char.ToUpperInvariant(className[0]).ToString())

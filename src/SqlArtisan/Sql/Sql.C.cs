@@ -213,7 +213,7 @@ public static partial class Sql
             whenClauses,
             nameof(whenClauses),
             "A CASE expression must not contain a null WHEN clause.");
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             whenClauses, nameof(whenClauses), "CASE requires at least one WHEN clause.");
 
         return new SearchedCaseExpression(whenClauses, elseExpr);
@@ -237,7 +237,7 @@ public static partial class Sql
             whenClauses,
             nameof(whenClauses),
             "A CASE expression must not contain a null WHEN clause.");
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             whenClauses, nameof(whenClauses), "CASE requires at least one WHEN clause.");
 
         return new SimpleCaseExpression(ResolveSimpleCase(expr, nameof(expr)), whenClauses);
@@ -451,7 +451,7 @@ public static partial class Sql
             whenClauses,
             nameof(whenClauses),
             "A CASE expression must not contain a null WHEN clause.");
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             whenClauses, nameof(whenClauses), "CASE requires at least one WHEN clause.");
 
         return new SimpleCaseExpression(

@@ -71,7 +71,7 @@ public static partial class Sql
         SqlHints hints,
         DistinctKeyword distinct,
         params object[] selectItems) =>
-        new SelectBuilder(SelectClauseWithOptions.Parse(hints, distinct, selectItems));
+        new SelectBuilder(SelectClauseWithHintsDistinct.Parse(hints, distinct, selectItems));
 
     /// <inheritdoc cref="Select(object[])"/>
     /// <param name="hints">Optimizer hints (<see cref="Hints(string)"/>), emitted after <c>SELECT</c>.</param>
@@ -81,7 +81,7 @@ public static partial class Sql
         SqlHints hints,
         DistinctOnKeyword distinctOn,
         params object[] selectItems) =>
-        new SelectBuilder(SelectClauseWithOptions.Parse(hints, distinctOn, selectItems));
+        new SelectBuilder(SelectClauseWithHintsDistinct.Parse(hints, distinctOn, selectItems));
 
     /// <inheritdoc cref="Select(object[])"/>
     /// <param name="top">SQL Server's <c>TOP (n)</c> prefix (<see cref="Top(int)"/>), emitting <c>SELECT TOP (n)</c>.</param>

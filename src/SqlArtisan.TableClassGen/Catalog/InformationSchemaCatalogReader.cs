@@ -39,11 +39,7 @@ internal sealed class InformationSchemaCatalogReader(
 
         foreach (string tableName in tableNames)
         {
-            if (TryGetTable(conn, tableName, out CatalogTable? table)
-                && table is not null)
-            {
-                tables.Add(table);
-            }
+            tables.Add(ReadTable(conn, tableName));
         }
 
         return tables;
@@ -55,16 +51,16 @@ internal sealed class InformationSchemaCatalogReader(
     {
         using IDbConnection conn = _connInfo.OpenConnection();
 
-        table = null;
-
-        return StoredTableName(conn, tableName) is { } storedName
-            && TryGetTable(conn, storedName, out table);
+        table = StoredTableName(conn, tableName) is { } storedName
+            ? ReadTable(conn, storedName)
+            : null;
+        return table is not null;
     }
 
     // tableName is the catalog's stored name, reused verbatim as the re-lookup
     // key; lowercasing is applied only to the emitted names, so a case-sensitive
     // collation cannot drop a mixed-case table on re-lookup.
-    private bool TryGetTable(IDbConnection conn, string tableName, out CatalogTable? table)
+    private CatalogTable ReadTable(IDbConnection conn, string tableName)
     {
         InformationSchemaColumns c = new();
 
@@ -89,7 +85,7 @@ internal sealed class InformationSchemaCatalogReader(
                 string dataType = reader.GetString(1);
                 bool? hasDefault = ReadHasDefault(reader, 3, _connInfo.Dbms);
                 columns.Add(new CatalogColumn(
-                    Normalize(catalogName),
+                    EmittedName(catalogName),
                     dataType,
                     isNullable: ReadIsNullable(reader, 2),
                     hasDefault: hasDefault is false && rowInsertTrigger ? null : hasDefault,
@@ -107,8 +103,7 @@ internal sealed class InformationSchemaCatalogReader(
             throw new CommandLineException(_connInfo.NoVisibleColumnsMessage(tableName));
         }
 
-        table = new CatalogTable(Normalize(tableName), columns, _connInfo.Schema);
-        return true;
+        return new CatalogTable(EmittedName(tableName), columns, _connInfo.Schema);
     }
 
     // PostgreSQL lists a table on any privilege but each column only on a privilege
@@ -190,7 +185,7 @@ internal sealed class InformationSchemaCatalogReader(
         : dbms != Dbms.MySql && DefaultExpression.IsNull(reader.GetString(ordinal)) ? false
         : true;
 
-    private string Normalize(string name) => _lowercaseNames ? name.ToLowerInvariant() : name;
+    private string EmittedName(string name) => _lowercaseNames ? name.ToLowerInvariant() : name;
 
     private string? StoredTableName(IDbConnection conn, string tableName)
     {

@@ -30,7 +30,7 @@ public static partial class Sql
     /// <returns>An <see cref="UnnestFunction"/> emitting <c>UNNEST(arrays)</c>.</returns>
     public static UnnestFunction Unnest(params object[] arrays)
     {
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             arrays, nameof(arrays), "UNNEST(...) requires at least one array.");
         return new(Resolve(arrays, nameof(arrays)));
     }

@@ -51,7 +51,7 @@ internal static class UnusableIndexPredicateRule
             || PseudoRowReferences.Contains(call.TargetMethod.Name)
             || ExpressionCarriers.Contains(call.TargetMethod.Name)
             || TypeDependentWrappings.Contains(call.TargetMethod.Name)
-            || IndexedArgument(call) is not { } column
+            || WrappedIndexedColumn(call) is not { } column
             || !IsInsideFilter(call))
         {
             return;
@@ -98,7 +98,7 @@ internal static class UnusableIndexPredicateRule
     // Only a column the call itself wraps: a function over some other expression
     // that merely mentions the column is not the shape this reports. A params list's
     // elements are not read: the shape is rare, and the miss only leaves a warning out.
-    private static IPropertyReferenceOperation? IndexedArgument(IInvocationOperation call)
+    private static IPropertyReferenceOperation? WrappedIndexedColumn(IInvocationOperation call)
     {
         foreach (IArgumentOperation argument in call.Arguments)
         {
@@ -108,7 +108,7 @@ internal static class UnusableIndexPredicateRule
             if (value is IInvocationOperation inner
                 && TypeDependentWrappings.Contains(inner.TargetMethod.Name)
                 && DialectUsageAnalyzer.IsFromSqlArtisan(inner.TargetMethod.ContainingAssembly)
-                && IndexedArgument(inner) is { } cast)
+                && WrappedIndexedColumn(inner) is { } cast)
             {
                 return cast;
             }
