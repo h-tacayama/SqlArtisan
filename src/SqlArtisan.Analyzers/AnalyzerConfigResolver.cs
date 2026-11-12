@@ -107,17 +107,20 @@ internal static class AnalyzerConfigResolver
     /// MSBuild property is exactly as silent as one in the
     /// <c>.editorconfig</c> key.
     /// </summary>
-    public static IEnumerable<(TargetDbms Dbms, string Key, string Value)> SetSyntaxValues(
+    public static IEnumerable<(TargetDbms Dbms, string Key, string Value)> NonBlankSyntaxValues(
         AnalyzerConfigOptions options)
     {
         foreach (TargetDbms dbms in AllDbms)
         {
-            if (TryGetSetValue(options, SyntaxKey(dbms), out string editorConfigValue))
+            if (TryGetNonBlankValue(options, SyntaxKey(dbms), out string editorConfigValue))
             {
                 yield return (dbms, SyntaxKey(dbms), editorConfigValue);
             }
 
-            if (TryGetSetValue(options, SyntaxMSBuildPropertyKey(dbms), out string msBuildValue))
+            if (TryGetNonBlankValue(
+                options,
+                SyntaxMSBuildPropertyKey(dbms),
+                out string msBuildValue))
             {
                 yield return (dbms, SyntaxMSBuildPropertyKey(dbms), msBuildValue);
             }
@@ -141,7 +144,7 @@ internal static class AnalyzerConfigResolver
         }
     }
 
-    private static bool HasValue(AnalyzerConfigOptions options, string key) => TryGetSetValue(
+    private static bool HasValue(AnalyzerConfigOptions options, string key) => TryGetNonBlankValue(
         options,
         key,
         out _);
@@ -151,7 +154,10 @@ internal static class AnalyzerConfigResolver
     /// every declared <c>CompilerVisibleProperty</c> as a key, blank when never set,
     /// so reading presence as set would report SQLA0001 to every referencing project.
     /// </summary>
-    public static bool TryGetSetValue(AnalyzerConfigOptions options, string key, out string value)
+    public static bool TryGetNonBlankValue(
+        AnalyzerConfigOptions options,
+        string key,
+        out string value)
     {
         value = options.TryGetValue(key, out string? raw)
             && !string.IsNullOrWhiteSpace(raw) ? raw : string.Empty;

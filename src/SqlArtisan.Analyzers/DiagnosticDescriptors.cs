@@ -31,7 +31,7 @@ internal static class DiagnosticDescriptors
     // {2} carries its own lead-in phrase per call site — the config surfaces
     // don't all read naturally under one fixed phrase. The id also covers
     // valid-but-lossy configuration, not only unrecognized values (#432).
-    public static readonly DiagnosticDescriptor InvalidConfiguration = new(
+    public static readonly DiagnosticDescriptor InvalidConfigurationValue = new(
         id: "SQLA0001",
         title: "SqlArtisan analyzer configuration problem",
         messageFormat: "Invalid value '{1}' for '{0}' (expected {2})",

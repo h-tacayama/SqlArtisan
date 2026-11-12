@@ -70,7 +70,7 @@ public class AnalyzerConfigResolverTests
     }
 
     [Fact]
-    public void SetSyntaxValues_SkipsBlanksAndReadsBothSurfaces()
+    public void NonBlankSyntaxValues_SkipsBlanksAndReadsBothSurfaces()
     {
         var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
         {
@@ -87,7 +87,7 @@ public class AnalyzerConfigResolverTests
                     "tru"),
                 (TargetDbms.Oracle, AnalyzerConfigResolver.SyntaxKey(TargetDbms.Oracle), "19"),
             ],
-            [.. AnalyzerConfigResolver.SetSyntaxValues(options)]);
+            [.. AnalyzerConfigResolver.NonBlankSyntaxValues(options)]);
     }
 
     // The SDK emits every declared property blank, so only a blank .editorconfig key was

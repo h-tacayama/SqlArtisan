@@ -20,7 +20,7 @@ internal static class NotInNullableSubqueryRule
     {
         if (SoleSelectItem(Head(notIn.Arguments[0].Value)) is not IPropertyReferenceOperation item
             || SchemaMetadata.Fact(item, SchemaMetadata.NullableArgument) is not true
-            || FiltersOutNulls(notIn.Arguments[0].Value, item.Property)
+            || MentionsNotNullFilter(notIn.Arguments[0].Value, item.Property)
             || HidesACondition(notIn.Arguments[0].Value))
         {
             return;
@@ -35,7 +35,7 @@ internal static class NotInNullableSubqueryRule
     // The documented remediation is `.Where(col.IsNotNull)` — or its `Not(col.IsNull)`
     // twin, the one predicate three-valued logic never leaves UNKNOWN — so its presence
     // anywhere in the subquery goes quiet, even where it would not exclude the NULLs.
-    private static bool FiltersOutNulls(IOperation subquery, IPropertySymbol column)
+    private static bool MentionsNotNullFilter(IOperation subquery, IPropertySymbol column)
     {
         Stack<IOperation> pending = new();
         pending.Push(subquery);
