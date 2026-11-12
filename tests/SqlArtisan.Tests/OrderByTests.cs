@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Numerics;
 using System.Text;
 using static SqlArtisan.Sql;
 
@@ -409,10 +410,18 @@ public class OrderByTests
         Assert.Equal("SELECT \"t\".code FROM test_table \"t\" ORDER BY 2.5", sql.Text);
     }
 
-    [Fact]
-    public void OrderBy_PostgreSql_IntegerOrdinal_CorrectSql()
+    [Theory]
+    [InlineData((sbyte)1)]
+    [InlineData((byte)1)]
+    [InlineData((short)1)]
+    [InlineData((ushort)1)]
+    [InlineData(1)]
+    [InlineData(1u)]
+    [InlineData(1L)]
+    [InlineData(1UL)]
+    public void OrderBy_PostgreSql_IntegerOrdinal_CorrectSql(object ordinal)
     {
-        SqlStatement sql = Select(_t.Code).From(_t).OrderBy(1).Build(Dbms.PostgreSql);
+        SqlStatement sql = Select(_t.Code).From(_t).OrderBy(ordinal).Build(Dbms.PostgreSql);
 
         Assert.Equal("SELECT \"t\".code FROM test_table \"t\" ORDER BY 1", sql.Text);
     }
@@ -441,6 +450,16 @@ public class OrderByTests
             Select(_t.Code).From(_t).OrderBy(_t.Code, key));
 
         Assert.Equal($"Invalid type for OrderByItem: {typeName}", ex.Message);
+    }
+
+    // Complex passes the numeric check but has no sort-key rendering.
+    [Fact]
+    public void OrderBy_ComplexKey_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).OrderBy(new Complex(1, 0)));
+
+        Assert.Equal("Invalid type for OrderByItem: System.Numerics.Complex", ex.Message);
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Text;
 using static SqlArtisan.Sql;
 
@@ -556,10 +557,18 @@ public class GroupByTests
 
     // ── Ordinal group keys (#521 item 2) ─────────────────────────────
 
-    [Fact]
-    public void GroupBy_Ordinal_CorrectSql()
+    [Theory]
+    [InlineData((sbyte)1)]
+    [InlineData((byte)1)]
+    [InlineData((short)1)]
+    [InlineData((ushort)1)]
+    [InlineData(1)]
+    [InlineData(1u)]
+    [InlineData(1L)]
+    [InlineData(1UL)]
+    public void GroupBy_Ordinal_CorrectSql(object ordinal)
     {
-        SqlStatement sql = Select(_t.Name).From(_t).GroupBy(1).Build();
+        SqlStatement sql = Select(_t.Name).From(_t).GroupBy(ordinal).Build();
 
         Assert.Equal("SELECT \"t\".name FROM test_table \"t\" GROUP BY 1", sql.Text);
     }
@@ -598,19 +607,24 @@ public class GroupByTests
 
     // Rendered with a decimal point so a whole value cannot re-read as an
     // ordinal on the engines that take a fractional constant as one group.
-    [Fact]
-    public void GroupBy_WholeFractionalKey_KeepsItsDecimalPoint()
+    [Theory]
+    [InlineData(2.0)]
+    [InlineData(2.0f)]
+    public void GroupBy_WholeFractionalKey_KeepsItsDecimalPoint(object key)
     {
-        SqlStatement sql = Select(_t.Name).From(_t).GroupBy(2.0).Build();
+        SqlStatement sql = Select(_t.Name).From(_t).GroupBy(key).Build();
 
         Assert.Equal("SELECT \"t\".name FROM test_table \"t\" GROUP BY 2.0", sql.Text);
     }
 
-    [Fact]
-    public void GroupBy_NonFiniteKey_ThrowsArgumentException()
+    [Theory]
+    [InlineData(double.NaN)]
+    [InlineData(float.NaN)]
+    [InlineData(float.PositiveInfinity)]
+    public void GroupBy_NonFiniteKey_ThrowsArgumentException(object key)
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Select(_t.Name).From(_t).GroupBy(double.NaN));
+            Select(_t.Name).From(_t).GroupBy(key));
 
         Assert.Equal("A GROUP BY numeric group key must be finite.", ex.Message);
     }
@@ -682,5 +696,15 @@ public class GroupByTests
             Select(_t.Code).From(_t).GroupBy(new object()));
 
         Assert.Equal("Invalid type for GroupByItem: System.Object", ex.Message);
+    }
+
+    // Complex passes the numeric check but has no group-key rendering.
+    [Fact]
+    public void GroupBy_ComplexKey_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).GroupBy(new Complex(1, 0)));
+
+        Assert.Equal("Invalid type for GroupByItem: System.Numerics.Complex", ex.Message);
     }
 }

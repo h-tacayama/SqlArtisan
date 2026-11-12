@@ -226,6 +226,47 @@ public class MultiRowInsertTests
             ex.Message);
     }
 
+    // A held stage reaches the rows overload after a row, so the batch is measured
+    // against that row, not its own first one.
+    [Fact]
+    public void Values_RowCollectionAfterRowOfOtherWidth_ThrowsArgumentException()
+    {
+        IInsertBuilderTable held = InsertInto(_t);
+        held.Values(1, "a");
+        object[][] rows = [[2, "b", 3], [4, "c"]];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Values(rows));
+
+        Assert.Equal(
+            "All rows in a multi-row INSERT must have the same number of values; "
+                + "the first row has 2, but this row has 3.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Values_RowCollectionWiderThanColumnList_ThrowsArgumentException()
+    {
+        object[][] rows = [[1, "a"]];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(_t, _t.Code).Values(rows));
+
+        Assert.Equal(
+            "The INSERT column list declares 1 column(s), but this VALUES row has 2 value(s).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Values_RowCollectionUnresolvableValue_ThrowsArgumentException()
+    {
+        object[][] rows = [[new object()]];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(_t, _t.Code).Values(rows));
+
+        Assert.Equal("Invalid type for InsertValue: System.Object", ex.Message);
+    }
+
     [Fact]
     public void Values_EmptyRowWithinArray_ThrowsArgumentException()
     {

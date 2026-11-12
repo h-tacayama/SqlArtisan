@@ -1017,6 +1017,17 @@ public class InsertTests
             ex.Message);
     }
 
+    [Fact]
+    public void InsertInto_OutputUnresolvableItem_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code).Output(new object()));
+
+        Assert.Equal("Invalid type for OutputItem: System.Object", ex.Message);
+    }
+
     // A scalar subquery is a value in VALUES on every dialect; the resolver
     // wraps it like the expression resolver does (release audit pass 8).
     [Fact]

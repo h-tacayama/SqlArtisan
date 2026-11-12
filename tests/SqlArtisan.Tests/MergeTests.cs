@@ -155,6 +155,7 @@ public class MergeTests
     [InlineData("ConditionedBranch")]
     [InlineData("ThenDelete")]
     [InlineData("BySource")]
+    [InlineData("TwoOfEach")]
     public void Merge_ActionFilterBesideBranchOracleRefuses_ThrowsArgumentException(string branch)
     {
         IMergeBuilderWhen filtered =
@@ -178,7 +179,21 @@ public class MergeTests
                 .ThenInsert(_t.Code)
                 .Values(_s.Code)
                 .Where(_s.Code > 1),
-            _ => filtered.WhenNotMatchedBySource().ThenDelete(),
+            "BySource" => filtered.WhenNotMatchedBySource().ThenDelete(),
+            // Two filters beside two refused branches: a second of either must not cancel
+            // the first.
+            _ => MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenMatched()
+                .ThenUpdateSet(_t.Name == _s.Name)
+                .Where(_t.Code > 1)
+                .DeleteWhere(_t.Code > 9)
+                .WhenNotMatched(_s.Code > 2)
+                .ThenInsert(_t.Code)
+                .Values(_s.Code)
+                .WhenNotMatchedBySource(_t.Code > 3)
+                .ThenUpdateSet(_t.Name == "x"),
         }).Build(Dbms.Oracle));
 
         Assert.Equal(
@@ -365,17 +380,22 @@ public class MergeTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
-    [Fact]
-    public void Merge_PostgreSql_OmitsTerminatingSemicolon()
+    [Theory]
+    [InlineData(Dbms.MySql)]
+    [InlineData(Dbms.Oracle)]
+    [InlineData(Dbms.PostgreSql)]
+    [InlineData(Dbms.Sqlite)]
+    public void Merge_OmitsTerminatingSemicolon(Dbms dbms)
     {
         // Arrange
+        char q = dbms == Dbms.MySql ? '`' : '"';
         StringBuilder expected = new();
-        expected.Append("MERGE INTO test_table \"t\" ");
-        expected.Append("USING test_table \"s\" ");
-        expected.Append("ON (\"t\".code = \"s\".code) ");
-        expected.Append("WHEN MATCHED THEN UPDATE SET name = \"s\".name ");
+        expected.Append($"MERGE INTO test_table {q}t{q} ");
+        expected.Append($"USING test_table {q}s{q} ");
+        expected.Append($"ON ({q}t{q}.code = {q}s{q}.code) ");
+        expected.Append($"WHEN MATCHED THEN UPDATE SET name = {q}s{q}.name ");
         expected.Append("WHEN NOT MATCHED THEN INSERT (code, name) ");
-        expected.Append("VALUES (\"s\".code, \"s\".name)");
+        expected.Append($"VALUES ({q}s{q}.code, {q}s{q}.name)");
 
         // Act
         SqlStatement sql =
@@ -384,7 +404,7 @@ public class MergeTests
             .On(_t.Code == _s.Code)
             .WhenMatched().ThenUpdateSet(_t.Name == _s.Name)
             .WhenNotMatched().ThenInsert(_cols.Code, _cols.Name).Values(_s.Code, _s.Name)
-            .Build(Dbms.PostgreSql);
+            .Build(dbms);
 
         // Assert
         Assert.Equal(expected.ToString(), sql.Text);
@@ -827,6 +847,27 @@ public class MergeTests
     }
 
     [Fact]
+    public void ThenInsert_ConditionedBranchNoColumnList_CorrectSql()
+    {
+        StringBuilder expected = new();
+        expected.Append("MERGE INTO test_table \"t\" ");
+        expected.Append("USING test_table \"s\" ");
+        expected.Append("ON (\"t\".code = \"s\".code) ");
+        expected.Append("WHEN NOT MATCHED AND \"s\".code > :0 THEN INSERT ");
+        expected.Append("VALUES (\"s\".code, \"s\".name, \"s\".created_at)");
+
+        SqlStatement sql =
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenNotMatched(_s.Code > 0).ThenInsert().Values(_s.Code, _s.Name, _s.CreatedAt)
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(0, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
     public void ThenInsertValues_NullValue_EmitsNullLiteral()
     {
         SqlStatement sql =
@@ -869,6 +910,18 @@ public class MergeTests
         Assert.Equal(
             "The INSERT column list declares 1 column(s), but this VALUES row has 2 value(s).",
             ex.Message);
+    }
+
+    [Fact]
+    public void ThenInsertValues_NoValues_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenNotMatched().ThenInsert(_cols.Code).Values());
+
+        Assert.Equal("A VALUES row requires at least one value.", ex.Message);
     }
 
     [Fact]
@@ -954,6 +1007,21 @@ public class MergeTests
         held.WhenMatched(_t.Code == 1);
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Build());
+
+        Assert.Equal(
+            "A MERGE WHEN MATCHED branch requires an action (UPDATE SET or DELETE).",
+            ex.Message);
+    }
+
+    // A branch left without an action is caught wherever it sits, not only last.
+    [Fact]
+    public void WhenMatched_EarlierBranchWithoutAction_ThrowsArgumentException()
+    {
+        IMergeBuilderOn held = MergeInto(_t).Using(_s).On(_t.Code == _s.Code);
+        held.WhenMatched();
+        IMergeBuilderWhen stage = held.WhenNotMatched().ThenInsert(_cols.Code).Values(_s.Code);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => stage.Build());
 
         Assert.Equal(
             "A MERGE WHEN MATCHED branch requires an action (UPDATE SET or DELETE).",

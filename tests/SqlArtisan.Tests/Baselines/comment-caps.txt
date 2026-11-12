@@ -86,4 +86,3 @@ tests/SqlArtisan.Tests/ParameterAssertionRatchetTests.cs 1
 tests/SqlArtisan.Tests/PublicSurfaceBoundaryTests.cs 1
 tests/SqlArtisan.Tests/RegressionTests/DateTimePartNameCollisionTests.cs 1
 tests/SqlArtisan.Tests/UpdateTests.cs 1
-tests/SqlArtisan.Tests/UpsertTests.cs 1

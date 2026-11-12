@@ -336,11 +336,19 @@ public class SelectTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
-    [Fact]
-    public void Select_DistinctOnOrdinal_CorrectSql()
+    [Theory]
+    [InlineData((sbyte)1)]
+    [InlineData((byte)1)]
+    [InlineData((short)1)]
+    [InlineData((ushort)1)]
+    [InlineData(1)]
+    [InlineData(1u)]
+    [InlineData(1L)]
+    [InlineData(1UL)]
+    public void Select_DistinctOnOrdinal_CorrectSql(object ordinal)
     {
         // #673: PostgreSQL reads the integer as the first select-list column.
-        SqlStatement sql = Select(DistinctOn(1), _t.Code, _t.Name).From(_t).Build();
+        SqlStatement sql = Select(DistinctOn(ordinal), _t.Code, _t.Name).From(_t).Build();
 
         Assert.Equal(
             "SELECT DISTINCT ON (1) \"t\".code, \"t\".name FROM test_table \"t\"", sql.Text);
@@ -530,6 +538,22 @@ public class SelectTests
         expected.Append("SELECT ");
         expected.Append("/*+ ANY HINT */ ");
         expected.Append("\"t\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    // One token past twice the initial 2,048-char buffer, after text the growth must carry.
+    [Fact]
+    public void Select_Oracle_HintLongerThanTheBuffer_CorrectSql()
+    {
+        string hint = "/*+ " + new string('x', 5000) + " */";
+
+        SqlStatement sql = Select(Hints(hint), _t.Code).From(_t).Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append(hint);
+        expected.Append(" \"t\".code FROM test_table \"t\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -894,6 +918,7 @@ public class SelectTests
     // A SELECT prefix written out of the overloads' order lands in an item slot (#679).
     [Theory]
     [InlineData("DISTINCT")]
+    [InlineData("DISTINCT ON")]
     [InlineData("TOP")]
     [InlineData("An optimizer hint")]
     public void Select_PrefixOutOfOrder_ThrowsArgumentException(string keyword)
@@ -901,6 +926,7 @@ public class SelectTests
         object prefix = keyword switch
         {
             "DISTINCT" => Distinct,
+            "DISTINCT ON" => DistinctOn(_t.Name),
             "TOP" => Top(5),
             _ => Hints("/*+ FULL(t) */"),
         };
