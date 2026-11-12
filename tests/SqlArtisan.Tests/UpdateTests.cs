@@ -632,11 +632,11 @@ public class UpdateTests
         {
             if (direct)
             {
-                Update(t).InnerJoin(s).Using(s.Code, null!);
+                Update(t).InnerJoin(s).Using(s.Code, s.Name, null!);
             }
             else
             {
-                Update(t).Set(t.Name == "a").From(t).InnerJoin(s).Using(s.Code, null!);
+                Update(t).Set(t.Name == "a").From(t).InnerJoin(s).Using(s.Code, s.Name, null!);
             }
         });
 

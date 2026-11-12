@@ -265,9 +265,6 @@ public class FactoryGuardSweepTests
         }
     }
 
-    // Element injections are the shapes the guards rule's element clause covers;
-    // a whole-argument null on a single reference parameter keeps the loud-NRE
-    // exemption, so only these labels turn an NRE into a sweep violation.
     private static string BareNre(string key) =>
         $"BARE NRE {key} — a null element or params array owes a named ArgumentNullException.";
 
@@ -277,6 +274,9 @@ public class FactoryGuardSweepTests
         label.EndsWith("=null", StringComparison.Ordinal)
         && method.GetParameters()[index].GetCustomAttribute<ParamArrayAttribute>() is not null;
 
+    // Element injections are the shapes the guards rule's element clause covers; with a
+    // null params array they are the labels that turn an NRE into a sweep violation, since
+    // a whole-argument null on a single reference parameter keeps the loud-NRE exemption.
     private static bool IsElementInjection(string label) =>
         label.EndsWith("=[null]", StringComparison.Ordinal)
         || label.EndsWith("=[(null, 1)]", StringComparison.Ordinal);

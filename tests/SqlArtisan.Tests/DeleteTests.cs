@@ -754,7 +754,7 @@ public class DeleteTests
         TestTable s = new("s");
 
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
-            DeleteFrom(t).From(t).InnerJoin(s).Using(s.Code, null!));
+            DeleteFrom(t).From(t).InnerJoin(s).Using(s.Code, s.Name, null!));
 
         Assert.Equal(
             "A USING column list must not contain a null column. (Parameter 'additionalColumns')",

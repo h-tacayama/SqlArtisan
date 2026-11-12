@@ -411,14 +411,7 @@ public class OrderByTests
     }
 
     [Theory]
-    [InlineData((sbyte)1)]
-    [InlineData((byte)1)]
-    [InlineData((short)1)]
-    [InlineData((ushort)1)]
-    [InlineData(1)]
-    [InlineData(1u)]
-    [InlineData(1L)]
-    [InlineData(1UL)]
+    [MemberData(nameof(IntegerOrdinals.One), MemberType = typeof(IntegerOrdinals))]
     public void OrderBy_PostgreSql_IntegerOrdinal_CorrectSql(object ordinal)
     {
         SqlStatement sql = Select(_t.Code).From(_t).OrderBy(ordinal).Build(Dbms.PostgreSql);

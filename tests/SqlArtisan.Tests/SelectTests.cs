@@ -337,14 +337,7 @@ public class SelectTests
     }
 
     [Theory]
-    [InlineData((sbyte)1)]
-    [InlineData((byte)1)]
-    [InlineData((short)1)]
-    [InlineData((ushort)1)]
-    [InlineData(1)]
-    [InlineData(1u)]
-    [InlineData(1L)]
-    [InlineData(1UL)]
+    [MemberData(nameof(IntegerOrdinals.One), MemberType = typeof(IntegerOrdinals))]
     public void Select_DistinctOnOrdinal_CorrectSql(object ordinal)
     {
         // #673: PostgreSQL reads the integer as the first select-list column.

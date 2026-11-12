@@ -558,14 +558,7 @@ public class GroupByTests
     // ── Ordinal group keys (#521 item 2) ─────────────────────────────
 
     [Theory]
-    [InlineData((sbyte)1)]
-    [InlineData((byte)1)]
-    [InlineData((short)1)]
-    [InlineData((ushort)1)]
-    [InlineData(1)]
-    [InlineData(1u)]
-    [InlineData(1L)]
-    [InlineData(1UL)]
+    [MemberData(nameof(IntegerOrdinals.One), MemberType = typeof(IntegerOrdinals))]
     public void GroupBy_Ordinal_CorrectSql(object ordinal)
     {
         SqlStatement sql = Select(_t.Name).From(_t).GroupBy(ordinal).Build();
