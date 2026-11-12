@@ -5,8 +5,8 @@ using System.Reflection;
 namespace SqlArtisan.Analyzers.Tests;
 
 // A factory's return type offers only what some engine with the function runs
-// (public-api-design.md § Factory return types): STDEV took a Filter only SQL Server, which
-// has no FILTER, could have run (#815).
+// (public-api-design.md § Factory return types), read here from the matrix's Filter cell:
+// STDEV took a Filter the cell gives none of its engines (#815).
 public class FilterCapabilityTests
 {
     [Fact]

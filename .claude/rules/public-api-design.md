@@ -435,8 +435,9 @@ parameter takes (`Sql.Nowait` → `LockBehaviorBase`, `a == b` → `EqualityCond
 which `Set` takes), or else `SqlExpression`, `SqlCondition` or `SqlPart` (`Sql.Abs`,
 `a < b`, `Sql.Rollup`). A family base is returned only where an engine with the
 function runs every member the base offers: `Sql.Stdev`, `Stdevp`, `Var` and `Varp`
-return `AggregateFunction`, not `UnfilteredAggregateFunction`, since SQL Server, their
-one engine, has no `FILTER` (#815, after #662's DISTINCT windows;
+return `AggregateFunction`, not `UnfilteredAggregateFunction`, since the matrix's
+`Filter` cell leaves out SQL Server, their one engine (rejected on SQL Server 2022, the
+sweep's `Filter` case; #815, after #662's DISTINCT windows;
 `FilterCapabilityTests`). Every other concrete node is `internal`;
 `PublicSurfaceBoundaryTests` holds both halves. No type is kept for a modifier not
 yet offered — which ones a later release might add is a forecast, not a criterion.
