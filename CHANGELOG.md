@@ -5,7 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
 ### Changed
+- **Breaking:** `Sql.Stdev`, `Sql.Stdevp`, `Sql.Var` and `Sql.Varp` return
+  `AggregateFunction` instead of `UnfilteredAggregateFunction`, so they no
+  longer offer `.Filter(...)`: SQL Server, the one engine with these functions,
+  has no `FILTER`, so the SQL it built ran nowhere. `.Over(...)` is unchanged.
+  Code compiled against an earlier release that calls one of the four must be
+  rebuilt. (#815)
 - **Breaking:** `Sql.Else`'s parameter is named `elseExpr`, not `thenExpr`, so a
   call that names it (`Else(thenExpr: x)`) no longer compiles, and `Else(null)`
   reports `elseExpr` as the parameter.

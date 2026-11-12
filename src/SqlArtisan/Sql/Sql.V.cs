@@ -69,7 +69,7 @@ public static partial class Sql
     /// <returns>An aggregate emitting <c>VAR(expr)</c>.</returns>
     /// <remarks>SQL Server syntax. MySQL, Oracle, and PostgreSQL spell this
     /// <see cref="VarSamp(object)"/>.</remarks>
-    public static UnfilteredAggregateFunction Var(object expr) =>
+    public static AggregateFunction Var(object expr) =>
         new VarFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>
@@ -93,7 +93,7 @@ public static partial class Sql
     /// <returns>An aggregate emitting <c>VARP(expr)</c>.</returns>
     /// <remarks>SQL Server syntax. MySQL, Oracle, and PostgreSQL spell this
     /// <see cref="VarPop(object)"/>.</remarks>
-    public static UnfilteredAggregateFunction Varp(object expr) =>
+    public static AggregateFunction Varp(object expr) =>
         new VarpFunction(Resolve(expr, nameof(expr)));
 
     /// <summary>

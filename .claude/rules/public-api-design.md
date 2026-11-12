@@ -76,6 +76,13 @@ token (`Contains`, the plainer predicate use) and the other gets an invented
 qualifier (`ContainsScore`, #233-class invention, justified only by the CLR
 constraint — record any new instance here rather than resolving it ad hoc).
 
+**Recorded instance of the CLR constraint — `AgainstScore`:** MySQL's
+`MATCH ... AGAINST` is a predicate in `WHERE` and a relevance score in a select list,
+both from `MatchFunction` with the same `(object)` and `(object, SearchModifier)`
+signatures, so the predicate keeps the token (`Against` → `SqlCondition`) and the
+score takes the qualifier (`AgainstScore` → `SqlExpression`), as `ContainsScore` does
+(#815).
+
 **Recorded instance of the CLR constraint — `AsTable`:** a subquery's and an
 `Unnest(...)`'s scalar alias (`As(string)` → `ExpressionAlias`) and their
 derived-table alias would share the `(string)` signature, which no overload
@@ -426,7 +433,11 @@ the family base that declares its members (`Sql.Sum` →
 `UnfilteredAggregateFunction`, `Sql.RowNumber` → `AnalyticFunction`), a base a
 parameter takes (`Sql.Nowait` → `LockBehaviorBase`, `a == b` → `EqualityCondition`,
 which `Set` takes), or else `SqlExpression`, `SqlCondition` or `SqlPart` (`Sql.Abs`,
-`a < b`, `Sql.Rollup`). Every other concrete node is `internal`;
+`a < b`, `Sql.Rollup`). A family base is returned only where an engine with the
+function runs every member the base offers: `Sql.Stdev`, `Stdevp`, `Var` and `Varp`
+return `AggregateFunction`, not `UnfilteredAggregateFunction`, since SQL Server, their
+one engine, has no `FILTER` (#815, after #662's DISTINCT windows;
+`FilterCapabilityTests`). Every other concrete node is `internal`;
 `PublicSurfaceBoundaryTests` holds both halves. No type is kept for a modifier not
 yet offered — which ones a later release might add is a forecast, not a criterion.
 One added later to a function of a shared return type comes as an overload or a
@@ -591,6 +602,13 @@ rejects a value, and `object[]` takes no converter, since its value is no differ
 a list (`RegisteredArrayListSweepTests`). No analyzer reports an unregistered
 type: registration is a run-time fact, usually in another project, and the throw
 already lands at the call and names the type (#793).
+`SqlArtisan.Dapper`'s `AddTypeHandler` keeps the `Value`, `DbType` and `Size` a
+handler's `SetValue` sets and drops its `Precision` and `Scale`, as its remarks say:
+`BindValue`, the one binding every execution layer reads, has no place for them, and
+none has been asked for (ADR 0010). Rejecting a handler that sets them would refuse a
+Dapper handler a caller already has for no other reason. Carrying
+them comes, if ever, as an opt-in member, never by default, since a handler's `Scale`
+would start to change the value an existing call binds (#815).
 
 **A type added to the list after 1.0 loses to a registered converter (#814):**
 `docs/versioning.md` counts the addition as minor only because a caller who
@@ -702,6 +720,14 @@ named-notation argument (`p => v`); `*` as an argument; and a table function in
 returns `SqlExpression` (ADR 0027), so any of them comes as a factory or an
 overload of its own, never a member on the result. Its `MatrixKey` is
 `DbmsSupport.All`, as `Hints`'s is: the analyzer cannot know the named function.
+No analyzer rule reports a keyword-shaped name, though
+`Select(Function("distinct", t.A))` emits `SELECT distinct(...)`, read as
+`SELECT DISTINCT` (#815): which names an engine
+reads as a keyword differs by engine and overlaps real functions (MySQL's `INSERT()`,
+`REPLACE()`, `LEFT()`, `INTERVAL()`), so a list would report correct calls (ADR 0003),
+and `docs/functions.md` § Other Functions already says a keyword name reads as that
+keyword. A rule narrowed to the names that change a query's meaning (`DISTINCT`,
+`ALL`, `NOT`, `EXISTS`, `ANY`, `SOME`) is a minor addition when a caller needs it.
 
 **Several `ON CONFLICT` clauses in one `INSERT` are not offered (decided —
 do not re-file):** SQLite runs `ON CONFLICT (id) DO UPDATE ... ON CONFLICT
