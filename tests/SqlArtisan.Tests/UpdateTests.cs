@@ -762,7 +762,7 @@ public class UpdateTests
     }
 
     // A star item's width is the schema's, which the library cannot see, so the INTO column
-    // list is not checked against one OUTPUT item here; the engine counts the columns.
+    // list is not checked against one OUTPUT item here: it is left to the engine.
     [Fact]
     public void Update_SqlServer_OutputStarIntoColumnList_CorrectSql()
     {
