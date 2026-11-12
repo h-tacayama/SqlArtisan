@@ -761,6 +761,35 @@ public class UpdateTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // A star item's width is the schema's, which the library cannot see, so the INTO column
+    // list is not checked against one OUTPUT item here; the engine counts the columns.
+    [Fact]
+    public void Update_SqlServer_OutputStarIntoColumnList_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+        ArchiveTable a = new();
+
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == s.Name)
+            .Output(s.Asterisk)
+            .Into(a, a.Code, a.Name)
+            .From(t)
+            .InnerJoin(s).On(t.Code == s.Code)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE \"t\" ");
+        expected.Append("SET \"t\".name = \"s\".name ");
+        expected.Append("OUTPUT \"s\".* INTO archive_table (code, name) ");
+        expected.Append("FROM test_table \"t\" ");
+        expected.Append("INNER JOIN test_table \"s\" ");
+        expected.Append("ON \"t\".code = \"s\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
     [Fact]
     public void Update_SqlServer_OutputIntoAliasedTarget_ThrowsArgumentException()
     {

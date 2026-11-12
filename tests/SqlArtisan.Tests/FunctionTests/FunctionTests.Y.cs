@@ -19,4 +19,14 @@ public partial class FunctionTests
 
         Assert.Equal("YEAR precision must be between 0 and 9.", ex.Message);
     }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(9)]
+    public void Year_PrecisionAtEitherBound_CorrectSql(int precision)
+    {
+        SqlStatement sql = Select(IntervalLiteral("1", Year(precision))).Build(Dbms.Oracle);
+
+        Assert.Equal($"SELECT INTERVAL '1' YEAR({precision})", sql.Text);
+    }
 }
