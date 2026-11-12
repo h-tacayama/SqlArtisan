@@ -635,6 +635,28 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_SqlServer_OutputIntoWithoutColumnList_CorrectSql()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == "a")
+            .Output(Deleted(t.Name))
+            .Into(a)
+            .Where(t.Code == 1)
+            .Build(Dbms.SqlServer);
+
+        Assert.Equal(
+            "UPDATE test_table SET name = @0 OUTPUT DELETED.name INTO archive_table "
+                + "WHERE code = @1",
+            sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<string>("@0"));
+        Assert.Equal(1, sql.Parameters.Get<int>("@1"));
+    }
+
+    [Fact]
     public void Update_OutputNullExpression_ThrowsArgumentNullException()
     {
         TestTable t = new();

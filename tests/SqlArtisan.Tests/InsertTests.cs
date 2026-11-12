@@ -940,6 +940,29 @@ public class InsertTests
         Assert.Equal("x", sql.Parameters.Get<string>("@1"));
     }
 
+    // The positional INTO (#579) maps the OUTPUT list onto the table's own columns, which
+    // the library cannot see, so no width is checked against one OUTPUT item here.
+    [Fact]
+    public void InsertInto_SqlServer_OutputIntoWithoutColumnList_CorrectSql()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        SqlStatement sql =
+            InsertInto(t, t.Code, t.Name)
+            .Output(Inserted(t.Code))
+            .Into(a)
+            .Values(1, "x")
+            .Build(Dbms.SqlServer);
+
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) "
+                + "OUTPUT INSERTED.code INTO archive_table VALUES (@0, @1)",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+        Assert.Equal("x", sql.Parameters.Get<string>("@1"));
+    }
+
     [Fact]
     public void InsertInto_SqlServer_OutputIntoDuplicateColumn_ThrowsArgumentException()
     {

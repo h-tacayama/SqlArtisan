@@ -822,6 +822,25 @@ public class DeleteTests
     }
 
     [Fact]
+    public void DeleteFrom_SqlServer_OutputIntoWithoutColumnList_CorrectSql()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .Output(Deleted(t.Code))
+            .Into(a)
+            .Where(t.Code == 1)
+            .Build(Dbms.SqlServer);
+
+        Assert.Equal(
+            "DELETE FROM test_table OUTPUT DELETED.code INTO archive_table WHERE code = @0",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+    }
+
+    [Fact]
     public void DeleteFrom_SqlServer_OutputAlias_CorrectSql()
     {
         // SQL Server permits an OUTPUT column alias, so aliases are not rejected.
