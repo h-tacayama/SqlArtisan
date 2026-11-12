@@ -52,10 +52,10 @@ internal sealed class CaptureParameter : IDbDataParameter
 
     // A handler that leaves Value null fails under Dapper on most providers ("Value must be
     // set"), so it fails here too rather than binding NULL; DBNull.Value is SQL NULL.
-    internal object Captured(Type type)
+    internal object Captured(Type handledType)
     {
         object value = Value ?? throw new InvalidOperationException(
-            $"The type handler for {type} set no parameter Value; "
+            $"The type handler for {handledType} set no parameter Value; "
                 + "set DBNull.Value for SQL NULL.");
         return _dbTypeSet || _sizeSet
             ? new BindValue(value, _dbTypeSet ? _dbType : null, size: _sizeSet ? _size : null)

@@ -23,7 +23,7 @@ internal sealed class ConsoleUI
 
         int port = ReadPort(dbms);
 
-        string serviceName = ReadRequired("Service name (or database name): ", "database name");
+        string database = ReadRequired("Service name (or database name): ", "database name");
 
         string? schema = null;
         if (dbms == Dbms.PostgreSql)
@@ -42,7 +42,7 @@ internal sealed class ConsoleUI
         {
             // MySQL has no schema layer above the database, so information_schema
             // is filtered by the database name itself.
-            schema = serviceName;
+            schema = database;
         }
 
         string username = ReadRequired("Username: ", "user name");
@@ -54,7 +54,7 @@ internal sealed class ConsoleUI
             dbms,
             host,
             port,
-            serviceName,
+            database,
             schema ?? username,
             username,
             password);

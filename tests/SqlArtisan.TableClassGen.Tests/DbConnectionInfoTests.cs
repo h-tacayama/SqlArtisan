@@ -11,7 +11,7 @@ public class DbConnectionInfoTests
             Dbms.PostgreSql,
             host: "127.0.0.1",
             port: 1,
-            serviceName: "db",
+            database: "db",
             schema: "public",
             username: "u",
             password: "p");
@@ -109,7 +109,7 @@ public class DbConnectionInfoTests
             Dbms.Sqlite,
             host: string.Empty,
             port: 0,
-            serviceName: "/tmp/missing.db",
+            database: "/tmp/missing.db",
             schema: string.Empty,
             username: string.Empty,
             password: string.Empty);
@@ -131,7 +131,7 @@ public class DbConnectionInfoTests
             dbms,
             host: "localhost",
             port: 1521,
-            serviceName: "db",
+            database: "db",
             schema: "typo",
             username: "u",
             password: "p");
@@ -147,7 +147,7 @@ public class DbConnectionInfoTests
             Dbms.PostgreSql,
             host: "localhost",
             port: 5432,
-            serviceName: "db",
+            database: "db",
             schema: "typo",
             username: "u",
             password: "p");
@@ -170,7 +170,7 @@ public class DbConnectionInfoTests
             dbms,
             host: "localhost",
             port: 1,
-            serviceName: "db",
+            database: "db",
             schema: "s",
             username: "u",
             password: "x;Database=evil");

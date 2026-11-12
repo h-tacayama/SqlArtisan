@@ -11,7 +11,7 @@ internal sealed class DbConnectionInfo(
     Dbms dbms,
     string host,
     int port,
-    string serviceName,
+    string database,
     string schema,
     string username,
     string password)
@@ -22,7 +22,7 @@ internal sealed class DbConnectionInfo(
 
     public int Port => port;
 
-    public string ServiceName => serviceName;
+    public string Database => database;
 
     public string Schema => schema;
 
@@ -72,7 +72,7 @@ internal sealed class DbConnectionInfo(
         Dbms switch
         {
             Dbms.Sqlite =>
-                $"No tables found in the SQLite database file '{ServiceName}'; check --file",
+                $"No tables found in the SQLite database file '{Database}'; check --file",
             Dbms.MySql =>
                 $"No tables found in schema '{Schema}'; check --schema, or --database, which "
                     + "it defaults to (see --help)",
@@ -94,7 +94,7 @@ internal sealed class DbConnectionInfo(
     private string CannotConnectMessage =>
         Dbms switch
         {
-            Dbms.Sqlite => $"Cannot open the SQLite database file '{ServiceName}'; check --file",
+            Dbms.Sqlite => $"Cannot open the SQLite database file '{Database}'; check --file",
             _ =>
                 $"Cannot connect to {Host}:{Port} as '{Username}'; check --host, --port, "
                     + "--database, --user, and SQLARTISAN_DB_PASSWORD (see --help)",
@@ -105,7 +105,7 @@ internal sealed class DbConnectionInfo(
     public string CannotReadCatalogMessage =>
         Dbms switch
         {
-            Dbms.Sqlite => $"Cannot read the SQLite database file '{ServiceName}'; check --file",
+            Dbms.Sqlite => $"Cannot read the SQLite database file '{Database}'; check --file",
             _ => $"Cannot read the catalog on {Host}:{Port} as '{Username}' after connecting",
         };
 
@@ -130,13 +130,13 @@ internal sealed class DbConnectionInfo(
             {
                 UserID = Username,
                 Password = Password,
-                DataSource = $"{Host}:{Port}/{ServiceName}",
+                DataSource = $"{Host}:{Port}/{Database}",
             }.ConnectionString,
             Dbms.PostgreSql => new NpgsqlConnectionStringBuilder
             {
                 Host = Host,
                 Port = Port,
-                Database = ServiceName,
+                Database = Database,
                 Username = Username,
                 Password = Password,
             }.ConnectionString,
@@ -144,22 +144,22 @@ internal sealed class DbConnectionInfo(
             {
                 Server = Host,
                 Port = (uint)Port,
-                Database = ServiceName,
+                Database = Database,
                 UserID = Username,
                 Password = Password,
             }.ConnectionString,
-            // SQLite is file-based: ServiceName carries the database path. The default
+            // SQLite is file-based: Database carries the file path. The default
             // ReadWriteCreate would open a mistyped --file as an empty catalog.
             Dbms.Sqlite => new SqliteConnectionStringBuilder
             {
-                DataSource = ServiceName,
+                DataSource = Database,
                 Mode = SqliteOpenMode.ReadWrite,
             }.ConnectionString,
             // SQL Server takes host,port (comma); TrustServerCertificate eases dev/container TLS.
             Dbms.SqlServer => new SqlConnectionStringBuilder
             {
                 DataSource = $"{Host},{Port}",
-                InitialCatalog = ServiceName,
+                InitialCatalog = Database,
                 UserID = Username,
                 Password = Password,
                 TrustServerCertificate = true,

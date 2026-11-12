@@ -63,7 +63,7 @@ public class FixtureCorpusTests : IDisposable
         IReadOnlyList<TableResult> results = Run(db, RunMode.Check, subfolders);
 
         TableResult removed = Assert.Single(results, r => r.Status == TableStatus.Removed);
-        Assert.Equal("OrderItemTable.cs", removed.TableName);
+        Assert.Equal("OrderItemTable.cs", removed.Name);
     }
 
     // 0.8 through 0.12 wrote the core names unqualified: the columns must still

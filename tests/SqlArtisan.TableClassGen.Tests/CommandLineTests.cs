@@ -14,7 +14,7 @@ public class CommandLineTests
 
         Assert.Equal(RunMode.Generate, options.Mode);
         Assert.Equal(Dbms.Sqlite, options.Connection.Dbms);
-        Assert.Equal("app.db", options.Connection.ServiceName);
+        Assert.Equal("app.db", options.Connection.Database);
         Assert.Equal("MyApp.Tables", options.Settings.OutputNamespace);
         Assert.Empty(options.Settings.TableNames);
         Assert.False(options.Json);
@@ -113,7 +113,7 @@ public class CommandLineTests
 
         RunOptions options = CommandLine.Parse(["--config", config.Path]);
 
-        Assert.Equal("app.db", options.Connection.ServiceName);
+        Assert.Equal("app.db", options.Connection.Database);
         Assert.Equal("Gen", options.Settings.OutputDirectory);
     }
 

@@ -759,7 +759,7 @@ outlive the run that made them, so the API rules above have a CLI analogue
 - **Script-readable output is spelled explicitly.** An option name, an exit
   code, and a `--format json` field or value is spelled at the output site (a
   string literal, or an anonymous-type member named explicitly:
-  `name = r.TableName`, never the projection `r.TableName`), never derived
+  `name = r.Name`, never the projection `r.Name`), never derived
   from an internal identifier (`ToString()`, `nameof`, a projection
   initializer, or a serialized named type's properties): renaming
   `TableStatus.Removed` must not change what a script parses.
