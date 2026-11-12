@@ -612,7 +612,8 @@ type-handler paragraph, `AddValueConverter`'s `<typeparam>` and `<exception>`), 
 its CHANGELOG entry says that `SqlArtisan.Dapper` 0.15.0-beta.1, whose
 `AddTypeHandler` probed `BindArray`, skips registering a handler for the type with
 SqlArtisan. `BindParameterTypeContractTests` holds the set and, for the likely
-additions, every position's conversion.
+additions, the conversion through each value resolver (`Sql.Bind`, `SelectItemResolver`,
+`InsertValueResolver`, `ExpressionResolver.Resolve`), so a new resolver adds a case there.
 
 **Not yet offered (#582):** the A3 review found these DML forms with no
 spelling here. Each would be a new member, overload or factory, which

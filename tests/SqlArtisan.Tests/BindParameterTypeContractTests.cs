@@ -11,7 +11,7 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.Tests;
 
 // docs/versioning.md lets a 1.x add a Bind Parameter Type only because a converter registered
-// for it keeps converting it, which the shipped SqlArtisan.Dapper relies on (#814). Both
+// for it keeps converting it, which the shipped SqlArtisan.Dapper relies on (#814). Its
 // tests register converters process-wide, so they run alone.
 [Collection("NonParallelTests")]
 public class BindParameterTypeContractTests : IDisposable
@@ -114,7 +114,7 @@ public class BindParameterTypeContractTests : IDisposable
 
     [Theory]
     [MemberData(nameof(Candidates))]
-    public void RegisteredCandidate_EveryValuePosition_BindsTheConvertedValue(
+    public void RegisteredCandidate_EachValueResolver_BindsTheConvertedValue(
         string name, object value)
     {
         Register(value.GetType(), _ => Converted);
