@@ -14,7 +14,7 @@ public sealed class QuantifiedSubquery : SqlPart, IIncompleteExpression
     internal QuantifiedSubquery(string keyword, ISubquery subquery)
     {
         _keyword = keyword;
-        _subquery = SqlBuilderBase.Composed(subquery);
+        _subquery = SqlBuilderBase.MarkComposed(subquery);
     }
 
     string IIncompleteExpression.IncompleteMessage => IncompleteMessageFor(_keyword);

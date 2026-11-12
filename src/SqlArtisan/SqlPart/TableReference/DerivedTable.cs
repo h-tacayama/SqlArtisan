@@ -22,8 +22,8 @@ public sealed class DerivedTable(string name) : DerivedTableBase(name), IColumnA
     public DbColumn Column(string name) => new(this, name);
 
     /// <inheritdoc/>
-    public DbColumn Column(DbColumn source) => new(this, source.Name, source.QuoteName);
+    public DbColumn Column(DbColumn source) => new(this, source.Name, source.IsNameQuoted);
 
     /// <inheritdoc/>
-    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name, alias.QuoteAlias);
+    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name, alias.IsAliasQuoted);
 }

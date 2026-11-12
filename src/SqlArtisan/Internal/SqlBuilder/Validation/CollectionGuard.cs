@@ -7,11 +7,11 @@ internal static class CollectionGuard
 {
     // A null array is the C# binding for a lone null argument (From(null)), so it
     // takes a construct-named message rather than the runtime's; paramName is the caller's.
-    internal static void ThrowIfEmpty<T>(T[] items, string paramName, string message) =>
-        ThrowIfEmpty(items, paramName, message, message);
+    internal static void ThrowIfNullOrEmpty<T>(T[] items, string paramName, string message) =>
+        ThrowIfNullOrEmpty(items, paramName, message, message);
 
     // nullMessage is the element message, where the null more likely stood for an element.
-    internal static void ThrowIfEmpty<T>(
+    internal static void ThrowIfNullOrEmpty<T>(
         T[] items, string paramName, string message, string nullMessage)
     {
         if (items is null)
@@ -25,7 +25,7 @@ internal static class CollectionGuard
         }
     }
 
-    internal static void ThrowIfEmpty<T>(
+    internal static void ThrowIfNullOrEmpty<T>(
         IReadOnlyCollection<T> items,
         string paramName,
         string message)

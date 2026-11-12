@@ -4,5 +4,5 @@ namespace SqlArtisan.Internal;
 // whether it carries WITH TIES, without unwrapping the concrete clause variant.
 internal interface ITopSelectClause
 {
-    bool WithTies { get; }
+    bool HasWithTies { get; }
 }

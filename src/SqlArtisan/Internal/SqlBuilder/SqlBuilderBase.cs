@@ -52,13 +52,13 @@ internal abstract class SqlBuilderBase
 
     protected internal void AddPart(SqlPart part)
     {
-        ThrowIfBuilt();
+        ThrowIfFrozen();
         _parts.Add(part);
     }
 
-    protected void ThrowIfBuilt()
+    protected void ThrowIfFrozen()
     {
-        ThrowIfAlreadyBuilt();
+        ThrowIfNotBuildable();
         if (_composed)
         {
             throw new ArgumentException(
@@ -67,7 +67,7 @@ internal abstract class SqlBuilderBase
         }
     }
 
-    private void ThrowIfAlreadyBuilt()
+    private void ThrowIfNotBuildable()
     {
         if (_built)
         {
@@ -90,7 +90,7 @@ internal abstract class SqlBuilderBase
 
     // Every node but a CTE body takes its subquery through here, so an INSERT ... SELECT
     // chain, an ISubquery through its SELECT stages, is rejected at the embedding call.
-    internal static ISubquery Composed(ISubquery subquery)
+    internal static ISubquery MarkComposed(ISubquery subquery)
     {
         if (subquery is InsertBuilder)
         {
@@ -98,11 +98,11 @@ internal abstract class SqlBuilderBase
                 "An INSERT statement cannot be embedded as a subquery; embed its SELECT instead.");
         }
 
-        return ComposedAsCteBody(subquery);
+        return MarkComposedAsCteBody(subquery);
     }
 
     // A CTE body stays permissive: PostgreSQL runs a data-modifying WITH.
-    internal static ISubquery ComposedAsCteBody(ISubquery subquery)
+    internal static ISubquery MarkComposedAsCteBody(ISubquery subquery)
     {
         if (subquery is SqlBuilderBase builder)
         {
@@ -121,7 +121,7 @@ internal abstract class SqlBuilderBase
 
     internal void MarkReturningPending()
     {
-        ThrowIfBuilt();
+        ThrowIfFrozen();
         _pendingReturning++;
     }
 
@@ -134,7 +134,7 @@ internal abstract class SqlBuilderBase
 
     internal SqlStatement BuildWithPart(SqlPart extraPart, Dbms dbms)
     {
-        ThrowIfAlreadyBuilt();
+        ThrowIfNotBuildable();
         if (_pendingReturning > 1 || (_pendingReturning == 1 && HoldsReturningInto()))
         {
             throw new ArgumentException(TwoReturningStagesMessage);
@@ -161,7 +161,7 @@ internal abstract class SqlBuilderBase
 
     protected SqlStatement BuildCore(Dbms dbms)
     {
-        ThrowIfAlreadyBuilt();
+        ThrowIfNotBuildable();
         // Resolves the dialect first: Validate's dialect checks would otherwise
         // answer an Unknown target (an unregistered Build(cnn)) with their own message.
         using SqlBuildingBuffer buffer = new(dbms);
@@ -226,7 +226,7 @@ internal abstract class SqlBuilderBase
     [
         ("SELECT", [
             typeof(SelectClause), typeof(SelectClauseWithDistinct), typeof(SelectClauseWithHints),
-            typeof(SelectClauseWithOptions), typeof(SelectClauseWithTop),
+            typeof(SelectClauseWithHintsDistinct), typeof(SelectClauseWithTop),
             typeof(SelectClauseWithDistinctTop),
         ]),
         ("FROM", [typeof(FromClause)]),

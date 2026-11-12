@@ -46,7 +46,7 @@ public sealed class IntervalExpression : SqlPart, IIncompleteExpression
             ExpressionResolver.Resolve(
                 OperandGuard.ThrowIfNull(leftSide, Operators.Plus),
                 nameof(leftSide)),
-            ExpressionResolver.ResolveIntervalOperand(rightSide, nameof(rightSide)));
+            ExpressionResolver.ResolveAdditiveOperand(rightSide, nameof(rightSide)));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Interval)

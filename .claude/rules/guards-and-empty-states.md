@@ -160,7 +160,7 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   chain embedded as a subquery — no dialect takes an `INSERT` in a value or
   table position, though a CTE body stays permissive (PostgreSQL's
   data-modifying `WITH`), rejected at the call that embeds it, which
-  `SqlBuilderBase.Composed` sees (#679); `Returning(expr.As(...)).Into(...)` — the output
+  `SqlBuilderBase.MarkComposed` sees (#679); `Returning(expr.As(...)).Into(...)` — the output
   parameter names the value, so the alias is a contradiction, while the
   plain `RETURNING expr "alias"` is valid on PostgreSQL and SQLite and emits
   faithfully (release audit pass 5, reversing an earlier dialect-blind eager
@@ -697,7 +697,7 @@ is expressed by **omitting the clause** entirely.
 **Status:** shipped in #236 — the recursive emptiness check (`SqlPart.IsEmpty`),
 the shared `ConditionGuard.ThrowIfEmpty` used by every condition clause's
 `Format`, the eager empty-`Select()` guard
-(`SelectItemResolver.ResolveOrThrow`), and the freeze-after-Build guard (#245).
+(`SelectItemResolver.ResolveNonEmpty`), and the freeze-after-Build guard (#245).
 The release audit extended #245's family with the once-per-query-block
 duplicate-clause guard (`SqlBuilderBase.ThrowIfDuplicateClauseInBlock` — a
 stage repeated on a held, not-yet-built builder would append `WHERE ... WHERE`;
@@ -936,7 +936,7 @@ cannot reach. A new typed element position lands on this shape, not a bare NRE.
 A lone null argument binds the `params` array itself to null (`From(null)`), so
 each position gets a named message there too, never the runtime's
 `Value cannot be null.`: the element's message where the site's guards give it
-one (`CollectionGuard.ThrowIfEmpty`'s `nullMessage`, `ThrowIfNullElement` run
+one (`CollectionGuard.ThrowIfNullOrEmpty`'s `nullMessage`, `ThrowIfNullElement` run
 first, or a resolver's own check), and its empty-collection message where they
 do not (`IN` and the `SELECT` list among them). An `INSERT`'s
 `Values(null)` binds the rows overload, and MERGE's, which has none, the row
@@ -1003,7 +1003,7 @@ type carries — a dialect, a table instance's identity — is a guard outright.
 
 - **Eagerly (in the factory / clause method)** only when the fact is fixed at
   the call site: a `params` array length, a collection count. Precedent:
-  `PartitionBy` (#69), the empty-`Select()` guard (`SelectItemResolver.ResolveOrThrow`, #236),
+  `PartitionBy` (#69), the empty-`Select()` guard (`SelectItemResolver.ResolveNonEmpty`, #236),
   and the `.WithColumnList()` column-name guard (the first query block's
   resolved select items are fixed at the call, #263).
   A **value-domain guard** (an argument value no engine accepts, e.g. a

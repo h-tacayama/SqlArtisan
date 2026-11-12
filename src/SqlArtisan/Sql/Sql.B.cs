@@ -54,7 +54,7 @@ public static partial class Sql
             throw new ArgumentNullException(nameof(values), BindValue.NullValueMessage);
         }
 
-        ThrowIfUnbindableElement<T>();
+        ThrowIfElementTypeNotDirectlyBindable<T>();
 
         return new BindArrayValue(values);
     }
@@ -67,7 +67,7 @@ public static partial class Sql
             throw new ArgumentNullException(nameof(values), BindValue.NullValueMessage);
         }
 
-        ThrowIfUnbindableElement<T>();
+        ThrowIfElementTypeNotDirectlyBindable<T>();
 
         // Normalized to T[] so the ADO-visible value is deterministic: Npgsql
         // maps arrays natively but not e.g. HashSet<T>.
@@ -104,7 +104,7 @@ public static partial class Sql
 
     // The array binds as it is, so a converter registered for the element type does not
     // reach it: an empty array has no element to learn the converted type from (#810).
-    private static void ThrowIfUnbindableElement<T>()
+    private static void ThrowIfElementTypeNotDirectlyBindable<T>()
     {
         if (IsDirectlyBindableType(typeof(T)))
         {

@@ -11,7 +11,7 @@ public sealed class PartitionByClause : SqlPart
 
     internal PartitionByClause(SqlExpression[] expressions)
     {
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             expressions, nameof(expressions), "PARTITION BY requires at least one expression.");
 
         _expressions = expressions;

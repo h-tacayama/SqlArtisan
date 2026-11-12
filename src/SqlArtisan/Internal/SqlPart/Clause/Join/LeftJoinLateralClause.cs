@@ -9,7 +9,7 @@ internal sealed class LeftJoinLateralClause : SqlPart, IJoinedRelation
 
     internal LeftJoinLateralClause(ISubquery subquery, DerivedTableBase alias)
     {
-        _subquery = SqlBuilderBase.Composed(subquery);
+        _subquery = SqlBuilderBase.MarkComposed(subquery);
         _alias = alias;
     }
 

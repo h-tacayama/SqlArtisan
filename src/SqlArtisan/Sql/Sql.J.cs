@@ -149,7 +149,7 @@ public static partial class Sql
     /// <returns>A condition emitting <c>jsonExpr ?&amp; ARRAY[keys]</c>.</returns>
     public static SqlCondition JsonbExistsAll(object jsonExpr, params object[] keys)
     {
-        CollectionGuard.ThrowIfEmpty(keys, nameof(keys), "?& requires at least one key.");
+        CollectionGuard.ThrowIfNullOrEmpty(keys, nameof(keys), "?& requires at least one key.");
         return new JsonbExistsAllCondition(
             ResolveCompared(jsonExpr, nameof(jsonExpr), Operators.JsonbExistsAll),
             ResolveSearched(keys, nameof(keys), Operators.JsonbExistsAll));
@@ -165,7 +165,7 @@ public static partial class Sql
     /// <returns>A condition emitting <c>jsonExpr ?| ARRAY[keys]</c>.</returns>
     public static SqlCondition JsonbExistsAny(object jsonExpr, params object[] keys)
     {
-        CollectionGuard.ThrowIfEmpty(keys, nameof(keys), "?| requires at least one key.");
+        CollectionGuard.ThrowIfNullOrEmpty(keys, nameof(keys), "?| requires at least one key.");
         return new JsonbExistsAnyCondition(
             ResolveCompared(jsonExpr, nameof(jsonExpr), Operators.JsonbExistsAny),
             ResolveSearched(keys, nameof(keys), Operators.JsonbExistsAny));

@@ -8,7 +8,7 @@ internal sealed class InSubqueryCondition : SqlCondition
     internal InSubqueryCondition(SqlExpression leftSide, ISubquery subquery)
     {
         _leftSide = leftSide;
-        _subquery = SqlBuilderBase.Composed(subquery);
+        _subquery = SqlBuilderBase.MarkComposed(subquery);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer

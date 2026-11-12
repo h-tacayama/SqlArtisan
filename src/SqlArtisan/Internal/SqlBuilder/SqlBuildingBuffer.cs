@@ -423,7 +423,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
     internal string ExcludedName => _dialect.ExcludedName;
 
-    internal void QualifyUpsertTarget() => _qualifyUpsertTarget = true;
+    internal void EnableUpsertTargetQualification() => _qualifyUpsertTarget = true;
 
     internal SqlBuildingBuffer AppendReturningItems(SqlPart[] items)
     {
@@ -442,7 +442,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // send to the target. Either keeps the alias; set-operator blocks share it.
     private bool RebindsReturningTarget(ISubquery subquery) =>
         subquery is not SelectBuilder select
-        || select.BindsAnyRelation((DbTableBase)_correlatedDmlTarget!);
+        || select.ExposesNameOf((DbTableBase)_correlatedDmlTarget!);
 
     // SQLite 3.50.4 resolves the target in RETURNING by table name alone; a
     // subquery or CTE body that rebinds the name or the alias clears the slot.
@@ -465,7 +465,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
             && !ReferenceEquals(owner, target)
             && !(owner.CorrelationName == target.CorrelationName
                 && TableReference.NamesSameTable(owner, target))
-            && (_block is null || (HoldsReturningTarget && BindsName(owner, target))))
+            && (_block is null || (HoldsReturningTarget && ExposesTargetName(owner, target))))
         {
             throw new ArgumentException(
                 "SQLite's RETURNING reads only the target; name its columns through the target, "
@@ -483,7 +483,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
     // Matched by name, not instance: the capture comes from any relation so
     // named, the target's own instance or another (#595).
-    internal static bool BindsName(TableReference relation, DbTableBase target)
+    internal static bool ExposesTargetName(TableReference relation, DbTableBase target)
     {
         ReadOnlySpan<char> exposed = relation.ExposedName;
         return SameIdentifier(exposed, target.ExposedName)
@@ -532,7 +532,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
         }
     }
 
-    internal void ThrowIfCorrelatedDmlColumn(TableReference owner)
+    internal void ThrowIfBareColumnCorrelates(TableReference owner)
     {
         if (!ReferenceEquals(owner, _correlatedDmlTarget))
         {

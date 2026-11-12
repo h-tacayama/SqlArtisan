@@ -16,7 +16,7 @@ internal sealed class MergeUpdateSetClause : SqlPart
     internal static MergeUpdateSetClause Parse(EqualityCondition[] assignments, DbTableBase target)
     {
         EqualCondition[] resolved = AssignmentResolver.Resolve(assignments, Clause);
-        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: false, Clause);
+        AssignmentResolver.ThrowIfDuplicateColumn(resolved, qualified: false, Clause);
         AssignmentResolver.ThrowIfNotTargetColumn(resolved, target, Clause);
 
         return new(resolved);

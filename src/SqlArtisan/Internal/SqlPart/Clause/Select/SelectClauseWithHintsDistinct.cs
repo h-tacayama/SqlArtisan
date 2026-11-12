@@ -1,12 +1,12 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class SelectClauseWithOptions : SqlPart, ISelectItemsClause
+internal sealed class SelectClauseWithHintsDistinct : SqlPart, ISelectItemsClause
 {
     private readonly SqlHints _hints;
     private readonly SqlPart _distinct;
     private readonly SqlPart[] _selectItems;
 
-    private SelectClauseWithOptions(SqlHints hints, SqlPart distinct, SqlPart[] selectItems)
+    private SelectClauseWithHintsDistinct(SqlHints hints, SqlPart distinct, SqlPart[] selectItems)
     {
         _hints = hints;
         _distinct = distinct;
@@ -15,13 +15,13 @@ internal sealed class SelectClauseWithOptions : SqlPart, ISelectItemsClause
 
     public SqlPart[] SelectItems => _selectItems;
 
-    internal static SelectClauseWithOptions Parse(
+    internal static SelectClauseWithHintsDistinct Parse(
         SqlHints hints,
         SqlPart distinct,
         object[] selectItems) => new(
             hints,
             distinct,
-            SelectItemResolver.ResolveOrThrow(selectItems));
+            SelectItemResolver.ResolveNonEmpty(selectItems));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Select} ")

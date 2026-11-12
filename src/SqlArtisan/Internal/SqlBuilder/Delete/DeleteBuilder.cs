@@ -29,7 +29,7 @@ internal sealed class DeleteBuilder(
 
     public IDeleteBuilderFrom From(params TableReference[] tables)
     {
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             tables, nameof(tables), "FROM requires at least one table.",
             FromClause.NullTableMessage);
         FromClause from = new(tables);
@@ -81,7 +81,7 @@ internal sealed class DeleteBuilder(
 
     public IDeleteBuilderOutputInto Output(params object[] items)
     {
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             items, nameof(items), "OUTPUT requires at least one expression.",
             ExpressionResolver.NullValueMessage);
         AddPart(new OutputClause(SelectItemResolver.Resolve(items, "OutputItem", nameof(items))));
@@ -99,7 +99,7 @@ internal sealed class DeleteBuilder(
 
     public IDeleteBuilderUsing Using(params TableReference[] tables)
     {
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             tables, nameof(tables), "USING requires at least one table.",
             DeleteUsingClause.NullTableMessage);
         DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
@@ -142,7 +142,7 @@ internal sealed class DeleteBuilder(
             DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms, Keywords.Delete);
         }
 
-        ReturningGuard.ThrowIfCombinedWithJoinedDelete(
+        ReturningGuard.ThrowIfDeleteCombinedWithRepeatedTarget(
             state, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
 
         OutputClause? output = FindPart<OutputClause>();
@@ -155,7 +155,7 @@ internal sealed class DeleteBuilder(
         if (state.IsJoined)
         {
             DmlTargetGuard.ThrowIfSqlServerDeleteUsing(FindPart<DeleteUsingClause>(), dbms);
-            DmlTargetGuard.ThrowIfJoinedDeleteTargetNotRepeated(state, dbms);
+            DmlTargetGuard.ThrowIfDeleteTargetNotRepeatedInFromOffOracle(state, dbms);
         }
     }
 

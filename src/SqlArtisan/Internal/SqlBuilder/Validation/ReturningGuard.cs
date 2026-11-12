@@ -48,7 +48,7 @@ internal static class ReturningGuard
 
     // The typestate withholds RETURNING on these joined forms, which MySQL and SQL Server
     // spell without one and Oracle 23.26.3 rejects re-listed; this backstops a held stage.
-    internal static void ThrowIfCombinedWithJoinedDelete(
+    internal static void ThrowIfDeleteCombinedWithRepeatedTarget(
         DmlJoinState state,
         ReturningClause? returning,
         ReturningIntoClause? returningInto)
@@ -61,7 +61,7 @@ internal static class ReturningGuard
         }
     }
 
-    internal static void ThrowIfCombinedWithJoinedUpdate(
+    internal static void ThrowIfUpdateCombinedWithDirectJoinOrRepeatedTarget(
         DmlJoinState state,
         ReturningClause? returning,
         ReturningIntoClause? returningInto)

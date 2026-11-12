@@ -6,7 +6,7 @@ internal sealed class NotExistsCondition : SqlCondition
 
     internal NotExistsCondition(ISubquery subquery)
     {
-        _subquery = SqlBuilderBase.Composed(subquery);
+        _subquery = SqlBuilderBase.MarkComposed(subquery);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer

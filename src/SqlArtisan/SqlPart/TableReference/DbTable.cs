@@ -29,7 +29,7 @@ public sealed class DbTable(string tableName, string? tableAlias = "")
     /// </summary>
     /// <param name="source">The source column whose name is re-qualified with this table's alias.</param>
     /// <returns>A <see cref="DbColumn"/> qualified by this table's alias.</returns>
-    public DbColumn Column(DbColumn source) => new(this, source.Name, source.QuoteName);
+    public DbColumn Column(DbColumn source) => new(this, source.Name, source.IsNameQuoted);
 
     /// <summary>
     /// Returns this table's column for <paramref name="alias"/> — a SELECT-list <c>.As(...)</c> —
@@ -37,5 +37,5 @@ public sealed class DbTable(string tableName, string? tableAlias = "")
     /// </summary>
     /// <param name="alias">The SELECT-list <c>.As(...)</c> alias to qualify with this table's alias.</param>
     /// <returns>A <see cref="DbColumn"/> qualified by this table's alias.</returns>
-    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name, alias.QuoteAlias);
+    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name, alias.IsAliasQuoted);
 }

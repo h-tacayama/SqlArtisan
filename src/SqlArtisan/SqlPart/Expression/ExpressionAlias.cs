@@ -15,7 +15,7 @@ public sealed class ExpressionAlias : SqlPart, ISortable
 
     // As(DbColumn) copies the column's quoting, so the definition renders as DbColumn
     // references it (#165).
-    private readonly bool _quoteAlias;
+    private readonly bool _isAliasQuoted;
 
     internal ExpressionAlias(SqlExpression expr, string name, bool quoteAlias = true)
     {
@@ -23,12 +23,12 @@ public sealed class ExpressionAlias : SqlPart, ISortable
 
         _expr = expr;
         Name = name;
-        _quoteAlias = quoteAlias;
+        _isAliasQuoted = quoteAlias;
     }
 
     internal string Name { get; }
 
-    internal bool QuoteAlias => _quoteAlias;
+    internal bool IsAliasQuoted => _isAliasQuoted;
 
     /// <summary>
     /// Gets the ascending <c>ORDER BY</c> sort key for this alias
@@ -100,7 +100,7 @@ public sealed class ExpressionAlias : SqlPart, ISortable
 
     private void AppendAlias(SqlBuildingBuffer buffer)
     {
-        if (_quoteAlias)
+        if (_isAliasQuoted)
         {
             buffer.EncloseInAliasQuotes(Name);
         }

@@ -56,7 +56,7 @@ internal class SelectBuilder :
     // on a new builder and the left is frozen (#676).
     private SelectBuilder ContinueAfter(SqlPart setOperator)
     {
-        ThrowIfBuilt();
+        ThrowIfFrozen();
         SelectBuilder next = CreateContinuation();
         FreezeAsContinued();
         next.AddPart(setOperator);
@@ -92,7 +92,7 @@ internal class SelectBuilder :
 
     // Whether any FROM or JOIN relation of this subquery's blocks exposes the
     // RETURNING target's name or alias (SqlBuildingBuffer, #595).
-    internal bool BindsAnyRelation(DbTableBase target)
+    internal bool ExposesNameOf(DbTableBase target)
     {
         foreach (SqlPart part in PartsSpan)
         {
@@ -100,14 +100,14 @@ internal class SelectBuilder :
             {
                 foreach (TableReference table in from.Tables)
                 {
-                    if (SqlBuildingBuffer.BindsName(table, target))
+                    if (SqlBuildingBuffer.ExposesTargetName(table, target))
                     {
                         return true;
                     }
                 }
             }
             else if (part is IJoinedRelation join
-                && SqlBuildingBuffer.BindsName(join.Relation, target))
+                && SqlBuildingBuffer.ExposesTargetName(join.Relation, target))
             {
                 return true;
             }
@@ -178,7 +178,7 @@ internal class SelectBuilder :
 
     public ISelectBuilderFrom From(params TableReference[] tables)
     {
-        CollectionGuard.ThrowIfEmpty(
+        CollectionGuard.ThrowIfNullOrEmpty(
             tables, nameof(tables), "FROM requires at least one table.",
             FromClause.NullTableMessage);
         AddPart(new FromClause(tables));
@@ -347,7 +347,7 @@ internal class SelectBuilder :
         DistinctKeyword distinct,
         params object[] selectItems)
     {
-        AddSelectItems(SelectClauseWithOptions.Parse(hints, distinct, selectItems));
+        AddSelectItems(SelectClauseWithHintsDistinct.Parse(hints, distinct, selectItems));
 
         return this;
     }
@@ -357,7 +357,7 @@ internal class SelectBuilder :
         DistinctOnKeyword distinctOn,
         params object[] selectItems)
     {
-        AddSelectItems(SelectClauseWithOptions.Parse(hints, distinctOn, selectItems));
+        AddSelectItems(SelectClauseWithHintsDistinct.Parse(hints, distinctOn, selectItems));
 
         return this;
     }
@@ -519,7 +519,7 @@ internal class SelectBuilder :
     {
         foreach (SqlPart part in PartsSpan)
         {
-            if (part is ITopSelectClause { WithTies: true })
+            if (part is ITopSelectClause { HasWithTies: true })
             {
                 return true;
             }
