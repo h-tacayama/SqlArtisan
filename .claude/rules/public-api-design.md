@@ -606,10 +606,11 @@ key resolvers treat it as any registered type, and it never joins `IsNumeric`, w
 sort-key reading would change. An array of a reference element type is never added,
 since `params object[]` reads one as the list or as one value by the argument count.
 Give it no SQLA0205 type category, which reads the static type a registered converter
-replaces. The same change rewrites the text
-that names the list as what registers with Dapper alone (`docs/functions.md`'s
-type-handler paragraph, `AddValueConverter`'s `<typeparam>` and `<exception>`), and
-its CHANGELOG entry says that `SqlArtisan.Dapper` 0.15.0-beta.1, whose
+replaces. The same change rewrites the text that names the list as what registers
+with Dapper alone or what a converter may return (`docs/functions.md`'s
+converter-return sentence and type-handler paragraph, `AddValueConverter`'s
+`<typeparam>` and `<exception>`), and its CHANGELOG entry says that
+`SqlArtisan.Dapper` 0.15.0-beta.1, whose
 `AddTypeHandler` probed `BindArray`, skips registering a handler for the type with
 SqlArtisan. `BindParameterTypeContractTests` holds the set and, for the likely
 additions, the conversion through each value resolver (`Sql.Bind`, `SelectItemResolver`,
