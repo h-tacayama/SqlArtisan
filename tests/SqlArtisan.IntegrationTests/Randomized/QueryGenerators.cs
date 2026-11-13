@@ -8,13 +8,16 @@ internal enum Correlation { Never, Optional, Required }
 /// <param name="Tables">The table keys this block reads.</param>
 /// <param name="Outer">The top-level table keys a subquery may correlate to.</param>
 /// <param name="Level">1 at the top, 2 and 3 inside subqueries.</param>
+/// <param name="AllowsCorrelatedCount">Whether a correlated scalar subquery may take
+/// <c>COUNT</c> (see <c>QueryGenerators.Spec</c>).</param>
 internal sealed record GenScope(
     Dbms Target,
     IReadOnlyList<string> Tables,
     IReadOnlyList<string> Outer,
     int Level,
     bool AllowsSubquery,
-    Correlation Correlation);
+    Correlation Correlation,
+    bool AllowsCorrelatedCount = true);
 
 /// <summary>CsCheck generators for a <see cref="QuerySpec"/> that fits one
 /// <see cref="CaseRow"/>.</summary>
@@ -53,7 +56,8 @@ internal static class QueryGenerators
                 tables,
                 1,
                 AllowsSubquery: false,
-                row.Correlated ? Correlation.Required : Correlation.Never)
+                row.Correlated ? Correlation.Required : Correlation.Never,
+                AllowsCorrelatedCount: !RowLimitedCompoundOnOracle(row))
             from joinSpec in JoinCondition(scope, row.Join)
             from filter in TopWhere(scope, row)
             from body in Body(scope, row)
@@ -72,6 +76,14 @@ internal static class QueryGenerators
                 tailWhere,
                 innerUnaliased);
     }
+
+    // Oracle XE 21.3.0 raises ORA-01416 ("two tables cannot be outer-joined") on a correlated
+    // COUNT scalar subquery under a grouped UNION with FETCH FIRST, though no outer join is
+    // written; Free 23ai runs the same generated statements (calibration run 43428425699).
+    private static bool RowLimitedCompoundOnOracle(CaseRow row) =>
+        row.Dbms == Dbms.Oracle
+        && row.SetOperator != SetOperatorLevel.None
+        && row.Paging != PagingLevel.None;
 
     /// <summary>A condition over <paramref name="tables"/> with no subquery, for the relations
     /// that add one.</summary>
@@ -523,7 +535,9 @@ internal static class QueryGenerators
                 scalar,
                 shape,
                 item,
-                aggregateKind,
+                correlate && !outer.AllowsCorrelatedCount && aggregateKind.StartsWith("Count")
+                    ? "Max"
+                    : aggregateKind,
                 filtered ? filter : null,
                 correlate ? link : null,
                 limit,
