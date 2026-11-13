@@ -153,8 +153,10 @@ same rows, set-operator and slice checks, the C# reference evaluator).
 
 - **After editing `select.pict`**, run `bash tools/regen-pict.sh` (it builds
   PICT v3.7.4 on first use) and commit the CSV with the model.
-  `PictModelTests` fails the PR on a CSV that drifts from the model, on a row
-  `DialectMatrix` says its engine cannot run, and on an uncovered valid pair.
+  `PictModelTests` fails the PR on a value outside the model, a row its
+  constraints or `DialectMatrix` exclude, and a valid pair or sub-model tuple no
+  row holds. It does not compare the CSV with PICT's output, so a relaxed
+  constraint whose new combinations span three or more factors passes it.
 - **A failure report** names the CSV row, the CsCheck seed, the C# chain, the
   SQL, the bound values and the expected and actual rows. The first failing
   row of a lane then adds a shrunk case CsCheck found in 20 s, with its own
@@ -167,7 +169,7 @@ same rows, set-operator and slice checks, the C# reference evaluator).
   ```bash
   SQLARTISAN_RANDOMIZED_SEED=<seed> SQLARTISAN_RANDOMIZED_SHRINK_SECONDS=0 \
     dotnet test tests/SqlArtisan.IntegrationTests \
-    --filter "FullyQualifiedName~SqliteCombinatorialSelectTests&DisplayName~row: 191,"
+    --filter "FullyQualifiedName~SqliteCombinatorialSelectTests&DisplayName~row: 5,"
   ```
 
   With the seed set, every selected row runs that one query instead of its

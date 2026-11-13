@@ -3,8 +3,8 @@ using SqlArtisan.IntegrationTests.Randomized;
 namespace SqlArtisan.IntegrationTests.Tests;
 
 /// <summary>The DB-less gate between <c>select.pict</c>, <c>select.cases.csv</c> and
-/// <see cref="Analyzers.DialectMatrix"/>: CI never runs PICT, so a model edited without
-/// <c>tools/regen-pict.sh</c>, or a constraint drifting from the matrix, fails here.</summary>
+/// <see cref="Analyzers.DialectMatrix"/>: a row either excludes, or a valid pair or sub-model
+/// tuple no row holds, fails; a relaxed constraint opening only 3-way tuples passes.</summary>
 public sealed class PictModelTests
 {
     private static readonly PictModel s_model =

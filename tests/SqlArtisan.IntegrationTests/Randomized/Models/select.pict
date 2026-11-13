@@ -1,6 +1,7 @@
 # The skeleton of the combinatorial SELECT tests (Tests/CombinatorialSelectTestBase.cs).
-# Regenerate select.cases.csv with tools/regen-pict.sh after any edit; PictModelTests fails
-# the PR on a CSV that no longer matches this file or DialectMatrix.
+# Regenerate select.cases.csv with tools/regen-pict.sh after any edit. PictModelTests checks
+# the CSV against this file's levels, constraints and pairs and against DialectMatrix, but
+# not that it is PICT's output: a relaxed constraint opening only 3-way combinations passes.
 
 Dbms:           MySql, Oracle, PostgreSql, Sqlite, SqlServer
 TargetAlias:    Aliased, Unaliased

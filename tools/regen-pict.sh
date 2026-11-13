@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Regenerates the combinatorial SELECT cases from their PICT model. Developer-only: CI never
-# runs PICT, and PictModelTests fails the PR when the committed CSV and model disagree.
+# runs PICT; PictModelTests holds the committed CSV to the model's levels, constraints and
+# pairs, not to PICT's exact output, so rerun this after every edit to the model.
 #
 # PICT is pinned to v3.7.4, built from source on first use (needs git, make and a C++
 # compiler):

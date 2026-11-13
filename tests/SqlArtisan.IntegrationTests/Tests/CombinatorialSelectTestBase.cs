@@ -9,7 +9,7 @@ namespace SqlArtisan.IntegrationTests.Tests;
 /// <summary>
 /// Runs each <c>select.cases.csv</c> row of this lane's engine: CsCheck generates queries
 /// that fit the row, and every relation in <see cref="CaseChecker"/> must hold on the live
-/// engine. A failure shrinks to a smaller query of the same row before it is reported.
+/// engine. A lane's first failure shrinks to a smaller query of its row before it is reported.
 /// </summary>
 public abstract class CombinatorialSelectTestBase
 {
