@@ -1090,8 +1090,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         ta.Rollback();
     }
 
-    // #742: why MySQL is absent from the set-operator FOR UPDATE context rule — the lock
-    // binds to the last branch alone, where Oracle and PostgreSQL reject the statement.
+    // SQLA0102 (#822): the lock binds to the last branch alone, another meaning, where Oracle
+    // and PostgreSQL reject the statement.
     [Theory]
     [InlineData("Union")]
     [InlineData("UnionAll")]
@@ -1099,7 +1099,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     [InlineData("IntersectAll")]
     [InlineData("Except")]
     [InlineData("ExceptAll")]
-    public void ForUpdateAfterSetOperator_LocksOnlyTheLastBranch(string setOperator)
+    public void ContextRule_ForUpdateAfterSetOperator_LocksOnlyTheLastBranch(string setOperator)
     {
         using IDbConnection a = _fixture.OpenConnection();
         using IDbTransaction ta = a.BeginTransaction();

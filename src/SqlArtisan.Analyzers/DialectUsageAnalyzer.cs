@@ -412,6 +412,12 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                     ContextRules.CheckOrderByInSubquery(context, invocation, targets);
                 }
 
+                if (targets.Contains(TargetDbms.SqlServer))
+                {
+                    ContextRules.CheckPagedCompoundInSubquery(
+                        context, invocation, TargetDbmsNames.Display(TargetDbms.SqlServer));
+                }
+
                 if (ContextRules.RejectingTargetNames(targets, s_unionQualifiedKeyUnsupported)
                     is { } unionNames)
                 {
@@ -482,7 +488,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     }
 
     // Enum declaration order, so a message listing several reads in the order
-    // docs-style.md fixes. A dialect is absent when it parses the spelling, when
+    // docs-style.md fixes. A dialect is absent when it runs the spelling as written, when
     // the matrix already calls the member unsupported, or when Build(Dbms) throws.
     private static readonly TargetDbms[] s_groupedLockUnsupported =
         [TargetDbms.Oracle, TargetDbms.PostgreSql];
@@ -491,8 +497,9 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     // the rest the matrix already calls either the row-limiting step or ForUpdate unsupported.
     private static readonly TargetDbms[] s_rowLimitedLockUnsupported = [TargetDbms.Oracle];
 
+    // MySQL runs it with another meaning, locking the last branch's rows alone (#822).
     private static readonly TargetDbms[] s_setOperatedLockUnsupported =
-        [TargetDbms.Oracle, TargetDbms.PostgreSql];
+        [TargetDbms.MySql, TargetDbms.Oracle, TargetDbms.PostgreSql];
 
     // SQLite and SQL Server sort by a key every branch selects in its place (#792).
     private static readonly TargetDbms[] s_unionQualifiedKeyUnsupported =

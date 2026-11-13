@@ -4,14 +4,16 @@ using Dapper;
 using SqlArtisan;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
+using SqlArtisan.IntegrationTests.Schema;
+using static SqlArtisan.IntegrationTests.Infrastructure.EmbeddedCompounds;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.IntegrationTests.Tests;
 
 /// <summary>
 /// SQL Server 2025 facts beside its bound sweep (#614): the <c>REGEXP_*</c> match-parameter
-/// alphabet, what a database kept at compatibility level 160 still accepts, and the 2022
-/// lane's DISTINCT-window rejections (#662) and DATETRUNC microsecond scales re-run.
+/// alphabet, what compatibility level 160 still accepts, and the 2022 lane's DISTINCT-window
+/// rejections (#662), DATETRUNC microsecond scales and embedded-compound bindings re-run.
 /// </summary>
 [Trait("Engine", "SqlServer2025")]
 public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
@@ -168,5 +170,104 @@ public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
             Select(RegexpReplace("xooxo", "o", "0", 1))));
         Assert.Equal("x00x0", connection.ExecuteScalar<string>(
             Select(RegexpReplace("xooxo", "o", "0", 1, 0))));
+    }
+
+    // #822: the 2022 lane's embedded-compound facts, re-run at 2025, since SQLA0102 reports them
+    // on every SQL Server version; SqlServerTests' same-named twins say what the rows mean.
+    [Theory]
+    [MemberData(nameof(EmbeddedCompounds.SomePositions), MemberType = typeof(EmbeddedCompounds))]
+    public void ContextRule_PagedCompoundInSubquery_PagesTheLastBranch(
+        string setOperator,
+        string position)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        int offset = PageOffset(setOperator);
+        (string whole, string lastBranch) = PagedCompoundRows(position);
+
+        string topLevel = Outcome(connection, PagedCompound(setOperator, offset));
+        string wrapped = Outcome(
+            connection,
+            ValuesInPosition(position, PagedCompoundWrappedFirst(setOperator, offset)));
+        string embedded = Outcome(
+            connection,
+            ValuesInPosition(position, PagedCompound(setOperator, offset)));
+
+        string report = $"{setOperator} in {position}: top level {topLevel}, wrapped first "
+            + $"{wrapped}, embedded {embedded}; whole compound {whole}, last branch {lastBranch}";
+        Assert.True(topLevel == "[]", report);
+        Assert.True(wrapped == whole, report);
+        Assert.True(embedded == lastBranch, report);
+    }
+
+    [Theory]
+    [InlineData("Union", "in")]
+    public void ContextRule_OffsetOnlyCompoundInSubquery_SkipsInTheLastBranch(
+        string setOperator,
+        string position)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        int offset = PageOffset(setOperator);
+        (string whole, string lastBranch) = PagedCompoundRows(position);
+
+        string topLevel = Outcome(
+            connection,
+            UserOneThenOrderUserIds(setOperator).OrderBy(1).OffsetRows(offset));
+        string embedded = Outcome(
+            connection,
+            ValuesInPosition(
+                position,
+                UserOneThenOrderUserIds(setOperator).OrderBy(1).OffsetRows(offset)));
+
+        string report = $"{setOperator} in {position}: top level {topLevel}, embedded "
+            + $"{embedded}; whole compound {whole}, last branch {lastBranch}";
+        Assert.True(topLevel == "[]", report);
+        Assert.True(embedded == lastBranch, report);
+    }
+
+    [Theory]
+    [InlineData("Union", "cte", "[2, 3]")]
+    [InlineData("UnionAll", "derived", "[1, 1]")]
+    [InlineData("Intersect", "cte", "[2]")]
+    [InlineData("Except", "derived", "[4, 5]")]
+    public void PagedCompoundWrappedFirst_PagesTheCombinedResult(
+        string setOperator,
+        string wrap,
+        string combined)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        string topLevel = Outcome(
+            connection,
+            UsersThenLowOrderUserIds(setOperator).OrderBy(1).OffsetRows(1).FetchNext(2));
+        string wrapped = Outcome(
+            connection,
+            UsersThenLowOrderUserIdsWrappedFirst(setOperator, wrap));
+
+        Assert.Equal(combined, topLevel);
+        Assert.Equal(combined, wrapped);
+    }
+
+    [Theory]
+    [InlineData("Union", "in")]
+    [InlineData("UnionAll", "exists")]
+    [InlineData("Intersect", "derived")]
+    [InlineData("Except", "cte")]
+    [InlineData("Union", "scalar")]
+    [InlineData("UnionAll", "crossapply")]
+    public void ContextRule_OrderedCompoundInSubquery_Rejected(
+        string setOperator,
+        string position)
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(InPosition(position, u, Compound()));
+        connection.ExecuteScalar(InPosition(position, u, Compound().OrderBy(1).OffsetRows(0)));
+
+        Assert.Equal(
+            "Msg 1033",
+            Outcome(connection, InPosition(position, u, Compound().OrderBy(1))));
+
+        ISelectBuilderWhere Compound() => UserOneThenNoOrderUserId(setOperator);
     }
 }

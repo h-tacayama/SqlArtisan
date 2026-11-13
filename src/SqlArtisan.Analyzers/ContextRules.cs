@@ -585,56 +585,21 @@ internal static class ContextRules
     }
 
     /// <summary>
-    /// Unless a row limit rides with it, SQL Server 2022 rejects a statement <c>ORDER BY</c> in
-    /// a subquery, derived table or CTE body (Msg 1033), Oracle XE 21.3.0 and Free 23ai in a
-    /// predicate or scalar subquery (ORA-00907); reported where its head and embedding show.
+    /// Unless a row limit rides with it, SQL Server 2022 rejects a statement <c>ORDER BY</c>,
+    /// a compound's included, in a subquery, derived table or CTE body (Msg 1033), Oracle XE
+    /// 21.3.0 and Free 23ai in a predicate or scalar subquery (ORA-00907).
     /// </summary>
     public static void CheckOrderByInSubquery(
         OperationAnalysisContext context, IInvocationOperation orderBy, DialectTargetSet targets)
     {
-        // A static Sql.OrderBy is a window's or an aggregate's ordering, not the statement's.
-        if (orderBy.Instance is null)
+        if (ReadEmbeddedOrderBy(orderBy) is not { IsRowLimited: false } query)
         {
             return;
         }
 
-        IInvocationOperation end = orderBy;
-        string? member = null;
-        while (FluentChain.Parent(end) is { } next)
-        {
-            if (next.TargetMethod.Name is "Offset" or "OffsetRows" or "FetchFirst"
-                or "FetchNext" or "Limit")
-            {
-                return;
-            }
-
-            // As(...) and AsTable(...) are ISubquery's own members, so reaching one embeds it.
-            if (next.TargetMethod.ContainingType.Name == "ISubquery")
-            {
-                member = next.TargetMethod.Name;
-                break;
-            }
-
-            end = next;
-        }
-
-        IInvocationOperation? select = ChainChild(orderBy);
-        while (select is not null && select.TargetMethod.Name != "Select")
-        {
-            select = ChainChild(select);
-        }
-
-        // A With(...) head or a set operator's branch is not this rule's to read.
-        if (select is not { Instance: null }
-            || !DialectUsageAnalyzer.IsFromSqlArtisan(select.TargetMethod.ContainingAssembly)
-            || HasTopArgument(select)
-            || member is null && !ConsumedAsSubquery(end))
-        {
-            return;
-        }
-
-        bool operand = member == "As" || member is null && IsPredicateOrScalarOperand(end);
-        TargetDbms[] rejecting = operand ? s_orderedOperandUnsupported : s_orderedTableUnsupported;
+        TargetDbms[] rejecting = query.IsCompound ? s_orderedCompoundUnsupported
+            : query.IsOperand ? s_orderedOperandUnsupported
+            : s_orderedTableUnsupported;
         if (RejectingTargetNames(targets, rejecting) is not { } names)
         {
             return;
@@ -646,6 +611,129 @@ internal static class ContextRules
             "OrderBy",
             "in a subquery without a row limit",
             names));
+    }
+
+    /// <summary>
+    /// SQL Server 2022 pages an embedded compound's last branch with its <c>ORDER BY ...
+    /// OFFSET</c>, where a top-level compound's pages the combined result: the rows change
+    /// with no error. Live twins on the SQL Server 2022 lane, in every embedding position.
+    /// </summary>
+    public static void CheckPagedCompoundInSubquery(
+        OperationAnalysisContext context, IInvocationOperation orderBy, string dialectName)
+    {
+        if (ReadEmbeddedOrderBy(orderBy) is not { IsCompound: true, Pages: true })
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            orderBy.Syntax.GetLocation(),
+            "OrderBy",
+            "with a row limit after a set operator in a subquery, where it pages the last "
+                + "branch only,",
+            dialectName));
+    }
+
+    // What the two embedded ORDER BY rules read off one chain; ReadEmbeddedOrderBy is the proof.
+    private readonly struct EmbeddedOrderBy(bool compound, bool operand, bool limited, bool pages)
+    {
+        public bool IsCompound { get; } = compound;
+
+        // A named predicate host or a scalar position, not a table source.
+        public bool IsOperand { get; } = operand;
+
+        public bool IsRowLimited { get; } = limited;
+
+        // OffsetRows(0) alone skips nothing, so it changes no rows wherever it binds.
+        public bool Pages { get; } = pages;
+    }
+
+    // Null unless the chain is visible from its head, a static Select with no TOP in any
+    // branch, to an embedding: a With(...) head, a held query or a helper is out of sight.
+    private static EmbeddedOrderBy? ReadEmbeddedOrderBy(IInvocationOperation orderBy)
+    {
+        // A static Sql.OrderBy is a window's or an aggregate's ordering, not the statement's.
+        if (orderBy.Instance is null
+            || !TryReadBranches(orderBy, out bool compound, out bool top)
+            || top)
+        {
+            return null;
+        }
+
+        IInvocationOperation end = orderBy;
+        string? member = null;
+        bool limited = false;
+        bool pages = false;
+        while (FluentChain.Parent(end) is { } next)
+        {
+            // As(...) and AsTable(...) are ISubquery's own members, so reaching one embeds it.
+            if (next.TargetMethod.ContainingType.Name == "ISubquery")
+            {
+                member = next.TargetMethod.Name;
+                break;
+            }
+
+            string name = next.TargetMethod.Name;
+            limited |= RowLimitSteps.Contains(name);
+            pages |= name == "FetchNext"
+                || (name == "OffsetRows"
+                    && next.Arguments[0].Value.ConstantValue is not { HasValue: true, Value: 0 });
+            end = next;
+        }
+
+        if (member is null && !ConsumedAsSubquery(end))
+        {
+            return null;
+        }
+
+        bool operand = member == "As" || member is null && IsPredicateOrScalarOperand(end);
+        return new EmbeddedOrderBy(compound, operand, limited, pages);
+    }
+
+    // Internal for the contract gate: every member returning a paged stage is named here.
+    internal static readonly HashSet<string> RowLimitSteps =
+        ["FetchFirst", "FetchNext", "Limit", "Offset", "OffsetRows"];
+
+    // Walks to the query's head through each set operator's left query, reading every
+    // branch's Select; false where a link is out of sight or the head is not a static Select.
+    private static bool TryReadBranches(
+        IInvocationOperation orderBy, out bool compound, out bool top)
+    {
+        compound = false;
+        top = false;
+        IInvocationOperation? cursor = ChainChild(orderBy);
+        while (cursor is not null)
+        {
+            if (cursor.TargetMethod.Name != "Select")
+            {
+                cursor = ChainChild(cursor);
+                continue;
+            }
+
+            top |= HasTopArgument(cursor);
+            if (cursor.Instance is null)
+            {
+                return DialectUsageAnalyzer.IsFromSqlArtisan(
+                    cursor.TargetMethod.ContainingAssembly);
+            }
+
+            if (!FollowsSetOperator(cursor))
+            {
+                return false;
+            }
+
+            compound = true;
+            IPropertyReferenceOperation setOperator =
+                (IPropertyReferenceOperation)UnwrapConversions(cursor.Instance);
+            cursor = setOperator.Instance is { } left
+                && UnwrapConversions(left) is IInvocationOperation query
+                && DialectUsageAnalyzer.IsFromSqlArtisan(query.TargetMethod.ContainingAssembly)
+                    ? query
+                    : null;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -804,6 +892,9 @@ internal static class ContextRules
         [TargetDbms.Oracle, TargetDbms.SqlServer];
 
     private static readonly TargetDbms[] s_orderedTableUnsupported = [TargetDbms.SqlServer];
+
+    // Oracle's verdict on an ordered compound is unmeasured, so SQL Server's alone reports.
+    private static readonly TargetDbms[] s_orderedCompoundUnsupported = [TargetDbms.SqlServer];
 
     /// <summary>
     /// Oracle takes <c>RETURNING</c> only as <c>RETURNING ... INTO</c>; XE 21.3.0 rejects

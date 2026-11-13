@@ -6,6 +6,7 @@ using SqlArtisan.Analyzers;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
+using static SqlArtisan.IntegrationTests.Infrastructure.EmbeddedCompounds;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.IntegrationTests.Tests;
@@ -869,26 +870,111 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             position, u, With(c.As(body)).Select(c.Column("user_id")).From(c))));
     }
 
-    private static ISqlBuilder InPosition(string position, UsersTable u, ISubquery query)
+    // SQLA0102 (#822): embedded, a compound's trailing ORDER BY ... OFFSET/FETCH pages its last
+    // branch. User 1 against orders' user ids pages to no row as a whole compound and keeps the 1
+    // when only the ids are paged; the top level and the wrapped-first form take the whole reading.
+    [Theory]
+    [MemberData(nameof(EmbeddedCompounds.EveryPosition), MemberType = typeof(EmbeddedCompounds))]
+    public void ContextRule_PagedCompoundInSubquery_PagesTheLastBranch(
+        string setOperator,
+        string position)
     {
-        Cte q = new("q");
-        return position switch
-        {
-            "in" => Select(Count(Asterisk)).From(u).Where(u.Id.In(query)),
-            "notin" => Select(Count(Asterisk)).From(u).Where(u.Id.NotIn(query)),
-            "exists" => Select(Count(Asterisk)).From(u).Where(Exists(query)),
-            "notexists" => Select(Count(Asterisk)).From(u).Where(NotExists(query)),
-            "any" => Select(Count(Asterisk)).From(u).Where(u.Id > Any(query)),
-            "all" => Select(Count(Asterisk)).From(u).Where(u.Id > All(query)),
-            "some" => Select(Count(Asterisk)).From(u).Where(u.Id > Some(query)),
-            "derived" => Select(Count(Asterisk)).From(query.AsTable("d")),
-            "cte" => With(q.As(query)).Select(Count(Asterisk)).From(q),
-            "crossapply" =>
-                Select(Count(Asterisk)).From(u).CrossApply(query, new DerivedTable("x")),
-            "outerapply" =>
-                Select(Count(Asterisk)).From(u).OuterApply(query, new DerivedTable("x")),
-            _ => Select(query).From(u).Where(u.Id == 1),
-        };
+        using IDbConnection connection = _fixture.OpenConnection();
+        int offset = PageOffset(setOperator);
+        (string whole, string lastBranch) = PagedCompoundRows(position);
+
+        string topLevel = Outcome(connection, PagedCompound(setOperator, offset));
+        string wrapped = Outcome(
+            connection,
+            ValuesInPosition(position, PagedCompoundWrappedFirst(setOperator, offset)));
+        string embedded = Outcome(
+            connection,
+            ValuesInPosition(position, PagedCompound(setOperator, offset)));
+
+        string report = $"{setOperator} in {position}: top level {topLevel}, wrapped first "
+            + $"{wrapped}, embedded {embedded}; whole compound {whole}, last branch {lastBranch}";
+        Assert.True(topLevel == "[]", report);
+        Assert.True(wrapped == whole, report);
+        Assert.True(embedded == lastBranch, report);
+    }
+
+    // SQLA0102 (#822) reports OffsetRows with no FetchNext too: the offset alone skips rows of the
+    // last branch, the same data as above giving the same two readings.
+    [Theory]
+    [InlineData("Union", "in")]
+    [InlineData("UnionAll", "derived")]
+    [InlineData("Intersect", "cte")]
+    [InlineData("Except", "scalar")]
+    public void ContextRule_OffsetOnlyCompoundInSubquery_SkipsInTheLastBranch(
+        string setOperator,
+        string position)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        int offset = PageOffset(setOperator);
+        (string whole, string lastBranch) = PagedCompoundRows(position);
+
+        string topLevel = Outcome(
+            connection,
+            UserOneThenOrderUserIds(setOperator).OrderBy(1).OffsetRows(offset));
+        string embedded = Outcome(
+            connection,
+            ValuesInPosition(
+                position,
+                UserOneThenOrderUserIds(setOperator).OrderBy(1).OffsetRows(offset)));
+
+        string report = $"{setOperator} in {position}: top level {topLevel}, embedded "
+            + $"{embedded}; whole compound {whole}, last branch {lastBranch}";
+        Assert.True(topLevel == "[]", report);
+        Assert.True(embedded == lastBranch, report);
+    }
+
+    // #822's workaround. Users 1 to 5 against orders' user ids 1, 1, 2; were only those ids
+    // paged, the operators would give 1-5, 1 1 2 2 3 4 5, 1 2 and 3 4 5 in InlineData order.
+    [Theory]
+    [InlineData("Union", "cte", "[2, 3]")]
+    [InlineData("Union", "derived", "[2, 3]")]
+    [InlineData("UnionAll", "cte", "[1, 1]")]
+    [InlineData("UnionAll", "derived", "[1, 1]")]
+    [InlineData("Intersect", "cte", "[2]")]
+    [InlineData("Intersect", "derived", "[2]")]
+    [InlineData("Except", "cte", "[4, 5]")]
+    [InlineData("Except", "derived", "[4, 5]")]
+    public void PagedCompoundWrappedFirst_PagesTheCombinedResult(
+        string setOperator,
+        string wrap,
+        string combined)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        string topLevel = Outcome(
+            connection,
+            UsersThenLowOrderUserIds(setOperator).OrderBy(1).OffsetRows(1).FetchNext(2));
+        string wrapped = Outcome(
+            connection,
+            UsersThenLowOrderUserIdsWrappedFirst(setOperator, wrap));
+
+        Assert.Equal(combined, topLevel);
+        Assert.Equal(combined, wrapped);
+    }
+
+    // SQLA0102 (#822): an ordered compound meets ContextRule_OrderByInSubquery_Rejected's Msg 1033.
+    [Theory]
+    [MemberData(nameof(EmbeddedCompounds.EveryPosition), MemberType = typeof(EmbeddedCompounds))]
+    public void ContextRule_OrderedCompoundInSubquery_Rejected(
+        string setOperator,
+        string position)
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(InPosition(position, u, Compound()));
+        connection.ExecuteScalar(InPosition(position, u, Compound().OrderBy(1).OffsetRows(0)));
+
+        Assert.Equal(
+            "Msg 1033",
+            Outcome(connection, InPosition(position, u, Compound().OrderBy(1))));
+
+        ISelectBuilderWhere Compound() => UserOneThenNoOrderUserId(setOperator);
     }
 
     // #679: the pairing OutputClauseGuard rejects on every dialect. With OUTPUT the
@@ -1024,7 +1110,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT TOP (1) id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY"));
     }
 
-    // #679: a compound's ORDER BY sorts the combined result, so a branch's WITH TIES
+    // #679: a top-level compound's ORDER BY sorts the combined result, so a branch's WITH TIES
     // has no ordering of its own; a derived table carrying its own ORDER BY runs.
     [Fact]
     public void TopWithTiesInCompoundBranch_IsRejectedByTheEngine()

@@ -111,7 +111,13 @@ the dialect layer nor a plain matrix entry (the first two identified in the
   names. The workaround names SqlArtisan steps that move the construct to a
   position the engine takes — a CTE, a derived table, a second statement —
   never hand-written SQL, so ADR 0020's substitution clause, which bars a
-  recipe, does not reach it (#685). A dialect that accepts the position from
+  recipe, does not reach it (#685). A construct the engine runs with another
+  meaning in a position reports too, as a token read as something else does:
+  a twin asserting that meaning stands in for the rejection proof, and a
+  `[!NOTE]` docs callout states it, its workaround in the prose after
+  (SQL Server's paged compound in a subquery, which pages the last branch
+  alone, #822; MySQL's `FOR UPDATE` after a set operator, which locks the last
+  branch's rows alone, #764). A dialect that accepts the position from
   some version on gets a floor beside the rule's dialect list (ADR 0015,
   "Context rules take the same floor"), never a second rule. A restriction
   with no API surface to anchor on (Oracle's `PRIOR` outside `CONNECT BY` —

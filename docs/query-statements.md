@@ -391,7 +391,7 @@ SqlStatement sql =
 // id DESC NULLS LAST
 ```
 
-**Dialect note:** `NullsFirst` / `NullsLast` emit `NULLS FIRST` / `NULLS LAST`, which MySQL and SQL Server reject — neither engine has the clause. On Oracle and SQL Server, an `OrderBy(...)` in an `IN` / `NOT IN`, `EXISTS` / `NOT EXISTS`, `ANY` / `ALL` / `SOME` or scalar subquery needs a row limit beside it — `FetchFirst(n)` or `OffsetRows(...)` on Oracle, `Top(n)` or `OffsetRows(...)` on SQL Server — and on SQL Server in a derived table, CTE body or `APPLY` source too, which Oracle XE 21.3.0, Free 23ai and SQL Server 2022 require; order the outer query instead where the order picks no rows. `SQLA0102` reports those positions.
+**Dialect note:** `NullsFirst` / `NullsLast` emit `NULLS FIRST` / `NULLS LAST`, which MySQL and SQL Server reject — neither engine has the clause. On Oracle and SQL Server, an `OrderBy(...)` in an `IN` / `NOT IN`, `EXISTS` / `NOT EXISTS`, `ANY` / `ALL` / `SOME` or scalar subquery needs a row limit beside it — `FetchFirst(n)` or `OffsetRows(...)` on Oracle, `Top(n)` or `OffsetRows(...)` on SQL Server — and on SQL Server in a derived table, CTE body or `APPLY` source too, which Oracle XE 21.3.0, Free 23ai and SQL Server 2022 require; order the outer query instead where the order picks no rows. On SQL Server a compound's `OrderBy(...)` needs one there too, but a row limit after a compound's last branch pages that branch alone once embedded, so wrap the compound in a derived table (`.AsTable(...)`) or a CTE first and sort and page the query that reads it ([Set Operators](#set-operators)). `SQLA0102` reports those positions.
 
 A `string`, `char`, `bool`, date/time, GUID or enum sort key throws `Invalid type for
 OrderByItem: ...` at the call: bound, it would be a constant that sorts
@@ -594,14 +594,45 @@ arrived in a specific engine release; the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)
 lists each one, and the analyzer reports it against a declared target version.
 
-An `OrderBy(...)` after a `Union` or `UnionAll` branch sorts the combined result. A
-column of an aliased table, a CTE or a derived table there emits a qualified name
+At the top level, an `OrderBy(...)` after a `Union` or `UnionAll` branch sorts the
+combined result. A column of an aliased table, a CTE or a derived table there emits a qualified name
 (`"u".name`). MySQL 8.0, Oracle XE 21.3.0 and PostgreSQL 16 reject it whether all,
 some or none of the branches select the column, in one position or not, and SQLite
 3.50.4 and SQL Server 2022 run some such keys. On every one of them, order by a
 select-list position (`OrderBy(2)`) or by an alias the first branch selects (`.As(...)`)
 instead. With the analyzer on, `SQLA0102` reports such keys on MySQL, Oracle and
 PostgreSQL ([context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102)).
+
+> [!NOTE]
+> **On SQL Server, an embedded compound's `OffsetRows(...)` / `FetchNext(...)` page only its last
+> branch.** At the top level they page the combined result; as a subquery, a CTE body, a derived
+> table or an `APPLY` source, SQL Server 2022 runs the same text against the last branch alone and
+> returns other rows. `SQLA0102` reports it.
+
+Wrap the compound in a derived table or a CTE first, and sort and page the query that reads it:
+
+```csharp
+UsersTable u = new();
+ArchivedUsersTable a = new();
+OrdersTable o = new();
+SubqueryDerivedTable d = Select(u.Id).From(u).Union.Select(a.Id).From(a).AsTable("d");
+
+SqlStatement sql =
+    Select(o.Id)
+    .From(o)
+    .Where(o.UserId.In(
+        Select(d.Column("id"))
+        .From(d)
+        .OrderBy(d.Column("id"))
+        .OffsetRows(0)
+        .FetchNext(10)))
+    .Build(Dbms.SqlServer);
+
+// SELECT id FROM orders
+// WHERE user_id IN (SELECT "d".id
+// FROM (SELECT id FROM users UNION SELECT id FROM archived_users) "d"
+// ORDER BY "d".id OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY)
+```
 
 > [!NOTE]
 > **`Minus` after an unaliased table on SQL Server subtracts nothing.** SQL Server 2022 runs
@@ -733,11 +764,12 @@ SqlStatement sql =
 
 **Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Wait(...)` is Oracle-only, and `Of(...)` has one form per side: `Of(column)` is Oracle's, which MySQL and PostgreSQL reject, and `Of(table, ...)` is theirs (MySQL from a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)), which Oracle rejects. Oracle XE 21.3.0 and PostgreSQL 16 also reject `FOR UPDATE` over a grouped query, where MySQL 8.0 locks the base rows; the analyzer reports that position as `SQLA0102`. Both also reject it beside `Distinct` or an aggregate function in the select list, and PostgreSQL 16 also beside `DistinctOn(...)` or a window function; Oracle XE 21.3.0 runs the window function. `SQLA0102` reports those too. Oracle XE 21.3.0 rejects it after a row-limiting clause as well (`FETCH FIRST` / `OFFSET ... ROWS`), which PostgreSQL 16 runs; MySQL 8.0 has neither clause and runs its own `LIMIT ... FOR UPDATE`. Also `SQLA0102`. Oracle takes `FOR UPDATE` only in a top-level `SELECT`, so Oracle XE 21.3.0 and Free 23ai reject a locked subquery, CTE body or derived table; MySQL 8.0 and PostgreSQL 16 run a locked `IN` subquery, CTE body and derived table. `SQLA0102` reports the Oracle position too.
 
-> [!WARNING]
+> [!NOTE]
 > **On MySQL, `ForUpdate(...)` after a set operator locks only the last branch's rows.** MySQL 8.0
 > runs `SELECT ... UNION SELECT ... FOR UPDATE` and leaves the earlier branches' rows unlocked, with
-> no warning. Oracle XE 21.3.0 and PostgreSQL 16 reject it, and `SQLA0102` reports it there. Lock
-> each branch's rows in a statement of its own.
+> no error. Oracle XE 21.3.0 and PostgreSQL 16 reject it. `SQLA0102` reports it on all three.
+
+Lock each branch's rows in a statement of its own.
 
 ---
 
@@ -815,7 +847,7 @@ SqlStatement sql =
 // ORDER BY age
 ```
 
-`Top(n)` also chains `.Percent()` (`TOP (n) PERCENT`) and combines with `DISTINCT` (`Select(Distinct, Top(n), ...)` → `SELECT DISTINCT TOP (n)`). `WITH TIES` requires an `ORDER BY` of its own query block, and `TOP` cannot appear with `LIMIT`, `OFFSET`, or `FETCH` in the same query block (a compound's `OffsetRows(...)` / `FetchNext(...)` page the combined result, so they may follow a branch's `TOP`) — SqlArtisan throws at `Build()` on every dialect if either rule is broken, in a nested subquery's own clauses as much as in the statement's. A set-operator branch takes no `ORDER BY` of its own (the compound's sorts the combined result), so a tied branch goes in a derived table that carries its `ORDER BY`.
+`Top(n)` also chains `.Percent()` (`TOP (n) PERCENT`) and combines with `DISTINCT` (`Select(Distinct, Top(n), ...)` → `SELECT DISTINCT TOP (n)`). `WITH TIES` requires an `ORDER BY` of its own query block, and `TOP` cannot appear with `LIMIT`, `OFFSET`, or `FETCH` in the same query block (a top-level compound's `OffsetRows(...)` / `FetchNext(...)` page the combined result, so they may follow a branch's `TOP`; for an embedded one on SQL Server, see [Set Operators](#set-operators)) — SqlArtisan throws at `Build()` on every dialect if either rule is broken, in a nested subquery's own clauses as much as in the statement's. A set-operator branch takes no `ORDER BY` of its own (a top-level compound's sorts the combined result), so a tied branch goes in a derived table that carries its `ORDER BY`.
 
 **Dialect note:** `TOP` is SQL Server only — on MySQL, Oracle, PostgreSQL, and SQLite use the `LIMIT` or `OFFSET/FETCH` families above; those families expose no `WITH TIES` option in SqlArtisan.
 
@@ -847,6 +879,8 @@ SqlStatement sql =
 ```
 
 On MySQL, `LIMIT` directly inside an `IN` / `NOT IN` / `ALL` / `ANY` / `SOME` subquery is rejected ("This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'" — the same restriction covers `NOT IN`; observed on MySQL 8.0.46) — route the limited query through a CTE (`With(c.As(...))`) and select from that instead.
+
+On SQL Server, a compound embedded this way with `OffsetRows(...)` / `FetchNext(...)` after its last branch pages that branch alone; [Set Operators](#set-operators) shows the wrap that pages the combined result.
 
 #### Reusing a builder chain
 

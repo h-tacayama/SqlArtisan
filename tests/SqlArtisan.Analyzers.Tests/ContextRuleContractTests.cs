@@ -48,8 +48,8 @@ public class ContextRuleContractTests
     [Fact]
     public void SetOperatorStage_IsReturnedOnlyBySetOperatorProperties()
     {
-        // The set-operator lock rule reads any property returning this stage as the
-        // operator, so another member returning it would make the rule misreport.
+        // The set-operator lock rule and the compound ORDER BY rules read any property
+        // returning this stage as the operator, so another member returning it would misreport.
         List<string> members = [.. Core.GetExportedTypes()
             .SelectMany(t => t.GetMembers(
                 BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static
@@ -453,6 +453,25 @@ public class ContextRuleContractTests
 
         Assert.Equal(
             [.. ContextRules.OrderedSubqueryPredicateHosts.Concat(tableSources).Order()], hosts);
+    }
+
+    // The two embedded ORDER BY rules tell a row-limited chain by these names: one the
+    // set misses would read as unlimited, and the Msg 1033 rule would report a runnable query.
+    [Fact]
+    public void RowLimitSteps_AreEveryMemberReturningAPagedStage()
+    {
+        string[] steps = [.. Core.GetExportedTypes()
+            .SelectMany(t => t.GetMethods(
+                BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static
+                | BindingFlags.DeclaredOnly))
+            .Where(m => m.ReturnType == typeof(ISelectBuilderPaginated)
+                || m.ReturnType == typeof(ISelectBuilderOffsetFetch)
+                || m.ReturnType == typeof(ISelectBuilderLimitOffset))
+            .Select(m => m.Name)
+            .Distinct()
+            .Order()];
+
+        Assert.Equal([.. ContextRules.RowLimitSteps.Order()], steps);
     }
 
     // The locked-subquery rule reads a boxed ForUpdate result only at these hosts;

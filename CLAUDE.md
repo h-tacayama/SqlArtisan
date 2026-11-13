@@ -118,7 +118,8 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships eighteen diagnostics:
 - **SQLA0101** — Version-bound construct. Supported on the target dialect, but
   not until a newer engine version than the one declared.
 - **SQLA0102** — Context-restricted construct. A construct the target supports,
-  used in a position that dialect rejects.
+  used in a position that dialect rejects or runs with another meaning
+  (**ADR 0013**'s #822 section).
 - **SQLA0103** — Identifier too long for the target dialect's limit.
 - **SQLA0104** — A literal argument value the target dialect rejects (or runs
   with another meaning), where the construct itself runs there — a finer grain than SQLA0100's whole-construct

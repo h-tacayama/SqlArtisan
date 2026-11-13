@@ -77,8 +77,9 @@ emit `DECODE(x, :0)`, which PostgreSQL 16.15 runs as its binary
   an action `WHERE`, and beside a `WHEN ... AND`, `THEN DELETE` or `BY SOURCE`
   branch anywhere in the same `MERGE`, which Oracle refuses (#679); `TOP ... WITH TIES` with no
   `ORDER BY` of its own query block, which a set-operator branch never has,
-  since a compound's `ORDER BY` sorts the combined result (SQL Server 2022,
-  `TopWithTiesInCompoundBranch_IsRejectedByTheEngine`; #569, #679);
+  since a top-level compound's `ORDER BY` sorts the combined result (SQL Server 2022,
+  `TopWithTiesInCompoundBranch_IsRejectedByTheEngine`; #569, #679) and an
+  embedded one's binds to its last branch there (#822), unmeasured with a tie;
   `Returning(...)` on a joined `DELETE ... FROM` or `UPDATE` that re-lists its
   target, or a direct-join `UPDATE` — those forms belong to MySQL and SQL
   Server, which have no `RETURNING`, and the engines with it reject the forms
@@ -260,8 +261,9 @@ keeps `MERGE` because SQLA0300, which reports before `Build()`, shares it.
 
 **Which clause pairs no dialect runs get a guard (decided — do not re-file):** a
 pair of statement clauses no dialect accepts together is rejected when both
-halves spell one slot (`TOP` beside `LIMIT` / `OFFSET` / `FETCH`, save a compound's
-`OFFSET ROWS` / `FETCH`, which SQL Server 2022 runs beside a branch's `TOP`, #669), or when one
+halves spell one slot (`TOP` beside `LIMIT` / `OFFSET` / `FETCH`, save a top-level compound's
+`OFFSET ROWS` / `FETCH`, which SQL Server 2022 runs beside a branch's `TOP`, #669; an
+embedded one's binds to its last branch there, #822, unmeasured beside its `TOP`), or when one
 half is a DML clause or statement form only some engines take and those engines
 refuse the other half: another DML clause or form, or a clause they take in a
 `SELECT` but refuse in that position (a `WITH` between `INSERT INTO` and its
@@ -759,7 +761,7 @@ the leading `WITH` rejection to MySQL's `INSERT` (live: 8.0 `ER_PARSE_ERROR`),
 and `TOP` beside `LIMIT`/`OFFSET`/`FETCH` to every dialect, since `TOP` is SQL
 Server's alone and SQL Server rejects it beside `OFFSET`/`FETCH`
 (`TopWithOffsetFetch_IsRejectedByTheEngine`) in one query block; it runs a
-compound's `OFFSET ROWS` / `FETCH` beside a branch's `TOP`
+top-level compound's `OFFSET ROWS` / `FETCH` beside a branch's `TOP`
 (`TopInBranchWithCompoundOffset_IsAcceptedByTheEngine`, #669). **The #400 pairings stay
 Build()-time by decision** (pass 7): narrowing the `Output(...)` continuation
 types to withhold `Returning`/`Using`/upsert would split three interface
