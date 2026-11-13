@@ -829,7 +829,7 @@ public class SelectTests
             ex.Message);
     }
 
-    // SQL Server 2022 runs a compound's OFFSET ROWS / FETCH beside a branch's TOP (#669).
+    // SQL Server 2022 runs a top-level compound's OFFSET ROWS / FETCH beside a branch's TOP (#669).
     [Fact]
     public void Top_SqlServer_InCompoundBranch_WithCompoundOffsetFetch_CorrectSql()
     {

@@ -6,6 +6,7 @@ using SqlArtisan.Analyzers;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
+using static SqlArtisan.IntegrationTests.Infrastructure.EmbeddedCompounds;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.IntegrationTests.Tests;
@@ -869,87 +870,32 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             position, u, With(c.As(body)).Select(c.Column("user_id")).From(c))));
     }
 
-    private static ISqlBuilder InPosition(string position, UsersTable u, ISubquery query)
-    {
-        Cte q = new("q");
-        return position switch
-        {
-            "in" => Select(Count(Asterisk)).From(u).Where(u.Id.In(query)),
-            "notin" => Select(Count(Asterisk)).From(u).Where(u.Id.NotIn(query)),
-            "exists" => Select(Count(Asterisk)).From(u).Where(Exists(query)),
-            "notexists" => Select(Count(Asterisk)).From(u).Where(NotExists(query)),
-            "any" => Select(Count(Asterisk)).From(u).Where(u.Id > Any(query)),
-            "all" => Select(Count(Asterisk)).From(u).Where(u.Id > All(query)),
-            "some" => Select(Count(Asterisk)).From(u).Where(u.Id > Some(query)),
-            "derived" => Select(Count(Asterisk)).From(query.AsTable("d")),
-            "cte" => With(q.As(query)).Select(Count(Asterisk)).From(q),
-            "crossapply" =>
-                Select(Count(Asterisk)).From(u).CrossApply(query, new DerivedTable("x")),
-            "outerapply" =>
-                Select(Count(Asterisk)).From(u).OuterApply(query, new DerivedTable("x")),
-            _ => Select(query).From(u).Where(u.Id == 1),
-        };
-    }
-
-    public static TheoryData<string, string> CompoundPositions
-    {
-        get
-        {
-            TheoryData<string, string> data = new();
-            foreach (string setOperator in new[] { "Union", "UnionAll", "Intersect", "Except" })
-            {
-                foreach (string position in s_subqueryPositions)
-                {
-                    data.Add(setOperator, position);
-                }
-            }
-
-            return data;
-        }
-    }
-
-    private static readonly string[] s_subqueryPositions =
-    [
-        "in", "notin", "exists", "notexists", "any", "all", "some",
-        "derived", "cte", "scalar", "crossapply", "outerapply",
-    ];
-
     // SQLA0102 (#822): embedded, a compound's trailing ORDER BY ... OFFSET/FETCH pages its last
     // branch. User 1 against orders' user ids pages to no row as a whole compound and keeps the 1
     // when only the ids are paged; the top level and the wrapped-first form take the whole reading.
     [Theory]
-    [MemberData(nameof(CompoundPositions))]
+    [MemberData(nameof(EmbeddedCompounds.EveryPosition), MemberType = typeof(EmbeddedCompounds))]
     public void ContextRule_PagedCompoundInSubquery_PagesTheLastBranch(
         string setOperator,
         string position)
     {
         using IDbConnection connection = _fixture.OpenConnection();
-        // INTERSECT keeps the 1 only while the ids' page holds a 1; the others page past the end.
-        int offset = setOperator == "Intersect" ? 1 : 6;
+        int offset = PageOffset(setOperator);
         (string whole, string lastBranch) = PagedCompoundRows(position);
 
-        string topLevel = Outcome(connection, Paged());
-        string wrapped = Outcome(connection, ValuesInPosition(position, WrappedFirst()));
-        string embedded = Outcome(connection, ValuesInPosition(position, Paged()));
+        string topLevel = Outcome(connection, PagedCompound(setOperator, offset));
+        string wrapped = Outcome(
+            connection,
+            ValuesInPosition(position, PagedCompoundWrappedFirst(setOperator, offset)));
+        string embedded = Outcome(
+            connection,
+            ValuesInPosition(position, PagedCompound(setOperator, offset)));
 
         string report = $"{setOperator} in {position}: top level {topLevel}, wrapped first "
             + $"{wrapped}, embedded {embedded}; whole compound {whole}, last branch {lastBranch}";
         Assert.True(topLevel == "[]", report);
         Assert.True(wrapped == whole, report);
         Assert.True(embedded == lastBranch, report);
-
-        ISelectBuilderPaginated Paged() =>
-            UserOneThenOrderUserIds(setOperator).OrderBy(1).OffsetRows(offset).FetchNext(1);
-
-        ISelectBuilderPaginated WrappedFirst()
-        {
-            SubqueryDerivedTable w = UserOneThenOrderUserIds(setOperator).AsTable("w");
-            return Select(w.Column("id"))
-                .From(w)
-                .OrderBy(w.Column("id"))
-                .OffsetRows(offset)
-                .FetchNext(1);
-        }
     }
 
     // SQLA0102 (#822) reports OffsetRows with no FetchNext too: the offset alone skips rows of the
@@ -964,7 +910,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         string position)
     {
         using IDbConnection connection = _fixture.OpenConnection();
-        int offset = setOperator == "Intersect" ? 1 : 6;
+        int offset = PageOffset(setOperator);
         (string whole, string lastBranch) = PagedCompoundRows(position);
 
         string topLevel = Outcome(
@@ -1000,48 +946,20 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        string topLevel = Outcome(connection, Compound().OrderBy(1).OffsetRows(1).FetchNext(2));
-        string wrapped = Outcome(connection, WrappedFirst());
+        string topLevel = Outcome(
+            connection,
+            UsersThenLowOrderUserIds(setOperator).OrderBy(1).OffsetRows(1).FetchNext(2));
+        string wrapped = Outcome(
+            connection,
+            UsersThenLowOrderUserIdsWrappedFirst(setOperator, wrap));
 
         Assert.Equal(combined, topLevel);
         Assert.Equal(combined, wrapped);
-
-        ISelectBuilderWhere Compound()
-        {
-            UsersTable a = new("a");
-            OrdersTable o = new("o");
-            return Combine(Select(a.Id).From(a), setOperator)
-                .Select(o.UserId)
-                .From(o)
-                .Where(o.UserId <= 2);
-        }
-
-        ISqlBuilder WrappedFirst()
-        {
-            if (wrap == "cte")
-            {
-                Cte w = new("w");
-                return With(w.As(Compound()))
-                    .Select(w.Column("id"))
-                    .From(w)
-                    .OrderBy(w.Column("id"))
-                    .OffsetRows(1)
-                    .FetchNext(2);
-            }
-
-            SubqueryDerivedTable d = Compound().AsTable("d");
-            return Select(d.Column("id"))
-                .From(d)
-                .OrderBy(d.Column("id"))
-                .OffsetRows(1)
-                .FetchNext(2);
-        }
     }
 
     // SQLA0102 (#822): an ordered compound meets ContextRule_OrderByInSubquery_Rejected's Msg 1033.
-    // The second branch selects no row, so the scalar spot gets one row under either binding.
     [Theory]
-    [MemberData(nameof(CompoundPositions))]
+    [MemberData(nameof(EmbeddedCompounds.EveryPosition), MemberType = typeof(EmbeddedCompounds))]
     public void ContextRule_OrderedCompoundInSubquery_Rejected(
         string setOperator,
         string position)
@@ -1056,89 +974,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "Msg 1033",
             Outcome(connection, InPosition(position, u, Compound().OrderBy(1))));
 
-        ISelectBuilderWhere Compound()
-        {
-            UsersTable a = new("a");
-            OrdersTable o = new("o");
-            return Combine(Select(a.Id).From(a).Where(a.Id == 1), setOperator)
-                .Select(o.UserId)
-                .From(o)
-                .Where(o.Id == 0);
-        }
-    }
-
-    private static ISelectBuilderSetOperator Combine(ISetOperator first, string setOperator) =>
-        setOperator switch
-        {
-            "Union" => first.Union,
-            "UnionAll" => first.UnionAll,
-            "Intersect" => first.Intersect,
-            "Except" => first.Except,
-            _ => throw new ArgumentOutOfRangeException(nameof(setOperator), setOperator, null),
-        };
-
-    // User 1, then every order's user id: 1, 1, 2, 3, 5.
-    private static ISelectBuilderFrom UserOneThenOrderUserIds(string setOperator)
-    {
-        UsersTable a = new("a");
-        OrdersTable o = new("o");
-        return Combine(Select(a.Id).From(a).Where(a.Id == 1), setOperator)
-            .Select(o.UserId)
-            .From(o);
-    }
-
-    // InPosition's spots selecting the rows they keep: its count cannot tell an empty
-    // OUTER APPLY operand from a one-row one.
-    private static ISqlBuilder ValuesInPosition(string position, ISubquery query)
-    {
-        UsersTable u = new("u");
-        Cte q = new("q");
-        DerivedTable x = new("x");
-        return position switch
-        {
-            "in" => Select(u.Id).From(u).Where(u.Id.In(query)),
-            "notin" => Select(u.Id).From(u).Where(u.Id.NotIn(query)),
-            "exists" => Select(u.Id).From(u).Where(Exists(query)),
-            "notexists" => Select(u.Id).From(u).Where(NotExists(query)),
-            "any" => Select(u.Id).From(u).Where(u.Id > Any(query)),
-            "all" => Select(u.Id).From(u).Where(u.Id > All(query)),
-            "some" => Select(u.Id).From(u).Where(u.Id > Some(query)),
-            "derived" => Select(Asterisk).From(query.AsTable("d")),
-            "cte" => With(q.As(query)).Select(Asterisk).From(q),
-            "scalar" => Select(query).From(u).Where(u.Id == 1),
-            "crossapply" => Select(x.Column("id")).From(u).CrossApply(query, x).Where(u.Id == 1),
-            "outerapply" => Select(x.Column("id")).From(u).OuterApply(query, x).Where(u.Id == 1),
-            _ => throw new ArgumentOutOfRangeException(nameof(position), position, null),
-        };
-    }
-
-    // ValuesInPosition's rows from users 1 to 5 when the operand is empty (the whole
-    // compound paged) and when it is {1} (only the last branch paged).
-    private static (string Whole, string LastBranch) PagedCompoundRows(string position) =>
-        position switch
-        {
-            "in" or "derived" or "cte" or "crossapply" => ("[]", "[1]"),
-            "notin" => ("[1, 2, 3, 4, 5]", "[2, 3, 4, 5]"),
-            "exists" => ("[]", "[1, 2, 3, 4, 5]"),
-            "notexists" => ("[1, 2, 3, 4, 5]", "[]"),
-            "any" or "some" => ("[]", "[2, 3, 4, 5]"),
-            "all" => ("[1, 2, 3, 4, 5]", "[2, 3, 4, 5]"),
-            "scalar" or "outerapply" => ("[NULL]", "[1]"),
-            _ => throw new ArgumentOutOfRangeException(nameof(position), position, null),
-        };
-
-    // The sorted rows, or the engine's Msg number, so a failed assertion prints what ran.
-    private static string Outcome(IDbConnection connection, ISqlBuilder query)
-    {
-        try
-        {
-            IEnumerable<int?> rows = connection.Query<int?>(query).Order();
-            return $"[{string.Join(", ", rows.Select(r => r?.ToString() ?? "NULL"))}]";
-        }
-        catch (Microsoft.Data.SqlClient.SqlException ex)
-        {
-            return $"Msg {ex.Number}";
-        }
+        ISelectBuilderWhere Compound() => UserOneThenNoOrderUserId(setOperator);
     }
 
     // #679: the pairing OutputClauseGuard rejects on every dialect. With OUTPUT the
@@ -1274,7 +1110,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT TOP (1) id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY"));
     }
 
-    // #679: a compound's ORDER BY sorts the combined result, so a branch's WITH TIES
+    // #679: a top-level compound's ORDER BY sorts the combined result, so a branch's WITH TIES
     // has no ordering of its own; a derived table carrying its own ORDER BY runs.
     [Fact]
     public void TopWithTiesInCompoundBranch_IsRejectedByTheEngine()

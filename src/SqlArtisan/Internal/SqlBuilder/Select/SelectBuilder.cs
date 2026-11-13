@@ -481,8 +481,8 @@ internal class SelectBuilder :
             return;
         }
 
-        // TOP is SQL Server's alone, and SQL Server 2022 rejects OFFSET ROWS/FETCH beside it in
-        // one block; only the pairing it runs, a compound's beside a branch's TOP, is lifted.
+        // SQL Server 2022 rejects OFFSET ROWS/FETCH beside TOP in one block; only a top-level
+        // compound's beside a branch's TOP runs, so it is lifted (embedded: unmeasured, #822).
         bool hasOffsetRows = FindPart<OffsetRowsClause>() is not null;
         if (FindPart<LimitClause>() is not null
             || FindPart<OffsetClause>() is not null
@@ -498,8 +498,8 @@ internal class SelectBuilder :
             return;
         }
 
-        // No branch takes an ORDER BY of its own, and a compound's sorts the combined
-        // result, so a tied branch has no ordering to tie on (#679).
+        // No branch has an ORDER BY of its own; a top-level compound's sorts the combined result,
+        // so a tied branch has no ordering to tie on (#679). Embedded ties are unmeasured (#822).
         if (HasSetOperator())
         {
             throw new ArgumentException(
