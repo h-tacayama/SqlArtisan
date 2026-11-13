@@ -51,3 +51,8 @@ IF [SetOperator] <> "None" THEN [OrderBy] IN {"None", "UniqueAsc"};
 
 # SQL Server binds TOP to the first branch alone, not to the compound.
 IF [Paging] = "Top" THEN [SetOperator] = "None";
+
+# Embedded in a derived table or CTE, SQL Server binds a compound's ORDER BY ... OFFSET/FETCH
+# to its last branch (the ORDER BY page: the UNION/EXCEPT/INTERSECT placement rule holds at the
+# top level only), so the wrap would change the rows rather than keep them.
+IF [Dbms] = "SqlServer" AND [SetOperator] <> "None" AND [Paging] <> "None" THEN [Wrap] = "None";

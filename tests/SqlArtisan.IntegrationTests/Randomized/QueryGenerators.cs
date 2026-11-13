@@ -361,7 +361,8 @@ internal static class QueryGenerators
                     [Sorted(lead, leadDescending, nulls), .. unique];
         }
 
-        // A DISTINCT sort key must match a select item, which a bound value never does.
+        // A DISTINCT sort key must match a select item, which a bound value never does; SQL
+        // Server rejects a key listed twice (Msg 169), so the extra key is never a repeat.
         Gen<SpecExpression> extraKey = row.Distinct
             ? IntColumn(scope).Select(c => (SpecExpression)c)
             : IntExpr(scope, 1);
@@ -369,7 +370,8 @@ internal static class QueryGenerators
             from withExtra in Chance(40)
             from extra in extraKey
             from explicitAscending in Gen.Bool
-            let keys = withExtra ? [extra, .. unique] : unique
+            let repeats = unique.Any(k => k.ToCSharp() == extra.ToCSharp())
+            let keys = withExtra && !repeats ? [extra, .. unique] : unique
             select (IReadOnlyList<SpecExpression>)[.. keys.Select(k =>
                 isDescending || explicitAscending
                     ? Sorted(k, isDescending, NullsPlacement.Default)
@@ -514,11 +516,7 @@ internal static class QueryGenerators
                 Inner(branchItemTable) with { AllowsSubquery = false },
                 0)
             from branchFiltered in Gen.Bool
-            from setOperator in Gen.OneOf(
-                SetOperatorLevel.Union,
-                SetOperatorLevel.UnionAll,
-                SetOperatorLevel.Intersect,
-                SetOperatorLevel.Except)
+            from setOperator in Gen.OneOf(SubquerySetOperators(outer.Target, quantified))
             select SubqueryBlock(
                 table,
                 want,
@@ -595,6 +593,19 @@ internal static class QueryGenerators
             _ => block,
         };
     }
+
+    // MySQL 8.0.46 evaluates x [NOT] IN (a INTERSECT|EXCEPT b) wrongly: it pushes x = a.col,
+    // a NULL test and LIMIT 1 into each branch. Repro: a = {1, NULL}, b = {1} gives
+    // 1 NOT IN (a EXCEPT b) = 1, not NULL; the same set as a derived table answers right.
+    private static SetOperatorLevel[] SubquerySetOperators(Dbms dbms, bool quantified) =>
+        quantified && dbms == Dbms.MySql
+            ? [SetOperatorLevel.Union, SetOperatorLevel.UnionAll]
+            : [
+                SetOperatorLevel.Union,
+                SetOperatorLevel.UnionAll,
+                SetOperatorLevel.Intersect,
+                SetOperatorLevel.Except,
+            ];
 
     // MySQL rejects LIMIT directly inside IN/NOT IN (ContextRules.CheckLimitInQuantifiedSubquery).
     private static Gen<RowLimit?> SubqueryLimit(Dbms dbms, int maxCount, bool quantified)

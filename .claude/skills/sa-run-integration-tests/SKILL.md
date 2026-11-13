@@ -156,9 +156,11 @@ same rows, set-operator and slice checks, the C# reference evaluator).
   `PictModelTests` fails the PR on a CSV that drifts from the model, on a row
   `DialectMatrix` says its engine cannot run, and on an uncovered valid pair.
 - **A failure report** names the CSV row, the CsCheck seed, the C# chain, the
-  SQL, the bound values and the expected and actual rows, then a shrunk case
-  CsCheck found in `SQLARTISAN_RANDOMIZED_SHRINK_SECONDS` (default 30; `0`
-  skips the search) with its own seed.
+  SQL, the bound values and the expected and actual rows. The first failing
+  row of a lane then adds a shrunk case CsCheck found in 20 s, with its own
+  seed; later rows skip the search, so a lane with many failures stays quick.
+  `SQLARTISAN_RANDOMIZED_SHRINK_SECONDS` gives every failure that budget
+  instead (`0` skips the search).
 - **Reproduce one case** by pinning the seed and filtering to its row (either
   seed from the report works, the original or the shrunk one):
 

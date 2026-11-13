@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Data;
 using CsCheck;
 using SqlArtisan.IntegrationTests.Infrastructure;
@@ -15,6 +16,9 @@ public abstract class CombinatorialSelectTestBase
     private const int CasesPerRow = 3;
     private const string SeedVariable = "SQLARTISAN_RANDOMIZED_SEED";
     private const string ShrinkVariable = "SQLARTISAN_RANDOMIZED_SHRINK_SECONDS";
+    private const int DefaultShrinkSeconds = 20;
+
+    private static readonly ConcurrentDictionary<Type, bool> s_shrunkLanes = new();
 
     private readonly IDatabaseFixture _fixture;
 
@@ -79,12 +83,25 @@ public abstract class CombinatorialSelectTestBase
             .Select(i => new PCG((uint)row.Number, (ulong)i).ToString())];
 
     // CsCheck shrinks by searching other seeds of the same generator for a smaller failing
-    // query, so the search is bounded in time: each candidate costs a dozen round trips.
-    private static string Shrink(Gen<QuerySpec> gen, CaseChecker checker, string seed)
+    // query, and each candidate costs a dozen round trips, so by default only a lane's first
+    // failure searches; the variable sets a budget for every failure instead.
+    private string Shrink(Gen<QuerySpec> gen, CaseChecker checker, string seed)
     {
-        int seconds = int.TryParse(Environment.GetEnvironmentVariable(ShrinkVariable), out int s)
-            ? s
-            : 30;
+        int seconds;
+        if (int.TryParse(Environment.GetEnvironmentVariable(ShrinkVariable), out int s))
+        {
+            seconds = s;
+        }
+        else if (s_shrunkLanes.TryAdd(GetType(), true))
+        {
+            seconds = DefaultShrinkSeconds;
+        }
+        else
+        {
+            return "\n\nSHRINK skipped: an earlier row of this lane searched; set "
+                + $"{ShrinkVariable} to search here.";
+        }
+
         if (seconds <= 0)
         {
             return "";
