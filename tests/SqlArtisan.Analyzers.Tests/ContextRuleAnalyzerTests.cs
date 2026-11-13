@@ -1363,7 +1363,14 @@ public class ContextRuleAnalyzerTests
             var q = p.ForUpdate();
             """, "oracle");
 
+    // MySQL runs the lock on the last branch's rows alone, another meaning (#822).
     [Theory]
+    [InlineData("mysql", "Union")]
+    [InlineData("mysql", "UnionAll")]
+    [InlineData("mysql", "Intersect")]
+    [InlineData("mysql", "IntersectAll")]
+    [InlineData("mysql", "Except")]
+    [InlineData("mysql", "ExceptAll")]
     [InlineData("oracle", "Union")]
     [InlineData("postgresql", "Union")]
     [InlineData("postgresql", "UnionAll")]
@@ -1374,13 +1381,6 @@ public class ContextRuleAnalyzerTests
             var q = {|#0:Select(t.Id).From(t).{{setOperator}}.Select(s.Id).From(s).Where(s.Id > 0)
                 .ForUpdate()|};
             """, dbms);
-
-    // MySQL runs the lock on the last branch's rows rather than rejecting it.
-    [Fact]
-    public Task ForUpdateAfterSetOperator_MySql_StaysSilent() =>
-        RunSilent("""
-            var q = Select(t.Id).From(t).Union.Select(s.Id).From(s).ForUpdate();
-            """);
 
     // The set operator sits in the subquery's own chain, not in ForUpdate's.
     [Fact]
@@ -1829,4 +1829,174 @@ public class ContextRuleAnalyzerTests
         """)]
     public Task OrderByInSubquery_Oracle_StaysSilent(string statements) =>
         RunSilent(statements, "oracle");
+
+    // --- A compound's ORDER BY in a subquery on SQL Server (#822) ---
+
+    [Theory]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.In(
+            {|#0:Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1)|}
+                .OffsetRows(1).FetchNext(2)));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.NotIn(
+            {|#0:Select(t.Id).From(t).UnionAll.Select(s.Dep).From(s).OrderBy(1)|}
+                .OffsetRows(1).FetchNext(2)));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(Exists(
+            {|#0:Select(t.Id).From(t).Intersect.Select(s.Dep).From(s).OrderBy(1)|}
+                .OffsetRows(1).FetchNext(2)));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id > Any(
+            {|#0:Select(t.Id).From(t).Except.Select(s.Dep).From(s).OrderBy(1)|}
+                .OffsetRows(1).FetchNext(2)));
+        """)]
+    [InlineData("""
+        var d = {|#0:Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1)|}
+            .OffsetRows(1).FetchNext(2).AsTable("d");
+        """)]
+    [InlineData("""
+        Cte c = new("c");
+        var q = With(c.As({|#0:Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1)|}
+            .OffsetRows(1).FetchNext(2))).Select(c.Column("id")).From(c);
+        """)]
+    [InlineData("""
+        var q = Select({|#0:Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1)|}
+            .OffsetRows(1).FetchNext(1)).From(t);
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id == {|#0:Select(t.Id).From(t).Union.Select(s.Dep)
+            .From(s).OrderBy(1)|}.OffsetRows(1).FetchNext(1));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).CrossApply(
+            {|#0:Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1)|}
+                .OffsetRows(1).FetchNext(2), new DerivedTable("x"));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).OuterApply(
+            {|#0:Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1)|}
+                .OffsetRows(1).FetchNext(2), new DerivedTable("x"));
+        """)]
+    // An offset alone pages too, and so does a FETCH after a zero offset.
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.In(
+            {|#0:Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1)|}.OffsetRows(1)));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.In(
+            {|#0:Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1)|}
+                .OffsetRows(0).FetchNext(2)));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.In({|#0:Select(t.Id).From(t).Where(t.Id > 1)
+            .Union.Select(s.Dep).From(s).Except.Select(s.Id).From(s).OrderBy(1)|}
+                .OffsetRows(1).FetchNext(2)));
+        """)]
+    public Task PagedCompoundInSubquery_SqlServer_ReportsSqla0102(string statements) =>
+        RunReporting(statements, "sqlserver");
+
+    [Theory]
+    // At the top level the paging takes the combined result.
+    [InlineData("""
+        var q = Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1)
+            .OffsetRows(1).FetchNext(2);
+        """)]
+    // The workaround: wrap the compound first, then sort and page outside it.
+    [InlineData("""
+        Cte w = new("w");
+        var q = With(w.As(Select(t.Id).From(t).Union.Select(s.Dep).From(s)))
+            .Select(w.Column("id")).From(w).OrderBy(w.Column("id")).OffsetRows(1).FetchNext(2);
+        """)]
+    [InlineData("""
+        var d = Select(t.Id).From(t).Union.Select(s.Dep).From(s).AsTable("d");
+        var q = Select(t.Id).From(t).Where(t.Id.In(
+            Select(d.Column("id")).From(d).OrderBy(d.Column("id")).OffsetRows(1).FetchNext(2)));
+        """)]
+    // The compound sits in an operand of the paged query, not in its own chain.
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.In(Select(s.Id).From(s)
+            .Where(s.Id.In(Select(t.Id).From(t).Union.Select(s.Dep).From(s)))
+            .OrderBy(s.Id).OffsetRows(1).FetchNext(2)));
+        """)]
+    // A zero offset alone skips nothing, wherever it binds.
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.In(
+            Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1).OffsetRows(0)));
+        """)]
+    // TOP in a branch beside the compound's paging is unmeasured.
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.In(Select(Top(3), t.Id).From(t)
+            .Union.Select(s.Dep).From(s).OrderBy(1).OffsetRows(1).FetchNext(2)));
+        """)]
+    // Held in a variable, or with its first branch held, the chain is out of sight.
+    [InlineData("""
+        var page = Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1)
+            .OffsetRows(1).FetchNext(2);
+        var q = Select(t.Id).From(t).Where(t.Id.In(page));
+        """)]
+    [InlineData("""
+        var first = Select(t.Id).From(t);
+        var q = Select(t.Id).From(t).Where(t.Id.In(
+            first.Union.Select(s.Dep).From(s).OrderBy(1).OffsetRows(1).FetchNext(2)));
+        """)]
+    public Task PagedCompoundInSubquery_SqlServer_StaysSilent(string statements) =>
+        RunSilent(statements, "sqlserver");
+
+    // The other engines page the combined result in every position measured (#823).
+    [Theory]
+    [InlineData("oracle")]
+    [InlineData("postgresql")]
+    public Task PagedCompoundInSubquery_OtherDbms_StaysSilent(string dbms) =>
+        RunSilent("""
+            Cte c = new("c");
+            var q = With(c.As(Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1)
+                .OffsetRows(1).FetchNext(2))).Select(c.Column("id")).From(c);
+            """, dbms);
+
+    [Theory]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.In(
+            {|#0:Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1)|}));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(Exists(
+            {|#0:Select(t.Id).From(t).Except.Select(s.Dep).From(s).OrderBy(1)|}));
+        """)]
+    [InlineData("""
+        var d = {|#0:Select(t.Id).From(t).UnionAll.Select(s.Dep).From(s).OrderBy(1)|}.AsTable("d");
+        """)]
+    [InlineData("""
+        Cte c = new("c");
+        var q = With(c.As({|#0:Select(t.Id).From(t).Intersect.Select(s.Dep).From(s).OrderBy(1)|}))
+            .Select(c.Column("id")).From(c);
+        """)]
+    [InlineData("""
+        var q = Select({|#0:Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1)|}).From(t);
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).CrossApply(
+            {|#0:Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1)|},
+            new DerivedTable("x"));
+        """)]
+    public Task OrderedCompoundInSubquery_SqlServer_ReportsSqla0102(string statements) =>
+        RunReporting(statements, "sqlserver");
+
+    [Theory]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1);
+        """, "sqlserver")]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.In(Select(Top(3), t.Id).From(t)
+            .Union.Select(s.Dep).From(s).OrderBy(1)));
+        """, "sqlserver")]
+    // Oracle's verdict on an ordered compound is unmeasured.
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.In(
+            Select(t.Id).From(t).Union.Select(s.Dep).From(s).OrderBy(1)));
+        """, "oracle")]
+    public Task OrderedCompoundInSubquery_StaysSilent(string statements, string dbms) =>
+        RunSilent(statements, dbms);
 }

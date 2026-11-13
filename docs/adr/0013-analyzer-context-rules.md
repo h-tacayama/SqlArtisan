@@ -1,6 +1,7 @@
 # ADR 0013 — Analyzer context rules: position-dependent verdicts under their own diagnostic
 
-**Status:** Accepted
+**Status:** Accepted — #822 widens the verdict to a position an engine runs
+with another meaning (the last section); everything else here stands.
 
 ## Context
 
@@ -122,3 +123,28 @@ reported under a new diagnostic ID `SQLA0102`, registered from the same
   declaring-interface test — a name compare, no walk — runs before the
   per-tree config lookup, so an ordinary `SELECT` pays only that.
 - The Analyzer ADR cluster grows to 0003 + 0008 + 0009 + 0013.
+
+### A position that changes the meaning, added under this decision
+
+#822 widened the verdict: a construct an engine runs with another meaning in a
+position reports under `SQLA0102` too, as a token read as something else does
+under `SQLA0100` and a value under `SQLA0104` (ADR 0022, #684), its twin
+asserting that meaning in place of the rejection proof. The partition holds: a
+position the engine misreads is suppressed for the reason a rejected one is. Two
+instances came with it:
+
+- SQL Server 2022 pages an embedded compound's `ORDER BY ... OFFSET ... FETCH`
+  against its last branch, where a top-level compound's pages the combined
+  result, in each of the twelve embedding positions its twin runs
+  (`ContextRule_PagedCompoundInSubquery_PagesTheLastBranch`; the wrapped-first
+  workaround, `PagedCompoundWrappedFirst_PagesTheCombinedResult`). Microsoft's
+  `ORDER BY` reference limits its set-operator rule to a top-level query.
+- MySQL 8.0 runs `FOR UPDATE` after a set operator and locks the last branch's
+  rows alone. #764 left that to a docs warning; it now reports beside Oracle's
+  and PostgreSQL's rejections
+  (`MySqlTests.ContextRule_ForUpdateAfterSetOperator_LocksOnlyTheLastBranch`).
+
+The same change read the compound's branches for the `ORDER BY`-without-a-row-limit
+rule, which SQL Server rejects there too (Msg 1033,
+`ContextRule_OrderedCompoundInSubquery_Rejected`); Oracle's verdict on an ordered
+compound is unmeasured, so the rule stays silent there.

@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `SQLA0102` reports, on SQL Server, a compound's `OrderBy(...)` followed by
+  `OffsetRows(...)` or `FetchNext(...)` in a subquery, CTE body, derived table or
+  `APPLY` source, where SQL Server pages the last branch alone instead of the
+  combined result, so the query returns other rows with no error (observed on SQL
+  Server 2022). `OffsetRows(0)` with no `FetchNext(...)` skips nothing and is not
+  reported. (#822)
+- `SQLA0102` reports, on SQL Server, a compound's `OrderBy(...)` with no row limit
+  in those positions, which SQL Server 2022 rejects (Msg 1033), as it already did
+  for a query that is not a compound. (#822)
+- `SQLA0102` reports `ForUpdate(...)` after a set operator on MySQL too, where
+  MySQL 8.0 runs it and locks the last branch's rows only. (#822)
+
 ### Changed
 - **Breaking:** `MergeInto(...)` throws `ArgumentException` for a target with no
   alias, on every dialect, as a joined `UPDATE` or `DELETE` does. A `MERGE`
@@ -38,6 +51,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   every other type registers as before. (#814)
 
 ### Docs
+- `docs/query-statements.md` notes that on SQL Server a compound's
+  `OffsetRows(...)` / `FetchNext(...)` page only its last branch once the
+  compound is embedded, with the wrap that pages the combined result; § Pagination
+  said a compound's paging takes the combined result wherever it sits. The note on
+  MySQL's `ForUpdate(...)` after a set operator names `SQLA0102`. (#822)
 - `docs/versioning.md` says that adding a type to Bind Parameter Types is not
   breaking: a converter or type handler registered for the type keeps
   converting it, `Sql.BindArray` keeps rejecting an array of it while one is

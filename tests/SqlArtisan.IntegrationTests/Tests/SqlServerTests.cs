@@ -914,9 +914,9 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         "derived", "cte", "scalar", "crossapply", "outerapply",
     ];
 
-    // #822: CI saw an embedded compound's trailing ORDER BY ... OFFSET/FETCH page its last branch.
-    // User 1 against orders' user ids pages to no row as a whole compound and keeps the 1 when
-    // only the ids are paged; the top level and the wrapped-first form take the whole reading.
+    // SQLA0102 (#822): embedded, a compound's trailing ORDER BY ... OFFSET/FETCH pages its last
+    // branch. User 1 against orders' user ids pages to no row as a whole compound and keeps the 1
+    // when only the ids are paged; the top level and the wrapped-first form take the whole reading.
     [Theory]
     [MemberData(nameof(CompoundPositions))]
     public void ContextRule_PagedCompoundInSubquery_PagesTheLastBranch(
@@ -950,6 +950,36 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
                 .OffsetRows(offset)
                 .FetchNext(1);
         }
+    }
+
+    // SQLA0102 (#822) reports OffsetRows with no FetchNext too: the offset alone skips rows of the
+    // last branch, the same data as above giving the same two readings.
+    [Theory]
+    [InlineData("Union", "in")]
+    [InlineData("UnionAll", "derived")]
+    [InlineData("Intersect", "cte")]
+    [InlineData("Except", "scalar")]
+    public void ContextRule_OffsetOnlyCompoundInSubquery_SkipsInTheLastBranch(
+        string setOperator,
+        string position)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        int offset = setOperator == "Intersect" ? 1 : 6;
+        (string whole, string lastBranch) = PagedCompoundRows(position);
+
+        string topLevel = Outcome(
+            connection,
+            UserOneThenOrderUserIds(setOperator).OrderBy(1).OffsetRows(offset));
+        string embedded = Outcome(
+            connection,
+            ValuesInPosition(
+                position,
+                UserOneThenOrderUserIds(setOperator).OrderBy(1).OffsetRows(offset)));
+
+        string report = $"{setOperator} in {position}: top level {topLevel}, embedded "
+            + $"{embedded}; whole compound {whole}, last branch {lastBranch}";
+        Assert.True(topLevel == "[]", report);
+        Assert.True(embedded == lastBranch, report);
     }
 
     // #822's workaround. Users 1 to 5 against orders' user ids 1, 1, 2; were only those ids
@@ -1008,11 +1038,11 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         }
     }
 
-    // #822: whether an ordered compound meets ContextRule_OrderByInSubquery_Rejected's Msg 1033.
+    // SQLA0102 (#822): an ordered compound meets ContextRule_OrderByInSubquery_Rejected's Msg 1033.
     // The second branch selects no row, so the scalar spot gets one row under either binding.
     [Theory]
     [MemberData(nameof(CompoundPositions))]
-    public void OrderedCompoundInSubquery_IsRejectedByTheEngine(
+    public void ContextRule_OrderedCompoundInSubquery_Rejected(
         string setOperator,
         string position)
     {
@@ -1097,7 +1127,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             _ => throw new ArgumentOutOfRangeException(nameof(position), position, null),
         };
 
-    // The sorted rows, or the engine's Msg number, so a missed prediction prints what ran.
+    // The sorted rows, or the engine's Msg number, so a failed assertion prints what ran.
     private static string Outcome(IDbConnection connection, ISqlBuilder query)
     {
         try

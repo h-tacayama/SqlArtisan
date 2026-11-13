@@ -104,7 +104,7 @@ still needs naming by ID.
 | `SQLA0001` | Warning | A SqlArtisan analyzer configuration problem: an unrecognized `sqlartisan_syntax_*` key name or value (a blank `.editorconfig` value, or a version in another engine's spelling, included), a `sqlartisan_construct_*` key naming no SqlArtisan member or declared parameter count, a `sqlartisan_construct_*` value that could not be recognized, a `sqlartisan_syntax_*` family that resolves to no dialect in any file, or a removed `sqlartisan_target_dbms` / `sqlartisan_target_version` key still set — see [Checking a set of dialects at once](#checking-a-set-of-dialects-at-once) and [Migrating from the legacy target key](#migrating-from-the-legacy-target-key). |
 | `SQLA0100` | Warning | A SqlArtisan construct is used against a configured dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it, or your own `unsupported` override says so. Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0101` | Warning | A construct is supported on a configured dialect, but not at its declared version — see [Version-aware warnings](#version-aware-warnings-sqla0101). Checking more than one dialect reports one diagnostic per failing dialect. |
-| `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
+| `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position where that dialect rejects it or runs it with another meaning — see [Context rules](#context-rules-sqla0102). |
 | `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` or `Unnest(...).AsTable(...)` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
 | `SQLA0104` | Warning | A literal argument value a configured dialect rejects, or runs with another meaning, where the construct itself runs there: a `DateTimePart` the function's grammar does not accept or reads as another field, a `RegexpOptions` member outside that engine's match-parameter alphabet, a negative `Top`/`FetchFirst`/`FetchNext`/`Limit` count, a `GroupBy` column ordinal on an engine that has no `GROUP BY` positions, a negative integer-typed `Round` scale on SQLite, a string or `char` constant beside `+` on any engine but SQL Server, a `CurrentTimestamp` / `CurrentTime` precision above an engine's ceiling, or an Oracle `IntervalLiteral` value of three or more leading digits under a `Day()` or `Year()` with no precision — see [Argument value validity](#argument-value-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join or super-aggregate grouping on its own spine — past one, the anti-join or the grand-total row makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
@@ -648,12 +648,12 @@ functions.
 ## Context rules (SQLA0102)
 
 A construct can be valid on a dialect in one position and rejected by the same
-engine in another. The construct-level warnings above cannot express that —
-the construct itself *is* supported — so these facts ship as **context
-rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. In all, 26 rules ship today — nineteen reading
+engine in another, or run there with another meaning. The construct-level
+warnings above cannot express that — the construct itself *is* supported — so
+these facts ship as **context rules**: `SQLA0102` fires when the offending
+position is visible in the expression where the construct is used. In all, 27 rules ship today — twenty reading
 the construct's surroundings, seven reading the DML statement a clause sits in.
-Every rejection below is live-verified on the pinned lanes — MySQL 8.0, Oracle
+Every rejection below, and every other meaning, is live-verified on the pinned lanes — MySQL 8.0, Oracle
 XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022, the Oracle floors on
 Free 23ai, and `WHEN NOT MATCHED BY SOURCE` on PostgreSQL 17 — and so is every
 acceptance but MySQL's `LIMIT` in the scalar and `EXISTS` positions, which no
@@ -796,14 +796,14 @@ var q = Select(u.Id).From(u).OrderBy(u.Id).FetchFirst(1).ForUpdate();
 
 **`FOR UPDATE` after a set operator.** A lock written after a `UNION`,
 `INTERSECT`, `EXCEPT` or `MINUS` branch locks no whole query: Oracle
-(ORA-01786) and PostgreSQL (SQLSTATE 0A000) reject it, and MySQL runs it and
-locks the last branch's rows only, so the rule leaves MySQL out. Lock each
-branch's rows in a statement of its own.
+(ORA-01786) and PostgreSQL (SQLSTATE 0A000) reject it, and MySQL runs it with
+another meaning, locking the last branch's rows only. Lock each branch's rows in
+a statement of its own.
 
 ```csharp
-// sqlartisan_syntax_postgresql = any
+// sqlartisan_syntax_mysql = any
 var q = Select(u.Id).From(u).Union.Select(o.UserId).From(o).ForUpdate();
-// warning SQLA0102: 'ForUpdate' is not supported after a set operator on PostgreSQL
+// warning SQLA0102: 'ForUpdate' is not supported after a set operator on MySQL
 ```
 
 **`FOR UPDATE` with `DISTINCT`, an aggregate or a window function.** Oracle
@@ -845,15 +845,40 @@ it: `FetchFirst(n)` or `OffsetRows(...)` on Oracle, `Top(n)` or
 `OffsetRows(...)` on SQL Server. Add one where the order picks the rows, or
 order the outer query instead. Oracle runs it in a CTE body and a derived table,
 and the rule is silent on Oracle there and in a lateral or `APPLY` source, where
-no Oracle lane has run one. The rule warns where the ordered query, its
-`Select(...)` head included, is written in the position, as the `FOR UPDATE`
-rule does; a query held first in a `var`, or led by `With(...)` or a set
-operator, stays silent.
+no Oracle lane has run one. SQL Server rejects a compound's `ORDER BY`, after its
+last branch, in every one of those positions too; a row limit there pages the
+last branch alone (the next rule), so order the query that reads the compound
+instead. The rule warns where the ordered query, its first `Select(...)`
+included, is written in the position, as the `FOR UPDATE` rule does; a query
+held first in a `var`, led by `With(...)`, or with `Top(n)` in a branch of a
+compound stays silent, and so does a compound on Oracle, where no lane has run
+one.
 
 ```csharp
 // sqlartisan_syntax_sqlserver = any
 var q = Select(u.Id).From(u).Where(u.Id.In(Select(o.UserId).From(o).OrderBy(o.UserId)));
 // warning SQLA0102: 'OrderBy' is not supported in a subquery without a row limit on SQL Server
+```
+
+**A compound's row limit in a subquery.** At the top level, SQL Server sorts and
+pages a whole compound with the `ORDER BY` and `OffsetRows(...)` /
+`FetchNext(...)` written after its last branch. In an `IN` / `NOT IN`,
+`EXISTS` / `NOT EXISTS` or `ANY` / `ALL` / `SOME` operand, a scalar subquery, a
+CTE body, a derived table or an `APPLY` source, the same text sorts and pages the
+last branch alone, so the query returns other rows with no error. Wrap the
+compound in a CTE or a derived table first, and sort and page the query that
+reads it. The rule warns where the compound, its first `Select(...)` included,
+is written in the position, as the rule above does. `OffsetRows(0)` with no
+`FetchNext(...)` skips nothing and stays silent, as does a compound with
+`Top(n)` in a branch, which no lane has run. MySQL, Oracle, PostgreSQL and
+SQLite page the combined result in a CTE body and a derived table, the positions
+their lanes have run, and the rule leaves them out.
+
+```csharp
+// sqlartisan_syntax_sqlserver = any
+var q = Select(u.Id).From(u).Where(u.Id.In(Select(o.UserId).From(o).Where(o.Id < 10)
+    .Union.Select(o.UserId).From(o).Where(o.Id > 90).OrderBy(1).OffsetRows(0).FetchNext(5)));
+// warning SQLA0102: 'OrderBy' is not supported with a row limit after a set operator in a subquery, where it pages the last branch only, on SQL Server
 ```
 
 **`ORDER BY` with a qualified column after `UNION`.** After `Union` or
@@ -1067,7 +1092,7 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the nineteen that read the construct's surroundings, any shape the
+itself. For the twenty that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the
