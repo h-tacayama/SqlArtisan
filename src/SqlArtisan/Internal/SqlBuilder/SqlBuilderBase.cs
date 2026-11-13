@@ -38,9 +38,9 @@ internal abstract class SqlBuilderBase
         _parts = leftBranch._parts;
     }
 
-    // Non-null arms the correlated-DML guard (#253): UPDATE/DELETE/MERGE return
-    // their unaliased target so a target column rendered inside a subquery fails
-    // loudly instead of silently resolving to the inner scope.
+    // Non-null arms the correlated-DML guard (#253): UPDATE and DELETE return their
+    // unaliased target so a target column rendered inside a subquery fails loudly
+    // instead of silently resolving to the inner scope; a MERGE target is never unaliased.
     private protected virtual DbTableBase? CorrelatedDmlGuardTarget => null;
 
     // The INSERT/UPDATE/DELETE target a RETURNING clause reads, which SQLite
