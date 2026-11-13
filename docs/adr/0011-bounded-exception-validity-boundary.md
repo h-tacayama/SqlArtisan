@@ -3,6 +3,9 @@
 **Status:** Accepted — #672 adds a fourth class decided outside the bar (an alias sort
 key where no select alias is in scope), #677 a fifth (the correlated guards, the
 DML-target one included), #678, #673 and #693 a sixth (a bound value as a sort, group, partition or `DISTINCT ON` key, and a number as an expression-position sort key), #667 a seventh (a function-argument enum in a value position), #669 an eighth (a value computed empty that an engine runs without an error), #742 a ninth (a SQLite `RETURNING` column of a handle other than the target).
+#820 extends the joined-target alias requirement in *Consequences* to every `MERGE`,
+which always joins its target to its source, though an engine runs an unaliased
+`MERGE` whose names do not collide (PostgreSQL 16.15).
 
 ## Context
 

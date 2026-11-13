@@ -961,8 +961,7 @@ values**. SqlArtisan refuses to build that form; `Build()` throws:
 
 > The target of a correlated UPDATE, DELETE, or MERGE must be aliased.
 
-The same guard arms `MergeInto(...)`: a target column referenced inside a
-subquery in any `MERGE` clause needs the aliased target too. Any other table a
+A `MERGE` target is aliased whatever its subqueries read (see [MERGE Statement](#merge-statement)). Any other table a
 subquery reads without listing it, in any statement, throws `A table a correlated subquery references must be aliased.` for the same
 reason (see [Scalar Subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#scalar-subquery)).
 
@@ -1346,6 +1345,11 @@ Start with `MergeInto(target)`, name the data source with `Using(...)`, match
 rows with `On(...)`, then add one or more `WhenMatched` / `WhenNotMatched`
 branches. As elsewhere, the SQL you write is the SQL that runs — the branches
 are per-dialect and SqlArtisan does not rewrite them.
+
+The target must be aliased (`new UsersTable("t")`). A `MERGE` joins its target to
+the source, and a column of an unaliased target renders by its name alone, which a
+same-named source column can claim; `MergeInto(...)` throws
+`The target of a MERGE must be aliased.` on every dialect.
 
 ```csharp
 UsersTable t = new("t");   // target, aliased

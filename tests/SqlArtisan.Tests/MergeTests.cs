@@ -434,46 +434,19 @@ public class MergeTests
         Assert.Equal(2, sql.Parameters.Count);
     }
 
-    [Fact]
-    public void Merge_CorrelatedSubqueryUnaliasedTarget_ThrowsArgumentException()
+    // With(...) builds the same MergeIntoClause, so both routes reject (#820).
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MergeInto_UnaliasedTarget_ThrowsArgumentException(bool withLead)
     {
-        // A bare target column inside a subquery resolves to the inner table —
-        // the same silent tautology the UPDATE/DELETE guard rejects (#253).
-        TestTable r = new("r");
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            MergeInto(_cols)
-            .Using(_s)
-            .On(_cols.Code == _s.Code)
-            .WhenMatched().ThenUpdateSet(
-                _cols.Name == Select(r.Name).From(r).Where(r.Code == _cols.Code))
-            .Build());
-
-        Assert.Equal(
-            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
-            ex.Message);
-    }
-
-    [Fact]
-    public void Merge_CteBodyInSubqueryCorrelatingUnaliasedTarget_ThrowsArgumentException()
-    {
-        TestTable r = new("r");
         TestCte cte = new("cte");
 
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            MergeInto(_cols)
-            .Using(_s)
-            .On(_cols.Code == _s.Code)
-            .WhenMatched().ThenUpdateSet(
-                _cols.Name == With(cte.As(Select(r.Name.As(cte.CteName)).From(r)
-                        .Where(r.Code == _cols.Code)))
-                    .Select(cte.CteName)
-                    .From(cte))
-            .Build());
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => withLead
+            ? With(cte.As(Select(_s.Code.As(cte.CteCode)).From(_s))).MergeInto(_cols)
+            : MergeInto(_cols));
 
-        Assert.Equal(
-            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
-            ex.Message);
+        Assert.Equal("The target of a MERGE must be aliased.", ex.Message);
     }
 
     [Fact]

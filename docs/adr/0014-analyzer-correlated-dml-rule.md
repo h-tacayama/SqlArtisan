@@ -5,8 +5,10 @@
 `SqlArtisan.Validity` category the *Identity decisions* paragraph below
 rejects; the opt-in gate's `sqlartisan_target_dbms` is now
 `sqlartisan_syntax_<dbms>`, the old key removed by
-[ADR 0024](0024-analyzer-legacy-target-pair-removal.md). Everything else here
-stands.
+[ADR 0024](0024-analyzer-legacy-target-pair-removal.md). The runtime guard's MERGE
+arm the *Consequences* describe is superseded by #820: `MergeInto(...)` now rejects
+every unaliased target at the call, so the guard never sees a MERGE; the rule's
+MERGE dispatch stands. Everything else here stands.
 
 ## Context
 
