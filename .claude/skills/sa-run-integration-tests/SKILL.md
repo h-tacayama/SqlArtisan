@@ -64,9 +64,11 @@ is `dotnet build SqlArtisan.sln`, and the solution includes this project — so 
 compile error does fail the PR. `ci.yml` also *runs* one DB-less slice on every
 PR: the `MatrixSweepCatalogTests` completeness pair, the ADR 0011
 `DialectGuardTwinTests` twin gate, and the ADR 0020
-`DateTimePartNumberingTests` numbering gate, via an FQN filter. The
-engine lanes themselves execute only through the dispatched integration run
-(below), the nightly schedule, or the release gate.
+`DateTimePartNumberingTests` numbering gate, and the `PictModelTests`
+combinatorial-model gate, via an FQN filter, and then the SQLite lane of the
+combinatorial SELECT tests (`SqliteCombinatorialSelectTests`). The other
+engine lanes execute only through the dispatched integration run (below), the
+nightly schedule, or the release gate.
 
 ## Run it in CI
 
@@ -138,6 +140,41 @@ and the run covered the lanes you care about.)
   are already swept — has no key of its own and can't be a second sweep entry.
   Verify it in the per-engine class alongside the other engine-specific DML
   proofs (this is where the #255 correlated-DML alias checks live).
+
+## Combinatorial SELECT tests
+
+`Randomized/Models/select.pict` is a PICT model of SELECT shapes; the committed
+`select.cases.csv` is its pairwise expansion (3-way on its two sub-models).
+Each lane's `<Engine>CombinatorialSelectTests` runs that engine's rows as one
+theory case per row: CsCheck generates three queries per row from fixed seeds,
+and `CaseChecker` runs each with its relations (rewrites that must return the
+same rows, set-operator and slice checks, the C# reference evaluator).
+`NegativeControl_NegatedWhere_IsDetected` proves the comparison can fail.
+
+- **After editing `select.pict`**, run `bash tools/regen-pict.sh` (it builds
+  PICT v3.7.4 on first use) and commit the CSV with the model.
+  `PictModelTests` fails the PR on a CSV that drifts from the model, on a row
+  `DialectMatrix` says its engine cannot run, and on an uncovered valid pair.
+- **A failure report** names the CSV row, the CsCheck seed, the C# chain, the
+  SQL, the bound values and the expected and actual rows, then a shrunk case
+  CsCheck found in `SQLARTISAN_RANDOMIZED_SHRINK_SECONDS` (default 30; `0`
+  skips the search) with its own seed.
+- **Reproduce one case** by pinning the seed and filtering to its row (either
+  seed from the report works, the original or the shrunk one):
+
+  ```bash
+  SQLARTISAN_RANDOMIZED_SEED=<seed> SQLARTISAN_RANDOMIZED_SHRINK_SECONDS=0 \
+    dotnet test tests/SqlArtisan.IntegrationTests \
+    --filter "FullyQualifiedName~SqliteCombinatorialSelectTests&DisplayName~row: 191,"
+  ```
+
+  With the seed set, every selected row runs that one query instead of its
+  three, so keep the filter to the reported row.
+- **Triage** a failure as unsupported per the matrix (tighten the model),
+  decided in `.claude/rules/` or `docs/` (encode it in the model or the
+  generator), a gap in the model, generator or reference (fix it), or a
+  candidate library defect (minimise it and file an issue; fixing it lands a
+  fixed test in the existing per-engine test file).
 
 ## Notes
 

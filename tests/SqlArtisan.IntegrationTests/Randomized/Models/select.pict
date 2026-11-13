@@ -1,0 +1,53 @@
+# The skeleton of the combinatorial SELECT tests (Tests/CombinatorialSelectTestBase.cs).
+# Regenerate select.cases.csv with tools/regen-pict.sh after any edit; PictModelTests fails
+# the PR on a CSV that no longer matches this file or DialectMatrix.
+
+Dbms:           MySql, Oracle, PostgreSql, Sqlite, SqlServer
+TargetAlias:    Aliased, Unaliased
+Join:           None, Inner, Left
+Where:          None, Compare, NullTest, InList, Like, Between, AndOrNest, Not, ConditionIfMix
+Subquery:       None, In, NotIn, Exists, NotExists, ScalarInSelect, ScalarInWhere
+Correlated:     No, Yes
+Aggregate:      None, WholeTable, GroupBy, GroupByHaving
+Distinct:       No, Yes
+SelectFunction: None, Coalesce, Text, Arithmetic, Case
+OrderBy:        None, UniqueAsc, UniqueDesc, NullsFirst, NullsLast
+Paging:         None, Limit, LimitOffset, FetchFirst, OffsetFetch, Top
+SetOperator:    None, Union, UnionAll, Intersect, Except
+Wrap:           None, DerivedTable, Cte
+
+# Three-way where defects cluster: target aliasing under a join, and correlation per engine.
+{ Dbms, TargetAlias, Join } @ 3
+{ Dbms, Subquery, Correlated } @ 3
+
+# DialectMatrix: Limit, Offset, FetchFirst, OffsetRows/FetchNext, Top, NullsFirst/NullsLast.
+IF [Paging] IN {"Limit", "LimitOffset"} THEN [Dbms] IN {"MySql", "PostgreSql", "Sqlite"};
+IF [Paging] = "FetchFirst" THEN [Dbms] IN {"Oracle", "PostgreSql"};
+IF [Paging] = "OffsetFetch" THEN [Dbms] IN {"Oracle", "PostgreSql", "SqlServer"};
+IF [Paging] = "Top" THEN [Dbms] = "SqlServer";
+IF [OrderBy] IN {"NullsFirst", "NullsLast"} THEN [Dbms] IN {"Oracle", "PostgreSql", "Sqlite"};
+
+# A row limit needs a total order to return the same rows each run; SQL Server's OFFSET
+# needs an ORDER BY at all.
+IF [Paging] <> "None" THEN [OrderBy] <> "None";
+
+IF [Correlated] = "Yes" THEN [Subquery] <> "None";
+
+# Build() rejects a correlated reference to an unaliased table (docs/expressions.md).
+IF [Correlated] = "Yes" THEN [TargetAlias] = "Aliased";
+
+# An unaliased table's columns render bare (DbColumn), so two joined ones share id and name.
+IF [TargetAlias] = "Unaliased" THEN [Join] = "None";
+
+# A scalar subquery in a grouped select list must itself be grouped or constant.
+IF [Aggregate] <> "None" THEN [Subquery] <> "ScalarInSelect";
+
+# One aggregate row has no column left to sort by.
+IF [Aggregate] = "WholeTable" THEN [OrderBy] = "None";
+
+# After a set operator the sort keys are select-list positions, which sort ascending only
+# (ContextRules.CheckQualifiedKeyAfterUnion rejects a qualified key there).
+IF [SetOperator] <> "None" THEN [OrderBy] IN {"None", "UniqueAsc"};
+
+# SQL Server binds TOP to the first branch alone, not to the compound.
+IF [Paging] = "Top" THEN [SetOperator] = "None";

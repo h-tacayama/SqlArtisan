@@ -11,6 +11,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <!-- Test-only: generates and shrinks the combinatorial SELECT cases (Randomized/). -->
+    <PackageReference Include="CsCheck" Version="5.0.0" />
     <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.5" />
@@ -59,6 +61,11 @@
     <!-- The cookbook recipes the unit suite pins as text, run here for their rows (#686). -->
     <Compile Include="..\SqlArtisan.Tests\TestFixtures\CookbookTables.cs" Link="Cookbook\CookbookTables.cs" />
     <Compile Include="..\SqlArtisan.Tests\TestFixtures\CookbookRecipes.cs" Link="Cookbook\CookbookRecipes.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The PICT model and its generated cases, read at run time by CaseTable. -->
+    <None Include="Randomized\Models\select.pict" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Randomized\Models\select.cases.csv" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />
