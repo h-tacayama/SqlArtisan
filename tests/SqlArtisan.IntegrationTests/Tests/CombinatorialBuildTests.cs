@@ -1,3 +1,4 @@
+using CsCheck;
 using SqlArtisan.IntegrationTests.Randomized;
 
 namespace SqlArtisan.IntegrationTests.Tests;
@@ -67,5 +68,38 @@ public sealed class CombinatorialBuildTests
                 + $"rows fail Build() (reproduce with {CaseSeeds.Variable}=<seed>); the first "
                 + $"{Math.Min(failures.Count, 10)}:\n" + string.Join("\n", failures.Take(10)));
         Assert.True(built > 0, $"{model} built no statement.");
+    }
+
+    // The DML lanes fail a statement DmlReference cannot evaluate; this catches a generator
+    // change that brings one back on the PR, before any lane runs it.
+    [Fact]
+    public void DmlCasesCsv_EverySeedStatement_IsEvaluatedByTheReference()
+    {
+        List<string> failures = [];
+        int evaluated = 0;
+        foreach (DmlCaseRow row in DmlCaseTable.Rows)
+        {
+            Gen<DmlSpec> gen = DmlGenerators.For(row);
+            foreach (string seed in CaseSeeds.For(row.Number))
+            {
+                DmlSpec spec = gen.Generate(PCG.Parse(seed), null!, out _);
+                try
+                {
+                    DmlReference.Evaluate(spec);
+                    evaluated++;
+                }
+                catch (ReferenceUnavailableException ex)
+                {
+                    failures.Add($"{row.Model}.cases.csv row {row.Number} ({row.Summary}), "
+                        + $"CsCheck seed {seed}: {ex.Message}\n  C#: {spec.ToCSharp()}");
+                }
+            }
+        }
+
+        Assert.True(
+            failures.Count == 0,
+            $"{failures.Count} DML statements the reference cannot evaluate; the first "
+                + $"{Math.Min(failures.Count, 10)}:\n" + string.Join("\n", failures.Take(10)));
+        Assert.True(evaluated > 0, "No DML statement was evaluated.");
     }
 }

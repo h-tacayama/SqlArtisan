@@ -72,16 +72,7 @@ public abstract class CombinatorialDmlTestBase
         int detected = 0;
         foreach (DmlSpec spec in FirstSeedSpecs())
         {
-            DmlExpectation mutated;
-            try
-            {
-                mutated = DmlReference.Evaluate(spec, mutated: true);
-            }
-            catch (ReferenceUnavailableException)
-            {
-                continue;
-            }
-
+            DmlExpectation mutated = DmlReference.Evaluate(spec, mutated: true);
             DmlOutcome actual = checker.Run(spec);
             Assert.True(actual.Users is not null, actual.Show("BASE"));
             compared++;

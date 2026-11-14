@@ -378,8 +378,12 @@ internal sealed class DmlChecker
         {
             expected = DmlReference.Evaluate(spec);
         }
-        catch (ReferenceUnavailableException)
+        catch (ReferenceUnavailableException ex)
         {
+            // Skipping would leave an INSERT VALUES with no output only engine-against-engine
+            // checks, so a statement the reference cannot evaluate fails instead.
+            failures.Add($"R1 the reference cannot evaluate this statement: {ex.Message}\n"
+                + actual.Show("ACTUAL"));
             return;
         }
 
