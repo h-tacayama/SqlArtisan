@@ -4,9 +4,9 @@ using SqlArtisan.IntegrationTests.Randomized;
 namespace SqlArtisan.IntegrationTests.Tests;
 
 /// <summary>
-/// The DB-less Build gate: every statement a lane would run for each CSV row of each model with
-/// a generator must build for the row's engine, so a <c>Build()</c> guard the model or generator
-/// has drifted from fails the PR instead of the nightly lane.
+/// The DB-less gate over every statement a lane would run: each must build for its row's engine,
+/// and each seeded DML statement must be one <see cref="DmlReference"/> evaluates, so a drifted
+/// guard or a statement the reference cannot check fails the PR instead of the nightly lane.
 /// </summary>
 public sealed class CombinatorialBuildTests
 {

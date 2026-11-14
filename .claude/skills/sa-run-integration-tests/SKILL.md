@@ -65,7 +65,8 @@ compile error does fail the PR. `ci.yml` also *runs* one DB-less slice on every
 PR: the `MatrixSweepCatalogTests` completeness pair, the ADR 0011
 `DialectGuardTwinTests` twin gate, and the ADR 0020
 `DateTimePartNumberingTests` numbering gate, the `PictModelTests`
-combinatorial-model gate and the `CombinatorialBuildTests` Build gate, via an FQN
+combinatorial-model gate and the `CombinatorialBuildTests` Build and reference
+gate, via an FQN
 filter, and then the SQLite lane of the combinatorial tests (every
 `SqliteCombinatorial*` class). The other
 engine lanes execute only through the dispatched integration run (below), the
@@ -197,7 +198,9 @@ SQLite and MySQL lane classes.
   its rewrites and relation parts, and the negated WHERE) for the row's engine.
   Any exception fails it, naming the row, seed, C# chain and exception, so a
   `Build()` guard the model or generator has drifted from fails the PR rather
-  than the nightly run. It takes about a second.
+  than the nightly run. It also has `DmlReference` evaluate every seeded DML
+  statement and fails on one it cannot, so a generator change that brings back
+  an unevaluable shape fails the PR too. It takes a few seconds.
 - **A failure report** names the CSV row, the CsCheck seed, the C# chain, the
   SQL, the bound values and the expected and actual rows. The first failing
   row of a lane then adds a shrunk case CsCheck found in 20 s, with its own

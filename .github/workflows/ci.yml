@@ -46,7 +46,8 @@ jobs:
       # integration lanes filter by Engine trait and never select it — run it
       # here so a matrix entry without a sweep case fails the PR. PictModelTests
       # holds the committed combinatorial cases to their PICT models and the matrix,
-      # and CombinatorialBuildTests builds every statement those cases generate.
+      # and CombinatorialBuildTests builds every statement those cases generate and
+      # has the DML reference evaluate every seeded DML one.
       - name: Test sweep-catalog completeness
         run: dotnet test tests/SqlArtisan.IntegrationTests --no-build -c Release --filter "FullyQualifiedName~MatrixSweepCatalogTests|FullyQualifiedName~DialectGuardTwinTests|FullyQualifiedName~DateTimePartNumberingTests|FullyQualifiedName~PictModelTests|FullyQualifiedName~CombinatorialBuildTests" --verbosity normal
 
