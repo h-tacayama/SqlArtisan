@@ -65,7 +65,8 @@ compile error does fail the PR. `ci.yml` also *runs* one DB-less slice on every
 PR: the `MatrixSweepCatalogTests` completeness pair, the ADR 0011
 `DialectGuardTwinTests` twin gate, and the ADR 0020
 `DateTimePartNumberingTests` numbering gate, the `PictModelTests`
-combinatorial-model gate and the `CombinatorialBuildTests` Build gate, via an FQN
+combinatorial-model gate and the `CombinatorialBuildTests` Build and reference
+gate, via an FQN
 filter, and then the SQLite lane of the combinatorial tests (every
 `SqliteCombinatorial*` class). The other
 engine lanes execute only through the dispatched integration run (below), the
@@ -146,11 +147,13 @@ and the run covered the lanes you care about.)
 
 `Randomized/Models/` holds one PICT model per statement kind, each `<name>.pict`
 beside its committed `<name>.cases.csv`, the pairwise expansion (3-way on the
-model's sub-models). Only `select.pict` exists today. A model's binding in
-`CaseModelCatalog` names its typed row, the analyzer keys each level emits
-(`LevelMatrixKeys`: a matrix member, at an arity where same-named entries differ,
-or a `ContextRules.DmlShape` read from `DialectUsageAnalyzer`), and its
-generator, if it has one. Each lane's `<Engine>CombinatorialSelectTests` runs that
+model's sub-models): `select`, `insert`, `update` and `delete`. A model's binding
+in `CaseModelCatalog` names its typed row, the keys each level's verdict reads (a
+matrix member, at an arity where same-named entries differ; a
+`ContextRules.DmlShape` read from `DialectUsageAnalyzer`; or a `GuardKey`, a
+dialect-scoped `Build()` guard the analyzer does not report, listed in
+`BuildGuards` with probes `PictModelTests` builds on every engine), and its
+generator. Each lane's `<Engine>CombinatorialSelectTests` runs that
 engine's `select.cases.csv` rows as one theory case per row: CsCheck generates
 three queries per row from fixed seeds, `CasePlanner` derives every rewrite and
 relation part from each, and `CaseChecker` runs them (rewrites that must return
@@ -159,6 +162,27 @@ the same rows, set-operator and slice checks, the C# reference evaluator).
 `StatementRunner` runs a statement inside a transaction when given one, and
 `RunInRolledBackTransaction` gives a statement a transaction of its own and rolls
 it back (`SqliteCombinatorialTransactionTests` proves the rollback).
+
+Each lane's `<Engine>CombinatorialDmlTests`, a class of its own so its container
+starts beside the SELECT one, runs the three DML models' rows the same way
+(`DmlGenerators`, `DmlPlanner`, `DmlChecker`). Every statement, and the read-back
+of `rt_users` and `rt_depts` after it, runs inside one rolled-back transaction.
+The relations: the state and output equal `DmlReference`'s (R1; a text scalar
+subquery takes its first row by id rather than a collation-ordered `MAX` or
+`MIN`, so the reference evaluates every generated statement, and one it cannot
+fails, in the lane and in `CombinatorialBuildTests`' DB-less gate); a DELETE's deleted ids, and an UPDATE's or DELETE's output ids, equal
+the ids a SELECT of the same join and WHERE matches, an UPDATE's changed ids are
+among them (a matched row can keep its values), and an INSERT's rows equal its
+feeding SELECT's; each output row reads back from the state; and every rewrite
+leaves the same state and output.
+Three facts per lane guard the comparisons, over each row's first seed: in at
+least half the statements with a WHERE to negate, a negated WHERE must change the
+state; in at least half the statements, a reference that skips one matched row
+must be caught; and at least 75% of the generated statements must change a row
+(the generators retry one that changes none). The generators leave out each
+shape an engine rejects or reads differently from the reference, with the reason
+at the site; the engine readings `dbms-differences.md` records have twins in the
+SQLite and MySQL lane classes.
 
 - **After editing or adding a model**, run `bash tools/regen-pict.sh` (it builds
   PICT v3.7.4 on first use and regenerates every model's CSV; an unchanged
@@ -170,11 +194,13 @@ it back (`SqliteCombinatorialTransactionTests` proves the rollback).
   with PICT's output, so a relaxed constraint whose new combinations span three
   or more factors passes it.
 - **`CombinatorialBuildTests`** builds, with no database, every statement a lane
-  would run for every row of every model with a generator (each seed's query,
+  would run for every row of every model with a generator (each seed's statement,
   its rewrites and relation parts, and the negated WHERE) for the row's engine.
   Any exception fails it, naming the row, seed, C# chain and exception, so a
   `Build()` guard the model or generator has drifted from fails the PR rather
-  than the nightly run. It takes about a second.
+  than the nightly run. It also has `DmlReference` evaluate every seeded DML
+  statement and fails on one it cannot, so a generator change that brings back
+  an unevaluable shape fails the PR too. It takes a few seconds.
 - **A failure report** names the CSV row, the CsCheck seed, the C# chain, the
   SQL, the bound values and the expected and actual rows. The first failing
   row of a lane then adds a shrunk case CsCheck found in 20 s, with its own
@@ -191,7 +217,8 @@ it back (`SqliteCombinatorialTransactionTests` proves the rollback).
   ```
 
   With the seed set, every selected row runs that one query instead of its
-  three, so keep the filter to the reported row.
+  three, so keep the filter to the reported row. A DML row's display name leads
+  with its model (`model: "update", row: 5,`), so filter on both.
 - **Triage** a failure as unsupported per the matrix (tighten the model),
   decided in `.claude/rules/` or `docs/` (encode it in the model or the
   generator), a gap in the model, generator or reference (fix it), or a

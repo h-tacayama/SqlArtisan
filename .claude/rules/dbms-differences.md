@@ -159,3 +159,24 @@ not made: the "MySQL rejects `ESCAPE ?`" rationale stood in three places for
 months after 8.0.46 accepted it (release audit pass 8). State the grammar
 reason the code relies on instead (a position that takes a constant), which
 holds whether or not any engine still rejects the alternative.
+
+**Two engines read a DML statement's own target mid-statement (engine
+behaviour, not a dialect difference).** SqlArtisan emits the SQL as written;
+the combinatorial DML generators never build these shapes
+(`Randomized/DmlGenerators.cs`), and each has a twin in its lane's
+`<Engine>CombinatorialDmlTests`:
+
+- MySQL 8.0.46 evaluates an `UPDATE`'s `SET` left to right, each right side
+  reading what earlier assignments wrote: `SET age = age + 1, dept_id = age`
+  stores the new age in `dept_id`.
+- MySQL 8.0.46 evaluates a multi-row `INSERT ... VALUES` row's subquery over the
+  target after inserting the rows before it: over three rows,
+  `VALUES (600, (SELECT COUNT(*) FROM t z)), (601, (SELECT COUNT(*) FROM t z))`
+  stores 3 and 4, so those rows' subqueries read `rt_depts` on MySQL. A
+  single-row `VALUES` has no earlier row to read.
+- SQLite 3.50.4 evaluates a `FROM`-less `UPDATE`'s correlated `SET` subquery
+  over the target, and any DML's `RETURNING` subquery over it, against the rows
+  the statement has already changed; its `WHERE` reads the starting rows. A
+  running sum `SET v = (SELECT SUM(z.v) FROM t z WHERE z.id <= t.id)` over 1, 2,
+  3 gives 1, 3, 7, where PostgreSQL 16.15 gives 1, 3, 6. With a `FROM` source
+  the same `SET` reads the starting rows and gives 1, 3, 6.

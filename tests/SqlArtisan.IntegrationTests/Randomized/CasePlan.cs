@@ -264,32 +264,36 @@ internal sealed class CasePlanner
         bool changed = false;
         QueryBlock rewritten = spec.Query.Rewrite(SpecRewrite.Conditions(c =>
         {
-            SpecCondition? plain = c switch
-            {
-                BetweenTest b => Negate(
-                    new Junction(true, [new Comparison(">=", b.Operand, b.Low),
-                        new Comparison("<=", b.Operand, b.High)]),
-                    b.Negated),
-                InList { Values.Length: 1 } i =>
-                    new Comparison(i.Negated ? "!=" : "==", i.Operand, i.Values[0]),
-                InList i => new Junction(
-                    i.Negated,
-                    [.. i.Values.Select(v => (SpecCondition)new Comparison(
-                        i.Negated ? "!=" : "==",
-                        i.Operand,
-                        v))]),
-                Comparison { Operator: "!=" } c2 => new Negation(c2 with { Operator = "==" }),
-                LikeTest { Negated: true } l => new Negation(l with { Negated = false }),
-                NullTest { Negated: true } n => new Negation(n with { Negated = false }),
-                ExistsTest { Negated: true } e => new Negation(e with { Negated = false }),
-                InSubquery { Negated: true } s => new Negation(s with { Negated = false }),
-                _ => null,
-            };
+            SpecCondition? plain = Desugared(c);
             changed |= plain is not null;
             return plain ?? c;
         }));
         return changed ? spec.With(rewritten) : null;
     }
+
+    /// <summary>M8's plain spelling of one predicate, or <see langword="null"/> where it has
+    /// none.</summary>
+    internal static SpecCondition? Desugared(SpecCondition c) => c switch
+    {
+        BetweenTest b => Negate(
+            new Junction(true, [new Comparison(">=", b.Operand, b.Low),
+                new Comparison("<=", b.Operand, b.High)]),
+            b.Negated),
+        InList { Values.Length: 1 } i =>
+            new Comparison(i.Negated ? "!=" : "==", i.Operand, i.Values[0]),
+        InList i => new Junction(
+            i.Negated,
+            [.. i.Values.Select(v => (SpecCondition)new Comparison(
+                i.Negated ? "!=" : "==",
+                i.Operand,
+                v))]),
+        Comparison { Operator: "!=" } c2 => new Negation(c2 with { Operator = "==" }),
+        LikeTest { Negated: true } l => new Negation(l with { Negated = false }),
+        NullTest { Negated: true } n => new Negation(n with { Negated = false }),
+        ExistsTest { Negated: true } e => new Negation(e with { Negated = false }),
+        InSubquery { Negated: true } s => new Negation(s with { Negated = false }),
+        _ => null,
+    };
 
     private static SpecCondition Negate(SpecCondition condition, bool negated) =>
         negated ? new Negation(condition) : condition;
@@ -454,7 +458,7 @@ internal sealed class CasePlanner
         QueryGenerators.PlainCondition(Dbms, spec.Query.Tables)
             .Generate(new PCG((uint)random.Next(), (ulong)random.Next()), null!, out _);
 
-    private static int StableHash(string text)
+    internal static int StableHash(string text)
     {
         unchecked
         {

@@ -10,6 +10,11 @@ internal enum Correlation { Never, Optional, Required }
 /// <param name="Level">1 at the top, 2 and 3 inside subqueries.</param>
 /// <param name="AllowsCorrelatedCount">Whether a correlated scalar subquery may take
 /// <c>COUNT</c> (see <c>QueryGenerators.Spec</c>).</param>
+/// <param name="ReadsUsers">Whether a subquery may read <c>rt_users</c>; a DML generator clears
+/// it where the engine rejects or misreads a subquery over its target
+/// (<c>DmlGenerators</c>).</param>
+/// <param name="TextScalarsByRow">Whether a text scalar subquery takes its first row by id, not
+/// <c>MAX</c> or <c>MIN</c>, which collation orders and the reference does not model.</param>
 internal sealed record GenScope(
     Dbms Target,
     IReadOnlyList<string> Tables,
@@ -17,7 +22,9 @@ internal sealed record GenScope(
     int Level,
     bool AllowsSubquery,
     Correlation Correlation,
-    bool AllowsCorrelatedCount = true);
+    bool AllowsCorrelatedCount = true,
+    bool ReadsUsers = true,
+    bool TextScalarsByRow = false);
 
 /// <summary>CsCheck generators for a <see cref="QuerySpec"/> that fits one
 /// <see cref="CaseRow"/>.</summary>
@@ -194,7 +201,7 @@ internal static class QueryGenerators
                 : (SpecCondition?)new Junction(!isOr, [basic, predicate]);
     }
 
-    private static Gen<SpecCondition> Shaped(GenScope scope, WhereLevel level) => level switch
+    internal static Gen<SpecCondition> Shaped(GenScope scope, WhereLevel level) => level switch
     {
         WhereLevel.Compare => Compare(scope, 2),
         WhereLevel.NullTest => NullCheck(scope, 2),
@@ -220,7 +227,7 @@ internal static class QueryGenerators
         _ => throw new InvalidOperationException(level.ToString()),
     };
 
-    private static Gen<SpecCondition> SubqueryPredicate(GenScope scope, SubqueryLevel level)
+    internal static Gen<SpecCondition> SubqueryPredicate(GenScope scope, SubqueryLevel level)
     {
         Correlation correlation = scope.Correlation;
         return level switch
@@ -480,7 +487,7 @@ internal static class QueryGenerators
                 new FunctionCall("Coalesce", SpecType.Int, [c, v]),
                 false));
 
-    private static Gen<QueryBlock> Subquery(
+    internal static Gen<QueryBlock> Subquery(
         GenScope outer,
         SpecType want,
         bool scalar,
@@ -500,7 +507,7 @@ internal static class QueryGenerators
 
         return
             from users in want == SpecType.Int ? Chance(75) : Chance(50)
-            let table = (users ? "u" : "d") + level
+            let table = (users && outer.ReadsUsers ? "u" : "d") + level
             let inner = Inner(table)
             from shape in Gen.Int[0, 9]
             from item in want == SpecType.Text
@@ -520,7 +527,8 @@ internal static class QueryGenerators
             from having in Gen.OneOf(">", ">=", "==")
             from havingCount in Gen.Int[1, 3]
             from branchUsers in Chance(50)
-            from branchItemTable in Gen.Const((branchUsers ? "u" : "d") + level)
+            from branchItemTable in Gen.Const(
+                (branchUsers && outer.ReadsUsers ? "u" : "d") + level)
             from branchItem in want == SpecType.Text
                 ? TextColumn(Inner(branchItemTable)).Select(c => (SpecExpression)c)
                 : IntColumn(Inner(branchItemTable)).Select(c => (SpecExpression)c)
@@ -533,7 +541,7 @@ internal static class QueryGenerators
                 table,
                 want,
                 scalar,
-                shape,
+                scalar && want == SpecType.Text && outer.TextScalarsByRow ? 0 : shape,
                 item,
                 correlate && !outer.AllowsCorrelatedCount && aggregateKind.StartsWith("Count")
                     ? "Max"
@@ -541,10 +549,10 @@ internal static class QueryGenerators
                 filtered ? filter : null,
                 correlate ? link : null,
                 limit,
-                new Comparison(
+                QuantifiedHaving(outer.Target, quantified, new Comparison(
                     having,
                     new AggregateCall("Count", null, false),
-                    new Literal(havingCount)),
+                    new Literal(havingCount))),
                 new SetBranch(setOperator, new QueryBlock
                 {
                     From = branchItemTable,
@@ -563,7 +571,7 @@ internal static class QueryGenerators
         SpecCondition? filter,
         SpecCondition? link,
         RowLimit? limit,
-        SpecCondition having,
+        SpecCondition? having,
         SetBranch branch)
     {
         SpecCondition[] conditions = [.. new[] { filter, link }.OfType<SpecCondition>()];
@@ -621,6 +629,14 @@ internal static class QueryGenerators
                 SetOperatorLevel.Except,
             ];
 
+    // MySQL 8.0.46's IN-to-EXISTS rewrite finds a NULL group the HAVING drops: over names
+    // {a, a, a, NULL, b}, 'x' NOT IN (SELECT name ... GROUP BY name HAVING COUNT(*) > 2) and its
+    // IN give NULL, not 1 and 0; the same set as a derived table answers right.
+    private static SpecCondition? QuantifiedHaving(
+        Dbms dbms,
+        bool quantified,
+        SpecCondition having) => quantified && dbms == Dbms.MySql ? null : having;
+
     // MySQL rejects LIMIT directly inside IN/NOT IN (ContextRules.CheckLimitInQuantifiedSubquery).
     private static Gen<RowLimit?> SubqueryLimit(Dbms dbms, int maxCount, bool quantified)
     {
@@ -658,7 +674,7 @@ internal static class QueryGenerators
         from op in Gen.OneOf(text ? s_textOperators : ["==", "==", "<", ">"])
         select (SpecCondition)new Comparison(op, innerColumn, outerColumn);
 
-    private static Gen<SpecCondition> Condition(GenScope scope, int depth)
+    internal static Gen<SpecCondition> Condition(GenScope scope, int depth)
     {
         List<(int, IGen<SpecCondition>)> options =
         [
@@ -770,7 +786,7 @@ internal static class QueryGenerators
             (3, IntExpr(scope, depth)),
             (2, TextExpr(scope, depth, caseMapping: true)));
 
-    private static Gen<SpecExpression> IntExpr(GenScope scope, int depth)
+    internal static Gen<SpecExpression> IntExpr(GenScope scope, int depth)
     {
         Gen<SpecExpression> column = IntColumn(scope).Select(c => (SpecExpression)c);
         if (depth <= 0)
@@ -809,7 +825,7 @@ internal static class QueryGenerators
 
     /// <summary>A text expression. Only the outermost function may map case: under one, a
     /// column would mix cases that a case-insensitive collation folds together.</summary>
-    private static Gen<SpecExpression> TextExpr(GenScope scope, int depth, bool caseMapping)
+    internal static Gen<SpecExpression> TextExpr(GenScope scope, int depth, bool caseMapping)
     {
         Gen<SpecExpression> column = TextColumn(scope).Select(c => (SpecExpression)c);
         if (depth <= 0)
@@ -861,12 +877,12 @@ internal static class QueryGenerators
                 });
     }
 
-    private static Gen<ColumnRef> IntColumn(GenScope scope) =>
+    internal static Gen<ColumnRef> IntColumn(GenScope scope) =>
         from table in Gen.OneOf<string>([.. scope.Tables])
         from column in Gen.OneOf(IntColumnsOf(table))
         select new ColumnRef(table, column);
 
-    private static Gen<ColumnRef> TextColumn(GenScope scope) =>
+    internal static Gen<ColumnRef> TextColumn(GenScope scope) =>
         Gen.OneOf<string>([.. scope.Tables]).Select(t => new ColumnRef(t, "name"));
 
     private static Gen<SpecExpression> AnyColumn(GenScope scope) =>
@@ -880,10 +896,10 @@ internal static class QueryGenerators
     private static string[] IntColumnsOf(string table) =>
         table[0] == 'u' ? ["id", "age", "dept_id"] : ["id"];
 
-    private static Gen<SpecExpression> IntLiteral() =>
+    internal static Gen<SpecExpression> IntLiteral() =>
         Gen.OneOf(s_ints).Select(v => (SpecExpression)new Literal(v));
 
-    private static Gen<SpecExpression> TextLiteral() =>
+    internal static Gen<SpecExpression> TextLiteral() =>
         Gen.OneOf(s_texts).Select(v => (SpecExpression)new Literal(v));
 
     // Query syntax sizes a value by its earliest choices first, so CsCheck's own measure can
@@ -898,8 +914,9 @@ internal static class QueryGenerators
         }
     }
 
-    private static Gen<T?> Nothing<T>() where T : class => Gen.Const((T?)null);
+    internal static Gen<T?> Nothing<T>() where T : class => Gen.Const((T?)null);
 
     // Shrinks toward false, the simpler spec.
-    private static Gen<bool> Chance(int percent) => Gen.Int[1, 100].Select(i => i > 100 - percent);
+    internal static Gen<bool> Chance(int percent) =>
+        Gen.Int[1, 100].Select(i => i > 100 - percent);
 }

@@ -36,7 +36,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `tests/SqlArtisan.Tests/` | xUnit unit tests. `FunctionTests.{A..Y}.cs` mirror `Sql.{A..Y}.cs`. |
 | `tests/SqlArtisan.Analyzers.Tests/` | Analyzer unit tests (matrix coverage/integrity, config resolution, diagnostic verification). |
 | `tests/SqlArtisan.IntegrationTests/` | Per-engine integration tests: MySql, Oracle, Oracle23ai, PostgreSql, PostgreSql17, SqlServer, SqlServer2025 via Testcontainers; Sqlite in-process. |
-| `tests/SqlArtisan.IntegrationTests/Randomized/` | Combinatorial SELECT tests: a PICT model and its committed cases (`Models/`), CsCheck generators per case row, the relations and C# reference each generated query must satisfy. |
+| `tests/SqlArtisan.IntegrationTests/Randomized/` | Combinatorial SELECT, INSERT, UPDATE and DELETE tests: a PICT model per statement kind and its committed cases (`Models/`), CsCheck generators per case row, the relations and C# reference each generated statement must satisfy. |
 | `tests/SqlArtisan.TableClassGen.Tests/` | TableClassGen unit tests (catalog reading, emitted code, drift detection). |
 | `tests/SqlArtisan.Benchmark/` | BenchmarkDotNet comparisons vs other builders. |
 | `docs/` | User-facing docs: `query-statements`, `expressions`, `functions`, `analyzer`, `cookbook`, `comparison`, `versioning`, plus `guides/` (Dapper quickstart, AI assistants, Oracle array bind). |

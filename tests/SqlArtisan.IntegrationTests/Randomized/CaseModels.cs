@@ -80,6 +80,9 @@ internal static class CaseModelCatalog
                 values => CaseRow.Parse(0, values),
                 LevelMatrixKeys.For,
                 CaseTable.BuildCases),
+            ["insert"] = DmlCaseTable.Binding("insert"),
+            ["update"] = DmlCaseTable.Binding("update"),
+            ["delete"] = DmlCaseTable.Binding("delete"),
         };
 
     public static CaseModelBinding For(string model) =>

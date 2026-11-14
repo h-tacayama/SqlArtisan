@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace SqlArtisan.IntegrationTests.Randomized;
 
-/// <summary>Reads the subset of PICT's model language <c>select.pict</c> uses, so the DB-less
+/// <summary>Reads the subset of PICT's model language the <c>Models/</c> files use, so the DB-less
 /// gate can check the CSV without PICT. A construct outside the subset throws rather than
 /// reading as true.</summary>
 internal sealed partial class PictModel
