@@ -23,7 +23,11 @@ internal sealed class OnDuplicateKeyUpdateClause : SqlPart
         return new(resolved);
     }
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Clause} ")
-        .AppendAssignmentsCsv(_assignments);
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        buffer.EnableUpsertTargetQualification();
+        buffer
+            .Append($"{Clause} ")
+            .AppendAssignmentsCsv(_assignments);
+    }
 }

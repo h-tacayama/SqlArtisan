@@ -74,8 +74,7 @@ internal static class UpsertGenerators
     }
 
     // MySQL 8.0.46's row alias holds the listed columns alone, so new.age of an INSERT that lists
-    // no age is unknown (1054); SqlArtisan renders the target's own column bare, which it reads
-    // as ambiguous beside a listed one (1052; #827, which also stops MySQL writing code).
+    // no age is unknown (1054).
     private static IReadOnlyList<Assignment> ListedOnly(
         DmlCaseRow row,
         IReadOnlyList<Assignment> set,
@@ -86,8 +85,9 @@ internal static class UpsertGenerators
             return set;
         }
 
-        SpecRewrite listed = SpecRewrite.Expressions(e => e is ColumnRef { Table: "u" or "x" } c
-            && (c.Table == BuildContext.ExcludedKey) != columns.Contains(c.Column)
+        SpecRewrite listed = SpecRewrite.Expressions(e => e is ColumnRef c
+            && c.Table == BuildContext.ExcludedKey
+            && !columns.Contains(c.Column)
             ? c.Type == SpecType.Text ? new Literal("Xu") : new Literal(7)
             : e);
         return [.. set.Select(a => a with { Value = a.Value.Rewrite(listed) })];
@@ -193,14 +193,13 @@ internal static class UpsertGenerators
 
         GenScope scope = Scope(row, multi);
 
-        // MySQL writes no code: code = id + 3000 reads the listed id bare, ambiguous (1052, #827).
         return
             from columns in DmlGenerators.SettableOrder()
             from count in Gen.Int[1, 3]
             from name in SetValue(scope, row.UpdateValue, SpecType.Text)
             from age in SetValue(scope, row.UpdateValue, SpecType.Int)
             from dept in SetValue(scope, row.UpdateValue, SpecType.Int)
-            from writesCode in Chance(row.Dbms == Dbms.MySql ? 0 : 15)
+            from writesCode in Chance(15)
             let set = (IReadOnlyList<Assignment>)[.. columns.Take(count).Select(c => new Assignment(
                 c,
                 c switch

@@ -75,7 +75,7 @@ Rules for `Format` implementations and `Keywords.cs` (#207 / #208):
    a same-named output alias, another relation's column or `EXCLUDED` can
    capture the reference. Where the C# names something the text would not
    reach, the library qualifies it (`DO UPDATE SET` over an unaliased target,
-   #721), rejects the call, or documents the shape it leaves (a statement
-   `ORDER BY`); `guards-and-empty-states.md` records each: a bare sort key
-   (#672), a bare `SET` target (#674) and an unaliased table in a nested block
-   (#677) (#675).
+   #721, and `ON DUPLICATE KEY UPDATE`, #827), rejects the call, or documents
+   the shape it leaves (a statement `ORDER BY`); `guards-and-empty-states.md`
+   records each: a bare sort key (#672), a bare `SET` target (#674) and an
+   unaliased table in a nested block (#677) (#675).

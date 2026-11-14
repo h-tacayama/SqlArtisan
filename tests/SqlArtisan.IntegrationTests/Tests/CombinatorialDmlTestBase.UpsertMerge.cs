@@ -262,19 +262,23 @@ public sealed partial class MySqlCombinatorialDmlTests
         Assert.Contains("Unknown column 'new.age'", error);
     }
 
-    // SqlArtisan renders the target's column bare, which 8.0.46 reads as ambiguous beside the
-    // row alias's listed one; the generators avoid it while it stands (a candidate defect).
+    // A bare listed column was ambiguous beside the row alias's on 8.0.46 (1052, #827); the
+    // table-name qualifier reads the existing row, 30 + 5, where the alias alone gives 10.
     [Fact]
-    public void OnDuplicateKeyUpdate_MySql_BareListedTargetColumn_IsRejectedByTheEngine()
+    public void OnDuplicateKeyUpdate_MySql_ListedTargetColumn_ReadsTheExistingRow()
     {
         RandomUsersTable t = new("");
-        string? error = Rejection(UpsertMergeTwins.Statement(
-            "InsertInto(t, t.Id, t.Age).Values(1, 5).OnDuplicateKeyUpdate(t.Age == t.Age + 1)",
-            () => InsertInto(t, t.Id, t.Age)
-                .Values(1, 5)
-                .OnDuplicateKeyUpdate(t.Age == t.Age + 1)));
+        (Outcome upsert, List<string> row) = RunAndRead(
+            UpsertMergeTwins.Statement(
+                "InsertInto(t, t.Id, t.Age).Values(1, 5)"
+                    + ".OnDuplicateKeyUpdate(t.Age == t.Age + Excluded(t.Age))",
+                () => InsertInto(t, t.Id, t.Age)
+                    .Values(1, 5)
+                    .OnDuplicateKeyUpdate(t.Age == t.Age + Excluded(t.Age))),
+            UpsertMergeTwins.ReadAges(1));
 
-        Assert.Contains("Column 'age' in field list is ambiguous", error);
+        Assert.Null(upsert.Error);
+        Assert.Equal(["1|35"], row);
     }
 
     // 8.0.46's IGNORE skips the conflicting row, but also stores NULL in the NOT NULL key as 0

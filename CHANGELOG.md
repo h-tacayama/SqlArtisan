@@ -49,6 +49,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `Sql.BindArray` on an empty array. A value type of 64 KiB or more no longer
   throws `TypeLoadException` after the handler was registered with Dapper;
   every other type registers as before. (#814)
+- `OnDuplicateKeyUpdate(...)` qualifies a target column on an assignment's right
+  side by the table name (`age = (users.age + ?2)`), as `DoUpdateSet(...)` does.
+  It rendered the column bare, which MySQL reads as ambiguous beside the `new` row
+  alias when the `INSERT` lists that column (error 1052, observed on MySQL 8.0.46),
+  and the target cannot be aliased on MySQL, so the statement had no spelling that
+  ran. A column the `INSERT` does not list ran bare and runs qualified with the
+  same meaning; the left side, `Excluded(...)` and a subquery's own columns are
+  unchanged. (#827)
 
 ### Docs
 - `docs/query-statements.md` notes that on SQL Server a compound's
