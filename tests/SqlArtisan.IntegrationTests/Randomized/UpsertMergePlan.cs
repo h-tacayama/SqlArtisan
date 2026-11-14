@@ -1,9 +1,9 @@
 namespace SqlArtisan.IntegrationTests.Randomized;
 
 /// <summary>
-/// The upsert and MERGE rewrites that keep a statement's meaning only under conditions
-/// <see cref="DmlGenerators"/> holds: every proposed key is unique in its batch, and a proposed
-/// row meets at most one existing row, on keys that include the arbiter.
+/// The upsert and MERGE rewrites that keep a statement's meaning only under conditions the
+/// generators hold: <see cref="UpsertGenerators"/> keeps a batch's keys unique and a proposed row
+/// on one existing row at most; each rewrite states the rest, a MERGE's included.
 /// </summary>
 internal static class UpsertRewrites
 {

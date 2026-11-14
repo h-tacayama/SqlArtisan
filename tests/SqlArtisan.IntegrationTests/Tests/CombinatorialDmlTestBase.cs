@@ -8,7 +8,7 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.IntegrationTests.Tests;
 
 /// <summary>
-/// Runs each <c>insert</c>, <c>update</c> and <c>delete.cases.csv</c> row of this lane's engine:
+/// Runs each row of this lane's engine in the five DML models' cases (<see cref="DmlCaseTable"/>):
 /// every relation in <see cref="DmlChecker"/> must hold for the statements CsCheck generates,
 /// each in a transaction it rolls back. A lane's first failure shrinks before it is reported.
 /// </summary>

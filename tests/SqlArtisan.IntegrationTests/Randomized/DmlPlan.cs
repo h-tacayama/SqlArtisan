@@ -54,8 +54,8 @@ internal static class DmlPlanner
         return new DmlPlan(spec, rewrites, NegateWhere(spec));
     }
 
-    /// <summary>The statement with its filter negated: an UPDATE's or DELETE's WHERE (not
-    /// Oracle's pin), or the WHERE of an INSERT's feeding SELECT.</summary>
+    /// <summary>The statement with its <see cref="DmlSpec.Filter"/> negated: an UPDATE's or
+    /// DELETE's WHERE (not Oracle's pin), an INSERT feed's, a DO UPDATE's or a MERGE's.</summary>
     public static DmlSpec? NegateWhere(DmlSpec spec) =>
         spec.Filter is { } filter ? spec.WithFilter(new Negation(filter)) : null;
 

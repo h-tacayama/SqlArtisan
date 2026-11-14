@@ -75,7 +75,7 @@ internal static class UpsertGenerators
 
     // MySQL 8.0.46's row alias holds the listed columns alone, so new.age of an INSERT that lists
     // no age is unknown (1054); SqlArtisan renders the target's own column bare, which it reads
-    // as ambiguous beside a listed one (1052; a candidate defect, reported with this PR).
+    // as ambiguous beside a listed one (1052; #827, which also stops MySQL writing code).
     private static IReadOnlyList<Assignment> ListedOnly(
         DmlCaseRow row,
         IReadOnlyList<Assignment> set,
@@ -192,6 +192,8 @@ internal static class UpsertGenerators
         }
 
         GenScope scope = Scope(row, multi);
+
+        // MySQL writes no code: code = id + 3000 reads the listed id bare, ambiguous (1052, #827).
         return
             from columns in DmlGenerators.SettableOrder()
             from count in Gen.Int[1, 3]

@@ -188,8 +188,8 @@ public sealed partial class MySqlCombinatorialDmlTests
         Assert.Equal(["600|2"], row);
     }
 
-    // The row meets row 1 by id and row 2 by code; 8.0.46 updates row 1 alone, where PostgreSQL
-    // and SQLite reject the statement.
+    // The row meets row 1 by id and row 2 by code; 8.0.46 updates row 1 alone, a pick the
+    // reference does not model, so a proposed row meets one row at most (UpsertGenerators).
     [Fact]
     public void Upsert_MySql_ConflictOnTwoRows_UpdatesOne()
     {
@@ -207,8 +207,8 @@ public sealed partial class MySqlCombinatorialDmlTests
         Assert.Equal(["1|77", "2|25"], rows);
     }
 
-    // The existing row's age is 30: the starting row stores 30 in dept_id; 8.0.46 evaluates the
-    // assignments left to right, as its UPDATE does.
+    // The existing row's age is 30, so reading the starting row would store 30 in dept_id; 8.0.46
+    // evaluates the assignments left to right, as its UPDATE does, and stores 31.
     [Fact]
     public void OnDuplicateKeyUpdate_MySql_LaterAssignment_ReadsEarlierAssignedValue()
     {
