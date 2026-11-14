@@ -893,8 +893,9 @@ internal static class QueryGenerators
     private static Gen<ColumnRef> NullableIntColumn() =>
         Gen.OneOf("age", "dept_id").Select(c => new ColumnRef("u", c));
 
+    // A MERGE source and an upsert's proposed row carry the users columns.
     private static string[] IntColumnsOf(string table) =>
-        table[0] == 'u' ? ["id", "age", "dept_id"] : ["id"];
+        table[0] is 'u' or 's' or 'x' ? ["id", "age", "dept_id"] : ["id"];
 
     internal static Gen<SpecExpression> IntLiteral() =>
         Gen.OneOf(s_ints).Select(v => (SpecExpression)new Literal(v));

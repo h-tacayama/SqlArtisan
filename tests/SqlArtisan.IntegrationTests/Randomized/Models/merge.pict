@@ -1,0 +1,41 @@
+# The skeleton of the combinatorial MERGE tests (Tests/CombinatorialDmlTestBase.cs), every row
+# merging a source keyed by id into rt_users. Regenerate merge.cases.csv with
+# tools/regen-pict.sh after any edit; PictModelTests holds the CSV to this file and to the
+# analyzer's and Build()'s verdicts. No factor outputs: the API has no MERGE Output or
+# Returning.
+
+Dbms:             Oracle, PostgreSql, SqlServer
+Source:           Table, Derived, Cte, Values
+Matched:          None, Update, Delete, UpdateDelete, UpdateDeleteWhere
+MatchedFilter:    None, WhenAnd, ActionWhere
+NotMatched:       None, Insert
+NotMatchedFilter: None, WhenAnd, ActionWhere
+BySource:         None, Update, Delete
+Subquery:         None, Uncorrelated, Correlated
+
+# Three-way where defects cluster: the source's kind against the WHEN branches per engine (the
+# MERGE alias defect #820 met a source column in a branch). One sub-model only: PICT pairs each
+# sub-model's tuples with every other factor, so a second one multiplies the rows.
+{ Dbms, Source, Matched } @ 3
+
+# DialectMatrix ("Values", 3): Oracle takes a VALUES source from 23, above its baseline.
+IF [Source] = "Values" THEN [Dbms] <> "Oracle";
+
+# DmlTargetGuard.ThrowIfLeadingWithUnsupportedOnMerge: Oracle's MERGE takes no leading WITH.
+IF [Source] = "Cte" THEN [Dbms] <> "Oracle";
+
+# DialectMatrix ThenDelete (Oracle deletes through DeleteWhere), ("WhenMatched", 1) and
+# ("WhenNotMatched", 1) (Oracle filters an action with Where instead), DeleteWhere, and
+# WhenNotMatchedBySource (PostgreSQL takes it from 17, above its baseline).
+IF [Matched] IN {"Delete", "UpdateDelete"} THEN [Dbms] <> "Oracle";
+IF [Matched] = "UpdateDeleteWhere" THEN [Dbms] = "Oracle";
+IF [MatchedFilter] = "WhenAnd" OR [NotMatchedFilter] = "WhenAnd" THEN [Dbms] <> "Oracle";
+IF [BySource] <> "None" THEN [Dbms] = "SqlServer";
+
+# DialectUsageAnalyzer's MergeActionWhere shape: only Oracle filters a MERGE action.
+IF [MatchedFilter] = "ActionWhere" OR [NotMatchedFilter] = "ActionWhere" THEN [Dbms] = "Oracle";
+
+# A filter needs its branch, and a MERGE needs one branch.
+IF [Matched] = "None" THEN [MatchedFilter] = "None";
+IF [NotMatched] = "None" THEN [NotMatchedFilter] = "None";
+IF [Matched] = "None" AND [NotMatched] = "None" THEN [BySource] <> "None";

@@ -66,7 +66,25 @@ internal sealed record CaseModelBinding(
     string[] FactorNames,
     Action<IReadOnlyList<string>> ParseRow,
     Func<string, string, IReadOnlyList<LevelKey>> LevelKeys,
-    Func<int, IReadOnlyList<string>, IEnumerable<BuildCase>>? BuildCases);
+    Func<int, IReadOnlyList<string>, IEnumerable<BuildCase>>? BuildCases)
+{
+    /// <summary>The verdicts no one level carries: a guard that reads two factors.</summary>
+    public IReadOnlyList<ComboKey> ComboKeys { get; init; } = [];
+}
+
+/// <summary>Verdicts a row depends on when each factor <paramref name="Levels"/> names holds one
+/// of its listed levels.</summary>
+internal sealed record ComboKey(
+    IReadOnlyDictionary<string, string[]> Levels,
+    IReadOnlyList<LevelKey> Keys)
+{
+    public bool AppliesTo(IReadOnlyDictionary<string, string> row) =>
+        Levels.All(l => l.Value.Contains(row[l.Key]));
+
+    public override string ToString() => string.Join(
+        " and ",
+        Levels.Select(l => $"{l.Key} in {{{string.Join(", ", l.Value)}}}"));
+}
 
 /// <summary>The binding of every model; a model file without one fails
 /// <c>PictModelTests</c>.</summary>
@@ -83,6 +101,8 @@ internal static class CaseModelCatalog
             ["insert"] = DmlCaseTable.Binding("insert"),
             ["update"] = DmlCaseTable.Binding("update"),
             ["delete"] = DmlCaseTable.Binding("delete"),
+            ["upsert"] = DmlCaseTable.Binding("upsert"),
+            ["merge"] = DmlCaseTable.Binding("merge"),
         };
 
     public static CaseModelBinding For(string model) =>

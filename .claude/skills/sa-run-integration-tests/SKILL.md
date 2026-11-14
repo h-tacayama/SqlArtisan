@@ -147,13 +147,14 @@ and the run covered the lanes you care about.)
 
 `Randomized/Models/` holds one PICT model per statement kind, each `<name>.pict`
 beside its committed `<name>.cases.csv`, the pairwise expansion (3-way on the
-model's sub-models): `select`, `insert`, `update` and `delete`. A model's binding
-in `CaseModelCatalog` names its typed row, the keys each level's verdict reads (a
-matrix member, at an arity where same-named entries differ; a
-`ContextRules.DmlShape` read from `DialectUsageAnalyzer`; or a `GuardKey`, a
-dialect-scoped `Build()` guard the analyzer does not report, listed in
-`BuildGuards` with probes `PictModelTests` builds on every engine), and its
-generator. Each lane's `<Engine>CombinatorialSelectTests` runs that
+model's sub-models): `select`, `insert`, `update`, `delete`, `upsert` and
+`merge`. A model's binding in `CaseModelCatalog` names its typed row, the keys
+each level's verdict reads (a matrix member, at an arity where same-named entries
+differ; a `ContextRules.DmlShape` read from `DialectUsageAnalyzer`; or a
+`GuardKey`, a dialect-scoped `Build()` guard the analyzer does not report, listed
+in `BuildGuards` with probes `PictModelTests` builds on every engine), the keys
+a pair of levels reads together (`ComboKey`: PostgreSQL's targetless DO UPDATE),
+and its generator. Each lane's `<Engine>CombinatorialSelectTests` runs that
 engine's `select.cases.csv` rows as one theory case per row: CsCheck generates
 three queries per row from fixed seeds, `CasePlanner` derives every rewrite and
 relation part from each, and `CaseChecker` runs them (rewrites that must return
@@ -164,8 +165,10 @@ the same rows, set-operator and slice checks, the C# reference evaluator).
 it back (`SqliteCombinatorialTransactionTests` proves the rollback).
 
 Each lane's `<Engine>CombinatorialDmlTests`, a class of its own so its container
-starts beside the SELECT one, runs the three DML models' rows the same way
-(`DmlGenerators`, `DmlPlanner`, `DmlChecker`). Every statement, and the read-back
+starts beside the SELECT one, runs the five DML models' rows the same way
+(`DmlGenerators`, `DmlPlanner`, `DmlChecker`; the upsert and MERGE pieces sit in
+`UpsertMerge*.cs`). `rt_users.code`, a unique nullable integer no SELECT reads,
+is the upsert's second arbiter; a positional INSERT writes it NULL. Every statement, and the read-back
 of `rt_users` and `rt_depts` after it, runs inside one rolled-back transaction.
 The relations: the state and output equal `DmlReference`'s (R1; a text scalar
 subquery takes its first row by id rather than a collation-ordered `MAX` or
@@ -173,16 +176,23 @@ subquery takes its first row by id rather than a collation-ordered `MAX` or
 fails, in the lane and in `CombinatorialBuildTests`' DB-less gate); a DELETE's deleted ids, and an UPDATE's or DELETE's output ids, equal
 the ids a SELECT of the same join and WHERE matches, an UPDATE's changed ids are
 among them (a matched row can keep its values), and an INSERT's rows equal its
-feeding SELECT's; each output row reads back from the state; and every rewrite
-leaves the same state and output.
+feeding SELECT's; an upsert changes only the rows its proposed keys meet and
+inserts exactly the rows whose keys meet none, and a MERGE without a BY SOURCE
+branch changes only the target rows its join SELECT matches; each output row
+reads back from the state; and every rewrite leaves the same state and output.
+The upsert and MERGE rewrites that hold only under conditions the generators keep
+(`UpsertRewrites`: a dropped arbiter, DO NOTHING as INSERT ... SELECT ... WHERE
+NOT EXISTS, MERGE as a correlated UPDATE then an INSERT) state those conditions
+at their site; the last runs both statements in one transaction (`DmlSpec.Then`).
 Three facts per lane guard the comparisons, over each row's first seed: in at
 least half the statements with a WHERE to negate, a negated WHERE must change the
 state; in at least half the statements, a reference that skips one matched row
 must be caught; and at least 75% of the generated statements must change a row
 (the generators retry one that changes none). The generators leave out each
 shape an engine rejects or reads differently from the reference, with the reason
-at the site; the engine readings `dbms-differences.md` records have twins in the
-SQLite and MySQL lane classes.
+at the site, and each has a twin in its lane class
+(`CombinatorialDmlTestBase.UpsertMerge.cs` for the upsert and MERGE ones); the
+twins of the Oracle and SQL Server readings run only in CI.
 
 - **After editing or adding a model**, run `bash tools/regen-pict.sh` (it builds
   PICT v3.7.4 on first use and regenerates every model's CSV; an unchanged
