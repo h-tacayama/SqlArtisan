@@ -8,6 +8,9 @@ namespace SqlArtisan.IntegrationTests.Tests;
 /// fails; a relaxed constraint opening only 3-way tuples passes.</summary>
 public sealed class PictModelTests
 {
+    private static readonly Dbms[] s_engines =
+        [Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer];
+
     public static TheoryData<string> Models => CaseModels.TheoryNames();
 
     [Fact]
@@ -206,10 +209,10 @@ public sealed class PictModelTests
     [Fact]
     public void Verdict_JoinedUpdateFrom_ReadsAnalyzerShapeAndFloor()
     {
-        Dbms[] engines = [Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer];
         Dbms[] supported =
         [
-            .. engines.Where(d => MatrixLookup.Supports(d, ContextRules.DmlShape.JoinedUpdateFrom)),
+            .. s_engines.Where(d =>
+                MatrixLookup.Supports(d, ContextRules.DmlShape.JoinedUpdateFrom)),
         ];
 
         // SQLite takes UPDATE ... FROM from 3.33, below its 3.50 baseline; Oracle from 23.
@@ -217,6 +220,76 @@ public sealed class PictModelTests
         Assert.Equal(
             "JoinedUpdateFrom needs Oracle 23, above the 21.3 baseline",
             MatrixLookup.Verdict(Dbms.Oracle, ContextRules.DmlShape.JoinedUpdateFrom));
+    }
+
+    [Fact]
+    public void Verdict_DeleteUsing_ReadsTheBuildGuardOnSqlServer()
+    {
+        IReadOnlyList<LevelKey> keys = CaseModelCatalog.For("delete").LevelKeys("Join", "Using");
+        Dbms[] supported = [.. s_engines.Where(d => MatrixLookup.SupportsAll(d, keys))];
+
+        // The analyzer reports DELETE ... USING on Oracle alone; SQL Server's is Build()'s.
+        Assert.Equal([Dbms.PostgreSql], supported);
+        Assert.Equal(
+            "Build() rejects it on SqlServer (DmlTargetGuard.ThrowIfSqlServerDeleteUsing)",
+            MatrixLookup.Verdict(Dbms.SqlServer, BuildGuards.DeleteUsingOnSqlServer));
+    }
+
+    // A probe off its key's dialects may still stop at another listed guard of that dialect,
+    // as a leading-WITH INSERT stops at Oracle's while its key claims MySQL's.
+    [Fact]
+    public void BuildGuards_EveryProbe_ThrowsItsMessageOnExactlyItsDialects()
+    {
+        List<string> wrong = [];
+        foreach (GuardKey key in BuildGuards.All)
+        {
+            for (int p = 0; p < key.Probes.Length; p++)
+            {
+                foreach (Dbms dbms in s_engines)
+                {
+                    string? message = null;
+                    try
+                    {
+                        key.Probes[p]().Build(dbms);
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        message = ex.Message;
+                    }
+
+                    bool holds = key.RejectedOn.Contains(dbms)
+                        ? message == key.Message
+                        : message is null || BuildGuards.All.Any(other => other != key
+                            && other.RejectedOn.Contains(dbms) && other.Message == message);
+                    if (!holds)
+                    {
+                        wrong.Add($"{key.Guard} probe {p} on {dbms}: {message ?? "built"}");
+                    }
+                }
+            }
+        }
+
+        Assert.True(
+            wrong.Count == 0,
+            "Build() verdicts that differ from their GuardKey:\n  " + string.Join("\n  ", wrong));
+    }
+
+    [Theory]
+    [MemberData(nameof(Models))]
+    public void Model_EveryGuardKey_IsProvedByBuildGuards(string model)
+    {
+        PictModel pict = CaseModels.Model(model);
+        CaseModelBinding binding = CaseModelCatalog.For(model);
+        List<string> unproved = [.. pict.Factors
+            .SelectMany(f => f.Levels.SelectMany(l => binding.LevelKeys(f.Name, l)))
+            .OfType<GuardKey>()
+            .Where(key => !BuildGuards.All.Contains(key))
+            .Select(key => key.Guard)];
+
+        Assert.True(
+            unproved.Count == 0,
+            "GuardKeys outside BuildGuards.All, which no probe proves:\n  "
+                + string.Join("\n  ", unproved));
     }
 
     // A tuple is valid when some full row the constraints allow holds it; PICT promises each

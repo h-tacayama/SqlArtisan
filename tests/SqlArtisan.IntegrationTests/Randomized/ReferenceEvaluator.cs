@@ -24,6 +24,32 @@ internal static class ReferenceEvaluator
         return ([.. rows.Select(Normalize)], ordered);
     }
 
+    /// <summary>The rows of <paramref name="query"/> as values, before normalizing.</summary>
+    public static List<object?[]> RawRows(QueryBlock query, Dbms dbms) =>
+        Block(query, Env.Empty, new Collation(dbms)).Rows;
+
+    /// <summary>The ungrouped source rows of <paramref name="query"/> its WHERE keeps, each
+    /// as its table rows by key; a key a LEFT JOIN found no match for maps to
+    /// <see langword="null"/>.</summary>
+    public static List<IReadOnlyDictionary<string, object?>> Matches(QueryBlock query, Dbms dbms)
+    {
+        Collation collation = new(dbms);
+        return [.. Source(query, Env.Empty, collation)
+            .Where(e => query.Where is null
+                || Test(query.Where, new Context(e, null), collation) == true)
+            .Select(e => (IReadOnlyDictionary<string, object?>)e.Tables)];
+    }
+
+    /// <summary>The value of <paramref name="expression"/> over the table rows
+    /// <paramref name="rows"/> holds by key.</summary>
+    public static object? ValueOf(
+        SpecExpression expression,
+        IReadOnlyDictionary<string, object?> rows,
+        Dbms dbms) => Value(
+        expression,
+        new Context(new Env(rows.ToImmutableDictionary()), null),
+        new Collation(dbms));
+
     public static string Normalize(object? value) => value switch
     {
         null or DBNull => "NULL",
@@ -244,6 +270,12 @@ internal static class ReferenceEvaluator
                 ? Value(e.Then, context, collation)
                 : Value(e.Else, context, collation),
             SortKey s => Value(s.Key, context, collation),
+            NullValue => null,
+            PseudoColumn p => Column(new ColumnRef(p.Key, p.Column), context.Env),
+            CteMax m => CteValues(m.Cte, collation).OfType<long>()
+                .Select(v => (long?)v)
+                .DefaultIfEmpty(null)
+                .Max(),
             ScalarSubquery s => Block(s.Query, context.Env, collation).Rows switch
             {
                 [] => null,
@@ -403,6 +435,11 @@ internal static class ReferenceEvaluator
                     return s.Negated ? !any : any;
                 }
 
+            case InCte c:
+                return In(
+                    Value(c.Operand, context, collation),
+                    CteValues(c.Cte, collation),
+                    collation);
             case ExistsTest e:
                 return (Block(e.Query, context.Env, collation).Rows.Count > 0) != e.Negated;
             case LikeTest l:
@@ -443,6 +480,22 @@ internal static class ReferenceEvaluator
             default:
                 throw new InvalidOperationException(condition.GetType().Name);
         }
+    }
+
+    private static IEnumerable<object?> CteValues(CteSpec cte, Collation collation)
+    {
+        if (!cte.Recursive)
+        {
+            return Block(cte.Body!, Env.Empty, collation).Rows.Select(r => r[0]);
+        }
+
+        List<object?> series = [(long)cte.Start];
+        while ((long)series[^1]! < cte.Below)
+        {
+            series.Add((long)series[^1]! + cte.Step);
+        }
+
+        return series;
     }
 
     private static bool? In(object? value, IEnumerable<object?> candidates, Collation collation)

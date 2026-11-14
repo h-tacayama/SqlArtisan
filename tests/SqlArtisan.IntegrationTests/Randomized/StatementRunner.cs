@@ -65,10 +65,27 @@ internal sealed class StatementRunner
         }
 
         StringBuilder parameters = new();
+        List<string> outputs = [];
         statement.Parameters.ForEach((name, bind) =>
-            parameters.Append($"{name}={ReferenceEvaluator.Normalize(bind.Value)} "));
+        {
+            parameters.Append($"{name}={ReferenceEvaluator.Normalize(bind.Value)} ");
+            if (bind.Direction == ParameterDirection.Output)
+            {
+                outputs.Add(name);
+            }
+        });
         try
         {
+            if (outputs.Count > 0)
+            {
+                return new Outcome(
+                    planned.CSharp,
+                    statement.Text,
+                    parameters.ToString(),
+                    [ReadOutputs(statement, outputs, transaction)],
+                    null);
+            }
+
             using IDataReader reader = _connection.ExecuteReader(
                 statement.Text,
                 statement.Parameters.ToDynamicParameters(),
@@ -99,6 +116,28 @@ internal sealed class StatementRunner
                 ex.Message.Split('\n')[0].Trim());
         }
     }
+
+    // Oracle's RETURNING ... INTO binds one row into output parameters, which Dapper fills
+    // only through Execute, not through ExecuteReader.
+    private string ReadOutputs(
+        SqlStatement statement,
+        List<string> outputs,
+        IDbTransaction? transaction)
+    {
+        DynamicParameters bag = statement.Parameters.ToDynamicParameters();
+        _connection.Execute(statement.Text, bag, transaction, commandTimeout: 60);
+        return string.Join("|", outputs.Select(name =>
+            ReferenceEvaluator.Normalize(ProviderValue(bag.Get<object?>(name)))));
+    }
+
+    // A provider type (ODP.NET's OracleDecimal) reports NULL through IsNull and its value
+    // through ToString, outside IConvertible.
+    private static object? ProviderValue(object? value) => value switch
+    {
+        null or DBNull or string or IConvertible => value,
+        _ when value.GetType().GetProperty("IsNull")?.GetValue(value) is true => null,
+        _ => long.TryParse(value.ToString(), out long number) ? number : value.ToString(),
+    };
 
     /// <summary>Runs <paramref name="work"/> in a transaction of its own, then rolls it back,
     /// so the next statement starts from the same rows. One transaction per statement, since

@@ -110,13 +110,13 @@ internal sealed record CaseRow(
         Wrap);
 
     // Exact spelling only: a case-insensitive parse would let a model typo through.
-    private static T Level<T>(string text) where T : struct, Enum =>
+    internal static T Level<T>(string text) where T : struct, Enum =>
         Enum.TryParse(text, ignoreCase: false, out T value) && Enum.IsDefined(value)
             && value.ToString() == text
             ? value
             : throw new FormatException($"'{text}' is not a {typeof(T).Name} level.");
 
-    private static bool YesNo(string text) => text switch
+    internal static bool YesNo(string text) => text switch
     {
         "Yes" => true,
         "No" => false,

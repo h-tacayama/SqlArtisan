@@ -1,0 +1,45 @@
+# The skeleton of the combinatorial DELETE tests (Tests/CombinatorialDmlTestBase.cs), every row
+# deleting from rt_users. Regenerate delete.cases.csv with tools/regen-pict.sh after any edit;
+# PictModelTests holds the CSV to this file and to the analyzer's and Build()'s verdicts.
+
+Dbms:        MySql, Oracle, PostgreSql, Sqlite, SqlServer
+TargetAlias: Aliased, Unaliased
+Join:        None, Using, FromRelisted
+Where:       None, Compare, NullTest, InList, Like, Between, AndOrNest, Not, ConditionIfMix
+Subquery:    None, In, NotIn, Exists, NotExists, ScalarInWhere
+Correlated:  No, Yes
+Output:      None, Returning, Output, OutputInto
+Cte:         None, Leading, LeadingRecursive
+
+# Three-way where defects cluster: target aliasing against correlation per engine (#820's
+# area). One sub-model only: PICT pairs each sub-model's tuples with every other factor, so
+# Join x Subquery would take 433 rows.
+{ Dbms, TargetAlias, Correlated } @ 3
+
+# DialectMatrix: Returning (Oracle's takes INTO, which the generator adds), Output, Deleted,
+# ("Into", 2), WithRecursive.
+IF [Output] = "Returning" THEN [Dbms] IN {"Oracle", "PostgreSql", "Sqlite"};
+IF [Output] IN {"Output", "OutputInto"} THEN [Dbms] = "SqlServer";
+IF [Cte] = "LeadingRecursive" THEN [Dbms] IN {"MySql", "PostgreSql", "Sqlite"};
+
+# DialectMatrix Using (MySQL, SQLite), DmlShape.DeleteUsing (Oracle takes it from 23) and
+# DmlTargetGuard.ThrowIfSqlServerDeleteUsing.
+IF [Join] = "Using" THEN [Dbms] = "PostgreSql";
+
+# DmlShape.JoinedDeleteLead; DmlTargetGuard.ThrowIfDeleteTargetNotRepeatedInFromOffOracle
+# is why the form always re-lists its target.
+IF [Join] = "FromRelisted" THEN [Dbms] IN {"MySql", "SqlServer"};
+
+# DmlTargetGuard.ThrowIfLeadingWithUnsupported: Oracle's DML takes no leading WITH.
+IF [Cte] <> "None" THEN [Dbms] <> "Oracle";
+
+# DmlTargetGuard.ThrowIfJoinedTargetUnaliased, on every dialect.
+IF [Join] <> "None" THEN [TargetAlias] = "Aliased";
+
+# DmlTargetGuard.ThrowIfAliasedOnSqlServer: an un-joined target there stays bare, so a
+# correlated one takes the re-listed FROM.
+IF [Dbms] = "SqlServer" AND [Join] = "None" THEN [TargetAlias] = "Unaliased";
+
+# DmlTargetGuard.ThrowCorrelatedUnaliasedTarget, on every dialect.
+IF [Correlated] = "Yes" THEN [TargetAlias] = "Aliased";
+IF [Correlated] = "Yes" THEN [Subquery] <> "None";

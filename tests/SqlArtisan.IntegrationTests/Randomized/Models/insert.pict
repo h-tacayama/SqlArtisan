@@ -1,0 +1,45 @@
+# The skeleton of the combinatorial INSERT tests (Tests/CombinatorialDmlTestBase.cs), every row
+# writing rt_users. Regenerate insert.cases.csv with tools/regen-pict.sh after any edit;
+# PictModelTests holds the CSV to this file and to the analyzer's and Build()'s verdicts.
+
+Dbms:        MySql, Oracle, PostgreSql, Sqlite, SqlServer
+TargetAlias: Aliased, Unaliased
+Source:      Values, MultiValues, Select, SetForm
+ColumnList:  Listed, Omitted
+Value:       Constant, Expression, Subquery
+Output:      None, Returning, Output, OutputInto
+Cte:         None, Leading, InSelect
+Recursive:   No, Yes
+
+# Three-way where each engine's INSERT grammar narrows: the row source against the output
+# clause. One sub-model only: PICT pairs each sub-model's tuples with every other factor, so a
+# second one multiplies the rows.
+{ Dbms, Source, Output } @ 3
+
+# DialectMatrix: Returning (Oracle's takes INTO, which the generator adds), Output, Inserted,
+# ("Into", 2), WithRecursive.
+IF [Output] = "Returning" THEN [Dbms] IN {"Oracle", "PostgreSql", "Sqlite"};
+IF [Output] IN {"Output", "OutputInto"} THEN [Dbms] = "SqlServer";
+IF [Recursive] = "Yes" THEN [Dbms] IN {"MySql", "PostgreSql", "Sqlite"};
+
+# DmlShape.InsertValuesRow: Oracle takes a second VALUES row from 23, above its baseline.
+IF [Source] = "MultiValues" THEN [Dbms] <> "Oracle";
+
+# DmlShape.InsertSelectWith: SQL Server takes no WITH between INSERT INTO and its SELECT.
+IF [Cte] = "InSelect" THEN [Dbms] <> "SqlServer";
+
+# DmlTargetGuard.ThrowIfLeadingWithUnsupported: no leading WITH on Oracle's DML or MySQL's INSERT.
+IF [Cte] = "Leading" THEN [Dbms] IN {"PostgreSql", "Sqlite", "SqlServer"};
+
+# DmlTargetGuard.ThrowIfInsertTargetAliasedOnMySql and ThrowIfAliasedOnSqlServer.
+IF [TargetAlias] = "Aliased" THEN [Dbms] IN {"Oracle", "PostgreSql", "Sqlite"};
+
+# The API: InsertInto(t) offers Values(...) and Set(...) only, InsertInto(t, cols) the SELECT,
+# Output(...) and the WITH that feeds the SELECT; nothing after the SELECT offers Returning.
+IF [Source] = "Select" THEN [ColumnList] = "Listed";
+IF [Source] = "SetForm" THEN [ColumnList] = "Omitted";
+IF [Output] IN {"Output", "OutputInto"} THEN [ColumnList] = "Listed";
+IF [Cte] = "InSelect" THEN [Source] = "Select";
+IF [Output] = "Returning" THEN [Source] <> "Select";
+
+IF [Cte] = "None" THEN [Recursive] = "No";

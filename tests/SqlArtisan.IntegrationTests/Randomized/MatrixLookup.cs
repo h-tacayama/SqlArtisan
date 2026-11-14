@@ -2,8 +2,9 @@ using SqlArtisan.Analyzers;
 
 namespace SqlArtisan.IntegrationTests.Randomized;
 
-/// <summary>A verdict a model level depends on: a <see cref="DialectMatrix"/> entry, or a DML
-/// shape <see cref="DialectUsageAnalyzer"/> reports for the dialects that reject it.</summary>
+/// <summary>A verdict a model level depends on: a <see cref="DialectMatrix"/> entry, a DML
+/// shape <see cref="DialectUsageAnalyzer"/> reports for the dialects that reject it, or a
+/// <c>Build()</c> guard (<see cref="GuardKey"/>).</summary>
 internal abstract record LevelKey
 {
     public static implicit operator LevelKey(string member) => new MemberKey(member, null);
@@ -26,6 +27,18 @@ internal sealed record ShapeKey(ContextRules.DmlShape Shape) : LevelKey
     public override string ToString() => Shape.ToString();
 }
 
+/// <summary>A dialect-scoped <c>Build()</c> guard (ADR 0011) the analyzer does not report, named
+/// by <paramref name="Guard"/> and proved by its <paramref name="Probes"/>: each must throw
+/// <paramref name="Message"/> on exactly <paramref name="RejectedOn"/> (PictModelTests).</summary>
+internal sealed record GuardKey(
+    string Guard,
+    Dbms[] RejectedOn,
+    string Message,
+    Func<ISqlBuilder>[] Probes) : LevelKey
+{
+    public override string ToString() => Guard;
+}
+
 /// <summary>Reads the analyzer's verdicts for one engine at the baseline of its oldest
 /// integration lane, the version every lane of that engine is at least.</summary>
 internal static class MatrixLookup
@@ -41,6 +54,9 @@ internal static class MatrixLookup
     {
         MemberKey member => MemberVerdict(ToTarget(dbms), dbms, member),
         ShapeKey shape => ShapeVerdict(ToTarget(dbms), dbms, shape.Shape),
+        GuardKey guard => guard.RejectedOn.Contains(dbms)
+            ? $"Build() rejects it on {dbms} ({guard.Guard})"
+            : null,
         _ => throw new ArgumentOutOfRangeException(nameof(key), key, message: null),
     };
 

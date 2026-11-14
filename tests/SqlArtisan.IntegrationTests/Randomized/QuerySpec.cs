@@ -14,6 +14,7 @@ internal sealed class BuildContext
 {
     private readonly Dictionary<string, DbTableBase> _tables = [];
     private readonly IReadOnlySet<string> _unaliased;
+    private Cte? _cte;
 
     public BuildContext(IReadOnlySet<string> unaliased)
     {
@@ -31,6 +32,16 @@ internal sealed class BuildContext
 
         return table;
     }
+
+    public const string CteColumnName = "c0";
+
+    /// <summary>The one CTE a DML statement defines, shared by its WITH and its
+    /// references.</summary>
+    public Cte Cte() => _cte ??= new Cte("c");
+
+    // Through an alias, so the reference is quoted as the definition's As("c0") is: Oracle
+    // folds a bare c0 to C0, which a quoted "c0" no longer matches.
+    public DbColumn CteColumn() => Cte().Column(Null.As(CteColumnName));
 
     public DbColumn Column(string key, string column) => Table(key) switch
     {
@@ -520,6 +531,11 @@ internal sealed record QueryBlock
 
     public ISqlBuilder BuildStatement(BuildContext context, out ExpressionAlias[] aliases) =>
         (ISqlBuilder)BuildStage(context, null, out aliases);
+
+    /// <summary>The block as the SELECT that <paramref name="head"/> leads: a WITH, or an
+    /// <c>INSERT</c> it feeds.</summary>
+    public ISqlBuilder BuildStatement(BuildContext context, ISelectBuilder head) =>
+        (ISqlBuilder)BuildStage(context, head, out _);
 
     private object BuildStage(
         BuildContext context,
