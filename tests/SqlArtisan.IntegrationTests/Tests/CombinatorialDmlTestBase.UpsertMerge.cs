@@ -328,26 +328,6 @@ public sealed partial class SqlServerCombinatorialDmlTests
             "attempted to UPDATE or DELETE the same row more than once",
             Rejection(UpsertMergeTwins.TargetMatchedTwice()));
     }
-
-    // SQL Server types a VALUES column NULL in every row as int, so a text comparison
-    // converts the text.
-    [Fact]
-    public void MergeValues_SqlServer_AllNullColumn_IsInteger()
-    {
-        RandomUsersTable u = new("u");
-        ValuesDerivedTable s = Values("s", ["id", "name"], [[1, Null]]);
-        string? error = Rejection(UpsertMergeTwins.Statement(
-            "MergeInto(u).Using(Values(\"s\", [\"id\", \"name\"], [[1, Null]]))"
-                + ".On(u.Id == s.Column(\"id\")).WhenMatched(s.Column(\"name\") == \"Bob\")"
-                + ".ThenDelete()",
-            () => MergeInto(u)
-                .Using(s)
-                .On(u.Id == s.Column("id"))
-                .WhenMatched(s.Column("name") == "Bob")
-                .ThenDelete()));
-
-        Assert.Contains("Conversion failed", error);
-    }
 }
 
 public sealed partial class OracleCombinatorialDmlTests
@@ -374,6 +354,49 @@ public sealed partial class OracleCombinatorialDmlTests
                 .ThenUpdateSet(u.Age == s.Age)));
 
         Assert.Contains("ORA-38104", error);
+    }
+
+    // XE 21.3.0 rejects a row-limited subquery in the INSERT's VALUES, naming its ORDER BY key;
+    // an aggregate one over the same rows runs.
+    [Fact]
+    public void MergeInsertValues_Oracle_RowLimitedSubquery_IsRejectedByTheEngine()
+    {
+        RandomDeptsTable d2 = new("d2");
+        string? rejected = Rejection(UpsertMergeTwins.MergeInsertValue(
+            "Select(d2.Id).From(d2).Where(d2.Id == s.Age).OrderBy(d2.Id).FetchFirst(1)",
+            age => Select(d2.Id).From(d2).Where(d2.Id == age).OrderBy(d2.Id).FetchFirst(1)));
+        string? accepted = Rejection(UpsertMergeTwins.MergeInsertValue(
+            "Select(Max(d2.Id)).From(d2).Where(d2.Id == s.Age)",
+            age => Select(Max(d2.Id)).From(d2).Where(d2.Id == age)));
+
+        Assert.Contains("ORA-38101", rejected);
+        Assert.Null(accepted);
+    }
+}
+
+public sealed partial class Oracle23aiCombinatorialDmlTests
+{
+    // Free 23ai runs FETCH FIRST in the INSERT's VALUES but rejects OFFSET ... FETCH NEXT there,
+    // naming its ORDER BY key, as XE 21.3.0 rejects both.
+    [Fact]
+    public void MergeInsertValues_Oracle_OffsetSubquery_IsRejectedByTheEngine()
+    {
+        RandomDeptsTable d2 = new("d2");
+        string? rejected = Rejection(UpsertMergeTwins.MergeInsertValue(
+            "Select(d2.Id).From(d2).Where(d2.Id == s.Age).OrderBy(d2.Id).OffsetRows(0)"
+                + ".FetchNext(1)",
+            age => Select(d2.Id)
+                .From(d2)
+                .Where(d2.Id == age)
+                .OrderBy(d2.Id)
+                .OffsetRows(0)
+                .FetchNext(1)));
+        string? accepted = Rejection(UpsertMergeTwins.MergeInsertValue(
+            "Select(d2.Id).From(d2).Where(d2.Id == s.Age).OrderBy(d2.Id).FetchFirst(1)",
+            age => Select(d2.Id).From(d2).Where(d2.Id == age).OrderBy(d2.Id).FetchFirst(1)));
+
+        Assert.Contains("ORA-38101", rejected);
+        Assert.Null(accepted);
     }
 }
 
@@ -413,6 +436,24 @@ internal static class UpsertMergeTwins
         return Statement(
             "Update(t).Set(t.Code == t.Code + 1)",
             () => Update(t).Set(t.Code == t.Code + 1));
+    }
+
+    // Source rows 19..28 meet no target and insert ids 29..38, aged by value(s.Age).
+    public static PlannedStatement MergeInsertValue(
+        string csharp,
+        Func<SqlExpression, object> value)
+    {
+        RandomUsersTable u = new("u");
+        RandomUsersTable s = new("s");
+        return Statement(
+            "MergeInto(u).Using(s).On(u.Id == s.Id + 10).WhenNotMatched()"
+                + $".ThenInsert(u.Id, u.Age).Values(s.Id + 10, {csharp})",
+            () => MergeInto(u)
+                .Using(s)
+                .On(u.Id == s.Id + 10)
+                .WhenNotMatched()
+                .ThenInsert(u.Id, u.Age)
+                .Values(s.Id + 10, value(s.Age)));
     }
 
     // dept_id 1 belongs to six seed rows, so target row 1 meets six source rows.

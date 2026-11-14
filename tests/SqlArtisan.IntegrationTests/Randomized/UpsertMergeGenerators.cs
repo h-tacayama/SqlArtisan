@@ -347,8 +347,8 @@ internal static class MergeGenerators
         }
     }
 
-    // PostgreSQL types a VALUES column NULL in every row as text and SQL Server as int, which
-    // a text or integer target column then refuses; the first row is never NULL.
+    // PostgreSQL 16.15 types a VALUES column NULL in every row as text, which an integer target
+    // column refuses (MergeValues_PostgreSql_AllNullColumn_...); the first row is never NULL.
     private static SpecExpression Nullable(
         SpecExpression value,
         int row,
@@ -470,9 +470,9 @@ internal static class MergeGenerators
         from columns in DmlGenerators.SettableOrder()
         from count in Gen.Int[0, 3]
         from withCode in Chance(20)
-        from name in Value(scope, SpecType.Text)
-        from age in Value(scope, SpecType.Int)
-        from dept in Value(scope, SpecType.Int)
+        from name in InsertValue(row, scope, SpecType.Text)
+        from age in InsertValue(row, scope, SpecType.Int)
+        from dept in InsertValue(row, scope, SpecType.Int)
         from condition in Condition(scope, 1)
         let listed = columns.Take(count).ToList()
         select new MergeBranch(
@@ -499,6 +499,41 @@ internal static class MergeGenerators
             ],
             ActionWhere = row.NotMatchedFilter == MergeFilterLevel.ActionWhere ? condition : null,
         };
+
+    // A row-limited subquery in a MERGE INSERT's VALUES fails with ORA-38101, naming its ORDER
+    // BY key: on XE 21.3.0 any row limit, on Free 23ai an OFFSET (MergeInsertValues_Oracle_*).
+    private static Gen<SpecExpression> InsertValue(DmlCaseRow row, GenScope scope, SpecType type)
+    {
+        if (row.Dbms != Dbms.Oracle)
+        {
+            return Value(scope, type);
+        }
+
+        return
+            from value in Value(scope, type)
+            from plain in Value(scope with { AllowsSubquery = false }, type)
+            select RowLimited(value) ? plain : value;
+    }
+
+    private static bool RowLimited(SpecExpression value)
+    {
+        static bool Limited(QueryBlock q) =>
+            q.Limit is not null || q.Tail.Any(b => b.Query.Limit is not null);
+        bool found = false;
+        value.Rewrite(new SpecRewrite(
+            e =>
+            {
+                found |= e is ScalarSubquery s && Limited(s.Query);
+                return e;
+            },
+            c =>
+            {
+                found |= (c is InSubquery i && Limited(i.Query))
+                    || (c is ExistsTest x && Limited(x.Query));
+                return c;
+            }));
+        return found;
+    }
 
     private static Gen<IReadOnlyList<Assignment>> Set(GenScope scope, DmlCaseRow row) =>
         from columns in DmlGenerators.SettableOrder()
