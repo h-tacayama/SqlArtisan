@@ -4,8 +4,8 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.IntegrationTests.Randomized;
 
 /// <summary>
-/// Every statement <see cref="CaseChecker"/> runs for one generated query, planned without a
-/// connection so the DB-less Build gate builds exactly what a lane runs.
+/// Every statement <see cref="CaseChecker"/> runs for one generated query, and its negated
+/// WHERE, planned without a connection so the DB-less Build gate builds all a lane runs.
 /// </summary>
 internal sealed record CasePlan(
     QuerySpec Spec,

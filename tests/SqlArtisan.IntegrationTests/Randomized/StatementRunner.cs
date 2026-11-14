@@ -44,8 +44,8 @@ internal sealed class StatementRunner
 
     public Dbms Dbms { get; }
 
-    // SqlClient and Microsoft.Data.Sqlite refuse a command that lacks the connection's
-    // pending transaction, so a statement run inside one must be handed it.
+    // SqlClient refuses a command that lacks the connection's pending transaction, so a
+    // statement run inside one is handed it; Microsoft.Data.Sqlite attaches it unasked.
     public Outcome Run(PlannedStatement planned, IDbTransaction? transaction = null)
     {
         SqlStatement statement;
