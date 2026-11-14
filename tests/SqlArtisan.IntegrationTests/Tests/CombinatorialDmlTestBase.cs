@@ -221,6 +221,32 @@ public sealed class SqliteCombinatorialDmlTests
         Assert.Equal(["1|30", "2|55", "3|115"], ages);
     }
 
+    // The same running sum with a FROM gives 30, 55, 85 from the starting rows on SQLite
+    // 3.50.4, so DmlGenerators lets a joined UPDATE's correlated SET read the target.
+    [Fact]
+    public void UpdateSet_Sqlite_JoinedCorrelatedSubqueryOverTarget_ReadsStartingRows()
+    {
+        RandomUsersTable u = new("u");
+        RandomUsersTable u2 = new("u2");
+        RandomDeptsTable d = new("d");
+        (Outcome update, List<string> ages) = RunAndRead(
+            new PlannedStatement(
+                "UPDATE",
+                "Update(u).Set(u.Age == Select(Sum(u2.Age)).From(u2).Where(u2.Id <= u.Id))"
+                    + ".From(d).Where((d.Id == u.DeptId) & (u.Id <= 3))",
+                () => Update(u)
+                    .Set(u.Age == Select(Sum(u2.Age)).From(u2).Where(u2.Id <= u.Id))
+                    .From(d)
+                    .Where((d.Id == u.DeptId) & (u.Id <= 3))),
+            new PlannedStatement(
+                "READ",
+                "Select(u.Id, u.Age).From(u).Where(u.Id <= 3).OrderBy(u.Id)",
+                () => Select(u.Id, u.Age).From(u).Where(u.Id <= 3).OrderBy(u.Id)));
+
+        Assert.Null(update.Error);
+        Assert.Equal(["1|30", "2|55", "3|85"], ages);
+    }
+
     // The 28 seed rows: the starting rows give 28 three times; SQLite 3.50.4 counts the rows
     // left after each deletion.
     [Fact]

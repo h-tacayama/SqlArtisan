@@ -13,6 +13,8 @@ internal enum Correlation { Never, Optional, Required }
 /// <param name="ReadsUsers">Whether a subquery may read <c>rt_users</c>; a DML generator clears
 /// it where the engine rejects or misreads a subquery over its target
 /// (<c>DmlGenerators</c>).</param>
+/// <param name="TextScalarsByRow">Whether a text scalar subquery takes its first row by id, not
+/// <c>MAX</c> or <c>MIN</c>, which collation orders and the reference does not model.</param>
 internal sealed record GenScope(
     Dbms Target,
     IReadOnlyList<string> Tables,
@@ -21,7 +23,8 @@ internal sealed record GenScope(
     bool AllowsSubquery,
     Correlation Correlation,
     bool AllowsCorrelatedCount = true,
-    bool ReadsUsers = true);
+    bool ReadsUsers = true,
+    bool TextScalarsByRow = false);
 
 /// <summary>CsCheck generators for a <see cref="QuerySpec"/> that fits one
 /// <see cref="CaseRow"/>.</summary>
@@ -538,7 +541,7 @@ internal static class QueryGenerators
                 table,
                 want,
                 scalar,
-                shape,
+                scalar && want == SpecType.Text && outer.TextScalarsByRow ? 0 : shape,
                 item,
                 correlate && !outer.AllowsCorrelatedCount && aggregateKind.StartsWith("Count")
                     ? "Max"

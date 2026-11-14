@@ -166,19 +166,21 @@ Each lane's `<Engine>CombinatorialDmlTests`, a class of its own so its container
 starts beside the SELECT one, runs the three DML models' rows the same way
 (`DmlGenerators`, `DmlPlanner`, `DmlChecker`). Every statement, and the read-back
 of `rt_users` and `rt_depts` after it, runs inside one rolled-back transaction.
-The relations: the state and output equal `DmlReference`'s; a DELETE's deleted
-ids, and an UPDATE's or DELETE's output ids, equal the ids a SELECT of the same
-join and WHERE matches, an UPDATE's changed ids are among them (a matched row
-can keep its values), and an INSERT's rows equal its feeding SELECT's; each
-output row reads back from the state; and every rewrite leaves the same state
-and output.
-Three facts per lane guard the comparisons: a negated WHERE must change the
-state, a reference that skips one matched row must be caught, and at least 75%
-of the generated statements must change a row (the generators retry one that
-changes none). The generators leave out each shape an engine rejects or reads
-differently from the reference, with the reason at the site; the engine
-readings `dbms-differences.md` records have twins in the SQLite and MySQL lane
-classes.
+The relations: the state and output equal `DmlReference`'s (R1, skipped only
+where it throws `ReferenceUnavailableException`; no DML shape does, since a text
+scalar subquery takes its first row by id rather than a collation-ordered `MAX`
+or `MIN`); a DELETE's deleted ids, and an UPDATE's or DELETE's output ids, equal
+the ids a SELECT of the same join and WHERE matches, an UPDATE's changed ids are
+among them (a matched row can keep its values), and an INSERT's rows equal its
+feeding SELECT's; each output row reads back from the state; and every rewrite
+leaves the same state and output.
+Three facts per lane guard the comparisons: in at least half the statements, a
+negated WHERE must change the state and a reference that skips one matched row
+must be caught; and at least 75% of the generated statements must change a row
+(the generators retry one that changes none). The generators leave out each
+shape an engine rejects or reads differently from the reference, with the reason
+at the site; the engine readings `dbms-differences.md` records have twins in the
+SQLite and MySQL lane classes.
 
 - **After editing or adding a model**, run `bash tools/regen-pict.sh` (it builds
   PICT v3.7.4 on first use and regenerates every model's CSV; an unchanged

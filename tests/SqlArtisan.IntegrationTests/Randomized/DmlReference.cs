@@ -10,9 +10,9 @@ internal sealed record DmlExpectation(
     IReadOnlyList<long> Matched);
 
 /// <summary>
-/// Applies a <see cref="DmlSpec"/> to <see cref="RandomSchema"/>'s seed in C#: every SET right
-/// side, WHERE and output item reads the rows as they stood before the statement, the
-/// standard's reading, which the generators keep each engine to (<see cref="DmlGenerators"/>).
+/// Applies a <see cref="DmlSpec"/> to <see cref="RandomSchema"/>'s seed in C#: SET, WHERE and
+/// subqueries read the pre-statement rows, the standard's reading the generators keep each engine
+/// to (<see cref="DmlGenerators"/>); an output item reads the row it returns.
 /// </summary>
 internal static class DmlReference
 {

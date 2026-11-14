@@ -178,4 +178,5 @@ the combinatorial DML generators never build these shapes
   over the target, and any DML's `RETURNING` subquery over it, against the rows
   the statement has already changed; its `WHERE` reads the starting rows. A
   running sum `SET v = (SELECT SUM(z.v) FROM t z WHERE z.id <= t.id)` over 1, 2,
-  3 gives 1, 3, 7, where PostgreSQL 16.15 gives 1, 3, 6.
+  3 gives 1, 3, 7, where PostgreSQL 16.15 gives 1, 3, 6. With a `FROM` source
+  the same `SET` reads the starting rows and gives 1, 3, 6.

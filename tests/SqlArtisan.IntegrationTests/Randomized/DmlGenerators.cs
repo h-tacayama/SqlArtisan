@@ -93,7 +93,8 @@ internal static class DmlGenerators
             1,
             AllowsSubquery: false,
             row.Correlated ? Correlation.Required : Correlation.Never,
-            ReadsUsers: row.Dbms != Dbms.MySql);
+            ReadsUsers: row.Dbms != Dbms.MySql,
+            TextScalarsByRow: true);
     }
 
     private static SpecCondition? WithCte(SpecCondition? where, CteSpec? cte, ColumnRef operand)
@@ -165,8 +166,9 @@ internal static class DmlGenerators
     private static Gen<IReadOnlyList<Assignment>> SetList(GenScope scope, DmlCaseRow row)
     {
         // SQLite evaluates a FROM-less UPDATE's correlated SET subquery over the target against
-        // the rows already updated (dbms-differences.md); PostgreSQL reads the starting rows.
+        // the rows already updated (dbms-differences.md); with a FROM it reads the starting rows.
         GenScope subqueryScope = row.Dbms == Dbms.Sqlite && row.Correlated
+            && row.Join == DmlJoinLevel.None
             ? scope with { ReadsUsers = false }
             : scope;
         return
@@ -322,7 +324,8 @@ internal static class DmlGenerators
             1,
             AllowsSubquery: true,
             Correlation.Never,
-            ReadsUsers: !(multi && row.Dbms == Dbms.MySql));
+            ReadsUsers: !(multi && row.Dbms == Dbms.MySql),
+            TextScalarsByRow: true);
         int rows = multi ? 3 : 1;
         return
             from idBase in Gen.Int[0, 40]
@@ -378,7 +381,8 @@ internal static class DmlGenerators
             [table],
             2,
             AllowsSubquery: true,
-            Correlation.Optional)
+            Correlation.Optional,
+            TextScalarsByRow: true)
         from items in FeedItem(scope, row.Value, SpecType.Text).Array[4]
         from ints in FeedItem(scope, row.Value, SpecType.Int).Array[4]
         from filtered in Chance(80)
