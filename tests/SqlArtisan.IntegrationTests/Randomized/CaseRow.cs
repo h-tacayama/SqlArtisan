@@ -1,4 +1,4 @@
-using SqlArtisan.Analyzers;
+using CsCheck;
 
 namespace SqlArtisan.IntegrationTests.Randomized;
 
@@ -124,13 +124,10 @@ internal sealed record CaseRow(
     };
 }
 
-/// <summary>The committed PICT model and the rows generated from it, read from the test
-/// output directory.</summary>
+/// <summary>The rows of <c>select.cases.csv</c>, typed for the SELECT generator.</summary>
 internal static class CaseTable
 {
-    public static string ModelPath => ModelFile("select.pict");
-
-    public static string CasesPath => ModelFile("select.cases.csv");
+    public const string Model = "select";
 
     public static IReadOnlyList<CaseRow> Rows => s_rows.Value;
 
@@ -149,34 +146,34 @@ internal static class CaseTable
 
     public static CaseRow Row(int number) => Rows.Single(r => r.Number == number);
 
-    /// <summary>The header and the data rows, each split at its commas; row 1 is the first
-    /// line after the header.</summary>
-    public static (string[] Header, List<string[]> Rows) ReadRaw()
+    /// <summary>Every statement a lane builds for one row: each seed's query, its rewrites and
+    /// its relation parts, and the negative control's negated WHERE.</summary>
+    public static IEnumerable<BuildCase> BuildCases(int number, IReadOnlyList<string> values)
     {
-        string[] lines = File.ReadAllLines(CasesPath);
-        string[] header = lines[0].Split(',');
-        List<string[]> rows = [.. lines.Skip(1).Where(l => l.Length > 0).Select(l => l.Split(','))];
-        return (header, rows);
+        CaseRow row = CaseRow.Parse(number, values);
+        Gen<QuerySpec> gen = QueryGenerators.For(row);
+        CasePlanner planner = new(row);
+        return CaseSeeds.For(number).Select(seed => new BuildCase(
+            row.Dbms,
+            seed,
+            () => [.. planner.Plan(gen.Generate(PCG.Parse(seed), null!, out _)).Statements()]));
     }
 
     private static List<CaseRow> Load()
     {
-        (_, List<string[]> raw) = ReadRaw();
+        (_, List<string[]> raw) = CaseModels.ReadRaw(Model);
         return [.. raw.Select((values, i) => CaseRow.Parse(i + 1, values))];
     }
-
-    private static string ModelFile(string name) =>
-        Path.Combine(AppContext.BaseDirectory, "Randomized", "Models", name);
 }
 
 /// <summary>
-/// The matrix keys a level's queries may emit, for the DB-less gate. A function the generator
-/// picks per engine (<c>Length</c>, <c>Substr</c>/<c>Substring</c>) is read from the matrix at
-/// generation time, so it never needs a model constraint.
+/// The matrix keys a <c>select.pict</c> level's queries may emit, for the DB-less gate. A
+/// function the generator picks per engine (<c>Length</c>, <c>Substr</c>/<c>Substring</c>) is
+/// read from the matrix at generation time, so it never needs a model constraint.
 /// </summary>
 internal static class LevelMatrixKeys
 {
-    public static IReadOnlyList<string> For(string factor, string level) => (factor, level) switch
+    public static IReadOnlyList<LevelKey> For(string factor, string level) => (factor, level) switch
     {
         ("Join", "Inner") => ["InnerJoin", "On"],
         ("Join", "Left") => ["LeftJoin", "On"],
@@ -215,47 +212,5 @@ internal static class LevelMatrixKeys
         ("SetOperator", "Except") => ["Except"],
         ("Wrap", "Cte") => ["With"],
         _ => [],
-    };
-}
-
-/// <summary>Reads <see cref="DialectMatrix"/> for one engine at the baseline of its oldest
-/// integration lane, the version every lane of that engine is at least.</summary>
-internal static class MatrixLookup
-{
-    public static bool Supports(Dbms dbms, string member) => Verdict(dbms, member) is null;
-
-    public static bool SupportsLevel(Dbms dbms, string factor, string level) =>
-        LevelMatrixKeys.For(factor, level).All(key => Supports(dbms, key));
-
-    /// <summary>Why <paramref name="member"/> does not run on <paramref name="dbms"/>, or
-    /// <see langword="null"/> when it does.</summary>
-    public static string? Verdict(Dbms dbms, string member)
-    {
-        TargetDbms target = ToTarget(dbms);
-        if (!DialectMatrix.TryGetEntry(member, null, out DbmsSupport support, out _))
-        {
-            return $"{member} has no DialectMatrix entry";
-        }
-
-        if (!support.IsSupported(target))
-        {
-            return $"DialectMatrix marks {member} unsupported on {dbms}";
-        }
-
-        EngineVersion baseline = DialectMatrix.BaselineVersion[target];
-        return DialectMatrix.TryGetMinVersion(new MatrixKey(member), target, out EngineVersion min)
-            && baseline.CompareTo(min) < 0
-            ? $"{member} needs {dbms} {min}, above the {baseline} baseline"
-            : null;
-    }
-
-    private static TargetDbms ToTarget(Dbms dbms) => dbms switch
-    {
-        Dbms.MySql => TargetDbms.MySql,
-        Dbms.Oracle => TargetDbms.Oracle,
-        Dbms.PostgreSql => TargetDbms.PostgreSql,
-        Dbms.Sqlite => TargetDbms.Sqlite,
-        Dbms.SqlServer => TargetDbms.SqlServer,
-        _ => throw new ArgumentOutOfRangeException(nameof(dbms), dbms, message: null),
     };
 }

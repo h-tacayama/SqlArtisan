@@ -13,8 +13,6 @@ namespace SqlArtisan.IntegrationTests.Tests;
 /// </summary>
 public abstract class CombinatorialSelectTestBase
 {
-    private const int CasesPerRow = 3;
-    private const string SeedVariable = "SQLARTISAN_RANDOMIZED_SEED";
     private const string ShrinkVariable = "SQLARTISAN_RANDOMIZED_SHRINK_SECONDS";
     private const int DefaultShrinkSeconds = 20;
 
@@ -38,7 +36,7 @@ public abstract class CombinatorialSelectTestBase
         {
             CaseChecker checker = new(connection, row);
             QuerySpec spec = QueryGenerators.For(row)
-                .Generate(PCG.Parse(Seeds(row)[0]), null!, out _);
+                .Generate(PCG.Parse(CaseSeeds.For(row.Number)[0]), null!, out _);
             if (checker.NegatedWhereDiffers(spec) is { } differs)
             {
                 compared++;
@@ -60,7 +58,7 @@ public abstract class CombinatorialSelectTestBase
         Gen<QuerySpec> gen = QueryGenerators.For(row);
         using IDbConnection connection = _fixture.OpenConnection();
         CaseChecker checker = new(connection, row);
-        foreach (string seed in Seeds(row))
+        foreach (string seed in CaseSeeds.For(row.Number))
         {
             QuerySpec spec = gen.Generate(PCG.Parse(seed), null!, out _);
             try
@@ -70,17 +68,11 @@ public abstract class CombinatorialSelectTestBase
             catch (RandomizedCaseException ex)
             {
                 Assert.Fail($"select.cases.csv row {number} ({factors}), CsCheck seed {seed}\n"
-                    + $"Reproduce: {SeedVariable}={seed} and filter to this row's test case.\n"
-                    + ex.Message + Shrink(gen, checker, seed));
+                    + $"Reproduce: {CaseSeeds.Variable}={seed} and filter to this row's test case."
+                    + "\n" + ex.Message + Shrink(gen, checker, seed));
             }
         }
     }
-
-    private static string[] Seeds(CaseRow row) => Environment.GetEnvironmentVariable(SeedVariable)
-        is { Length: > 0 } seed
-        ? [seed]
-        : [.. Enumerable.Range(0, CasesPerRow)
-            .Select(i => new PCG((uint)row.Number, (ulong)i).ToString())];
 
     // CsCheck shrinks by searching other seeds of the same generator for a smaller failing
     // query, and each candidate costs a dozen round trips, so by default only a lane's first

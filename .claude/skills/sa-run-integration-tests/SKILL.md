@@ -64,9 +64,10 @@ is `dotnet build SqlArtisan.sln`, and the solution includes this project — so 
 compile error does fail the PR. `ci.yml` also *runs* one DB-less slice on every
 PR: the `MatrixSweepCatalogTests` completeness pair, the ADR 0011
 `DialectGuardTwinTests` twin gate, and the ADR 0020
-`DateTimePartNumberingTests` numbering gate, and the `PictModelTests`
-combinatorial-model gate, via an FQN filter, and then the SQLite lane of the
-combinatorial SELECT tests (`SqliteCombinatorialSelectTests`). The other
+`DateTimePartNumberingTests` numbering gate, the `PictModelTests`
+combinatorial-model gate and the `CombinatorialBuildTests` Build gate, via an FQN
+filter, and then the SQLite lane of the combinatorial tests (every
+`SqliteCombinatorial*` class). The other
 engine lanes execute only through the dispatched integration run (below), the
 nightly schedule, or the release gate.
 
@@ -141,22 +142,39 @@ and the run covered the lanes you care about.)
   Verify it in the per-engine class alongside the other engine-specific DML
   proofs (this is where the #255 correlated-DML alias checks live).
 
-## Combinatorial SELECT tests
+## Combinatorial tests
 
-`Randomized/Models/select.pict` is a PICT model of SELECT shapes; the committed
-`select.cases.csv` is its pairwise expansion (3-way on its two sub-models).
-Each lane's `<Engine>CombinatorialSelectTests` runs that engine's rows as one
-theory case per row: CsCheck generates three queries per row from fixed seeds,
-and `CaseChecker` runs each with its relations (rewrites that must return the
-same rows, set-operator and slice checks, the C# reference evaluator).
+`Randomized/Models/` holds one PICT model per statement kind, each `<name>.pict`
+beside its committed `<name>.cases.csv`, the pairwise expansion (3-way on the
+model's sub-models). Only `select.pict` exists today. A model's binding in
+`CaseModelCatalog` names its typed row, the analyzer keys each level emits
+(`LevelMatrixKeys`: a matrix member, at an arity where same-named entries differ,
+or a `ContextRules.DmlShape` read from `DialectUsageAnalyzer`), and its
+generator, if it has one. Each lane's `<Engine>CombinatorialSelectTests` runs that
+engine's `select.cases.csv` rows as one theory case per row: CsCheck generates
+three queries per row from fixed seeds, `CasePlanner` derives every rewrite and
+relation part from each, and `CaseChecker` runs them (rewrites that must return
+the same rows, set-operator and slice checks, the C# reference evaluator).
 `NegativeControl_NegatedWhere_IsDetected` proves the comparison can fail.
+`StatementRunner` runs a statement inside a transaction when given one, and
+`RunInRolledBackTransaction` gives a statement a transaction of its own and rolls
+it back (`SqliteCombinatorialTransactionTests` proves the rollback).
 
-- **After editing `select.pict`**, run `bash tools/regen-pict.sh` (it builds
-  PICT v3.7.4 on first use) and commit the CSV with the model.
-  `PictModelTests` fails the PR on a value outside the model, a row its
-  constraints or `DialectMatrix` exclude, and a valid pair or sub-model tuple no
-  row holds. It does not compare the CSV with PICT's output, so a relaxed
-  constraint whose new combinations span three or more factors passes it.
+- **After editing or adding a model**, run `bash tools/regen-pict.sh` (it builds
+  PICT v3.7.4 on first use and regenerates every model's CSV; an unchanged
+  model's CSV comes out byte for byte the same) and commit the CSV with the
+  model. A new model also needs its binding, or `PictModelTests` fails.
+  `PictModelTests` runs every check per model: it fails the PR on a value
+  outside the model, a row its constraints or the analyzer's verdicts exclude,
+  and a valid pair or sub-model tuple no row holds. It does not compare the CSV
+  with PICT's output, so a relaxed constraint whose new combinations span three
+  or more factors passes it.
+- **`CombinatorialBuildTests`** builds, with no database, every statement a lane
+  would run for every row of every model with a generator (each seed's query,
+  its rewrites and relation parts, and the negated WHERE) for the row's engine.
+  Any exception fails it, naming the row, seed, C# chain and exception, so a
+  `Build()` guard the model or generator has drifted from fails the PR rather
+  than the nightly run. It takes about a second.
 - **A failure report** names the CSV row, the CsCheck seed, the C# chain, the
   SQL, the bound values and the expected and actual rows. The first failing
   row of a lane then adds a shrunk case CsCheck found in 20 s, with its own

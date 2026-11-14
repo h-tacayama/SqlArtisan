@@ -636,7 +636,7 @@ internal static class QueryGenerators
             PagingLevel.FetchFirst,
             PagingLevel.OffsetFetch,
             PagingLevel.Top,
-        }.Where(f => MatrixLookup.SupportsLevel(dbms, "Paging", f.ToString()))];
+        }.Where(f => MatrixLookup.SupportsAll(dbms, LevelMatrixKeys.For("Paging", f.ToString())))];
         return
             from form in Gen.OneOf(forms)
             from count in Gen.Int[1, maxCount]
