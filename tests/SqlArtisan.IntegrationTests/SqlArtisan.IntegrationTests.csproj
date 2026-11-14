@@ -14,6 +14,9 @@
     <!-- Test-only: generates and shrinks the combinatorial SELECT cases (Randomized/). -->
     <PackageReference Include="CsCheck" Version="5.0.0" />
     <PackageReference Include="Dapper" Version="2.1.66" />
+    <!-- Test-only: MatrixLookup reads DialectUsageAnalyzer's DML-shape verdicts, and that type
+         derives from Roslyn's DiagnosticAnalyzer, which the analyzer reference keeps private. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.5" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
@@ -63,9 +66,9 @@
     <Compile Include="..\SqlArtisan.Tests\TestFixtures\CookbookRecipes.cs" Link="Cookbook\CookbookRecipes.cs" />
   </ItemGroup>
   <ItemGroup>
-    <!-- The PICT model and its generated cases, read at run time by CaseTable. -->
-    <None Include="Randomized\Models\select.pict" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="Randomized\Models\select.cases.csv" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Every PICT model and its generated cases, read at run time by CaseModels. -->
+    <None Include="Randomized\Models\*.pict" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Randomized\Models\*.cases.csv" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />

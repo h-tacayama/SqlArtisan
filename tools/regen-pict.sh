@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Regenerates the combinatorial SELECT cases from their PICT model. Developer-only: CI never
-# runs PICT; PictModelTests holds the committed CSV to the model's levels, constraints and
-# pairs, not to PICT's exact output, so rerun this after every edit to the model.
+# Regenerates every combinatorial model's cases (Models/<name>.pict -> <name>.cases.csv).
+# Developer-only: CI never runs PICT; PictModelTests holds each committed CSV to its model's
+# levels, constraints and pairs, not to PICT's exact output, so rerun this after every edit.
 #
 # PICT is pinned to v3.7.4, built from source on first use (needs git, make and a C++
 # compiler):
@@ -10,7 +10,8 @@
 # Set PICT=/path/to/pict to use a binary built that way instead.
 #
 # The fixed /r seed makes the output deterministic: rerunning on an unchanged model
-# reproduces the committed CSV byte for byte. Run from the repository root.
+# reproduces its committed CSV byte for byte, so regenerating all of them is safe. Run from
+# the repository root.
 set -euo pipefail
 
 PICT_TAG=v3.7.4
@@ -29,6 +30,8 @@ if [ -z "${PICT:-}" ]; then
 fi
 
 # PICT writes tab-separated rows (and its seed to stderr); the cases file is comma-separated.
-"$PICT" "$models/select.pict" /o:2 "/r:$PICT_SEED" 2>/dev/null | tr '\t' ',' \
-  > "$models/select.cases.csv"
-echo "$(($(wc -l < "$models/select.cases.csv") - 1)) rows written to $models/select.cases.csv"
+for model in "$models"/*.pict; do
+  cases="${model%.pict}.cases.csv"
+  "$PICT" "$model" /o:2 "/r:$PICT_SEED" 2>/dev/null | tr '\t' ',' > "$cases"
+  echo "$(($(wc -l < "$cases") - 1)) rows written to $cases"
+done

@@ -527,8 +527,9 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         [TargetDbms.PostgreSql, TargetDbms.SqlServer];
 
     // Static instances, not a collection expression per call: this runs on every
-    // joined-DML step of every compilation (ADR 0006).
-    private static TargetDbms[] RejectingDialects(ContextRules.DmlShape shape) => shape switch
+    // joined-DML step of every compilation (ADR 0006). Internal for the combinatorial
+    // models' gate, which holds a DML level to the shape verdict this rule reports.
+    internal static TargetDbms[] RejectingDialects(ContextRules.DmlShape shape) => shape switch
     {
         ContextRules.DmlShape.JoinedDeleteLead => s_joinedDmlUnsupported,
         ContextRules.DmlShape.DeleteUsing => s_deleteUsingUnsupported,

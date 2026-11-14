@@ -56,7 +56,7 @@ dotnet test tests/SqlArtisan.Tests              # unit tests (xUnit)
 dotnet test tests/SqlArtisan.Analyzers.Tests    # analyzer tests
 dotnet test tests/SqlArtisan.TableClassGen.Tests   # TableClassGen tests
 dotnet format SqlArtisan.sln --verify-no-changes   # .editorconfig style gate (CI enforces this)
-bash tools/regen-pict.sh                # regenerate the combinatorial cases after editing select.pict
+bash tools/regen-pict.sh                # regenerate every model's combinatorial cases after editing a .pict
 ```
 
 Always run `dotnet test` after changing `src/`. Tests assert the **exact** SQL
@@ -75,7 +75,7 @@ Three GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests`, `Analyzers.Tests`, `TableClassGen.Tests`), the DB-less `MatrixSweepCatalogTests`, `DialectGuardTwinTests`, `DateTimePartNumberingTests` and `PictModelTests` slices, and the SQLite lane of the combinatorial SELECT tests. |
+| `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests`, `Analyzers.Tests`, `TableClassGen.Tests`), the DB-less `MatrixSweepCatalogTests`, `DialectGuardTwinTests`, `DateTimePartNumberingTests`, `PictModelTests` and `CombinatorialBuildTests` slices, and the SQLite lane of the combinatorial tests. |
 | `integration.yml` | Nightly cron, `workflow_call`, manual | Integration tests across 8 lanes in parallel (Oracle runs at both 21c and 23ai, PostgreSQL at both 16 and 17, SQL Server at both 2022 and 2025). |
 | `release.yml` | Tag push (`v*`); manual from `main` to re-publish a tagged release whose push failed | Full verify plus a vulnerable-package audit of `src/` → integration tests → pack & push 4 NuGet packages (trusted publishing). |
 
