@@ -162,14 +162,18 @@ holds whether or not any engine still rejects the alternative.
 
 **Two engines read a DML statement's own target mid-statement (engine
 behaviour, not a dialect difference).** SqlArtisan emits the SQL as written;
-the combinatorial DML generators never build either shape
+the combinatorial DML generators never build these shapes
 (`Randomized/DmlGenerators.cs`), and each has a twin in its lane's
 `<Engine>CombinatorialDmlTests`:
 
 - MySQL 8.0.46 evaluates an `UPDATE`'s `SET` left to right, each right side
   reading what earlier assignments wrote: `SET age = age + 1, dept_id = age`
-  stores the new age in `dept_id`. It did the same with a join, where the
-  manual leaves the order unspecified.
+  stores the new age in `dept_id`.
+- MySQL 8.0.46 evaluates a multi-row `INSERT ... VALUES` row's subquery over the
+  target after inserting the rows before it: over three rows,
+  `VALUES (600, (SELECT COUNT(*) FROM t z)), (601, (SELECT COUNT(*) FROM t z))`
+  stores 3 and 4, so those rows' subqueries read `rt_depts` on MySQL. A
+  single-row `VALUES` has no earlier row to read.
 - SQLite 3.50.4 evaluates a `FROM`-less `UPDATE`'s correlated `SET` subquery
   over the target, and any DML's `RETURNING` subquery over it, against the rows
   the statement has already changed; its `WHERE` reads the starting rows. A

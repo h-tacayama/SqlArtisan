@@ -313,11 +313,20 @@ internal static class DmlGenerators
         CteSpec? cte)
     {
         // A VALUES subquery correlates to nothing; the outer table only feeds the unused link.
-        GenScope scope = new(row.Dbms, ["u4"], ["u4"], 1, AllowsSubquery: true, Correlation.Never);
-        int rows = row.Source == InsertSourceLevel.MultiValues ? 3 : 1;
+        // MySQL's later VALUES rows read the rows inserted before them (dbms-differences.md).
+        bool multi = row.Source == InsertSourceLevel.MultiValues;
+        GenScope scope = new(
+            row.Dbms,
+            ["u4"],
+            ["u4"],
+            1,
+            AllowsSubquery: true,
+            Correlation.Never,
+            ReadsUsers: !(multi && row.Dbms == Dbms.MySql));
+        int rows = multi ? 3 : 1;
         return
             from idBase in Gen.Int[0, 40]
-            from rowCount in Gen.Int[row.Source == InsertSourceLevel.MultiValues ? 2 : 1, rows]
+            from rowCount in Gen.Int[multi ? 2 : 1, rows]
             from values in InsertValue(scope, row.Value, SpecType.Text).Array[rows * 4]
             from ints in InsertValue(scope, row.Value, SpecType.Int).Array[rows * 4]
             select (IReadOnlyList<IReadOnlyList<SpecExpression>>)[.. Enumerable.Range(0, rowCount)

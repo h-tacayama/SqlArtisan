@@ -546,10 +546,10 @@ internal static class QueryGenerators
                 filtered ? filter : null,
                 correlate ? link : null,
                 limit,
-                new Comparison(
+                QuantifiedHaving(outer.Target, quantified, new Comparison(
                     having,
                     new AggregateCall("Count", null, false),
-                    new Literal(havingCount)),
+                    new Literal(havingCount))),
                 new SetBranch(setOperator, new QueryBlock
                 {
                     From = branchItemTable,
@@ -568,7 +568,7 @@ internal static class QueryGenerators
         SpecCondition? filter,
         SpecCondition? link,
         RowLimit? limit,
-        SpecCondition having,
+        SpecCondition? having,
         SetBranch branch)
     {
         SpecCondition[] conditions = [.. new[] { filter, link }.OfType<SpecCondition>()];
@@ -625,6 +625,14 @@ internal static class QueryGenerators
                 SetOperatorLevel.Intersect,
                 SetOperatorLevel.Except,
             ];
+
+    // MySQL 8.0.46's IN-to-EXISTS rewrite finds a NULL group the HAVING drops: over names
+    // {a, a, a, NULL, b}, 'x' NOT IN (SELECT name ... GROUP BY name HAVING COUNT(*) > 2) and its
+    // IN give NULL, not 1 and 0; the same set as a derived table answers right.
+    private static SpecCondition? QuantifiedHaving(
+        Dbms dbms,
+        bool quantified,
+        SpecCondition having) => quantified && dbms == Dbms.MySql ? null : having;
 
     // MySQL rejects LIMIT directly inside IN/NOT IN (ContextRules.CheckLimitInQuantifiedSubquery).
     private static Gen<RowLimit?> SubqueryLimit(Dbms dbms, int maxCount, bool quantified)

@@ -238,6 +238,48 @@ public sealed class SqliteCombinatorialDmlTests
         Assert.Equal(["1|27", "2|26", "3|25"], returned.Rows!.Order(StringComparer.Ordinal));
     }
 
+    // The 28 seed rows: the starting rows give 28 three times; SQLite 3.50.4 counts the rows
+    // inserted so far.
+    [Fact]
+    public void InsertReturning_Sqlite_SubqueryOverTarget_ReadsInsertedRows()
+    {
+        RandomUsersTable t = new("");
+        RandomUsersTable u2 = new("u2");
+        PlannedStatement insert = new(
+            "INSERT",
+            "InsertInto(t, t.Id).Values(600).Values(601).Values(602)"
+                + ".Returning(t.Id, Select(Count(Asterisk)).From(u2))",
+            () => InsertInto(t, t.Id)
+                .Values(600)
+                .Values(601)
+                .Values(602)
+                .Returning(t.Id, Select(Count(Asterisk)).From(u2)));
+        (Outcome returned, _) = RunAndRead(insert, insert);
+
+        Assert.Null(returned.Error);
+        Assert.Equal(["600|29", "601|30", "602|31"], returned.Rows!.Order(StringComparer.Ordinal));
+    }
+
+    // Seed ages 30, 25, 30 sum to 85; SQLite 3.50.4 sums the ages already set to 100.
+    [Fact]
+    public void UpdateReturning_Sqlite_SubqueryOverTarget_ReadsUpdatedRows()
+    {
+        RandomUsersTable u = new("u");
+        RandomUsersTable u2 = new("u2");
+        PlannedStatement update = new(
+            "UPDATE",
+            "Update(u).Set(u.Age == 100).Where(u.Id <= 3)"
+                + ".Returning(u.Id, Select(Sum(u2.Age)).From(u2).Where(u2.Id <= 3))",
+            () => Update(u)
+                .Set(u.Age == 100)
+                .Where(u.Id <= 3)
+                .Returning(u.Id, Select(Sum(u2.Age)).From(u2).Where(u2.Id <= 3)));
+        (Outcome returned, _) = RunAndRead(update, update);
+
+        Assert.Null(returned.Error);
+        Assert.Equal(["1|155", "2|230", "3|300"], returned.Rows!.Order(StringComparer.Ordinal));
+    }
+
     public static TheoryData<string, int, string> Rows => DmlCaseTable.TheoryRows(Dbms.Sqlite);
 
     [Theory]
@@ -361,6 +403,59 @@ public sealed class MySqlCombinatorialDmlTests
         Assert.Contains("You can't specify target table", rejected.Error);
         Assert.Null(accepted.Error);
         Assert.Equal(["99"], row);
+    }
+
+    // Three seed rows match: the starting rows give 3 twice; 8.0.46 counts the row inserted
+    // before, so DmlGenerators' multi-row VALUES subqueries read rt_depts on MySQL.
+    [Fact]
+    public void InsertValues_MySql_MultiRowSubqueryOverTarget_ReadsEarlierRows()
+    {
+        RandomUsersTable t = new("");
+        RandomUsersTable u2 = new("u2");
+        (Outcome insert, List<string> ages) = RunAndRead(
+            new PlannedStatement(
+                "INSERT",
+                "InsertInto(t, t.Id, t.Age).Values(600, Counted()).Values(601, Counted())",
+                () => InsertInto(t, t.Id, t.Age).Values(600, Counted()).Values(601, Counted())),
+            new PlannedStatement(
+                "READ",
+                "Select(t.Id, t.Age).From(t).Where(t.Id >= 600).OrderBy(t.Id)",
+                () => Select(t.Id, t.Age).From(t).Where(t.Id >= 600).OrderBy(t.Id)));
+
+        Assert.Null(insert.Error);
+        Assert.Equal(["600|3", "601|4"], ages);
+
+        ISubquery Counted() =>
+            Select(Count(Asterisk)).From(u2).Where((u2.Id <= 3) | (u2.Id >= 600));
+    }
+
+    // The NULL name group (three rows) fails the HAVING and no pair is 'Xu', so NOT IN is 1 and
+    // IN 0, as the derived table reads them; 8.0.46 reads NULL for both, so QueryGenerators
+    // gives MySQL's IN and NOT IN subqueries no HAVING.
+    [Fact]
+    public void InSubquery_MySql_HavingDroppingNullGroup_ReadsNull()
+    {
+        RandomUsersTable u2 = new("u2");
+        SubqueryDerivedTable q = Pairs().AsTable("q");
+        PlannedStatement read = new(
+            "READ",
+            "Select(Truth(Bind(\"Xu\").NotIn(Pairs())), Truth(Bind(\"Xu\").In(Pairs())), "
+                + "Truth(Bind(\"Xu\").NotIn(Derived())), Truth(Bind(\"Xu\").In(Derived())))",
+            () => Select(
+                Truth(Bind("Xu").NotIn(Pairs())),
+                Truth(Bind("Xu").In(Pairs())),
+                Truth(Bind("Xu").NotIn(Derived())),
+                Truth(Bind("Xu").In(Derived()))));
+        (Outcome outcome, _) = RunAndRead(read, read);
+
+        Assert.Null(outcome.Error);
+        Assert.Equal(["NULL|NULL|1|0"], outcome.Rows);
+
+        ISubquery Pairs() =>
+            Select(u2.Name).From(u2).GroupBy(u2.Name).Having(Count(Asterisk) == 2);
+        ISubquery Derived() => Select(q.Column("name")).From(q);
+        static SqlExpression Truth(SqlCondition c) =>
+            Case(When(c).Then(1), When(Not(c)).Then(0));
     }
 
     public static TheoryData<string, int, string> Rows => DmlCaseTable.TheoryRows(Dbms.MySql);
