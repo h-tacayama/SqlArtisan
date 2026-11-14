@@ -65,6 +65,20 @@ public sealed partial class SqliteCombinatorialDmlTests
 
 public sealed partial class PostgreSqlCombinatorialDmlTests
 {
+    // The ordered, row-limited value Oracle rejects (#828) runs here, so SQLA0102 leaves it.
+    [Fact]
+    public void MergeInsertValues_PostgreSql_RowLimitedSubquery_IsAcceptedByTheEngine()
+    {
+        RandomDeptsTable d2 = new("d2");
+
+        Assert.Null(Rejection(UpsertMergeTwins.MergeInsertValue(
+            "Select(d2.Id).From(d2).Where(d2.Id == s.Age).OrderBy(d2.Id).FetchFirst(1)",
+            age => Select(d2.Id).From(d2).Where(d2.Id == age).OrderBy(d2.Id).FetchFirst(1))));
+        Assert.Null(Rejection(UpsertMergeTwins.MergeInsertValue(
+            "Select(d2.Id).From(d2).Where(d2.Id == s.Age).OrderBy(d2.Id).OffsetRows(0)",
+            age => Select(d2.Id).From(d2).Where(d2.Id == age).OrderBy(d2.Id).OffsetRows(0))));
+    }
+
     [Fact]
     public void Upsert_PostgreSql_KeyRepeatedInBatch_IsRejectedByTheEngine()
     {
@@ -325,6 +339,23 @@ public sealed partial class MySqlCombinatorialDmlTests
 
 public sealed partial class SqlServerCombinatorialDmlTests
 {
+    // The ordered, row-limited value Oracle rejects (#828) runs here, so SQLA0102 leaves it.
+    [Fact]
+    public void MergeInsertValues_SqlServer_RowLimitedSubquery_IsAcceptedByTheEngine()
+    {
+        RandomDeptsTable d2 = new("d2");
+
+        Assert.Null(Rejection(UpsertMergeTwins.MergeInsertValue(
+            "Select(d2.Id).From(d2).Where(d2.Id == s.Age).OrderBy(d2.Id).OffsetRows(0)"
+                + ".FetchNext(1)",
+            age => Select(d2.Id)
+                .From(d2)
+                .Where(d2.Id == age)
+                .OrderBy(d2.Id)
+                .OffsetRows(0)
+                .FetchNext(1))));
+    }
+
     [Fact]
     public void Merge_SqlServer_TargetMatchedTwice_IsRejectedByTheEngine()
     {
@@ -360,47 +391,98 @@ public sealed partial class OracleCombinatorialDmlTests
         Assert.Contains("ORA-38104", error);
     }
 
-    // XE 21.3.0 rejects a row-limited subquery in the INSERT's VALUES, naming its ORDER BY key;
-    // an aggregate one over the same rows runs.
+    // XE 21.3.0 rejects an ordered, row-limited subquery as the INSERT's value, naming its
+    // ORDER BY key (SQLA0102, #828); unordered, or nested in an expression, it runs.
     [Fact]
     public void MergeInsertValues_Oracle_RowLimitedSubquery_IsRejectedByTheEngine()
     {
         RandomDeptsTable d2 = new("d2");
-        string? rejected = Rejection(UpsertMergeTwins.MergeInsertValue(
-            "Select(d2.Id).From(d2).Where(d2.Id == s.Age).OrderBy(d2.Id).FetchFirst(1)",
-            age => Select(d2.Id).From(d2).Where(d2.Id == age).OrderBy(d2.Id).FetchFirst(1)));
-        string? accepted = Rejection(UpsertMergeTwins.MergeInsertValue(
-            "Select(Max(d2.Id)).From(d2).Where(d2.Id == s.Age)",
-            age => Select(Max(d2.Id)).From(d2).Where(d2.Id == age)));
+        string?[] rejected =
+        [
+            Rejection(UpsertMergeTwins.MergeInsertValue(
+                "Select(d2.Id).From(d2).Where(d2.Id == s.Age).OrderBy(d2.Id).FetchFirst(1)",
+                age => Select(d2.Id).From(d2).Where(d2.Id == age).OrderBy(d2.Id).FetchFirst(1))),
+            Rejection(UpsertMergeTwins.MergeInsertValue(
+                "Select(d2.Id).From(d2).Where(d2.Id == s.Age).OrderBy(d2.Id).OffsetRows(0)",
+                age => Select(d2.Id).From(d2).Where(d2.Id == age).OrderBy(d2.Id).OffsetRows(0))),
+        ];
+        string?[] accepted =
+        [
+            Rejection(UpsertMergeTwins.MergeInsertValue(
+                "Select(Max(d2.Id)).From(d2).Where(d2.Id == s.Age)",
+                age => Select(Max(d2.Id)).From(d2).Where(d2.Id == age))),
+            Rejection(UpsertMergeTwins.MergeInsertValue(
+                "Select(d2.Id).From(d2).Where(d2.Id == s.Age).FetchFirst(1)",
+                age => Select(d2.Id).From(d2).Where(d2.Id == age).FetchFirst(1))),
+            Rejection(UpsertMergeTwins.MergeInsertValue(
+                "Coalesce(Select(d2.Id)...OrderBy(d2.Id).FetchFirst(1), 0)",
+                age => Coalesce(
+                    Select(d2.Id).From(d2).Where(d2.Id == age).OrderBy(d2.Id).FetchFirst(1),
+                    0))),
+        ];
 
-        Assert.Contains("ORA-38101", rejected);
-        Assert.Null(accepted);
+        Assert.All(rejected, error => Assert.Contains("ORA-38101", error));
+        Assert.All(accepted, Assert.Null);
+    }
+
+    [Fact]
+    public void RowLimitedSubquery_Oracle_OutsideAMergeInsertValue_IsAcceptedByTheEngine()
+    {
+        Assert.All(UpsertMergeTwins.RowLimitedSubqueryElsewhere(), s => Assert.Null(Rejection(s)));
     }
 }
 
 public sealed partial class Oracle23aiCombinatorialDmlTests
 {
-    // Free 23ai runs FETCH FIRST in the INSERT's VALUES but rejects OFFSET ... FETCH NEXT there,
-    // naming its ORDER BY key, as XE 21.3.0 rejects both.
+    // Free 23ai runs an ordered FETCH FIRST as the INSERT's value, but rejects an ordered OFFSET
+    // there, naming its ORDER BY key, as XE 21.3.0 rejects both (SQLA0102's floor, #828).
     [Fact]
     public void MergeInsertValues_Oracle_OffsetSubquery_IsRejectedByTheEngine()
     {
         RandomDeptsTable d2 = new("d2");
-        string? rejected = Rejection(UpsertMergeTwins.MergeInsertValue(
-            "Select(d2.Id).From(d2).Where(d2.Id == s.Age).OrderBy(d2.Id).OffsetRows(0)"
-                + ".FetchNext(1)",
-            age => Select(d2.Id)
-                .From(d2)
-                .Where(d2.Id == age)
-                .OrderBy(d2.Id)
-                .OffsetRows(0)
-                .FetchNext(1)));
-        string? accepted = Rejection(UpsertMergeTwins.MergeInsertValue(
-            "Select(d2.Id).From(d2).Where(d2.Id == s.Age).OrderBy(d2.Id).FetchFirst(1)",
-            age => Select(d2.Id).From(d2).Where(d2.Id == age).OrderBy(d2.Id).FetchFirst(1)));
+        string?[] rejected =
+        [
+            Rejection(UpsertMergeTwins.MergeInsertValue(
+                "Select(d2.Id).From(d2).Where(d2.Id == s.Age).OrderBy(d2.Id).OffsetRows(0)"
+                    + ".FetchNext(1)",
+                age => Select(d2.Id)
+                    .From(d2)
+                    .Where(d2.Id == age)
+                    .OrderBy(d2.Id)
+                    .OffsetRows(0)
+                    .FetchNext(1))),
+            Rejection(UpsertMergeTwins.MergeInsertValue(
+                "Select(d2.Id).From(d2).Where(d2.Id == s.Age).OrderBy(d2.Id).OffsetRows(0)",
+                age => Select(d2.Id).From(d2).Where(d2.Id == age).OrderBy(d2.Id).OffsetRows(0))),
+        ];
+        string?[] accepted =
+        [
+            Rejection(UpsertMergeTwins.MergeInsertValue(
+                "Select(d2.Id).From(d2).Where(d2.Id == s.Age).OrderBy(d2.Id).FetchFirst(1)",
+                age => Select(d2.Id).From(d2).Where(d2.Id == age).OrderBy(d2.Id).FetchFirst(1))),
+            Rejection(UpsertMergeTwins.MergeInsertValue(
+                "Select(d2.Id).From(d2).Where(d2.Id == s.Age).OffsetRows(0).FetchNext(1)",
+                age => Select(d2.Id).From(d2).Where(d2.Id == age).OffsetRows(0).FetchNext(1))),
+            Rejection(UpsertMergeTwins.MergeInsertValue(
+                "Coalesce(Select(d2.Id)...OrderBy(d2.Id).OffsetRows(0).FetchNext(1), 0)",
+                age => Coalesce(
+                    Select(d2.Id)
+                        .From(d2)
+                        .Where(d2.Id == age)
+                        .OrderBy(d2.Id)
+                        .OffsetRows(0)
+                        .FetchNext(1),
+                    0))),
+        ];
 
-        Assert.Contains("ORA-38101", rejected);
-        Assert.Null(accepted);
+        Assert.All(rejected, error => Assert.Contains("ORA-38101", error));
+        Assert.All(accepted, Assert.Null);
+    }
+
+    [Fact]
+    public void RowLimitedSubquery_Oracle_OutsideAMergeInsertValue_IsAcceptedByTheEngine()
+    {
+        Assert.All(UpsertMergeTwins.RowLimitedSubqueryElsewhere(), s => Assert.Null(Rejection(s)));
     }
 }
 
@@ -458,6 +540,63 @@ internal static class UpsertMergeTwins
                 .WhenNotMatched()
                 .ThenInsert(u.Id, u.Age)
                 .Values(s.Id + 10, value(s.Age)));
+    }
+
+    // The positions Oracle takes the ordered, row-limited query that a MERGE INSERT value
+    // rejects, the last one the docs workaround (query-statements.md § MERGE).
+    public static IEnumerable<PlannedStatement> RowLimitedSubqueryElsewhere()
+    {
+        RandomUsersTable u = new("u");
+        RandomUsersTable s = new("s");
+        RandomUsersTable t = new("");
+        RandomDeptsTable d2 = new("d2");
+        RandomUsersTable o = new("o");
+        yield return Statement(
+            "...WhenMatched().ThenUpdateSet(u.Age == Select(d2.Id)...OffsetRows(0).FetchNext(1))",
+            () => MergeInto(u)
+                .Using(s)
+                .On(u.Id == s.Id)
+                .WhenMatched()
+                .ThenUpdateSet(u.Age == Select(d2.Id)
+                    .From(d2)
+                    .Where(d2.Id == s.Age)
+                    .OrderBy(d2.Id)
+                    .OffsetRows(0)
+                    .FetchNext(1)));
+        yield return Statement(
+            "...WhenMatched().ThenUpdateSet(u.Age == Select(d2.Id)...FetchFirst(1))",
+            () => MergeInto(u)
+                .Using(s)
+                .On(u.Id == s.Id)
+                .WhenMatched()
+                .ThenUpdateSet(u.Age == Select(d2.Id)
+                    .From(d2)
+                    .Where(d2.Id == s.Age)
+                    .OrderBy(d2.Id)
+                    .FetchFirst(1)));
+        yield return Statement(
+            "InsertInto(t, t.Id, t.Age).Values(700, Select(d2.Id)...FetchFirst(1))",
+            () => InsertInto(t, t.Id, t.Age)
+                .Values(700, Select(d2.Id).From(d2).OrderBy(d2.Id).FetchFirst(1)));
+        yield return Statement(
+            "InsertInto(t, t.Id, t.Age).Values(700, Select(d2.Id)...OffsetRows(0).FetchNext(1))",
+            () => InsertInto(t, t.Id, t.Age)
+                .Values(700, Select(d2.Id).From(d2).OrderBy(d2.Id).OffsetRows(0).FetchNext(1)));
+        ExpressionAlias firstPeer = Select(o.Name)
+            .From(o)
+            .Where(o.DeptId == s.DeptId)
+            .OrderBy(o.Id)
+            .FetchFirst(1)
+            .As("first_peer");
+        SubqueryDerivedTable src = Select(s.Id, firstPeer).From(s).AsTable("src");
+        yield return Statement(
+            "MergeInto(u).Using(src)...Values(src.Column(\"id\") + 10, src.Column(firstPeer))",
+            () => MergeInto(u)
+                .Using(src)
+                .On(u.Id == src.Column("id") + 10)
+                .WhenNotMatched()
+                .ThenInsert(u.Id, u.Name)
+                .Values(src.Column("id") + 10, src.Column(firstPeer)));
     }
 
     // dept_id 1 belongs to six seed rows, so target row 1 meets six source rows.

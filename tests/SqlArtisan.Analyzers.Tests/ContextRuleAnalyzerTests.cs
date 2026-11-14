@@ -1830,6 +1830,115 @@ public class ContextRuleAnalyzerTests
     public Task OrderByInSubquery_Oracle_StaysSilent(string statements) =>
         RunSilent(statements, "oracle");
 
+    // --- An ordered, row-limited query as a MERGE INSERT value on Oracle (#828) ---
+
+    private const string MergeHead = """
+        A u = new("u");
+        A v = new("v");
+        var m = MergeInto(u).Using(v).On(u.Id == v.Id)
+        """;
+
+    [Theory]
+    [InlineData("""
+        .WhenNotMatched().ThenInsert(u.Id)
+            .Values({|#0:Select(s.Id).From(s).OrderBy(s.Id)|}.OffsetRows(0).FetchNext(1));
+        """)]
+    [InlineData("""
+        .WhenNotMatched().ThenInsert(u.Id)
+            .Values({|#0:Select(s.Id).From(s).OrderBy(s.Id)|}.OffsetRows(1));
+        """)]
+    [InlineData("""
+        .WhenNotMatched().ThenInsert()
+            .Values(v.Id, {|#0:Select(s.Id).From(s).Where(s.Id == v.Id).OrderBy(s.Id)|}
+                .OffsetRows(0).FetchNext(1));
+        """)]
+    public Task OrderedOffsetInMergeInsertValue_Oracle_ReportsSqla0102(string branch) =>
+        Task.WhenAll(
+            RunReporting(MergeHead + branch, "oracle"),
+            RunAsync(
+                Usage(MergeHead + branch),
+                AnalyzerVerifier.EditorConfig("oracle", "23"),
+                expectWarning: true));
+
+    // Oracle has no WHEN NOT MATCHED AND, so the conditioned branch reports only once that
+    // construct is declared supported.
+    [Fact]
+    public Task OrderedOffsetInConditionedMergeInsertValue_Oracle_ReportsSqla0102() =>
+        RunAsync(
+            Usage(MergeHead + """
+                .WhenNotMatched(v.Id > 0).ThenInsert(u.Id)
+                    .Values({|#0:Select(s.Id).From(s).OrderBy(s.Id)|}.OffsetRows(1));
+                """),
+            AnalyzerVerifier.EditorConfig("oracle") + """
+
+                sqlartisan_construct_when_not_matched_arity1 = supported
+                """,
+            expectWarning: true);
+
+    // Free 23ai runs the ordered FETCH FIRST form that XE 21.3.0 rejects.
+    [Fact]
+    public Task OrderedFetchFirstInMergeInsertValue_Oracle_ReportsBelowTheFloorOnly() =>
+        Task.WhenAll(
+            RunReporting(
+                MergeHead + """
+                    .WhenNotMatched().ThenInsert(u.Id)
+                        .Values({|#0:Select(s.Id).From(s).OrderBy(s.Id)|}.FetchFirst(1));
+                    """,
+                "oracle"),
+            RunAsync(
+                AnalyzerVerifier.Unmarked(Usage(MergeHead + """
+                    .WhenNotMatched().ThenInsert(u.Id)
+                        .Values(Select(s.Id).From(s).OrderBy(s.Id).FetchFirst(1));
+                    """)),
+                AnalyzerVerifier.EditorConfig("oracle", "23"),
+                expectWarning: false));
+
+    // XE 21.3.0 and Free 23ai run every one: unordered, nested in an expression, in UPDATE
+    // SET, in a plain INSERT; a held query, a compound or a wrapped one is out of sight.
+    [Theory]
+    [InlineData("""
+        .WhenNotMatched().ThenInsert(u.Id)
+            .Values(Select(s.Id).From(s).OffsetRows(0).FetchNext(1));
+        """)]
+    [InlineData("""
+        .WhenNotMatched().ThenInsert(u.Id)
+            .Values(Coalesce(Select(s.Id).From(s).OrderBy(s.Id).OffsetRows(0).FetchNext(1), 0));
+        """)]
+    [InlineData("""
+        .WhenMatched()
+            .ThenUpdateSet(u.Id == Select(s.Id).From(s).OrderBy(s.Id).OffsetRows(0).FetchNext(1));
+        """)]
+    [InlineData("""
+        ;
+        var i = InsertInto(t, t.Id).Values(Select(s.Id).From(s).OrderBy(s.Id).OffsetRows(1));
+        """)]
+    [InlineData("""
+        ;
+        var sub = Select(s.Id).From(s).OrderBy(s.Id).OffsetRows(1);
+        var n = m.WhenNotMatched().ThenInsert(u.Id).Values(sub);
+        """)]
+    [InlineData("""
+        .WhenNotMatched().ThenInsert(u.Id)
+            .Values(Select(s.Id).From(s).Union.Select(t.Id).From(t).OrderBy(1).OffsetRows(1));
+        """)]
+    [InlineData("""
+        .WhenNotMatched().ThenInsert(u.Id)
+            .Values(Select(s.Id).From(s).OrderBy(s.Id).OffsetRows(1).As("x"));
+        """)]
+    public Task RowLimitedQueryElsewhereInMerge_Oracle_StaysSilent(string branch) =>
+        RunSilent(MergeHead + branch, "oracle");
+
+    [Theory]
+    [InlineData("postgresql")]
+    [InlineData("sqlserver")]
+    public Task OrderedOffsetInMergeInsertValue_OffOracle_StaysSilent(string dbms) =>
+        RunSilent(
+            MergeHead + """
+                .WhenNotMatched().ThenInsert(u.Id)
+                    .Values(Select(s.Id).From(s).OrderBy(s.Id).OffsetRows(0).FetchNext(1));
+                """,
+            dbms);
+
     // --- A compound's ORDER BY in a subquery on SQL Server (#822) ---
 
     [Theory]

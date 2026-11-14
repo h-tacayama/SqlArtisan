@@ -474,6 +474,23 @@ public class ContextRuleContractTests
         Assert.Equal([.. ContextRules.RowLimitSteps.Order()], steps);
     }
 
+    // The MERGE INSERT value rule reads a query boxed into a params object array at these
+    // stages; one the set misses would go unreported, the safe side, but silently.
+    [Fact]
+    public void MergeInsertValueHosts_AreEveryMergeStageDeclaringValues()
+    {
+        string[] hosts = [.. Core.GetExportedTypes()
+            .Where(t => t.IsInterface
+                && t.Name.StartsWith("IMergeBuilder", StringComparison.Ordinal))
+            .Where(t => t.GetMethods().Any(m => m.Name == "Values"
+                && m.GetParameters() is [{ ParameterType: var p }]
+                && p == typeof(object[])))
+            .Select(t => t.Name)
+            .Order()];
+
+        Assert.Equal([.. ContextRules.MergeInsertValueHosts.Order()], hosts);
+    }
+
     // The locked-subquery rule reads a boxed ForUpdate result only at these hosts;
     // each must embed the query, not bind or reject it.
     [Fact]

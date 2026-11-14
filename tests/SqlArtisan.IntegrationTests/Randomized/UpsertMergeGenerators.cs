@@ -501,8 +501,8 @@ internal static class MergeGenerators
             ActionWhere = row.NotMatchedFilter == MergeFilterLevel.ActionWhere ? condition : null,
         };
 
-    // A row-limited subquery in a MERGE INSERT's VALUES fails with ORA-38101, naming its ORDER
-    // BY key: on XE 21.3.0 any row limit, on Free 23ai an OFFSET (MergeInsertValues_Oracle_*).
+    // An ordered, row-limited subquery as a MERGE INSERT value fails with ORA-38101: on XE
+    // 21.3.0 any row limit, on Free 23ai an OFFSET (#828); every row-limited one is replaced.
     private static Gen<SpecExpression> InsertValue(DmlCaseRow row, GenScope scope, SpecType type)
     {
         if (row.Dbms != Dbms.Oracle)

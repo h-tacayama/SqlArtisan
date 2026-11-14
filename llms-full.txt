@@ -1942,6 +1942,36 @@ unconditioned `WhenMatched()` / `WhenNotMatched()` branch offers the filters,
 and since Oracle has no `WHEN ... AND`, `THEN DELETE` or `BY SOURCE` branch,
 `Build()` throws on a `MERGE` that carries a filter beside one of those.
 
+**Dialect note:** Oracle rejects a query passed to the insert's `Values(...)`
+that carries both an `OrderBy(...)` and a row limit (ORA-38101, naming the sort
+key): one with `OffsetRows(...)` on every version, and one with `FetchFirst(n)`
+below a specific release (see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)).
+The same query runs in `ThenUpdateSet(...)` and without its `OrderBy(...)`
+(observed on Oracle XE 21.3.0 and Free 23ai), and `SQLA0102` reports the
+rejected position. Select the value in a derived table that the `MERGE` uses as
+its source, and pass that column:
+
+```csharp
+UsersTable o = new("o");
+ExpressionAlias firstPeer = Select(o.Name).From(o)
+    .Where(o.DepartmentId == s.DepartmentId).OrderBy(o.Id).FetchFirst(1).As("first_peer");
+SubqueryDerivedTable src = Select(s.Id, firstPeer).From(s).AsTable("src");
+
+MergeInto(t)
+    .Using(src)
+    .On(t.Id == src.Column("id"))
+    .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(src.Column("id"), src.Column(firstPeer))
+    .Build(Dbms.Oracle);
+
+// MERGE INTO users "t"
+// USING (SELECT "s".id, (SELECT "o".name FROM users "o"
+//   WHERE "o".department_id = "s".department_id ORDER BY "o".id FETCH FIRST :0 ROWS ONLY)
+//   "first_peer" FROM users "s") "src"
+// ON ("t".id = "src".id)
+// WHEN NOT MATCHED THEN INSERT (id, name) VALUES ("src".id, "src"."first_peer")
+```
+
 `UPDATE SET` and the `INSERT` column list both name target columns, which the
 engine resolves against the target table alone — passing the aliased target's
 own columns (`t.Name`, `t.Id`) still renders the bare, unqualified names above.
@@ -4491,9 +4521,10 @@ reports it as `SQLA0100`.
 | `CurrentDate` | SQL Server | 2025 | `CURRENT_DATE` landed in SQL Server 2025 — live-verified on the SQL Server 2025 lane. |
 | `DoublePipe`, `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr`, `RegexpInstr` (every form) | SQL Server | 2025 | The `\|\|` concatenation operator and the `REGEXP_*` family landed in SQL Server 2025 — live-verified on the SQL Server 2025 lane. `REGEXP_LIKE` also needs the database at compatibility level 170: at 160, which an upgraded database can keep, SQL Server 2025 does not recognize it, and the declared version cannot tell the two apart. |
 
-Four `SQLA0102` DML rules carry the same kind of floor — a version from which
-a dialect stops rejecting the position (see
-[DML statement shapes](#dml-statement-shapes)). They read the declared version
+Five `SQLA0102` rules carry the same kind of floor — a version from which
+a dialect stops rejecting the position: four DML rules (see
+[DML statement shapes](#dml-statement-shapes)) and the MERGE INSERT value rule
+(see [Context rules](#context-rules-sqla0102)). They read the declared version
 exactly as the table above does, but below the floor they report `SQLA0102`, not
 `SQLA0101`:
 
@@ -4504,6 +4535,7 @@ exactly as the table above does, but below the floor they report `SQLA0102`, not
 | `Values` | a second `VALUES` row | Oracle | 23 |
 | `Using` | `DELETE ... USING` | Oracle | 23 |
 | `From` | `DELETE ... FROM` not re-listing the target | Oracle | 23 |
+| `OrderBy` | an ordered `FetchFirst` query passed to a MERGE INSERT's `Values` | Oracle | 23 |
 
 <details>
 <summary>Sources for these version bounds — the vendor documentation behind each version</summary>
@@ -4554,7 +4586,9 @@ Free 23ai deleted the joined rows on a one-off 23.4 run and on 23.26.3, the
 release the Free 23ai lane's floating tag resolved to then. The same page's
 `FROM` opener rests on live runs alone: XE 21.3.0 rejects it, and Free 23ai
 23.26.3 deletes the joined rows when the target is not re-listed and rejects the
-re-listed lead (ORA-00942).
+re-listed lead (ORA-00942). The ordered `FetchFirst` query in a MERGE INSERT's
+`Values` rests on live runs alone, as no Oracle page documents the change: XE
+21.3.0 rejects it (ORA-38101) and Free 23ai runs it.
 
 **PostgreSQL** — the
 [version 15 release notes](https://www.postgresql.org/docs/15/release-15.html)
@@ -4599,7 +4633,7 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another, or run there with another meaning. The construct-level
 warnings above cannot express that — the construct itself *is* supported — so
 these facts ship as **context rules**: `SQLA0102` fires when the offending
-position is visible in the expression where the construct is used. In all, 27 rules ship today — twenty reading
+position is visible in the expression where the construct is used. In all, 28 rules ship today — 21 reading
 the construct's surroundings, seven reading the DML statement a clause sits in.
 Every rejection below, and every other meaning, is live-verified on the pinned lanes — MySQL 8.0, Oracle
 XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL Server 2022, the Oracle floors on
@@ -4914,6 +4948,26 @@ var q = MergeInto(t).Using(s).On(t.Id == s.Id)
 // warning SQLA0102: 'WhenMatched' is not supported after an unconditioned WHEN MATCHED branch on PostgreSQL
 ```
 
+**An ordered, row-limited query as a `MERGE` insert value.** Oracle rejects a
+query passed to a `MERGE`'s `ThenInsert(...).Values(...)` that carries an
+`OrderBy(...)` and a row limit (ORA-38101, naming the sort key): XE 21.3.0 with
+`FetchFirst(n)` or `OffsetRows(...)`, and Free 23ai with `OffsetRows(...)` alone,
+so `FetchFirst(n)` reports below the
+[context-rule floor](#version-bound-constructs). Both run the same query without
+its `OrderBy(...)`, nested in an expression such as `Coalesce(...)`, in
+`ThenUpdateSet(...)` and in a plain `INSERT`'s `Values(...)`. Select the value in
+a derived table that the `MERGE` uses as its source, and pass that column instead.
+The rule warns where the query, its first `Select(...)` included, is written as
+the value; one held in a `var`, led by `With(...)`, wrapped by `As(...)`, or a
+compound stays silent.
+
+```csharp
+// sqlartisan_syntax_oracle = any
+var q = MergeInto(t).Using(s).On(t.Id == s.Id).WhenNotMatched().ThenInsert(t.Id, t.Age)
+    .Values(s.Id, Select(d.Id).From(d).OrderBy(d.Id).OffsetRows(0).FetchNext(1));
+// warning SQLA0102: 'OrderBy' is not supported with a row limit in a query passed to a MERGE INSERT's Values on Oracle
+```
+
 ### DML statement shapes
 
 A joined `UPDATE` or `DELETE`, a `WITH` inside `INSERT ... SELECT`, a filter
@@ -5040,7 +5094,7 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the twenty that read the construct's surroundings, any shape the
+itself. For the 21 that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the

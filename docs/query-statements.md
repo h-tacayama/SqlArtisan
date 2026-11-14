@@ -1493,6 +1493,36 @@ unconditioned `WhenMatched()` / `WhenNotMatched()` branch offers the filters,
 and since Oracle has no `WHEN ... AND`, `THEN DELETE` or `BY SOURCE` branch,
 `Build()` throws on a `MERGE` that carries a filter beside one of those.
 
+**Dialect note:** Oracle rejects a query passed to the insert's `Values(...)`
+that carries both an `OrderBy(...)` and a row limit (ORA-38101, naming the sort
+key): one with `OffsetRows(...)` on every version, and one with `FetchFirst(n)`
+below a specific release (see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)).
+The same query runs in `ThenUpdateSet(...)` and without its `OrderBy(...)`
+(observed on Oracle XE 21.3.0 and Free 23ai), and `SQLA0102` reports the
+rejected position. Select the value in a derived table that the `MERGE` uses as
+its source, and pass that column:
+
+```csharp
+UsersTable o = new("o");
+ExpressionAlias firstPeer = Select(o.Name).From(o)
+    .Where(o.DepartmentId == s.DepartmentId).OrderBy(o.Id).FetchFirst(1).As("first_peer");
+SubqueryDerivedTable src = Select(s.Id, firstPeer).From(s).AsTable("src");
+
+MergeInto(t)
+    .Using(src)
+    .On(t.Id == src.Column("id"))
+    .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(src.Column("id"), src.Column(firstPeer))
+    .Build(Dbms.Oracle);
+
+// MERGE INTO users "t"
+// USING (SELECT "s".id, (SELECT "o".name FROM users "o"
+//   WHERE "o".department_id = "s".department_id ORDER BY "o".id FETCH FIRST :0 ROWS ONLY)
+//   "first_peer" FROM users "s") "src"
+// ON ("t".id = "src".id)
+// WHEN NOT MATCHED THEN INSERT (id, name) VALUES ("src".id, "src"."first_peer")
+```
+
 `UPDATE SET` and the `INSERT` column list both name target columns, which the
 engine resolves against the target table alone — passing the aliased target's
 own columns (`t.Name`, `t.Id`) still renders the bare, unqualified names above.

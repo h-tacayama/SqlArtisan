@@ -136,11 +136,14 @@ A context rule (`SQLA0102`, ADR 0013) names the dialects that reject a
 position, and a dialect can stop rejecting it at a version: Oracle 23ai added
 `UPDATE ... FROM`, the multi-row `VALUES` table value constructor,
 `DELETE ... USING` and `DELETE`'s `FROM` opener, and SQLite 3.33 added
-`UPDATE ... FROM`. Each such
-pairing carries a floor (`DialectUsageAnalyzer.DmlShapeFloors`), with a row and
+`UPDATE ... FROM`; Free 23ai runs an ordered `FETCH FIRST` query as a `MERGE`
+insert value, which XE 21.3.0 rejects (#828). Each such
+pairing carries a floor (`DialectUsageAnalyzer.DmlShapeFloors`, and
+`ContextRules.WalkFloors` for a rule that reads the chain), with a row and
 a source in
 `docs/analyzer.md`'s version-bound register that
-`ContextRuleDocsTests.EveryDmlShapeFloor_HasARegisterRow` ties to the code. It
+`ContextRuleDocsTests.EveryDmlShapeFloor_HasARegisterRow` and
+`EveryWalkFloor_HasARegisterRow` tie to the code. It
 is read exactly as a `Bounds` row is: the
 declared version, or with none the `BaselineVersion`, at or past the floor is
 silent, but for the joined `DELETE` lead: Oracle 23.26.3 runs the lead that
@@ -150,10 +153,12 @@ reads identity (#679). Below it the rule still reports `SQLA0102`, not `SQLA0101
 version-bound message's remedy is a `sqlartisan_construct_*` override, which a
 context rule never consults, since the construct itself is supported. The
 seed and live-proof discipline above applies, with the one exception below:
-the four Oracle floors lift a rejection at the baseline, so each has a 23ai
+the five Oracle floors lift a rejection at the baseline, so each has a 23ai
 acceptance twin (`Oracle23aiTests.MultiRowValues_Executes`,
 `JoinedUpdateFrom_Executes`, `DeleteUsing_Executes`,
-`DeleteFromNotRelisted_Executes`); the SQLite floor sits
+`DeleteFromNotRelisted_Executes`, and
+`Oracle23aiCombinatorialDmlTests.MergeInsertValues_Oracle_OffsetSubquery_IsRejectedByTheEngine`'s
+accepted `FetchFirst`); the SQLite floor sits
 below the baseline and rests on the release notes, as the other SQLite rows do.
 
 `DELETE ... USING` and `DELETE`'s `FROM` opener are that exception:

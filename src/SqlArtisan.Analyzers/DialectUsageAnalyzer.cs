@@ -412,6 +412,15 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                     ContextRules.CheckOrderByInSubquery(context, invocation, targets);
                 }
 
+                if (targets.Contains(TargetDbms.Oracle))
+                {
+                    ContextRules.CheckOrderedRowLimitInMergeInsertValue(
+                        context,
+                        invocation,
+                        targets.VersionFor(TargetDbms.Oracle)
+                            ?? DialectMatrix.BaselineVersion[TargetDbms.Oracle]);
+                }
+
                 if (targets.Contains(TargetDbms.SqlServer))
                 {
                     ContextRules.CheckPagedCompoundInSubquery(

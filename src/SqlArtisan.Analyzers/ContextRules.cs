@@ -635,6 +635,103 @@ internal static class ContextRules
             dialectName));
     }
 
+    /// <summary>
+    /// Oracle XE 21.3.0 rejects an ordered, row-limited query passed as a MERGE INSERT value
+    /// (ORA-38101), and Free 23ai one whose row limit carries an <c>OFFSET</c>; unordered, or
+    /// nested in an expression, it runs on both. Live twins on both lanes.
+    /// </summary>
+    public static void CheckOrderedRowLimitInMergeInsertValue(
+        OperationAnalysisContext context, IInvocationOperation orderBy, EngineVersion oracle)
+    {
+        if (orderBy.Instance is null
+            || !TryReadBranches(orderBy, out bool compound, out _)
+            || compound)
+        {
+            return;
+        }
+
+        IInvocationOperation end = orderBy;
+        bool limited = false;
+        bool offset = false;
+        while (FluentChain.Parent(end) is { } next)
+        {
+            // As(...) and AsTable(...) wrap the query, so it is no longer the value itself.
+            if (next.TargetMethod.ContainingType.Name == "ISubquery")
+            {
+                return;
+            }
+
+            string name = next.TargetMethod.Name;
+            limited |= name is "FetchFirst" or "OffsetRows";
+            offset |= name == "OffsetRows";
+            end = next;
+        }
+
+        if (!limited
+            || !IsMergeInsertValue(end)
+            || (!offset && oracle >= MergeInsertFetchFirstFloor.From))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            orderBy.Syntax.GetLocation(),
+            "OrderBy",
+            "with a row limit in a query passed to a MERGE INSERT's Values",
+            TargetDbmsNames.Display(TargetDbms.Oracle)));
+    }
+
+    // One element of a Values(...) params array, boxed straight from the query's chain end.
+    private static bool IsMergeInsertValue(IInvocationOperation chainEnd)
+    {
+        if (chainEnd.Parent is not IConversionOperation
+            {
+                Type.SpecialType: SpecialType.System_Object,
+            } boxed)
+        {
+            return false;
+        }
+
+        IOperation? current = boxed.Parent;
+        while (current is IArrayInitializerOperation or IArrayCreationOperation)
+        {
+            current = current.Parent;
+        }
+
+        return current is IArgumentOperation { Parent: IInvocationOperation values }
+            && values.TargetMethod.Name == "Values"
+            && MergeInsertValueHosts.Contains(values.TargetMethod.ContainingType.Name)
+            && DialectUsageAnalyzer.IsFromSqlArtisan(values.TargetMethod.ContainingAssembly);
+    }
+
+    // Internal for the contract gate, which holds every MERGE stage declaring Values to it.
+    internal static readonly HashSet<string> MergeInsertValueHosts =
+        ["IMergeBuilderThenInsert", "IMergeBuilderWhenNotMatchedAndThenInsert"];
+
+    // Free 23ai runs the ordered FETCH FIRST form there, read as a DmlShapeFloors row is.
+    internal static readonly ContextRuleFloor MergeInsertFetchFirstFloor = new(
+        "OrderBy",
+        "an ordered `FetchFirst` query passed to a MERGE INSERT's `Values`",
+        TargetDbms.Oracle,
+        DialectMatrix.V("23"));
+
+    // Internal for the provenance gate, which ties each floor to docs/analyzer.md.
+    internal static readonly ContextRuleFloor[] WalkFloors = [MergeInsertFetchFirstFloor];
+
+    // A walking rule's floor: the trigger and position name its register row.
+    internal readonly struct ContextRuleFloor(
+        string trigger, string position, TargetDbms dbms, EngineVersion from)
+    {
+        public string Trigger { get; } = trigger;
+
+        public string Position { get; } = position;
+
+        public TargetDbms Dbms { get; } = dbms;
+
+        public EngineVersion From { get; } = from;
+    }
+
     // What the two embedded ORDER BY rules read off one chain; ReadEmbeddedOrderBy is the proof.
     private readonly struct EmbeddedOrderBy(bool compound, bool operand, bool limited, bool pages)
     {

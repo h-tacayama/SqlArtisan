@@ -57,6 +57,21 @@ public class ContextRuleDocsTests
             missing.Count == 0, $"Floor(s) with no register row: {string.Join("; ", missing)}");
     }
 
+    [Fact]
+    public void EveryWalkFloor_HasARegisterRow()
+    {
+        string[] lines = File.ReadAllLines(Path.Combine(FindRepoRoot(), "docs", "analyzer.md"));
+
+        string[] missing = [.. ContextRules.WalkFloors
+            .Where(floor => !lines.Contains(
+                $"| `{floor.Trigger}` | {floor.Position} | "
+                    + $"{TargetDbmsNames.Display(floor.Dbms)} | {floor.From} |"))
+            .Select(floor => $"{floor.Trigger}/{floor.Dbms} {floor.From}")];
+
+        Assert.True(
+            missing.Length == 0, $"Floor(s) with no register row: {string.Join("; ", missing)}");
+    }
+
     // Each count sentence must occur exactly once, so a second copy of one fails
     // here rather than drifting unwatched like the two this gate was missing.
     [Fact]
