@@ -134,6 +134,15 @@ public abstract class CombinatorialDmlTestBase
             (runner.Run(statement, transaction), runner.Run(read, transaction).Rows!));
     }
 
+    /// <summary>The engine's first error line for <paramref name="statement"/>, run in a
+    /// rolled-back transaction.</summary>
+    private protected string? Rejection(PlannedStatement statement)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        StatementRunner runner = new(connection, _fixture.Dbms);
+        return runner.RunInRolledBackTransaction(t => runner.Run(statement, t)).Error;
+    }
+
     private IEnumerable<DmlSpec> FirstSeedSpecs() => DmlCaseTable.Rows
         .Where(r => r.Dbms == _fixture.Dbms)
         .Select(r => DmlGenerators.For(r)
@@ -181,7 +190,7 @@ public abstract class CombinatorialDmlTestBase
 }
 
 [Trait("Engine", "Sqlite")]
-public sealed class SqliteCombinatorialDmlTests
+public sealed partial class SqliteCombinatorialDmlTests
     : CombinatorialDmlTestBase, IClassFixture<SqliteFixture>
 {
     public SqliteCombinatorialDmlTests(SqliteFixture fixture) : base(fixture)
@@ -308,7 +317,7 @@ public sealed class SqliteCombinatorialDmlTests
 }
 
 [Trait("Engine", "PostgreSql")]
-public sealed class PostgreSqlCombinatorialDmlTests
+public sealed partial class PostgreSqlCombinatorialDmlTests
     : CombinatorialDmlTestBase, IClassFixture<PostgreSqlFixture>
 {
     public PostgreSqlCombinatorialDmlTests(PostgreSqlFixture fixture) : base(fixture)
@@ -327,7 +336,7 @@ public sealed class PostgreSqlCombinatorialDmlTests
 }
 
 [Trait("Engine", "PostgreSql17")]
-public sealed class PostgreSql17CombinatorialDmlTests
+public sealed partial class PostgreSql17CombinatorialDmlTests
     : CombinatorialDmlTestBase, IClassFixture<PostgreSql17Fixture>
 {
     public PostgreSql17CombinatorialDmlTests(PostgreSql17Fixture fixture) : base(fixture)
@@ -346,7 +355,7 @@ public sealed class PostgreSql17CombinatorialDmlTests
 }
 
 [Trait("Engine", "MySql")]
-public sealed class MySqlCombinatorialDmlTests
+public sealed partial class MySqlCombinatorialDmlTests
     : CombinatorialDmlTestBase, IClassFixture<MySqlFixture>
 {
     private static readonly PlannedStatement s_one = new(
@@ -486,7 +495,7 @@ public sealed class MySqlCombinatorialDmlTests
 }
 
 [Trait("Engine", "SqlServer")]
-public sealed class SqlServerCombinatorialDmlTests
+public sealed partial class SqlServerCombinatorialDmlTests
     : CombinatorialDmlTestBase, IClassFixture<SqlServerFixture>
 {
     public SqlServerCombinatorialDmlTests(SqlServerFixture fixture) : base(fixture)
@@ -505,7 +514,7 @@ public sealed class SqlServerCombinatorialDmlTests
 }
 
 [Trait("Engine", "SqlServer2025")]
-public sealed class SqlServer2025CombinatorialDmlTests
+public sealed partial class SqlServer2025CombinatorialDmlTests
     : CombinatorialDmlTestBase, IClassFixture<SqlServer2025Fixture>
 {
     public SqlServer2025CombinatorialDmlTests(SqlServer2025Fixture fixture) : base(fixture)
@@ -524,7 +533,7 @@ public sealed class SqlServer2025CombinatorialDmlTests
 }
 
 [Trait("Engine", "Oracle")]
-public sealed class OracleCombinatorialDmlTests
+public sealed partial class OracleCombinatorialDmlTests
     : CombinatorialDmlTestBase, IClassFixture<OracleFixture>
 {
     public OracleCombinatorialDmlTests(OracleFixture fixture) : base(fixture)
@@ -542,7 +551,7 @@ public sealed class OracleCombinatorialDmlTests
 }
 
 [Trait("Engine", "Oracle23ai")]
-public sealed class Oracle23aiCombinatorialDmlTests
+public sealed partial class Oracle23aiCombinatorialDmlTests
     : CombinatorialDmlTestBase, IClassFixture<Oracle23aiFixture>
 {
     public Oracle23aiCombinatorialDmlTests(Oracle23aiFixture fixture) : base(fixture)

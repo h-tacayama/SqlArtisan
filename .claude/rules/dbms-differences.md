@@ -160,15 +160,22 @@ months after 8.0.46 accepted it (release audit pass 8). State the grammar
 reason the code relies on instead (a position that takes a constant), which
 holds whether or not any engine still rejects the alternative.
 
-**Two engines read a DML statement's own target mid-statement (engine
-behaviour, not a dialect difference).** SqlArtisan emits the SQL as written;
-the combinatorial DML generators never build these shapes
-(`Randomized/DmlGenerators.cs`), and each has a twin in its lane's
-`<Engine>CombinatorialDmlTests`:
+**Engines read a DML statement's own target mid-statement, or check its keys
+row by row (engine behaviour, not a dialect difference).** SqlArtisan emits the
+SQL as written; the combinatorial DML generators never build these shapes
+(`Randomized/DmlGenerators.cs`, `Randomized/UpsertMergeGenerators.cs`), and each
+has a twin in its lane's `<Engine>CombinatorialDmlTests`:
 
-- MySQL 8.0.46 evaluates an `UPDATE`'s `SET` left to right, each right side
-  reading what earlier assignments wrote: `SET age = age + 1, dept_id = age`
-  stores the new age in `dept_id`.
+- MySQL 8.0.46 evaluates an `UPDATE`'s `SET`, and an `ON DUPLICATE KEY UPDATE`'s
+  assignments, left to right, each right side reading what earlier assignments
+  wrote: `SET age = age + 1, dept_id = age` stores the new age in `dept_id`.
+- MySQL 8.0.46 and SQLite 3.50.4 apply a multi-row upsert row by row, and a
+  later row's update subquery over the target reads the rows written before it:
+  `VALUES (600, 100), (1, 0)` updating row 1 to `(SELECT SUM(age) FROM t z)`
+  counts the inserted 100, where PostgreSQL 16.15 reads the starting rows.
+- PostgreSQL 16.15, MySQL 8.0.46 and SQLite 3.50.4 check a unique key row by
+  row, not at the statement's end: `SET code = code + 1` over consecutive codes
+  fails on the first row, though no two rows share a code afterwards.
 - MySQL 8.0.46 evaluates a multi-row `INSERT ... VALUES` row's subquery over the
   target after inserting the rows before it: over three rows,
   `VALUES (600, (SELECT COUNT(*) FROM t z)), (601, (SELECT COUNT(*) FROM t z))`

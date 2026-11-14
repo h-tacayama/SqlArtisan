@@ -30,6 +30,8 @@ internal static class DmlGenerators
     {
         DmlKind.Insert => InsertSpec(row),
         DmlKind.Update => UpdateSpec(row),
+        DmlKind.Upsert => UpsertGenerators.Spec(row),
+        DmlKind.Merge => MergeGenerators.Spec(row),
         _ => DeleteSpec(row),
     });
 
@@ -195,7 +197,7 @@ internal static class DmlGenerators
 
     // MySQL evaluates SET left to right, each right side reading the values earlier
     // assignments wrote (dbms-differences.md); a joined UPDATE's order is unspecified.
-    private static IReadOnlyList<Assignment> OrderedForMySql(
+    internal static IReadOnlyList<Assignment> OrderedForMySql(
         DmlCaseRow row,
         IReadOnlyList<Assignment> set)
     {
@@ -237,12 +239,12 @@ internal static class DmlGenerators
         };
     }
 
-    private static Gen<SpecExpression> Constant(SpecType type) =>
+    internal static Gen<SpecExpression> Constant(SpecType type) =>
         from isNull in Chance(20)
         from value in type == SpecType.Text ? TextLiteral() : IntLiteral()
         select isNull ? new NullValue(type) : value;
 
-    private static Gen<SpecExpression> ScalarSubqueryValue(GenScope scope, bool text) =>
+    internal static Gen<SpecExpression> ScalarSubqueryValue(GenScope scope, bool text) =>
         from query in Subquery(
             scope,
             text ? SpecType.Text : SpecType.Int,
@@ -284,8 +286,8 @@ internal static class DmlGenerators
             };
     }
 
-    // A positional row fills every column in table order; a leading CTE's MAX needs an
-    // integer column besides the key to land in.
+    // A positional row fills every column in table order, the code key NULL; a leading CTE's
+    // MAX needs an integer column besides the key to land in.
     private static string[] Columns(
         DmlCaseRow row,
         bool listed,
@@ -296,7 +298,7 @@ internal static class DmlGenerators
     {
         if (!listed && row.Source != InsertSourceLevel.SetForm)
         {
-            return ["id", "name", "age", "dept_id"];
+            return ["id", "name", "age", "dept_id", "code"];
         }
 
         List<string> columns = [.. others.Take(count)];
@@ -337,6 +339,7 @@ internal static class DmlGenerators
                 {
                     "id" => new Literal(ValuesIdBase + (idBase * 10) + r),
                     "age" when cte is not null && r == 0 => new CteMax(cte),
+                    "code" => new NullValue(SpecType.Int),
                     "name" => values[(r * 4) + i],
                     _ => ints[(r * 4) + i],
                 })])];
@@ -344,7 +347,7 @@ internal static class DmlGenerators
 
     // MySQL rejects a VALUES subquery that names its INSERT target bare (1093, 8.0.46) and runs
     // one over an aliased rt_users; Unaliased keeps MySQL's inner tables aliased.
-    private static Gen<SpecExpression> InsertValue(
+    internal static Gen<SpecExpression> InsertValue(
         GenScope scope,
         DmlValueLevel level,
         SpecType type)
@@ -455,7 +458,7 @@ internal static class DmlGenerators
 
     // Every output row leads with the target's id, which the output-to-state relation reads
     // it back by.
-    private static Gen<IReadOnlyList<SpecExpression>> OutputItems(DmlCaseRow row)
+    internal static Gen<IReadOnlyList<SpecExpression>> OutputItems(DmlCaseRow row)
     {
         bool inserted = row.Kind != DmlKind.Delete;
         bool deleted = row.Kind != DmlKind.Insert;
@@ -521,12 +524,12 @@ internal static class DmlGenerators
         Where = new Comparison("==", new ColumnRef("d2", "id"), new ColumnRef("u", "dept_id")),
     });
 
-    private static Gen<string[]> SettableOrder() => Gen.OneOf(s_settableOrders);
+    internal static Gen<string[]> SettableOrder() => Gen.OneOf(s_settableOrders);
 
     private static Gen<bool> Side(bool inserted, bool deleted) =>
         inserted && deleted ? Gen.Bool : Gen.Const(inserted);
 
-    private static Gen<IReadOnlySet<string>> Unaliased(DmlCaseRow row)
+    internal static Gen<IReadOnlySet<string>> Unaliased(DmlCaseRow row)
     {
         if (row.TargetAlias == TargetAliasLevel.Unaliased)
         {

@@ -1,0 +1,39 @@
+# The skeleton of the combinatorial upsert tests (Tests/CombinatorialDmlTestBase.cs), every row
+# inserting into rt_users with a conflict action. Regenerate upsert.cases.csv with
+# tools/regen-pict.sh after any edit; PictModelTests holds the CSV to this file and to the
+# analyzer's and Build()'s verdicts.
+
+Dbms:        MySql, PostgreSql, Sqlite
+TargetAlias: Aliased, Unaliased
+Rows:        Single, Chained, Array, SetForm
+Conflict:    None, Some, All
+Arbiter:     Id, Code, Targetless
+Action:      DoNothing, DoUpdate, DoUpdateWhere, Odku, Ignore
+UpdateValue: None, Excluded, Existing, Expression, Subquery
+Returning:   No, Yes
+
+# Three-way where the conflict action reads the proposed and the existing row: the action
+# against how many rows conflict and what the update writes. One sub-model only: PICT pairs
+# each sub-model's tuples with every other factor, so a second one multiplies the rows.
+{ Action, Conflict, UpdateValue } @ 3
+
+# DialectMatrix: OnConflict, DoNothing, DoUpdateSet (PostgreSQL, SQLite), OnDuplicateKeyUpdate
+# and InsertIgnoreInto (MySQL), Returning.
+IF [Action] IN {"DoNothing", "DoUpdate", "DoUpdateWhere"} THEN [Dbms] IN {"PostgreSql", "Sqlite"};
+IF [Action] IN {"Odku", "Ignore"} THEN [Dbms] = "MySql";
+IF [Returning] = "Yes" THEN [Dbms] IN {"PostgreSql", "Sqlite"};
+
+# DmlTargetGuard.ThrowIfInsertTargetAliasedOnMySql.
+IF [TargetAlias] = "Aliased" THEN [Dbms] <> "MySql";
+
+# The upsert Build() guard: PostgreSQL's DO UPDATE needs a conflict target, which SQLite does not
+# (UpsertComboKeys in DmlCaseRow.cs).
+IF [Arbiter] = "Targetless" AND [Action] IN {"DoUpdate", "DoUpdateWhere"} THEN [Dbms] = "Sqlite";
+
+# MySQL's ON DUPLICATE KEY UPDATE and INSERT IGNORE name no key: either unique key arbitrates.
+IF [Action] IN {"Odku", "Ignore"} THEN [Arbiter] = "Targetless";
+
+# One row conflicts or it does not; no update without an UPDATE action.
+IF [Rows] IN {"Single", "SetForm"} THEN [Conflict] <> "Some";
+IF [Action] IN {"DoNothing", "Ignore"} THEN [UpdateValue] = "None";
+IF [Action] IN {"DoUpdate", "DoUpdateWhere", "Odku"} THEN [UpdateValue] <> "None";

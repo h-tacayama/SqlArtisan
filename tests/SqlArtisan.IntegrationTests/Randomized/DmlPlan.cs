@@ -1,4 +1,5 @@
 using System.Data;
+using System.Globalization;
 using CsCheck;
 using static SqlArtisan.Sql;
 
@@ -16,7 +17,10 @@ internal sealed record DmlPlan(
         yield return Spec.Planned("BASE");
         foreach ((string name, DmlSpec variant) in Rewrites)
         {
-            yield return variant.Planned(name);
+            for (DmlSpec? step = variant; step is not null; step = step.Then)
+            {
+                yield return step.Planned(name);
+            }
         }
 
         if (Spec.PlannedMatch("MATCH") is { } match)
@@ -52,14 +56,8 @@ internal static class DmlPlanner
 
     /// <summary>The statement with its filter negated: an UPDATE's or DELETE's WHERE (not
     /// Oracle's pin), or the WHERE of an INSERT's feeding SELECT.</summary>
-    public static DmlSpec? NegateWhere(DmlSpec spec) => spec.Kind == DmlKind.Insert
-        ? spec.Insert!.Feed is { Where: { } feedWhere } feed
-            ? spec with
-            {
-                Insert = spec.Insert with { Feed = feed with { Where = new Negation(feedWhere) } },
-            }
-            : null
-        : spec.Where is null ? null : spec with { Where = new Negation(spec.Where) };
+    public static DmlSpec? NegateWhere(DmlSpec spec) =>
+        spec.Filter is { } filter ? spec.WithFilter(new Negation(filter)) : null;
 
     private static List<(string, Func<DmlSpec, Random, DmlSpec?>)> Rewrites() =>
     [
@@ -73,11 +71,21 @@ internal static class DmlPlanner
         ("M5 literal -> Bind(literal)", (s, _) => BindLiterals(s)),
         ("M8 desugared predicates", (s, _) => Desugar(s)),
         ("M11 In(subquery) == Exists(correlated)", (s, _) => InToExists(s)),
+        ("M12 OnConflict(key) == OnConflict()", (s, _) => UpsertRewrites.Targetless(s)),
+        ("M13 DO NOTHING == INSERT ... SELECT ... WHERE NOT EXISTS",
+            (s, _) => UpsertRewrites.NotExistsInsert(s)),
+        ("M14 MERGE == UPDATE, then INSERT", (s, _) => UpsertRewrites.UpdateThenInsert(s)),
     ];
 
-    private static IReadOnlyList<string> FilterTables(DmlSpec spec) => spec.Kind == DmlKind.Insert
-        ? [spec.Insert!.Feed!.From]
-        : spec.Join is null ? ["u"] : ["u", "d"];
+    private static IReadOnlyList<string> FilterTables(DmlSpec spec) => spec.Kind switch
+    {
+        DmlKind.Insert => [spec.Insert!.Feed!.From],
+        DmlKind.Upsert => ["u"],
+        DmlKind.Merge => spec.Merge!.Source.Body is { Where: not null } body
+            ? [body.From]
+            : [BuildContext.SourceKey],
+        _ => spec.Join is null ? ["u"] : ["u", "d"],
+    };
 
     private static SpecCondition PlainCondition(DmlSpec spec, Random random) =>
         QueryGenerators.PlainCondition(spec.Dbms, FilterTables(spec))
@@ -109,8 +117,7 @@ internal static class DmlPlanner
 
     private static DmlSpec? WrapExcludedOperand(DmlSpec spec, Random random)
     {
-        SpecCondition? where = spec.Kind == DmlKind.Insert ? spec.Insert!.Feed?.Where : spec.Where;
-        if (where is null)
+        if (spec.Filter is not { } where)
         {
             return null;
         }
@@ -122,13 +129,7 @@ internal static class DmlPlanner
             System.Array.Reverse(operands);
         }
 
-        SpecCondition wrapped = new Junction(random.Next(2) == 0, operands);
-        return spec.Kind == DmlKind.Insert
-            ? spec with
-            {
-                Insert = spec.Insert! with { Feed = spec.Insert.Feed! with { Where = wrapped } },
-            }
-            : spec with { Where = wrapped };
+        return spec.WithFilter(new Junction(random.Next(2) == 0, operands));
     }
 
     private static DmlSpec? RewriteNth(
@@ -167,9 +168,12 @@ internal static class DmlPlanner
     // or DELETE's off SQL Server and un-joined, and no subquery correlated to it.
     private static DmlSpec? ToggleTargetAlias(DmlSpec spec)
     {
-        bool allowed = spec.Kind == DmlKind.Insert
-            ? spec.Dbms is not (Dbms.MySql or Dbms.SqlServer)
-            : spec.Dbms != Dbms.SqlServer && spec.Join is null;
+        bool allowed = spec.Kind switch
+        {
+            DmlKind.Insert or DmlKind.Upsert => spec.Dbms is not (Dbms.MySql or Dbms.SqlServer),
+            DmlKind.Merge => false,
+            _ => spec.Dbms != Dbms.SqlServer && spec.Join is null,
+        };
         if (!allowed || ReadsTargetInSubquery(spec))
         {
             return null;
@@ -236,8 +240,7 @@ internal static class DmlPlanner
     // subquery's must be for the link to bind inside it.
     private static DmlSpec? InToExists(DmlSpec spec)
     {
-        SpecCondition? where = spec.Kind == DmlKind.Insert ? spec.Insert!.Feed?.Where : spec.Where;
-        if (where is null)
+        if (spec.Filter is not { } where)
         {
             return null;
         }
@@ -264,14 +267,8 @@ internal static class DmlPlanner
                 Where = query.Where is null ? link : new Junction(true, [query.Where, link]),
             },
             false);
-        SpecCondition rewritten =
-            conjuncts.Count == 1 ? conjuncts[0] : new Junction(true, [.. conjuncts]);
-        return spec.Kind == DmlKind.Insert
-            ? spec with
-            {
-                Insert = spec.Insert! with { Feed = spec.Insert.Feed! with { Where = rewritten } },
-            }
-            : spec with { Where = rewritten };
+        return spec.WithFilter(
+            conjuncts.Count == 1 ? conjuncts[0] : new Junction(true, [.. conjuncts]));
     }
 }
 
@@ -306,8 +303,9 @@ internal sealed class DmlChecker
 
     private static readonly PlannedStatement s_readUsers = new(
         "READ USERS",
-        "Select(u.Id, u.Name, u.Age, u.DeptId).From(u)",
-        () => Select(s_users.Id, s_users.Name, s_users.Age, s_users.DeptId).From(s_users));
+        "Select(u.Id, u.Name, u.Age, u.DeptId, u.Code).From(u)",
+        () => Select(s_users.Id, s_users.Name, s_users.Age, s_users.DeptId, s_users.Code)
+            .From(s_users));
 
     private static readonly PlannedStatement s_readDepts = new(
         "READ DEPTS",
@@ -333,7 +331,31 @@ internal sealed class DmlChecker
                     _runner.Run(s_readDepts, transaction).Rows);
         });
 
-    public DmlOutcome Run(DmlSpec spec) => Run(spec.Planned(""));
+    /// <summary>Runs <paramref name="spec"/> and each statement it chains through
+    /// <see cref="DmlSpec.Then"/>, in one rolled-back transaction.</summary>
+    public DmlOutcome Run(DmlSpec spec) =>
+        _runner.RunInRolledBackTransaction(transaction =>
+        {
+            Outcome outcome = _runner.Run(spec.Planned(""), transaction);
+            for (DmlSpec? next = spec.Then; next is not null && outcome.Error is null;
+                next = next.Then)
+            {
+                Outcome more = _runner.Run(next.Planned(""), transaction);
+                outcome = more with
+                {
+                    CSharp = outcome.CSharp + "\n" + more.CSharp,
+                    Sql = outcome.Sql + " ; " + more.Sql,
+                    Rows = more.Rows is null ? null : [.. outcome.Rows!, .. more.Rows],
+                };
+            }
+
+            return outcome.Error is not null
+                ? new DmlOutcome(outcome, null, null)
+                : new DmlOutcome(
+                    outcome,
+                    _runner.Run(s_readUsers, transaction).Rows,
+                    _runner.Run(s_readDepts, transaction).Rows);
+        });
 
     /// <summary>Throws <see cref="RandomizedCaseException"/> naming every relation that does
     /// not hold.</summary>
@@ -419,6 +441,12 @@ internal sealed class DmlChecker
             return;
         }
 
+        if (spec.Kind is DmlKind.Upsert or DmlKind.Merge)
+        {
+            CheckConflictMatch(spec, actual, match, failures);
+            return;
+        }
+
         List<string> written = [.. actual.Users!.Except(DmlReference.SeedUsers)];
         string relation;
         List<string> expected = match.Rows!;
@@ -457,6 +485,65 @@ internal sealed class DmlChecker
                 failures.Add("R2 the output ids are the matched ids\n" + match.Show("MATCH")
                     + actual.Show("BASE"));
             }
+        }
+    }
+
+    // R2 for an upsert: only a row its keys meet changes, and a proposed row is inserted
+    // exactly when its keys meet none; for a MERGE, only a matched row changes (a BY SOURCE
+    // branch writes unmatched ones), and an unconditioned lone DELETE removes every one.
+    private static void CheckConflictMatch(
+        DmlSpec spec,
+        DmlOutcome actual,
+        Outcome match,
+        List<string> failures)
+    {
+        HashSet<string> matched = [.. match.Rows!.Select(Id)];
+        HashSet<string> seedIds = [.. DmlReference.SeedUsers.Select(Id)];
+        List<string> changed = [.. DmlReference.SeedUsers.Except(actual.Users!).Select(Id)];
+        List<string> inserted =
+            [.. actual.Users!.Select(Id).Where(id => !seedIds.Contains(id))];
+        List<string> wrong = [];
+        if (spec.Kind == DmlKind.Upsert)
+        {
+            wrong.AddRange(changed.Where(id => !matched.Contains(id))
+                .Select(id => $"changed {id}, which no proposed key meets"));
+            UserRow[] existing = [.. match.Rows!.Select(r => r.Split('|')).Select(c =>
+                new UserRow((long)DmlReference.Cell(c[0])!, null, null, null,
+                    (long?)DmlReference.Cell(c[1])))];
+            List<string> fresh = [.. spec.ProposedKeys()
+                .Select(k => new UserRow(
+                    Convert.ToInt64(k.Id.Value, CultureInfo.InvariantCulture),
+                    null,
+                    null,
+                    null,
+                    k.Code is null
+                        ? null
+                        : Convert.ToInt64(k.Code.Value, CultureInfo.InvariantCulture)))
+                .Where(p => !existing.Any(e => spec.Upsert!.Conflicts(e, p)))
+                .Select(p => p.Id.ToString(CultureInfo.InvariantCulture))];
+            if (!DmlOutcome.Same(fresh, inserted))
+            {
+                wrong.Add($"inserted {string.Join(",", inserted)}, not the unmet "
+                    + string.Join(",", fresh));
+            }
+        }
+        else if (spec.Merge!.Branches.All(b => b.Clause != MergeClause.BySource))
+        {
+            wrong.AddRange(changed.Where(id => !matched.Contains(id))
+                .Select(id => $"changed {id}, which the source does not match"));
+            MergeBranch[] matching =
+                [.. spec.Merge.Branches.Where(b => b.Clause == MergeClause.Matched)];
+            bool deletesEveryMatch = matching is [{ When: null, Action: MergeAction.Delete }];
+            if (deletesEveryMatch && !DmlOutcome.Same(changed, matched))
+            {
+                wrong.Add($"deleted {string.Join(",", changed)}, not every matched id");
+            }
+        }
+
+        if (wrong.Count > 0)
+        {
+            failures.Add($"R2 {string.Join("; ", wrong)}\n" + match.Show("MATCH")
+                + actual.Show("BASE"));
         }
     }
 
@@ -515,7 +602,7 @@ internal sealed class DmlChecker
     private static string Project(string row, InsertShape shape)
     {
         string[] cells = row.Split('|');
-        string[] order = ["id", "name", "age", "dept_id"];
+        string[] order = ["id", "name", "age", "dept_id", "code"];
         return string.Join("|", shape.Columns.Select(c => cells[System.Array.IndexOf(order, c)]));
     }
 }

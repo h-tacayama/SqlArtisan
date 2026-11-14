@@ -4,7 +4,7 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.IntegrationTests.Randomized;
 
-internal enum DmlKind { Insert, Update, Delete }
+internal enum DmlKind { Insert, Update, Delete, Upsert, Merge }
 
 /// <summary>How a joined UPDATE or DELETE reaches its source table: MySQL's direct join, a
 /// FROM that leaves the target out (PostgreSQL, SQLite), one that re-lists it (SQL Server's
@@ -108,8 +108,8 @@ internal sealed record InsertShape(
     QueryBlock? Feed);
 
 /// <summary>
-/// One generated INSERT, UPDATE or DELETE on <c>rt_users</c> (key <c>u</c>). A table key is
-/// unaliased when <see cref="Unaliased"/> holds it, as in <see cref="QuerySpec"/>.
+/// One generated INSERT, UPDATE, DELETE, upsert or MERGE on <c>rt_users</c> (key <c>u</c>). A
+/// table key is unaliased when <see cref="Unaliased"/> holds it, as in <see cref="QuerySpec"/>.
 /// </summary>
 internal sealed record DmlSpec
 {
@@ -140,6 +140,15 @@ internal sealed record DmlSpec
     public DmlOutputLevel Output { get; init; }
 
     public IReadOnlyList<SpecExpression> OutputItems { get; init; } = [];
+
+    /// <summary>An upsert's conflict clause, over the rows <see cref="Insert"/> proposes.</summary>
+    public UpsertShape? Upsert { get; init; }
+
+    public MergeShape? Merge { get; init; }
+
+    /// <summary>A statement run after this one in the same transaction, which a rewrite into
+    /// two statements compares as one.</summary>
+    public DmlSpec? Then { get; init; }
 
     public bool TargetAliased => !Unaliased.Contains("u");
 
@@ -174,6 +183,47 @@ internal sealed record DmlSpec
         }
     }
 
+    /// <summary>The condition the planner negates and rewrites: an UPDATE's or DELETE's WHERE,
+    /// an INSERT's feeding WHERE, an upsert's DO UPDATE WHERE, or a MERGE source's WHERE, else
+    /// its first branch's condition.</summary>
+    public SpecCondition? Filter => Kind switch
+    {
+        DmlKind.Insert => Insert!.Feed?.Where,
+        DmlKind.Upsert => Upsert!.Where,
+        DmlKind.Merge => Merge!.Source.Body?.Where
+            ?? Merge.Branches
+                .Select(b => b.When ?? b.ActionWhere)
+                .FirstOrDefault(c => c is not null),
+        _ => Where,
+    };
+
+    public DmlSpec WithFilter(SpecCondition filter) => Kind switch
+    {
+        DmlKind.Insert => this with
+        {
+            Insert = Insert! with { Feed = Insert.Feed! with { Where = filter } },
+        },
+        DmlKind.Upsert => this with { Upsert = Upsert! with { Where = filter } },
+        DmlKind.Merge when Merge!.Source.Body is { Where: not null } body => this with
+        {
+            Merge = Merge with
+            {
+                Source = Merge.Source with { Body = body with { Where = filter } },
+            },
+        },
+        DmlKind.Merge => this with { Merge = Merge with { Branches = WithBranchFilter(filter) } },
+        _ => this with { Where = filter },
+    };
+
+    private MergeBranch[] WithBranchFilter(SpecCondition filter)
+    {
+        int index = Merge!.Branches.ToList().FindIndex(b => b.When is not null
+            || b.ActionWhere is not null);
+        return [.. Merge.Branches.Select((b, i) => i != index
+            ? b
+            : b.When is not null ? b with { When = filter } : b with { ActionWhere = filter })];
+    }
+
     public DmlSpec Rewrite(SpecRewrite rewrite) => this with
     {
         Join = Join is null ? null : Join with { On = Join.On.Rewrite(rewrite) },
@@ -186,6 +236,9 @@ internal sealed record DmlSpec
             Feed = Insert.Feed?.Rewrite(rewrite),
         },
         OutputItems = [.. OutputItems.Select(e => e.Rewrite(rewrite))],
+        Upsert = Upsert?.Rewrite(rewrite),
+        Merge = Merge?.Rewrite(rewrite),
+        Then = Then?.Rewrite(rewrite),
     };
 
     /// <summary>Every condition of the statement and of the blocks nested in it, in visit
@@ -206,6 +259,8 @@ internal sealed record DmlSpec
     public QueryBlock? MatchQuery() => Kind switch
     {
         DmlKind.Insert => Insert!.Feed,
+        DmlKind.Upsert => ConflictQuery(),
+        DmlKind.Merge => null,
         _ => new QueryBlock
         {
             Items = [new ColumnRef("u", "id")],
@@ -223,9 +278,48 @@ internal sealed record DmlSpec
 
     public PlannedStatement Planned(string label) => new(label, ToCSharp(), Build);
 
+    /// <summary>The proposed rows' key literals: each row's id, then its code.</summary>
+    public IReadOnlyList<(Literal Id, Literal? Code)> ProposedKeys() => [.. Insert!.Rows.Select(r =>
+        ((Literal)r[IndexOf("id")], r[IndexOf("code")] as Literal))];
+
+    private int IndexOf(string column) =>
+        Insert!.Columns.ToList().IndexOf(column);
+
+    // The existing rows an upsert's proposed keys meet under its arbiter, with their codes.
+    private QueryBlock? ConflictQuery()
+    {
+        IReadOnlyList<(Literal Id, Literal? Code)> keys = ProposedKeys();
+        List<SpecCondition> tests = [];
+        if (Upsert!.Arbiter != ArbiterLevel.Code)
+        {
+            tests.Add(new InList(new ColumnRef("u", "id"), [.. keys.Select(k => k.Id)], false));
+        }
+
+        Literal[] codes = [.. keys.Select(k => k.Code).OfType<Literal>()];
+        if (Upsert.Arbiter != ArbiterLevel.Id && codes.Length > 0)
+        {
+            tests.Add(new InList(new ColumnRef("u", "code"), codes, false));
+        }
+
+        return tests.Count == 0 ? null : new QueryBlock
+        {
+            Items = [new ColumnRef("u", "id"), new ColumnRef("u", "code")],
+            From = "u",
+            Where = tests.Count == 1 ? tests[0] : new Junction(false, [.. tests]),
+        };
+    }
+
     /// <summary>The SELECT of <see cref="MatchQuery"/>, under the statement's WITH.</summary>
     public PlannedStatement? PlannedMatch(string label)
     {
+        if (Merge is { } merge)
+        {
+            return new PlannedStatement(
+                label,
+                Declarations() + "\n" + merge.MatchCSharp(),
+                () => merge.BuildMatch(new BuildContext(Unaliased)));
+        }
+
         if (MatchQuery() is not { } query)
         {
             return null;
@@ -249,6 +343,11 @@ internal sealed record DmlSpec
         {
             DmlKind.Insert => BuildInsert(context),
             DmlKind.Update => BuildUpdate(context),
+            DmlKind.Upsert => Upsert!.Build(
+                Insert!,
+                context,
+                Output == DmlOutputLevel.Returning ? () => OutputObjects(context) : null),
+            DmlKind.Merge => Merge!.Build(context),
             _ => BuildDelete(context),
         };
     }
@@ -436,11 +535,24 @@ internal sealed record DmlSpec
     {
         DmlKind.Insert => InsertCSharp(),
         DmlKind.Update => UpdateCSharp(),
+        DmlKind.Upsert => Upsert!.ToCSharp(Insert!),
+        DmlKind.Merge => Merge!.ToCSharp(),
         _ => DeleteCSharp(),
     } + ReturningCSharp();
 
     private string Declarations()
     {
+        if (Kind is DmlKind.Upsert or DmlKind.Merge || Then is not null
+            || Insert?.Feed?.From is "d6" or "u5" or "d5" or "u7")
+        {
+            string[] keys =
+                ["u", "u2", "d2", "u3", "d3", "u4", "d4", "u5", "d5", "u6", "d6", "u7"];
+            return string.Join(" ", keys.Select(k =>
+                $"{(k[0] == 'u' ? "RandomUsersTable" : "RandomDeptsTable")} {k} = "
+                    + $"new({(Unaliased.Contains(k) ? "\"\"" : $"\"{k}\"")});"))
+                + (Merge is null ? "" : "\n" + Merge.Source.Declaration());
+        }
+
         string tables = string.Join(" ", QuerySpec.TableKeys.Concat(["u4", "d4"]).Select(k =>
             $"{(k[0] == 'u' ? "RandomUsersTable" : "RandomDeptsTable")} {k} = "
                 + $"new({(Unaliased.Contains(k) ? "\"\"" : $"\"{k}\"")});"));

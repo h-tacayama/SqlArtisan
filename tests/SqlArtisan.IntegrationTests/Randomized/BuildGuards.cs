@@ -2,8 +2,8 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.IntegrationTests.Randomized;
 
-/// <summary>The <c>Build()</c> guards (<c>DmlTargetGuard</c>) a DML model level's verdict reads,
-/// each with the smallest statements that reach it.</summary>
+/// <summary>The <c>Build()</c> guards (<c>DmlTargetGuard</c>, <c>InsertBuilder.Validate</c>) a
+/// DML model level's verdict reads, each with the smallest statements that reach it.</summary>
 internal static class BuildGuards
 {
     // One handle per alias: the re-list guards compare the target with a FROM table by
@@ -89,6 +89,26 @@ internal static class BuildGuards
             + "target table.",
         [() => DeleteFrom(Users("u")).Using(s_d).Where(Users("u").DeptId == s_d.Id)]);
 
+    public static readonly GuardKey TargetlessDoUpdateOnPostgreSql = new(
+        "InsertBuilder.Validate (targetless DO UPDATE on PostgreSQL)",
+        [Dbms.PostgreSql],
+        "PostgreSQL requires a conflict target for ON CONFLICT DO UPDATE; name the column(s) in "
+            + "OnConflict(...).",
+        [
+            () => InsertInto(Users(""), Users("").Id).Values(500).OnConflict()
+                .DoUpdateSet(Users("").Age == 1),
+        ]);
+
+    public static readonly GuardKey LeadingWithOnOracleMerge = new(
+        "DmlTargetGuard.ThrowIfLeadingWithUnsupportedOnMerge",
+        [Dbms.Oracle],
+        "Oracle has no leading WITH on MERGE; put the CTE inside the subquery the Using(...) "
+            + "source names.",
+        [
+            () => WithIds().MergeInto(s_u).Using(Ids()).On(s_u.Id == Ids().Column("k"))
+                .WhenMatched().ThenUpdateSet(s_u.Age == 1),
+        ]);
+
     public static readonly IReadOnlyList<GuardKey> All =
     [
         InsertTargetAliasedOnMySql,
@@ -99,6 +119,8 @@ internal static class BuildGuards
         UpdateFromNotRelistedOnSqlServer,
         UpdateRelistedOffSqlServer,
         DeleteUsingOnSqlServer,
+        TargetlessDoUpdateOnPostgreSql,
+        LeadingWithOnOracleMerge,
     ];
 
     private static RandomUsersTable Users(string alias) => alias switch

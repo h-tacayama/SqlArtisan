@@ -50,6 +50,16 @@ internal static class ReferenceEvaluator
         new Context(new Env(rows.ToImmutableDictionary()), null),
         new Collation(dbms));
 
+    /// <summary>The three-valued truth of <paramref name="condition"/> over the table rows
+    /// <paramref name="rows"/> holds by key.</summary>
+    public static bool? TruthOf(
+        SpecCondition condition,
+        IReadOnlyDictionary<string, object?> rows,
+        Dbms dbms) => Test(
+        condition,
+        new Context(new Env(rows.ToImmutableDictionary()), null),
+        new Collation(dbms));
+
     public static string Normalize(object? value) => value switch
     {
         null or DBNull => "NULL",
@@ -293,6 +303,7 @@ internal static class ReferenceEvaluator
             "id" => u.Id,
             "name" => u.Name,
             "age" => u.Age,
+            "code" => u.Code,
             _ => u.DeptId,
         },
         DeptRow d => column.Column == "id" ? d.Id : d.Name,

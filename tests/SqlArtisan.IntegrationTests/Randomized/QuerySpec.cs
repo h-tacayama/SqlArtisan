@@ -43,18 +43,31 @@ internal sealed class BuildContext
     // folds a bare c0 to C0, which a quoted "c0" no longer matches.
     public DbColumn CteColumn() => Cte().Column(Null.As(CteColumnName));
 
-    public DbColumn Column(string key, string column) => Table(key) switch
-    {
-        RandomUsersTable u => column switch
+    /// <summary>A MERGE source's columns by name, which <see cref="Column"/> serves for
+    /// <see cref="SourceKey"/>.</summary>
+    public Func<string, DbColumn>? Source { get; set; }
+
+    /// <summary>The key of a MERGE source's row.</summary>
+    public const string SourceKey = "s";
+
+    /// <summary>The key of the row an upsert proposes, which <c>Excluded(...)</c> reads.</summary>
+    public const string ExcludedKey = "x";
+
+    public DbColumn Column(string key, string column) => key == SourceKey && Source is { } source
+        ? source(column)
+        : Table(key) switch
         {
-            "id" => u.Id,
-            "name" => u.Name,
-            "age" => u.Age,
-            _ => u.DeptId,
-        },
-        RandomDeptsTable d => column == "id" ? d.Id : d.Name,
-        _ => throw new InvalidOperationException(key),
-    };
+            RandomUsersTable u => column switch
+            {
+                "id" => u.Id,
+                "name" => u.Name,
+                "age" => u.Age,
+                "code" => u.Code,
+                _ => u.DeptId,
+            },
+            RandomDeptsTable d => column == "id" ? d.Id : d.Name,
+            _ => throw new InvalidOperationException(key),
+        };
 }
 
 /// <summary>Rewrites a spec bottom-up: each node is rebuilt from its rewritten children, then
@@ -97,15 +110,23 @@ internal sealed record ColumnRef(string Table, string Column) : SpecExpression
 {
     public override SpecType Type => Column == "name" ? SpecType.Text : SpecType.Int;
 
-    public override object Build(BuildContext context) => context.Column(Table, Column);
+    // The proposed row's key reads through Excluded(...) on the target's column.
+    public override object Build(BuildContext context) => Table == BuildContext.ExcludedKey
+        ? Excluded(context.Column("u", Column))
+        : context.Column(Table, Column);
 
-    public override string ToCSharp() => Table + "." + Column switch
+    public override string ToCSharp()
     {
-        "id" => "Id",
-        "name" => "Name",
-        "age" => "Age",
-        _ => "DeptId",
-    };
+        string member = Column switch
+        {
+            "id" => "Id",
+            "name" => "Name",
+            "age" => "Age",
+            "code" => "Code",
+            _ => "DeptId",
+        };
+        return Table == BuildContext.ExcludedKey ? $"Excluded(u.{member})" : Table + "." + member;
+    }
 }
 
 internal sealed record Literal(object Value, bool IsBound = false) : SpecExpression
@@ -501,6 +522,13 @@ internal sealed record QueryBlock
     /// derived table or CTE wrapping the block reads its columns by.</summary>
     public bool AliasesItems { get; init; }
 
+    /// <summary>The aliases <see cref="AliasesItems"/> gives in place of <c>c0</c>,
+    /// <c>c1</c>, ...</summary>
+    public IReadOnlyList<string>? ItemNames { get; init; }
+
+    private string ItemName(int i) =>
+        ItemNames?[i] ?? "c" + i.ToString(CultureInfo.InvariantCulture);
+
     public IReadOnlyList<string> Tables => Join is null ? [From] : [From, Join.Table];
 
     public QueryBlock Rewrite(SpecRewrite rewrite) => this with
@@ -549,7 +577,7 @@ internal sealed record QueryBlock
             object item = Items[i].Build(context);
             if (AliasesItems)
             {
-                string name = "c" + i.ToString(CultureInfo.InvariantCulture);
+                string name = ItemName(i);
                 aliases[i] = item switch
                 {
                     ISubquery s => s.As(name),
@@ -642,7 +670,7 @@ internal sealed record QueryBlock
     public string ToCSharp()
     {
         string items = string.Join(", ", Items.Select((e, i) => AliasesItems
-            ? $"{(e is Literal l ? $"Bind({l.Text})" : e.ToCSharp())}.As(\"c{i}\")"
+            ? $"{(e is Literal l ? $"Bind({l.Text})" : e.ToCSharp())}.As(\"{ItemName(i)}\")"
             : e.ToCSharp()));
         string top = Limit is { Form: PagingLevel.Top } t ? $"Top({t.Count}), " : "";
         string text = IsDistinct ? $"Select(Distinct, {top}{items})" : $"Select({top}{items})";

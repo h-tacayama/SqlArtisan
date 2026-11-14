@@ -99,6 +99,19 @@ public sealed class PictModelTests
                     }
                 }
             }
+
+            Dictionary<string, string> row =
+                header.Zip(rows[i]).ToDictionary(p => p.First, p => p.Second);
+            foreach (ComboKey combo in binding.ComboKeys.Where(c => c.AppliesTo(row)))
+            {
+                foreach (LevelKey key in combo.Keys)
+                {
+                    if (MatrixLookup.Verdict(dbms, key) is { } verdict)
+                    {
+                        unsupported.Add($"row {i + 1} {combo}: {verdict}");
+                    }
+                }
+            }
         }
 
         Assert.True(
@@ -127,6 +140,37 @@ public sealed class PictModelTests
                     if (!pict.IsSatisfiable(pair))
                     {
                         excluded.Add($"{factor}={level} on {engine}");
+                    }
+                }
+            }
+        }
+
+        // A combination's keys hold on fewer engines than its levels' own, so each engine its
+        // keys and its levels' keys allow must still reach every tuple it names.
+        foreach (ComboKey combo in binding.ComboKeys)
+        {
+            IEnumerable<Dictionary<string, string>> tuples = [[]];
+            foreach ((string factor, string[] levels) in combo.Levels)
+            {
+                tuples = [.. tuples.SelectMany(t => levels.Select(l =>
+                    new Dictionary<string, string>(t) { [factor] = l }))];
+            }
+
+            foreach (Dictionary<string, string> tuple in tuples)
+            {
+                foreach (string engine in engines.Where(e => MatrixLookup.SupportsAll(
+                    Enum.Parse<Dbms>(e),
+                    [
+                        .. combo.Keys,
+                        .. tuple.SelectMany(kv => binding.LevelKeys(kv.Key, kv.Value)),
+                    ])))
+                {
+                    Dictionary<string, string> cell = new(tuple) { ["Dbms"] = engine };
+                    if (!pict.IsSatisfiable(cell))
+                    {
+                        string levels =
+                            string.Join(", ", tuple.Select(kv => $"{kv.Key}={kv.Value}"));
+                        excluded.Add($"{levels} on {engine}");
                     }
                 }
             }
@@ -235,6 +279,22 @@ public sealed class PictModelTests
             MatrixLookup.Verdict(Dbms.SqlServer, BuildGuards.DeleteUsingOnSqlServer));
     }
 
+    // The guard reads the target and the action together, so no one level of either carries it.
+    [Fact]
+    public void ComboKey_TargetlessDoUpdate_ReadsTheBuildGuardOnPostgreSqlOnly()
+    {
+        ComboKey combo = Assert.Single(CaseModelCatalog.For("upsert").ComboKeys);
+        Dbms[] supported = [.. s_engines.Where(d => MatrixLookup.SupportsAll(d, combo.Keys))];
+
+        Assert.True(combo.AppliesTo(Row("Targetless", "DoUpdateWhere")));
+        Assert.False(combo.AppliesTo(Row("Targetless", "DoNothing")));
+        Assert.False(combo.AppliesTo(Row("Id", "DoUpdate")));
+        Assert.Equal([Dbms.MySql, Dbms.Oracle, Dbms.Sqlite, Dbms.SqlServer], supported);
+
+        static Dictionary<string, string> Row(string arbiter, string action) =>
+            new() { ["Arbiter"] = arbiter, ["Action"] = action };
+    }
+
     // A probe off its key's dialects may still stop at another listed guard of that dialect,
     // as a leading-WITH INSERT stops at Oracle's while its key claims MySQL's.
     [Fact]
@@ -282,6 +342,7 @@ public sealed class PictModelTests
         CaseModelBinding binding = CaseModelCatalog.For(model);
         List<string> unproved = [.. pict.Factors
             .SelectMany(f => f.Levels.SelectMany(l => binding.LevelKeys(f.Name, l)))
+            .Concat(binding.ComboKeys.SelectMany(c => c.Keys))
             .OfType<GuardKey>()
             .Where(key => !BuildGuards.All.Contains(key))
             .Select(key => key.Guard)];
