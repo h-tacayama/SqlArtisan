@@ -27,8 +27,9 @@ internal sealed class SqlBuildingBuffer : IDisposable
     private TableReference? _correlatedDmlTarget;
     // Fits the padding beside _disposed, so it costs no build an allocation.
     private bool _qualifiesReturningByTableName;
-    // Set by DO UPDATE SET for the rest of its statement level: PostgreSQL reads an
-    // unaliased target's bare column there as ambiguous with EXCLUDED's (#675).
+    // Set by DO UPDATE SET and ON DUPLICATE KEY UPDATE for the rest of their statement level:
+    // PostgreSQL reads an unaliased target's bare column there as ambiguous with EXCLUDED's
+    // (#675), and MySQL a listed one with the row alias's (#827).
     private bool _qualifiesUpsertTarget;
     // Inside a nested block the guard defers to the block's end: a target column
     // is legitimate only where its own block lists the target (#607, #679).

@@ -254,9 +254,9 @@ over-guard finding at any tier. A `MERGE` always joins its target to its source,
 `MergeInto(...)` rejects an unaliased target the same way, at the call, on every
 dialect (`ThrowIfMergeTargetUnaliased`, #820): its bare column met a same-named
 source column in `ON`, a branch condition or a value. Qualifying by table name, as
-`DO UPDATE SET` does (#721), stays an `INSERT` form: an `INSERT` target cannot be
-aliased on MySQL or SQL Server, while every engine with `MERGE` takes a target
-alias. The correlated-DML guard therefore never sees a `MERGE` target; its message
+`DO UPDATE SET` and `ON DUPLICATE KEY UPDATE` do (#721, #827), stays an `INSERT`
+form: an `INSERT` target cannot be aliased on MySQL or SQL Server, while every
+engine with `MERGE` takes a target alias. The correlated-DML guard therefore never sees a `MERGE` target; its message
 keeps `MERGE` because SQLA0300, which reports before `Build()`, shares it.
 
 **Which clause pairs no dialect runs get a guard (decided — do not re-file):** a

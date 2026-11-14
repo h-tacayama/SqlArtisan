@@ -310,6 +310,117 @@ public class UpsertTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // MySQL reads a listed column bare beside the row alias as ambiguous (1052) and cannot
+    // alias the INSERT target, so the update qualifies the target's columns by table name (#827).
+    [Fact]
+    public void OnDuplicateKeyUpdate_MySql_ListedTargetColumn_QualifiesByTableName()
+    {
+        SqlStatement sql =
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "a")
+            .OnDuplicateKeyUpdate(_t.Code == _t.Code + 1)
+            .Build(Dbms.MySql);
+
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) VALUES (?0, ?1) AS new "
+                + "ON DUPLICATE KEY UPDATE code = (test_table.code + ?2)",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("a", sql.Parameters.Get<string>("?1"));
+        Assert.Equal(1, sql.Parameters.Get<int>("?2"));
+    }
+
+    [Fact]
+    public void OnDuplicateKeyUpdate_MySql_UnlistedTargetColumn_QualifiesByTableName()
+    {
+        SqlStatement sql =
+            InsertInto(_t, _t.Code)
+            .Values(1)
+            .OnDuplicateKeyUpdate(_t.Name == Concat(_t.Name, "x"))
+            .Build(Dbms.MySql);
+
+        Assert.Equal(
+            "INSERT INTO test_table (code) VALUES (?0) AS new "
+                + "ON DUPLICATE KEY UPDATE name = CONCAT(test_table.name, ?1)",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("x", sql.Parameters.Get<string>("?1"));
+    }
+
+    [Fact]
+    public void OnDuplicateKeyUpdate_MySql_TargetColumnBesideExcluded_QualifiesOnlyTheTarget()
+    {
+        SqlStatement sql =
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "a")
+            .OnDuplicateKeyUpdate(_t.Code == _t.Code + Excluded(_t.Code))
+            .Build(Dbms.MySql);
+
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) VALUES (?0, ?1) AS new "
+                + "ON DUPLICATE KEY UPDATE code = (test_table.code + new.code)",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("a", sql.Parameters.Get<string>("?1"));
+    }
+
+    [Fact]
+    public void OnDuplicateKeyUpdate_MySql_SetForm_QualifiesByTableName()
+    {
+        SqlStatement sql =
+            InsertInto(_t)
+            .Set(_t.Code == 1, _t.Name == "a")
+            .OnDuplicateKeyUpdate(_t.Code == _t.Code + 1)
+            .Build(Dbms.MySql);
+
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) VALUES (?0, ?1) AS new "
+                + "ON DUPLICATE KEY UPDATE code = (test_table.code + ?2)",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("a", sql.Parameters.Get<string>("?1"));
+        Assert.Equal(1, sql.Parameters.Get<int>("?2"));
+    }
+
+    [Fact]
+    public void OnDuplicateKeyUpdate_MySql_SchemaQualifiedTarget_QualifiesByTableName()
+    {
+        DbTable items = new("s.items");
+
+        SqlStatement sql =
+            InsertInto(items, items.Column("id"), items.Column("b"))
+            .Values(1, 5)
+            .OnDuplicateKeyUpdate(items.Column("b") == items.Column("b") + 1)
+            .Build(Dbms.MySql);
+
+        Assert.Equal(
+            "INSERT INTO s.items (id, b) VALUES (?0, ?1) AS new "
+                + "ON DUPLICATE KEY UPDATE b = (items.b + ?2)",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal(5, sql.Parameters.Get<int>("?1"));
+        Assert.Equal(1, sql.Parameters.Get<int>("?2"));
+    }
+
+    [Fact]
+    public void OnDuplicateKeyUpdate_MySql_UnaliasedTarget_LeavesSubqueryColumnsBare()
+    {
+        DbTable u = new("u");
+
+        SqlStatement sql =
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "a")
+            .OnDuplicateKeyUpdate(_t.Name == Select(Max(u.Column("name"))).From(u))
+            .Build(Dbms.MySql);
+
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) VALUES (?0, ?1) AS new "
+                + "ON DUPLICATE KEY UPDATE name = (SELECT MAX(name) FROM u)",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("a", sql.Parameters.Get<string>("?1"));
+    }
+
     [Fact]
     public void DoUpdateSet_NoAssignments_ThrowsArgumentException()
     {
